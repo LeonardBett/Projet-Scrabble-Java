@@ -1,5 +1,70 @@
 # Projet de Programmation
 
+**Architecture temporaire**
+
+scrabble-project/
+├── pom.xml                     # Gestion des dépendances (Maven)
+├── src/
+│   ├── main/
+│   │   ├── resources/          # Fichiers non-Java
+│   │   │   ├── i18n/           # Fichiers de traduction (ResourceBundle)
+│   │   │   │   ├── messages_fr.properties
+│   │   │   │   └── messages_en.properties
+│   │   │   ├── config/         # Configuration par défaut
+│   │   │   ├── dictionaries/   # Fichiers dictionnaires (.txt)
+│   │   │   └── fxml/           # Vues JavaFX (.fxml)
+│   │   │
+│   │   └── java/
+│   │       └── fr/
+│   │           └── univ_bordeaux/
+│   │               └── scrabble/
+│   │                   ├── App.java          # Point d'entrée (Main)
+│   │                   │
+│   │                   ├── model/            # LE MODÈLE (Logique métier)
+│   │                   │   ├── Game.java     # Façade du moteur de jeu
+│   │                   │   ├── Board.java    # Plateau et cases
+│   │                   │   ├── Cell.java     # Case (Bonus, Lettre)
+│   │                   │   ├── Tile.java     # Tuile (Lettre, valeur)
+│   │                   │   ├── Player.java   # Classe abstraite Joueur
+│   │                   │   ├── Move.java     # Représentation d'un coup
+│   │                   │   │
+│   │                   │   ├── dictionary/   # Gestion des mots
+│   │                   │   │   ├── Dictionary.java (Interface)
+│   │                   │   │   ├── Gaddag.java   # Structure GADDAG
+│   │                   │   │   └── Dawg.java     # Structure DAWG
+│   │                   │   │
+│   │                   │   └── ai/           # Intelligence Artificielle
+│   │                   │       ├── AIPlayer.java
+│   │                   │       ├── MinimaxSolver.java # Algo Exptiminimax
+│   │                   │       └── MLAgent.java       # TensorFlow
+│   │                   │
+│   │                   ├── view/             # LES VUES (Interfaces)
+│   │                   │   ├── GameView.java # Interface (Observer pattern)
+│   │                   │   ├── cli/          # Interface Ligne de Commande
+│   │                   │   │   └── TerminalView.jav
+│   │                   │   │   └──CommandHandler
+│   │                   │   └── gui/          # Interface Graphique (JavaFX)
+│   │                   │       ├── JavaFXView.java
+│   │                   │       └── GameWindowController.java
+│   │                   │
+│   │                   ├── controller/       # LE CONTRÔLEUR
+│   │                   │   └── GameController.java # Orchestration
+│   │                   │
+│   │                   ├── network/          # RÉSEAU
+│   │                   │   ├── NetworkManager.java
+│   │                   │   ├── GameServer.java     # Multithreadé
+│   │                   │   ├── GameClient.java
+│   │                   │   └── Packet.java         # Protocole de communication
+│   │                   │
+│   │                   └── utils/            # UTILITAIRES
+│   │                       ├── ConfigLoader.java   # Gestion .scrabblerc
+│   │                       ├── GameSerializer.java # Sauvegarde ASCII
+│   │                       └── ArgParser.java      # Commons-CLI
+│   │
+│   └── test/                   # TESTS UNITAIRES
+│       └── java/
+│           └── ... (Tests JUnit 5)
+
 **Master Informatique**
 **2025–2026**
 
