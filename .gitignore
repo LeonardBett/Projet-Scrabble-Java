@@ -1,0 +1,15 @@
+# Maven
+target/
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# Fichiers Java génériques et système
+*.class
+*.log
+.DS_Store
+Thumbs.db
