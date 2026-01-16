@@ -1,5 +1,7 @@
 package fr.u_bordeaux.scrabble.model.core;
 
+import java.util.Objects;
+
 /**
  * Represents a game tile (letter) with its point value.
  */
@@ -45,5 +47,23 @@ public class Tile {
             case 'K', 'W', 'X', 'Y', 'Z' -> 10;
             default -> 0; // Joker (Blank) or invalid characters
         };
+    }
+
+    @Override
+    public String toString() {
+        return "" + character;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Tile tile = (Tile) o;
+        return character == tile.character && value == tile.value;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(character, value);
     }
 }
