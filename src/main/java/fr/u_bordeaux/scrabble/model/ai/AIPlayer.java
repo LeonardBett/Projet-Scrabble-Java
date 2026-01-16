@@ -5,5 +5,13 @@ import fr.u_bordeaux.scrabble.model.interfaces.Player;
 /**
  * Représente un joueur artificiel (IA).
  */
-public class AIPlayer extends Player {
+public class AIPlayer extends  Player {
+    /**
+     * Base constructor for any player.
+     *
+     * @param name The name of the player.
+     */
+    public AIPlayer(String name) {
+        super(name);
+    }
 }
