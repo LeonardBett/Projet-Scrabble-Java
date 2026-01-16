@@ -27,7 +27,7 @@
                 <version>3.1.1</version>
                 <configuration>
                     <!-- Remplace 'Main' par le nom de ta classe contenant le main() -->
-                    <mainClass>fr.u_bordeaux.Main</mainClass>
+                    <mainClass>fr.u_bordeaux.scrabble.App</mainClass>
                 </configuration>
             </plugin>
         </plugins>
