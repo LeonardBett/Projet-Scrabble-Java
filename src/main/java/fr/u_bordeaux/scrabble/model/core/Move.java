@@ -25,6 +25,10 @@ public class Move {
     private final Point startPosition;
     private final Direction direction;
 
+    // Data for UNDO (to restore state)
+    private int scoreGained;
+    private List<Tile> drawnTiles; // Tiles drawn from bag to refill rack
+
     /**
      * Private constructor. Use factory methods to create instances.
      */
@@ -34,6 +38,7 @@ public class Move {
         this.tiles = tiles != null ? new ArrayList<>(tiles) : Collections.emptyList();
         this.startPosition = startPosition;
         this.direction = direction;
+        this.drawnTiles = new ArrayList<>();
     }
 
     /**
@@ -94,5 +99,22 @@ public class Move {
 
     public Direction getDirection() {
         return direction;
+    }
+
+
+    public int getScoreGained() {
+        return scoreGained;
+    }
+
+    public void setScoreGained(int scoreGained) {
+        this.scoreGained = scoreGained;
+    }
+
+    public List<Tile> getDrawnTiles() {
+        return drawnTiles;
+    }
+
+    public void setDrawnTiles(List<Tile> drawnTiles) {
+        this.drawnTiles = drawnTiles;
     }
 }

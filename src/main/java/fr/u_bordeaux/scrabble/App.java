@@ -2,7 +2,7 @@ package fr.u_bordeaux.scrabble;
 
 import fr.u_bordeaux.scrabble.model.core.Game;
 import fr.u_bordeaux.scrabble.model.core.Move;
-import fr.u_bordeaux.scrabble.model.core.NormalPlayer;
+import fr.u_bordeaux.scrabble.model.core.HumanPlayer;
 import fr.u_bordeaux.scrabble.model.core.Tile;
 import fr.u_bordeaux.scrabble.model.enums.Direction;
 import fr.u_bordeaux.scrabble.model.interfaces.Player;
@@ -42,8 +42,8 @@ public class App {
      * Will be removed
      */
     private static void test(Game game){
-        game.addPlayer(new NormalPlayer("Player1"));
-        game.addPlayer(new NormalPlayer("Player2"));
+        game.addPlayer(new HumanPlayer("Player1"));
+        game.addPlayer(new HumanPlayer("Player2"));
 
         game.startGame();
 
@@ -69,6 +69,18 @@ public class App {
             System.out.println(">>> " + p2.getName() + " plays at (9,6) Vertical");
             game.executeMove(Move.createPlay(p2, word2, new Point(9, 6), Direction.VERTICAL));
             game.printDebugState(showBonusSquare);
+
+            // Test undo / redo
+            System.out.println("--- TEST UNDO / REDO ---");
+            game.undo();
+            game.printDebugState(showBonusSquare);
+            game.undo();
+            game.printDebugState(showBonusSquare);
+            game.redo();
+            game.printDebugState(showBonusSquare);
+            game.redo();
+            game.printDebugState(showBonusSquare);
+
 
             // TURN 3: Player 1 exchanges 3 tiles
             p1 = game.getCurrentPlayer();

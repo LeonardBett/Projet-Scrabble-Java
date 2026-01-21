@@ -1,7 +1,5 @@
 package fr.u_bordeaux.scrabble.model.core;
 
-import fr.u_bordeaux.scrabble.model.enums.Direction;
-import fr.u_bordeaux.scrabble.model.enums.SquareType;
 import fr.u_bordeaux.scrabble.model.interfaces.Player;
 import fr.u_bordeaux.scrabble.model.utils.Point;
 
@@ -19,6 +17,8 @@ public class Game {
     private final List<Player> players;
     private int currentPlayerIndex;
     private boolean isGameOver;
+    private final MoveHandler moveHandler;
+    private final UndoRedo undoRedo;
 
     public Game() {
         this.board = new Board();
@@ -26,6 +26,8 @@ public class Game {
         this.players = new ArrayList<>();
         this.currentPlayerIndex = 0;
         this.isGameOver = false;
+        this.moveHandler = new MoveHandler(this);
+        this.undoRedo = new UndoRedo();
     }
 
     public void addPlayer(Player player) {
@@ -63,104 +65,22 @@ public class Game {
         }
 
         // 2. Dispatch logic based on move type
-        switch (move.getType()) {
-            case PLAY -> handlePlayMove(move);
-            case EXCHANGE -> handleExchangeMove(move);
-            case PASS -> handlePassMove(move);
-        }
+        applyMove(move);
 
-        // 3. Prepare next turn
+        // 3. Add move to history
+        undoRedo.addMove(move);
+
+        // 4. Prepare next turn
         nextTurn();
     }
 
-    private void handlePlayMove(Move move) {
-        // 1. Extract move details
-        Player player = move.getPlayer();
-        List<Tile> tiles = move.getTiles();
-        Point startPosition = move.getStartPosition();
-        Direction direction = move.getDirection();
-
-        // 2. Prepare lists for scoring and rack management
-        List<Square> wordSquares = new ArrayList<>(); //list of squares that contains the tiles of this word
-        List<Square> newlyPlacedSquares = new ArrayList<>(); //list of squares that was empty before the move
-        List<Tile> tilesToConsume = new ArrayList<>(); //list of tiles to remove from the rack at the end
-
-        // 3. Calculate direction deltas (dx, dy) to iterate over the board
-        int x = startPosition.getX();
-        int y = startPosition.getY();
-        int dx = direction == Direction.HORIZONTAL ? 1 : 0;
-        int dy = direction == Direction.VERTICAL ? 1 : 0;
-
-        // 4. Iterate over each tile in the word to place them on the board
-        for (Tile tile : tiles) {
-            Point currentPos = new Point(x, y);
-            Square square = board.getSquare(currentPos);
-
-            // Check if the word goes out of bounds
-            if (square == null) {
-                throw new IllegalArgumentException("Word extends beyond board boundaries.");
-            }
-
-            // If the square is empty, we place the tile from the Move and add it to the list of newly placed squares (for scoring)
-            if (square.isEmpty()) {
-                square.setTile(tile);
-                newlyPlacedSquares.add(square);
-                tilesToConsume.add(tile);
-            }
-            // If not empty, we skip placing (it's an existing letter on the board)
-
-            // Add the square to the list of the word's squares (for scoring)
-            wordSquares.add(square);
-
-            // Move to the next position
-            x += dx;
-            y += dy;
+    //need to be separated from executeMove() because it will be used for undo/redo
+    private void applyMove(Move move) {
+        switch (move.getType()) {
+            case PLAY -> moveHandler.handlePlayMove(move);
+            case EXCHANGE -> moveHandler.handleExchangeMove(move);
+            case PASS -> moveHandler.handlePassMove(move);
         }
-
-        // 5. Calculate the score using the Scoring utility
-        int score = Scoring.calculateWordScore(wordSquares, newlyPlacedSquares);
-        player.addScore(score);
-
-        // 6. Remove the used tiles from the player's rack (and throw an error if not present form his rack)
-        for (Tile tile : tilesToConsume) {
-            if (!player.getRack().removeTile(tile)) {
-                throw new IllegalArgumentException("Player does not have the tile " + tile.getCharacter());
-            }
-        }
-
-        // 7. Refill the player's rack from the bag
-        refillRack(player);
-        System.out.println("Player " + player.getName() + " played a word for " + score + " points.");
-    }
-
-    private void handleExchangeMove(Move move) {
-        Player player = move.getPlayer();
-        List<Tile> tilesToExchange = move.getTiles();
-
-        // Rule: Cannot exchange if bag has fewer than 7 tiles
-        if (bag.size() < 7) {
-            throw new IllegalStateException("Cannot exchange tiles: bag has fewer than 7 tiles left.");
-        }
-
-        // 1. Verify player has these tiles (and remove them)
-        for (Tile tile : tilesToExchange) {
-            if (!player.getRack().removeTile(tile)) {
-                // In a real scenario, we should probably rollback or check beforehand
-                throw new IllegalArgumentException("Player does not have the tile " + tile.getCharacter());
-            }
-        }
-
-        // 2. Put them back in the bag
-        bag.putBack(tilesToExchange);
-
-        // 3. Draw new tiles
-        refillRack(player);
-
-        System.out.println("Player " + player.getName() + " exchanged " + tilesToExchange.size() + " tiles.");
-    }
-
-    private void handlePassMove(Move move) {
-        System.out.println("Player " + move.getPlayer() + " passed.");
     }
 
     private void nextTurn() {
@@ -168,17 +88,27 @@ public class Game {
             currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
         }
     }
+    
+    private void previousTurn() {
+        if (!players.isEmpty()) {
+            currentPlayerIndex = (currentPlayerIndex - 1 + players.size()) % players.size();
+        }
+    }
 
     /**
      * Refills the player's rack from the bag until it is full or the bag is empty.
+     * @return The list of tiles added to the rack.
      */
-    private void refillRack(Player player) {
+    public List<Tile> refillRack(Player player) {
+        List<Tile> addedTiles = new ArrayList<>();
         while (!player.getRack().isFull() && !bag.isEmpty()) {
             Tile tile = bag.drawTile();
             if (tile != null) {
                 player.getRack().addTile(tile);
+                addedTiles.add(tile);
             }
         }
+        return addedTiles;
     }
 
     public Player getCurrentPlayer() {
@@ -187,6 +117,65 @@ public class Game {
 
     public Board getBoard() {
         return board;
+    }
+
+    public Bag getBag() {
+        return bag;
+    }
+    
+    public UndoRedo getUndoRedo() {
+        return undoRedo;
+    }
+
+    /**
+     * Undo the last move(s).
+     * If the current player is human, it undoes their last move and any subsequent AI moves.
+     */
+    public void undo() {
+        if (!(getCurrentPlayer() instanceof HumanPlayer)) {
+            System.out.println("Only human players can undo.");
+            return;
+        }
+        
+        if (!undoRedo.canUndo()) {
+            System.out.println("Nothing to undo.");
+            return;
+        }
+
+        boolean undoneHumanMove = false;
+        while (!undoneHumanMove && undoRedo.canUndo()) {
+            Move move = undoRedo.undo();
+            moveHandler.revertMove(move);
+            previousTurn(); // Move turn pointer back
+            
+            if (move.getPlayer() instanceof HumanPlayer) {
+                undoneHumanMove = true;
+            }
+        }
+    }
+    
+    public void redo() {
+        if (!(getCurrentPlayer() instanceof HumanPlayer)) {
+            System.out.println("Only human players can redo.");
+            return;
+        }
+
+        if (!undoRedo.canRedo()) {
+            System.out.println("Nothing to redo.");
+            return;
+        }
+        
+        boolean redoneHumanMove = false;
+        while (!redoneHumanMove && undoRedo.canRedo()) {
+            Move move = undoRedo.redo();
+            
+            applyMove(move);
+            nextTurn();
+            
+            if (move.getPlayer() instanceof HumanPlayer) {
+                redoneHumanMove = true;
+            }
+        }
     }
 
     /**
