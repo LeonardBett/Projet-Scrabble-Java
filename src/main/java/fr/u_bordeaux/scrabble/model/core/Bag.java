@@ -59,7 +59,7 @@ public class Bag {
         if (tiles.isEmpty()) {
             return null;
         }
-        return tiles.remove(tiles.size() - 1);
+        return tiles.removeLast();
     }
 
     /**
