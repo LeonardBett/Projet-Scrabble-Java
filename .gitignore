@@ -1,0 +1,15 @@
+# exclude latex build artifacts
+**.out
+**.log
+**.tmp
+**.pyg
+**.fls
+**.aux
+**.fdb_latexmk
+**.synctex.gz
+**.bbl
+**.blg
+
+# exclude java generated files
+**.class
+**.jar
