@@ -1,3 +1,15 @@
+# exclude latex temporary files
+*.aux
+*.bbl
+*.blg
+*.bcf
+*.fls
+*.fdb_latexmk
+*.log
+*.nav
+*.out
+*.pyg
+
 # Maven
 target/
 
