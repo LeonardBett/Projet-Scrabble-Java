@@ -25,14 +25,33 @@ public class Bag {
 
     private void initializeBag() {
         // French Scrabble Distribution (102 tiles)
-        addTiles('A', 9); addTiles('B', 2); addTiles('C', 2); addTiles('D', 3);
-        addTiles('E', 15); addTiles('F', 2); addTiles('G', 2); addTiles('H', 2);
-        addTiles('I', 8); addTiles('J', 1); addTiles('K', 1); addTiles('L', 5);
-        addTiles('M', 3); addTiles('N', 6); addTiles('O', 6); addTiles('P', 2);
-        addTiles('Q', 1); addTiles('R', 6); addTiles('S', 6); addTiles('T', 6);
-        addTiles('U', 6); addTiles('V', 2); addTiles('W', 1); addTiles('X', 1);
-        addTiles('Y', 1); addTiles('Z', 1);
-        
+        addTiles('A', 9);
+        addTiles('B', 2);
+        addTiles('C', 2);
+        addTiles('D', 3);
+        addTiles('E', 15);
+        addTiles('F', 2);
+        addTiles('G', 2);
+        addTiles('H', 2);
+        addTiles('I', 8);
+        addTiles('J', 1);
+        addTiles('K', 1);
+        addTiles('L', 5);
+        addTiles('M', 3);
+        addTiles('N', 6);
+        addTiles('O', 6);
+        addTiles('P', 2);
+        addTiles('Q', 1);
+        addTiles('R', 6);
+        addTiles('S', 6);
+        addTiles('T', 6);
+        addTiles('U', 6);
+        addTiles('V', 2);
+        addTiles('W', 1);
+        addTiles('X', 1);
+        addTiles('Y', 1);
+        addTiles('Z', 1);
+
         // Jokers (Blanks) - represented by a space ' '
         addTiles(' ', 2);
     }
@@ -71,6 +90,17 @@ public class Bag {
     public void putBack(List<Tile> tilesToReturn) {
         tiles.addAll(tilesToReturn);
         shuffle();
+    }
+
+    /**
+     * Removes a specific tile from the bag.
+     * Used for undoing an exchange move.
+     *
+     * @param tile The tile to remove.
+     * @return true if the tile was found and removed, false otherwise.
+     */
+    public boolean removeTile(Tile tile) {
+        return tiles.remove(tile);
     }
 
     public boolean isEmpty() {

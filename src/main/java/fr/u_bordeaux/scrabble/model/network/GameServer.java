@@ -1,4 +1,4 @@
-package fr.u_bordeaux.scrabble.network;
+package fr.u_bordeaux.scrabble.model.network;
 
 /**
  * Serveur de jeu pour le mode multijoueur.

@@ -71,7 +71,7 @@ public class UndoRedo {
         history.push(move);
         return move;
     }
-    
+
     public Stack<Move> getHistory() {
         return history;
     }

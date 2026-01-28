@@ -8,7 +8,7 @@ import java.util.Objects;
 public class Tile {
     /** The character displayed on the tile (e.g., 'A'). */
     private final char character;
-    
+
     /** The point value of the tile (e.g., 1 for 'A'). */
     private final int value;
 
@@ -56,8 +56,12 @@ public class Tile {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         Tile tile = (Tile) o;
         return character == tile.character && value == tile.value;
     }

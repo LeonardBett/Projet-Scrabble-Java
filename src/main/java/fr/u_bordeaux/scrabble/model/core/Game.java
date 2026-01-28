@@ -74,7 +74,7 @@ public class Game {
         nextTurn();
     }
 
-    //need to be separated from executeMove() because it will be used for undo/redo
+    // Need to be separated from executeMove() because it will be used for undo/redo
     private void applyMove(Move move) {
         switch (move.getType()) {
             case PLAY -> moveHandler.handlePlayMove(move);
@@ -199,7 +199,7 @@ public class Game {
                 if (!square.isEmpty()) {
                     System.out.print(" " + square.getTile().getCharacter() + " ");
                 } else {
-                    if(showBonusSquare){
+                    if (showBonusSquare) {
                         switch (square.getSquareType()) {
                             case TRIPLE_WORD -> System.out.print("TW ");
                             case DOUBLE_WORD -> System.out.print("DW ");

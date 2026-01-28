@@ -26,10 +26,10 @@ public class Scoring {
      */
     public static int calculateWordScore(List<Square> wordSquares, List<Square> newlyPlacedSquares) {
 
-        if(wordSquares == null || newlyPlacedSquares == null) {
+        if (wordSquares == null || newlyPlacedSquares == null) {
             throw new NullPointerException("WordSquares or newlyPlacedSquares is null");
         }
-        
+
         if (wordSquares.isEmpty()) {
             throw new IllegalArgumentException("Cannot calculate score for an empty word");
         }
@@ -43,7 +43,7 @@ public class Scoring {
             }
 
             int tileValue = square.getTile().getValue();
-            
+
             // By default, no multipliers apply (if the tile was already on the board)
             int letterMultiplier = 1;
 
@@ -67,6 +67,6 @@ public class Scoring {
      * @return 50 points if the player used all 7 tiles, otherwise 0.
      */
     public static int calculateBingoBonus(int tilesPlacedCount) {
-        return (tilesPlacedCount+1) == Rack.MAX_SIZE ? BINGO_BONUS : 0;
+        return (tilesPlacedCount + 1) == Rack.MAX_SIZE ? BINGO_BONUS : 0;
     }
 }
