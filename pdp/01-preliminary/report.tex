@@ -72,9 +72,46 @@
 
 \section*{Introduction}
 
+Ce rapport préliminaire expose les fondations théoriques et architecturales du projet Scrabble en Java. Nous présentons l'historique du jeu, sa nature combinatoire, les défis algorithmiques qu'il pose, puis détaillons nos choix d'architecture et de structures de données.
 
 
+\section{Historique et Nature du Sujet}
 
+\subsection{Historique du Scrabble}
+
+En 1931, l'architecte au chômage Alfred Mosher Butts décide de créer un jeu qui combine la chance du tirage au sort et la réflexion. En analysant la fréquence des lettres à la une du \textit{New York Times}, il attribue à chaque jeton une valeur spécifique. Initialement appelé \textbf{Lexiko}, puis \textbf{Criss-Cross Words}, le jeu est rejeté par de nombreux fabricants avant qu'un homme d'affaires, James Brunot, ne rachète les droits en 1948 pour lui donner son nom définitif : \textbf{Scrabble}.
+
+Le succès mondial du jeu tient d'un véritable coup de chance marketing. Dans les années 1950, Jack Straus, président de Macy's (un célèbre grand magasin new-yorkais), découvre le jeu pendant ses vacances et s'étonne de ne pas le trouver dans ses rayons. Il passe alors une commande massive, propulsant le Scrabble au rang de phénomène culturel. Aujourd'hui, avec plus de 150 millions d'exemplaires vendus et des compétitions internationales acharnées, il est devenu le jeu de lettres le plus populaire de la planète.
+
+Dès les années 1980 et 1990, les premiers logiciels de jeu contre l'ordinateur ont vu le jour, suivis par l'explosion des versions en ligne comme l'Internet Scrabble Club (ISC) ou l'application mobile \textit{Scrabble Go}. Au-delà du simple divertissement, l'informatique a révolutionné la compétition de haut niveau grâce à des logiciels d'analyse ultra-puissants comme \textbf{Quackle}. Le Scrabble est aujourd'hui un jeu qui a été codé des centaines de fois ; de nombreux projets \textit{open source} sont disponibles en ligne et de nombreuses applications existent pour tous les appareils.
+
+\subsection{Nature et Enjeux du Jeu}
+
+Le Scrabble est un jeu de lettres à \textbf{information incomplète} (on ignore le tirage adverse) et à forte composante stratégique. L'objectif est de maximiser un score sur une grille de $15 \times 15$ cases ($21 \times 21$ en mode Super Scrabble) en plaçant des mots issus d'un dictionnaire défini au préalable, pouvant changer notamment en fonction de la langue.
+
+Le Scrabble impose la maîtrise de trois dimensions interdépendantes :
+
+\begin{enumerate}
+    \item \textbf{Logique spatiale :} Le placement des lettres doit respecter une règle de connexité stricte (tout mot posé doit être rattaché au jeu) et une vérification d'orthogonalité (chaque mot formé par collision doit être valide).
+    
+    \item \textbf{Logique mathématique :} Le calcul des points n'est pas une simple somme. Il s'agit d'un système de pondération dynamique où il faut prendre en compte la valeur de chaque lettre posée et/ou récupérée, les bonus s'appliquant respectivement aux lettres ou aux mots (lettre compte double, lettre compte triple, mot compte double, mot compte triple), l'ordre d'application des bonus (lettres puis mots), ainsi que la gestion des \textit{Scrabble} (+50 points si l'ensemble des 7 lettres est posé).
+    
+    \item \textbf{Logique linguistique :} Le programme doit arbitrer instantanément la validité de centaines de milliers de mots.
+\end{enumerate}
+
+\subsection{Problématique Algorithmique}
+
+Le cœur du sujet réside dans la gestion de l'explosion combinatoire. Avec un dictionnaire pouvant comptabiliser des dizaines voire centaines de milliers de mots (380\,000 pour celui de la langue française) et un chevalet de 7 lettres, le nombre de placements théoriques sur une grille est astronomique.
+
+L'explication du sujet porte donc sur la mise en place d'un moteur capable de :
+
+\begin{enumerate}
+    \item \textbf{Rechercher exhaustivement} tous les coups légaux possibles sur une grille donnée.
+    
+    \item \textbf{Indexer le lexique} de manière à ce que le temps de réponse soit imperceptible pour l'utilisateur.
+    
+    \item \textbf{Simuler une intelligence artificielle} capable de prendre des décisions non seulement basées sur le score du mot, mais aussi sur les points récupérés par le placement de ce mot sur le plateau, l'obstruction apportée par celui-ci, ainsi que l'état après ce coup (accessibilité aux bonus, lettres restantes dans le rack, etc.).
+\end{enumerate}
 
 \section{Algorithmes et Structures de Données}
 
@@ -138,13 +175,6 @@ L'algorithme devient alors :
     \item La valeur du coup $C$ est la moyenne des scores résultant de ces simulations.
 \end{enumerate}
 
-{\large
-  \begin{minted}[frame=single]{python}
-def hello_world():
-    print("Hello, World!")
-hello_world()
-  \end{minted}
-}
 
 \section{Structure de données pour la recherche : GADDAG}
 
