@@ -1,4 +1,49 @@
 \documentclass[a4paper]{article}
+\usepackage{pdp}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{tcolorbox}
+\usepackage{enumitem}
+
+\tcbuselibrary{skins, breakable}
+\newtcolorbox{besoinbox}{
+    colback=white,
+    colframe=blue!75!black,
+    fonttitle=\bfseries,
+    coltitle=black,
+    colbacktitle=blue!75!black,
+    enhanced,
+    attach boxed title to top left={yshift=-3mm, xshift=5mm},
+    boxrule=0.5pt,
+    breakable,
+    arc=4pt,
+    left=6pt,
+    right=6pt,
+    top=6pt,
+    bottom=6pt
+}
+
+\lstset{
+    language=Java,
+    basicstyle=\ttfamily\footnotesize,
+    numbers=left,
+    numberstyle=\tiny,
+    stepnumber=1,
+    numbersep=5pt,
+    backgroundcolor=\color{white},
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    frame=single,
+    rulecolor=\color{black},
+    tabsize=2,
+    captionpos=b,
+    breaklines=true,
+    breakatwhitespace=false,
+    keywordstyle=\color{blue},
+    commentstyle=\color{green},
+    stringstyle=\color{red}
+}
 
 \usepackage{pdp}
 
@@ -27,44 +72,9 @@
 
 \section*{Introduction}
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor
-incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis
-nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-culpa qui officia deserunt mollit anim id est laborum.
 
-Pellentesque iaculis molestie euismod. In hac habitasse platea dictumst. Duis eu
-gravida sem. Vivamus pulvinar, tellus auctor sollicitudin iaculis, quam massa
-blandit ligula, in mollis est tellus et velit. Nulla gravida sapien nibh, nec
-faucibus lorem aliquam sed. Curabitur rutrum elit purus, et congue neque
-venenatis vitae. Sed non magna nisi. Pellentesque euismod non ipsum a hendrerit.
-Pellentesque vehicula tincidunt lacinia. Sed rhoncus porttitor facilisis.
 
-Etiam sed molestie odio. Nunc cursus sollicitudin est vitae posuere. Nullam
-pellentesque metus eu dui porttitor bibendum. Morbi egestas arcu ut urna dictum
-placerat non non nisl. Quisque non ante in eros cursus pulvinar. Sed augue
-libero, eleifend a urna eget, pellentesque condimentum odio. Sed sed dui non
-diam mattis interdum eget sed urna. Integer consectetur, erat id rutrum posuere,
-dui velit dictum mi, quis tincidunt magna diam sit amet nunc. Etiam dui augue,
-sollicitudin rhoncus nisl a, rhoncus tempor purus.
 
-Suspendisse cursus erat et metus fermentum ullamcorper. Etiam eros arcu, dapibus
-quis efficitur ut, congue id nunc. Pellentesque aliquam venenatis convallis.
-Nulla nisi justo, aliquet quis lacus eget, aliquet maximus velit. Maecenas ex
-turpis, iaculis eget dignissim non, efficitur vel mi. Maecenas pharetra elit
-ornare sem suscipit ornare id id sapien. Vivamus sem neque, consectetur vitae
-aliquet non, finibus eu lectus. Fusce aliquam ipsum ut viverra vehicula. Donec
-ultrices varius nulla vel finibus. Donec convallis fringilla ante id porta.
-
-\section{Première section}
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor
-incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis
-nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-culpa qui officia deserunt mollit anim id est laborum.
 
 \section{Algorithmes et Structures de Données}
 
@@ -136,26 +146,170 @@ hello_world()
   \end{minted}
 }
 
-Un exemple d'image flottante (Fig.~\ref{fig:example}).
+\section{Spécifications étendues}
 
-\begin{figure}[!ht]
-  \centering
-  \frame{\includegraphics[width=.85\textwidth]{layered_architectures.png}}
-  \caption{Une architecture en couches}\label{fig:example}
-\end{figure}
+\begin{tcolorbox}[colback=white, colframe=blue!75!black, fonttitle=\bfseries, title=F16: Proposer de sauvegarder avant de quitter, arc=4pt, left=6pt, right=6pt, top=6pt, bottom=6pt]
+\textbf{Description:}
+Le programme doit demander à l'utilisateur s'il souhaite sauvegarder la partie avant de quitter, si des modifications non sauvegardées existent.
+\end{tcolorbox}
 
-\section*{Conclusion}
+\textbf{Prérequis:}
+\begin{itemize}[leftmargin=2cm]
+    \item F2 : Fichier de configuration (pour définir les chemins de sauvegarde par défaut).
+    \item F21 : Format de sauvegarde (pour savoir comment structurer les fichiers de sauvegarde).
+    \item F15 : Shell interactif (pour gérer les commandes comme quit et save).
+\end{itemize}
 
-Suspendisse sit amet nisi placerat, vestibulum nisl vel, iaculis nunc.
-Suspendisse quis libero vel ipsum gravida congue nec id arcu. Donec vel mi
-viverra, commodo urna vitae, tincidunt lectus. Fusce pellentesque, lectus a
-placerat vestibulum, magna lectus placerat nibh, vehicula pellentesque lacus
-erat non nulla. Suspendisse maximus, turpis at suscipit egestas, libero massa
-ultrices libero, at tincidunt velit eros a eros. Maecenas id tempor nunc.
-Phasellus condimentum porttitor sapien in sagittis. Proin in metus diam. Mauris
-in turpis sed ex viverra iaculis. Sed lobortis, tellus vitae congue blandit, leo
-elit auctor libero, id tempor ante dolor quis quam. Donec eget ligula quam.
-Maecenas porttitor massa vel felis elementum tristique.
+\textbf{Type de besoin:}
+\begin{itemize}[leftmargin=2cm]
+    Fonctionnel.
+\end{itemize}
+
+\textbf{Découpage en sous-besoins:}
+\begin{itemize}[leftmargin=0.5mm]
+    Pour implémenter cette fonctionnalité, nous avons identifié quatre sous-besoins principaux.
+\end{itemize}
+
+
+
+\subsection*{Sous besoins 1. Détecter les modifications non sauvegardées}
+\begin{besoinbox}
+\textbf{Description:}
+Le programme doit détecter si l’état actuel du jeu diffère de l’état sauvegardé. Cela inclut les modifications du plateau, des scores et des lettres restantes.
+
+\textbf{Actions:}
+\begin{itemize}[leftmargin=2cm]
+    \item Stocker l’état du jeu après chaque sauvegarde.
+    \item Comparer l’état actuel avec l’état sauvegardé à chaque tentative de quitter le programme.
+\end{itemize}
+
+\textbf{Fonction associée:}
+\begin{lstlisting}[language=Java]
+boolean modificationsNonSauvegardees(EtatJeu etatActuel, EtatJeu etatSauvegarde)
+\end{lstlisting}
+
+\textbf{Paramètres:}
+\begin{itemize}[leftmargin=2cm]
+    \item \texttt{etatActuel}: Représente l'état actuel du jeu (plateau, scores, lettres restantes).
+    \item \texttt{etatSauvegarde}: Représente l'état du jeu lors de la dernière sauvegarde.
+\end{itemize}
+
+\textbf{Retour:}
+\begin{itemize}[leftmargin=2cm]
+    \item \texttt{true}: S'il y a des modifications non sauvegardées.
+    \item \texttt{false}: Si aucun changement n'a été fait depuis la dernière sauvegarde.
+\end{itemize}
+
+\textbf{Test unitaire:}
+\begin{itemize}[leftmargin=2cm]
+    \item \textbf{Cas 1}: \texttt{etatActuel} contient le mot "CHAT" sur le plateau, \texttt{etatSauvegarde} est vide. Résultat attendu: \texttt{true} (car il y a des modifications).
+    \item \textbf{Cas 2}: \texttt{etatActuel} et \texttt{etatSauvegarde} sont identiques. Résultat attendu: \texttt{false} (pas de modifications).
+\end{itemize}
+\end{besoinbox}
+
+\subsection*{Sous besoins 2. Demander confirmation à l’utilisateur}
+\begin{besoinbox}
+\textbf{Description:}
+Le programme doit afficher un message de confirmation et lire la réponse de l’utilisateur.
+
+\textbf{Actions:}
+\begin{itemize}[leftmargin=2cm]
+    \item Afficher le message: \texttt{Save the game before quitting? [y/N]}.
+    \item Lire la réponse de l’utilisateur.
+    \item Retourner \texttt{true} si la réponse est "y" ou "Y", \texttt{false} sinon.
+\end{itemize}
+
+\textbf{Fonction associée:}
+\begin{lstlisting}[language=Java]
+boolean demanderConfirmation()
+\end{lstlisting}
+
+\textbf{Retour:}
+\begin{itemize}[leftmargin=2cm]
+    \item \texttt{true}: Si l'utilisateur répond "y" ou "Y".
+    \item \texttt{false}: Si l'utilisateur répond "n", "N" ou toute autre réponse.
+\end{itemize}
+
+\textbf{Test unitaire:}
+\begin{itemize}[leftmargin=2cm]
+    \item \textbf{Cas 1}: L'utilisateur répond "y". Résultat attendu: \texttt{true}.
+    \item \textbf{Cas 2}: L'utilisateur répond "n". Résultat attendu: \texttt{false}.
+\end{itemize}
+\end{besoinbox}
+
+\subsection*{Sous besoins 3. Sauvegarder la partie}
+\begin{besoinbox}
+\textbf{Description:}
+Si l’utilisateur choisit de sauvegarder, le programme doit écrire l’état actuel du jeu dans un fichier.
+
+\textbf{Actions:}
+\begin{itemize}[leftmargin=2cm]
+    \item Demander à l’utilisateur le chemin du fichier de sauvegarde.
+    \item Écrire l’état du jeu dans le fichier au format défini (JSON ou format personnalisé).
+\end{itemize}
+
+\textbf{Fonction associée:}
+\begin{lstlisting}[language=Java]
+boolean sauvegarderPartie(EtatJeu etatJeu, String cheminFichier)
+\end{lstlisting}
+
+\textbf{Paramètres:}
+\begin{itemize}[leftmargin=2cm]
+    \item \texttt{etatJeu}: L'état actuel du jeu à sauvegarder.
+    \item \texttt{cheminFichier}: Le chemin du fichier où sauvegarder la partie.
+\end{itemize}
+
+\textbf{Retour:}
+\begin{itemize}[leftmargin=2cm]
+    \item \texttt{true}: Si la sauvegarde a réussi.
+    \item \texttt{false}: Si une erreur survient.
+\end{itemize}
+
+\textbf{Test unitaire:}
+\begin{itemize}[leftmargin=2cm]
+    \item \textbf{Cas 1}: Sauvegarder un état de jeu valide dans un fichier accessible. Résultat attendu: \texttt{true} et le fichier contient les données correctes.
+    \item \textbf{Cas 2}: Sauvegarder dans un chemin invalide (ex.: \texttt{/dossier/inexistant/fichier.json}). Résultat attendu: \texttt{false}.
+\end{itemize}
+\end{besoinbox}
+
+\subsection*{Sous besoins 4. Gérer les erreurs de sauvegarde}
+\begin{besoinbox}
+\textbf{Description:}
+Le programme doit gérer les erreurs lors de la sauvegarde (ex.: permissions insuffisantes, disque plein) et redemander à l’utilisateur s’il souhaite réessayer.
+
+\textbf{Actions:}
+\begin{itemize}[leftmargin=2cm]
+    \item Capturer les exceptions lors de l’écriture du fichier.
+    \item Afficher un message d’erreur et redemander à l’utilisateur s’il veut réessayer.
+\end{itemize}
+
+\textbf{Fonction associée:}
+\begin{lstlisting}[language=Java]
+boolean gererErreurSauvegarde(EtatJeu etatJeu)
+\end{lstlisting}
+
+\textbf{Paramètres:}
+\begin{itemize}[leftmargin=2cm]
+    \item \texttt{etatJeu}: L'état actuel du jeu à sauvegarder.
+\end{itemize}
+
+\textbf{Retour:}
+\begin{itemize}[leftmargin=2cm]
+    \item \texttt{true}: Si la sauvegarde a finalement réussi.
+    \item \texttt{false}: Si l'utilisateur abandonne après une erreur.
+\end{itemize}
+
+\textbf{Test unitaire:}
+\begin{itemize}[leftmargin=2cm]
+    \item \textbf{Cas 1}: L'utilisateur entre un chemin invalide, puis un chemin valide. Résultat attendu: \texttt{true} après la deuxième tentative.
+    \item \textbf{Cas 2}: L'utilisateur abandonne après une erreur. Résultat attendu: \texttt{false}.
+\end{itemize}
+\end{besoinbox}
+
+\end{document}
+
+
+
 
 %------------------------------------------------------------------------------
 %	BIBLIOGRAPHY
