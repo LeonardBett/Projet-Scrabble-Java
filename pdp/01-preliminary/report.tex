@@ -183,15 +183,14 @@ Pour que les algorithmes de décision (Minimax ou Expectiminimax) soient réelle
 Inspiré du \textbf{DAWG} (Directed Acyclic Word Graph), le GADDAG est spécifiquement optimisé pour le Scrabble, car il facilite la construction de mots autour d'une "ancre" (une lettre déjà présente sur le plateau).
 
 \subsection{Fonctionnement et Transformation}
-Le principe du GADDAG repose sur une transformation du dictionnaire. Pour chaque mot, plusieurs représentations sont générées en le découpant autour de chaque lettre pivot. La partie située à gauche de ce pivot est inversée, puis séparée de la partie droite par un caractère spécial (souvent \texttt{>} ou \texttt{\$}).
-
+Le principe du GADDAG repose sur une transformation du dictionnaire. Pour chaque mot, plusieurs représentations sont générées en le découpant autour de chaque lettre ancre. La partie située à gauche de cette ancre est inversée, puis séparée de la partie droite par un caractère spécial (souvent \texttt{>} ou \texttt{\$}), puis la fin du mot est notée normalement.
 
 Par exemple, pour le mot \textbf{"CHAT"}, les représentations stockées dans l'arbre sont les suivantes :
 \begin{itemize}
-    \item \texttt{C > H A T}
-    \item \texttt{H C > A T}
-    \item \texttt{A H C > T}
-    \item \texttt{T A H C >}
+    \item \texttt{C > H A T} (Ici, l'ancre est C)
+    \item \texttt{H C > A T} (Ici, l'ancre est le H, donc on met un C à sa gauche, puis on passe à droite pour poser A-T)
+    \item \texttt{A H C > T} (Ici, l'ancre est le A, donc on met un C et un H à sa gauche, puis on passe à droite pour poser le T)
+    \item \texttt{T A H C >} (Ici, l'ancre est le T, et on complète tout le mot vers la gauche : A, puis H, puis C)
 \end{itemize}
 
 Cette redondance permet à l'algorithme de trouver des mots quel que soit le point d'ancrage sur la grille, sans avoir à "deviner" le début du mot.
