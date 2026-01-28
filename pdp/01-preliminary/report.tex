@@ -51,9 +51,9 @@
 %	REPORT INFORMATION
 %------------------------------------------------------------------------------
 
-\title{ProjectName -- C/Java/Python}
+\title{Scrabble -- Java}
 
-\author{Étudiant1, Étudiant2, Étudiant3, Étudiant4, Étudiant5}
+\author{CODOGNAN Thomas, KAHLOUL Aïssa, BETTCHER Léonard, BLOTHIAUX Yanis, RAZE Erwan}
 
 %------------------------------------------------------------------------------
 
@@ -80,41 +80,77 @@ Ce rapport préliminaire expose les fondations théoriques et architecturales du
 
 \section{Historique et Nature du Sujet}
 
-\subsection{Historique du Scrabble}
+\subsection{Historique du sujet}
 
 En 1931, l'architecte au chômage Alfred Mosher Butts décide de créer un jeu qui combine la chance du tirage au sort et la réflexion. En analysant la fréquence des lettres à la une du \textit{New York Times}, il attribue à chaque jeton une valeur spécifique. Initialement appelé \textbf{Lexiko}, puis \textbf{Criss-Cross Words}, le jeu est rejeté par de nombreux fabricants avant qu'un homme d'affaires, James Brunot, ne rachète les droits en 1948 pour lui donner son nom définitif : \textbf{Scrabble}.
 
 Le succès mondial du jeu tient d'un véritable coup de chance marketing. Dans les années 1950, Jack Straus, président de Macy's (un célèbre grand magasin new-yorkais), découvre le jeu pendant ses vacances et s'étonne de ne pas le trouver dans ses rayons. Il passe alors une commande massive, propulsant le Scrabble au rang de phénomène culturel. Aujourd'hui, avec plus de 150 millions d'exemplaires vendus et des compétitions internationales acharnées, il est devenu le jeu de lettres le plus populaire de la planète.
 
-Dès les années 1980 et 1990, les premiers logiciels de jeu contre l'ordinateur ont vu le jour, suivis par l'explosion des versions en ligne comme l'Internet Scrabble Club (ISC) ou l'application mobile \textit{Scrabble Go}. Au-delà du simple divertissement, l'informatique a révolutionné la compétition de haut niveau grâce à des logiciels d'analyse ultra-puissants comme \textbf{Quackle}. Le Scrabble est aujourd'hui un jeu qui a été codé des centaines de fois ; de nombreux projets \textit{open source} sont disponibles en ligne et de nombreuses applications existent pour tous les appareils.
+Dès les années 1980 et 1990, les premiers logiciels de jeu contre l'ordinateur ont vu le jour, suivis par l'explosion des versions en ligne comme l'Internet Scrabble Club (ISC) ou l'application mobile \textit{Scrabble Go}.
 
-\subsection{Nature et Enjeux du Jeu}
+\subsection{Nature et enjeux du jeu}
 
-Le Scrabble est un jeu de lettres à \textbf{information incomplète} (on ignore le tirage adverse) et à forte composante stratégique. L'objectif est de maximiser un score sur une grille de $15 \times 15$ cases ($21 \times 21$ en mode Super Scrabble) en plaçant des mots issus d'un dictionnaire défini au préalable, pouvant changer notamment en fonction de la langue.
+Le Scrabble est un jeu de lettres à \textbf{information imparfaite} (les tirages adverses sont cachés) et \textbf{stochastique} (dû au hasard de la pioche). L'objectif est de maximiser un score sur une grille (standard de $15 \times 15$ ou Super Scrabble de $21 \times 21$) en plaçant des mots d'un dictionnaire de référence.
 
-Le Scrabble impose la maîtrise de trois dimensions interdépendantes :
-
-\begin{enumerate}
-    \item \textbf{Logique spatiale :} Le placement des lettres doit respecter une règle de connexité stricte (tout mot posé doit être rattaché au jeu) et une vérification d'orthogonalité (chaque mot formé par collision doit être valide).
-    
-    \item \textbf{Logique mathématique :} Le calcul des points n'est pas une simple somme. Il s'agit d'un système de pondération dynamique où il faut prendre en compte la valeur de chaque lettre posée et/ou récupérée, les bonus s'appliquant respectivement aux lettres ou aux mots (lettre compte double, lettre compte triple, mot compte double, mot compte triple), l'ordre d'application des bonus (lettres puis mots), ainsi que la gestion des \textit{Scrabble} (+50 points si l'ensemble des 7 lettres est posé).
-    
-    \item \textbf{Logique linguistique :} Le programme doit arbitrer instantanément la validité de centaines de milliers de mots.
-\end{enumerate}
-
-\subsection{Problématique Algorithmique}
-
-Le cœur du sujet réside dans la gestion de l'explosion combinatoire. Avec un dictionnaire pouvant comptabiliser des dizaines voire centaines de milliers de mots (380\,000 pour celui de la langue française) et un chevalet de 7 lettres, le nombre de placements théoriques sur une grille est astronomique.
-
-L'explication du sujet porte donc sur la mise en place d'un moteur capable de :
+Le jeu repose sur trois piliers :
 
 \begin{enumerate}
-    \item \textbf{Rechercher exhaustivement} tous les coups légaux possibles sur une grille donnée.
+    \item \textbf{Logique spatiale :} Respect de la connexité (tout mot doit être rattaché aux lettres déjà posées et toutes les lettres posées se touchent entre elles) et de l'orthogonalité (validité de tous les mots formés par collision).
     
-    \item \textbf{Indexer le lexique} de manière à ce que le temps de réponse soit imperceptible pour l'utilisateur.
+    \item \textbf{Logique mathématique :} Calcul dynamique des points incluant la valeur des lettres et les multiplicateurs de cases (lettre/mot compte double/triple), appliqués dans l'ordre (lettres puis mots), ainsi que le bonus de 50 points (\textit{Scrabble}) pour l'usage des 7 lettres du chevalet.
     
-    \item \textbf{Simuler une intelligence artificielle} capable de prendre des décisions non seulement basées sur le score du mot, mais aussi sur les points récupérés par le placement de ce mot sur le plateau, l'obstruction apportée par celui-ci, ainsi que l'état après ce coup (accessibilité aux bonus, lettres restantes dans le rack, etc.).
+    \item \textbf{Logique linguistique :} Arbitrage instantané de la validité des mots selon le lexique choisi.
 \end{enumerate}
+
+\subsubsection*{Déroulement et règles de jeu}
+
+\textbf{Début de partie :} Le premier joueur doit placer un mot de deux lettres ou plus couvrant la case centrale, doublant ainsi le score de ce mot.
+
+\textit{Exemple :} Si le premier joueur place le mot \og AXE \fg{} avec le \og X \fg{} sur la case centrale (H8), le score du mot ($9 + 8 + 1 = 18$) est doublé pour un total de 36 points.
+
+\textbf{Actions du joueur :} À chaque tour, le joueur peut poser un mot, échanger des jetons avec le sac (si celui-ci contient au moins 7 lettres) ou passer son tour.
+
+\textit{Exemple de collision :} Si le mot \og FEU \fg{} est déjà sur le plateau, un joueur peut placer \og R \fg{} au-dessus du \og E \fg{} pour former \og RE \fg{} verticalement tout en posant \og RATS \fg{} horizontalement.
+
+\textbf{Notation des coups :} Les coups sont notés par leurs coordonnées de départ suivies du mot et du score (ex: \texttt{H8 - VERSION - 34 pts}).
+
+\textit{Exemple :} La notation \og \texttt{8H} \fg{} indique un mot horizontal commençant à la ligne 8, colonne H, tandis que \og \texttt{H8} \fg{} indique un mot vertical commençant à la colonne H, ligne 8.
+
+\textbf{Fin de partie et victoire :} La partie s'achève quand le sac est vide et qu'un joueur a épuisé son chevalet, ou après trois tours sans score (blocage). Le vainqueur est celui ayant le score le plus élevé après déduction de la valeur des lettres restantes sur les chevalets. Un match nul est possible si les scores finaux sont identiques.
+
+\textit{Exemple de calcul final :} Si le joueur A finit avec 300 points et que le joueur B possède encore un \og W \fg{} (10 pts) et un \og X \fg{} (10 pts) sur son chevalet, le score de B sera réduit de 20 points, et ces 20 points seront ajoutés au score de A.
+
+\subsection{Complexité du jeu}
+
+Il est crucial de distinguer la complexité intrinsèque du jeu de celle des algorithmes utilisés.
+
+\textbf{Espace d'état :} Le nombre de positions légales sur un plateau de $15 \times 15$ est estimé à environ $10^{30}$. Bien que moindre que celui des échecs, l'incertitude sur les jetons restants complexifie la recherche.
+
+\textit{Détail du calcul combinatoire :} Pour un chevalet de 7 lettres et un dictionnaire type ODS (380\,000 mots), le nombre de placements théoriques au premier tour est le produit des arrangements $P(7, n)$ par les orientations et positions sur l'étoile centrale.
+
+\textbf{Heuristiques et incertitude :} Le score immédiat n'est pas le seul facteur. Une stratégie gagnante doit évaluer la \og qualité du reliquat \fg{} (garder des lettres polyvalentes comme les voyelles ou le \og S \fg{}) et l'obstruction (ne pas ouvrir de cases bonus pour l'adversaire).
+
+\subsection{Problématique algorithmique}
+
+La difficulté majeure est l'explosion combinatoire. Le moteur doit :
+
+\begin{enumerate}
+    \item \textbf{Rechercher exhaustivement} tous les coups légaux en un temps imperceptible.
+    
+    \item \textbf{Simuler une IA} capable de prendre des décisions non-déterministes en gérant l'état futur du plateau et l'accessibilité aux bonus après le coup, afin de permettre la création de parties joueurs/intelligences artificielles.
+\end{enumerate}
+
+\subsection{Existant}
+
+L'état de l'art repose sur des travaux académiques et des logiciels éprouvés :
+
+\textbf{Littérature scientifique :} L'algorithme de référence pour la génération rapide de coups est celui de Steven Gordon (GADDAG) ou le travail d'Appel et Guy (DAWG). Ces structures minimisent l'espace mémoire tout en maximisant la vitesse de parcours du dictionnaire.
+
+\textbf{Logiciels de référence :} \textbf{Quackle} est le standard pour l'analyse stratégique. Il utilise des simulations de Monte-Carlo pour comparer les coups en fonction de l'espérance de gain sur les tours suivants.
+
+\textbf{Plateformes :} L'ISC (\textit{Internet Scrabble Club}) sert de référence pour la pratique compétitive ou classique, garantissant une application stricte des règles internationales.
+
+
 
 \section{Algorithmes et Structures de Données}
 

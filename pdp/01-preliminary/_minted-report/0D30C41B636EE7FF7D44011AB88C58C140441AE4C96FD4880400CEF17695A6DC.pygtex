@@ -1,4 +1,4 @@
-\begin{MintedVerbatim}[commandchars=\\\{\}]
+\begin{Verbatim}[commandchars=\\\{\}]
 Fonction Expectiminimax(état, profondeur, type\PYGZus{}nœud):
     SI profondeur == 0 OU partie\PYGZus{}finie ALORS
         RETOURNER evaluer(état)
@@ -21,4 +21,4 @@ Fonction Expectiminimax(état, profondeur, type\PYGZus{}nœud):
         RETOURNER somme\PYGZus{}valeurs / 20
 
     // ... Cas MIN symétrique au MAX
-\end{MintedVerbatim}
+\end{Verbatim}

@@ -1,4 +1,4 @@
-\begin{MintedVerbatim}[commandchars=\\\{\}]
+\begin{Verbatim}[commandchars=\\\{\}]
 Fonction Minimax(état, profondeur, est\PYGZus{}joueur\PYGZus{}max):
     // Cas de base : feuille de l\PYGZsq{}arbre ou profondeur atteinte
     SI profondeur == 0 OU partie\PYGZus{}terminée(état) ALORS
@@ -21,4 +21,4 @@ Fonction Minimax(état, profondeur, est\PYGZus{}joueur\PYGZus{}max):
             valeur = Minimax(nouvel\PYGZus{}état, profondeur \PYGZhy{} 1, VRAI)
             pire\PYGZus{}valeur = MIN(pire\PYGZus{}valeur, valeur)
         RETOURNER pire\PYGZus{}valeur
-\end{MintedVerbatim}
+\end{Verbatim}
