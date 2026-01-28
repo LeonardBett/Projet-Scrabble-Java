@@ -146,6 +146,51 @@ hello_world()
   \end{minted}
 }
 
+\section{Structure de données pour la recherche : GADDAG}
+
+Pour que les algorithmes de décision (Minimax ou Expectiminimax) soient réellement performants, ils doivent pouvoir accéder à la liste exhaustive des coups légaux de manière quasi instantanée. À cette fin, nous utilisons la structure de données \textbf{GADDAG}, inventée par Steven Gordon en 1994. 
+
+Inspiré du \textbf{DAWG} (Directed Acyclic Word Graph), le GADDAG est spécifiquement optimisé pour le Scrabble, car il facilite la construction de mots autour d'une "ancre" (une lettre déjà présente sur le plateau).
+
+\subsection{Fonctionnement et Transformation}
+Le principe du GADDAG repose sur une transformation du dictionnaire. Pour chaque mot, plusieurs représentations sont générées en le découpant autour de chaque lettre pivot. La partie située à gauche de ce pivot est inversée, puis séparée de la partie droite par un caractère spécial (souvent \texttt{>} ou \texttt{\$}).
+
+
+Par exemple, pour le mot \textbf{"CHAT"}, les représentations stockées dans l'arbre sont les suivantes :
+\begin{itemize}
+    \item \texttt{C > H A T}
+    \item \texttt{H C > A T}
+    \item \texttt{A H C > T}
+    \item \texttt{T A H C >}
+\end{itemize}
+
+Cette redondance permet à l'algorithme de trouver des mots quel que soit le point d'ancrage sur la grille, sans avoir à "deviner" le début du mot.
+
+\subsection{Comparaison : GADDAG vs DAWG}
+Contrairement au GADDAG, l'algorithme \textbf{DAWG} ne fonctionne que de manière unidirectionnelle (de la première à la dernière lettre). 
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{|l|p{5cm}|p{5cm}|}
+\hline
+\textbf{Critère} & \textbf{DAWG} & \textbf{GADDAG} \\ \hline
+\textbf{Vitesse} & Plus lent (doit deviner l'origine du mot). & \textbf{Très rapide} (accès direct via n'importe quelle lettre). \\ \hline
+\textbf{Mémoire} & Très compact. & Plus lourd (5 fois la taille d'un DAWG en moyenne). \\ \hline
+\textbf{Complexité} & Plus simple à implémenter. & Plus complexe et structure plus dense. \\ \hline
+\end{tabular}
+\caption{Comparaison des structures de données pour le Scrabble}
+\end{table}
+
+\subsection{Synthèse des performances}
+L'utilisation du GADDAG présente des avantages majeurs pour notre moteur de jeu :
+\begin{itemize}
+    \item \textbf{Efficacité maximale} : C’est l’algorithme le plus rapide pour la génération de coups, évitant les répétitions inutiles.
+    \item \textbf{Polyvalence d'ancrage} : Il permet de trouver efficacement des mots s’insérant entre deux lettres ou se collant parallèlement à un mot existant.
+    \item \textbf{Unicité du chemin} : Une fois la structure construite, il n’existe qu'un seul chemin pour chaque mot avec un point d’ancrage donné.
+\end{itemize}
+
+En résumé, bien que le GADDAG soit plus exigeant en termes de mémoire vive et plus complexe à coder, il constitue le meilleur choix pour garantir une IA capable de rivaliser avec des joueurs experts en analysant des milliers de combinaisons par seconde.
+
 \section{Spécifications étendues}
 
 \begin{tcolorbox}[colback=white, colframe=blue!75!black, fonttitle=\bfseries, title=F16: Proposer de sauvegarder avant de quitter, arc=4pt, left=6pt, right=6pt, top=6pt, bottom=6pt]
