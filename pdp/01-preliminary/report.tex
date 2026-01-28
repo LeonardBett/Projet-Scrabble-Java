@@ -548,7 +548,7 @@ intégrant des fonctionnalités avancées comme le jeu en réseau et l’intelli
 projet est actuellement structuré sous forme de squelettes de classes.
 
 \subsection{Organisation Globale et MVC}
-Pour répondre à l'exigence de modularité (F7, F39), nous avons adopté le patron \textbf{MVC (Modèle-Vue-Contrôleur)}. Cette séparation est indispensable pour isoler la logique métier des différentes interfaces.
+Pour répondre à l'exigence de modularité (F7, F39), nous avons adopté le patron \textbf{MVC (Modèle-Vue-Contrôleur)}. Cette séparation est indispensable pour isoler la logique métier des différentes interfaces. L'implémentation s'appuie sur le patron Observer pour notifier automatiquement les interfaces de toute modification du modèle, garantissant une synchronisation réactive tout en maintenant un couplage faible.
 
 \begin{itemize}
     \item \textbf{Le Modèle (\texttt{fr.u\_bordeaux.scrabble.model})} : Il contient l’état du jeu (plateau, sac, joueurs), ainsi que les packages \texttt{network}, \texttt{ia} et \texttt{dictionary}. Il est conçu pour être indépendant de l'affichage.
@@ -560,7 +560,7 @@ Pour répondre à l'exigence de modularité (F7, F39), nous avons adopté le pat
 L'architecture que nous visons comporte une séparation nette entre les données brutes et les règles de gestion, permettant au logiciel de s'adapter dynamiquement aux variantes du jeu et aux environnements linguistiques.
 
 \begin{itemize}
-    \item \textbf{Plateau Dynamique} : La classe \texttt{Board} utilise une matrice d'objets \texttt{Square}, chacun associé à un \texttt{SquareType} (énumération gérant les bonus de score). Cette structure permet de passer d'un plateau standard $15\times15$ au mode Super-Scrabble $21\times21$ sans modifier la logique de placement. Les modules du package \texttt{factory} implémenteront le design pattern \textbf{Factory} pour générer ces différents plateaux.
+    \item \textbf{Plateau Dynamique} : La classe \texttt{Board} utilise une matrice d'objets \texttt{Square}, chacun associé à un \texttt{SquareType} (énumération gérant les bonus de score). Cette structure permet de passer d'un plateau standard $15\times15$ au mode Super-Scrabble $21\times21$ sans modifier la logique de placement. Les modules du package \texttt{factory} implémenteront le design pattern \textbf{Factory} pour générer ces différents plateaux, dans le but de séparer l'instanciation des grilles de leur utilisation par le moteur de jeu (et de faciliter l'ajout de nouvelles variantes sans modifier le code existant). »
     \item \textbf{Abstraction des Joueurs} : Nous utilisons une classe abstraite \texttt{Player} pour traiter de manière uniforme les joueurs humains (locaux), les intelligences artificielles et les joueurs réseaux. Chaque joueur possède son propre \texttt{Rack} (chevalet) de 7 objets \texttt{Tiles} piochés dans \texttt{Bag}, qui pourront être joués sur le \texttt{Board} avec un \texttt{Move}.
     \item \textbf{Internationalisation et Localisation (i18n/l10n)} : L'application utilise les mécanismes \texttt{ResourceBundle} et \texttt{Locale} de Java pour supporter l'anglais et le français (choisi automatiquement en fonction des variables d’environnement \texttt{LANG} ou \texttt{LC\_ALL}). Cette gestion impacte directement la logique du jeu en chargeant dynamiquement la distribution des lettres, leurs valeurs respectives dans le sac (\texttt{Bag}), ainsi que le dictionnaire associé via le module \texttt{lexicon}.
 \end{itemize}
@@ -569,7 +569,7 @@ L'architecture que nous visons comporte une séparation nette entre les données
 La gestion des actions repose sur une traçabilité complète, nécessaire pour les fonctionnalités de confort utilisateur et la sauvegarde.
 
 \begin{itemize}
-    \item \textbf{Pattern Command} : Chaque action est encapsulée dans un objet \texttt{Move}, avec le choix de l’action spécifié par un enum \texttt{MoveType} (PLAY, EXCHANGE et PASS). La logique d’application des \texttt{Move} sera géré par la classe \texttt{MoveHandler}, pour séparer cette logique des données. Ces choix d’implémentation faciliteront l’implémentation d’undo/redo, des fichiers de sauvegarde et des différents joueurs.
+    \item \textbf{Pattern Command} : Chaque action est encapsulée dans un objet \texttt{Move}, avec le choix de l’action spécifié par un enum \texttt{MoveType} (PLAY, EXCHANGE et PASS). La logique d’application des \texttt{Move} sera géré par la classe \texttt{MoveHandler}, pour séparer cette logique des données. Ces choix d’implémentation faciliteront l’implémentation d’undo/redo, des fichiers de sauvegarde et des différents joueurs, car chaque coup devient une action indépendante qu'on peut simplement empiler, annuler ou stocker sans toucher au reste du code.
     \item \textbf{Format de Sauvegarde Robuste} : Les fichiers de sauvegarde (.txt en ASCII) sont structurés en trois blocs obligatoires : \texttt{[settings]}, \texttt{[game]} et \texttt{[history]}. Notre parseur sera robuste en ignorant les commentaires en ligne (\#) ou en bloc (\{\dots\}) et en signalant précisément la ligne en cas d'erreur de format.
 \end{itemize}
 
