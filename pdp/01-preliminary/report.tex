@@ -306,9 +306,54 @@ boolean gererErreurSauvegarde(EtatJeu etatJeu)
 \end{itemize}
 \end{besoinbox}
 
-\end{document}
 
+%------------------------------------------------------------------------------
+%	ARCHITECTURE
+%------------------------------------------------------------------------------
 
+\section{Architecture du projet}
+L’objectif de ce projet est de concevoir une application robuste du Scrabble, capable de
+gérer aussi bien une interface console (CLI) qu’une interface graphique (JavaFX), tout en
+intégrant des fonctionnalités avancées comme le jeu en réseau et l’intelligence artificielle. Le
+projet est actuellement structuré sous forme de squelettes de classes.
+
+\subsection{Organisation Globale et MVC}
+Pour répondre à l'exigence de modularité (F7, F39), nous avons adopté le patron \textbf{MVC (Modèle-Vue-Contrôleur)}. Cette séparation est indispensable pour isoler la logique métier des différentes interfaces.
+
+\begin{itemize}
+    \item \textbf{Le Modèle (\texttt{fr.u\_bordeaux.scrabble.model})} : Il contient l’état du jeu (plateau, sac, joueurs), ainsi que les packages \texttt{network}, \texttt{ia} et \texttt{dictionary}. Il est conçu pour être indépendant de l'affichage.
+    \item \textbf{La Vue (\texttt{fr.u\_bordeaux.scrabble.view})} : Elle est divisée entre une implémentation \textbf{cli} (shell interactif avec codes ANSI pour les couleurs du plateau) et une implémentation \textbf{gui} sous JavaFX.
+    \item \textbf{Le Contrôleur (\texttt{fr.u\_bordeaux.scrabble.controller})} : Il gère les entrées utilisateur et les options de lancement via \texttt{commons-cli}. Il assure également le chargement de la configuration \texttt{.scrabblerc} (format INI).
+\end{itemize}
+
+\subsection{Architecture du Cœur de Jeu et Flexibilité}
+L'architecture que nous visons comporte une séparation nette entre les données brutes et les règles de gestion, permettant au logiciel de s'adapter dynamiquement aux variantes du jeu et aux environnements linguistiques.
+
+\begin{itemize}
+    \item \textbf{Plateau Dynamique} : La classe \texttt{Board} utilise une matrice d'objets \texttt{Square}, chacun associé à un \texttt{SquareType} (énumération gérant les bonus de score). Cette structure permet de passer d'un plateau standard $15\times15$ au mode Super-Scrabble $21\times21$ sans modifier la logique de placement. Les modules du package \texttt{factory} implémenteront le design pattern \textbf{Factory} pour générer ces différents plateaux.
+    \item \textbf{Abstraction des Joueurs} : Nous utilisons une classe abstraite \texttt{Player} pour traiter de manière uniforme les joueurs humains (locaux), les intelligences artificielles et les joueurs réseaux. Chaque joueur possède son propre \texttt{Rack} (chevalet) de 7 objets \texttt{Tiles} piochés dans \texttt{Bag}, qui pourront être joués sur le \texttt{Board} avec un \texttt{Move}.
+    \item \textbf{Internationalisation et Localisation (i18n/l10n)} : L'application utilise les mécanismes \texttt{ResourceBundle} et \texttt{Locale} de Java pour supporter l'anglais et le français (choisi automatiquement en fonction des variables d’environnement \texttt{LANG} ou \texttt{LC\_ALL}). Cette gestion impacte directement la logique du jeu en chargeant dynamiquement la distribution des lettres, leurs valeurs respectives dans le sac (\texttt{Bag}), ainsi que le dictionnaire associé via le module \texttt{lexicon}.
+\end{itemize}
+
+\subsection{Gestion des Coups et Persistance}
+La gestion des actions repose sur une traçabilité complète, nécessaire pour les fonctionnalités de confort utilisateur et la sauvegarde.
+
+\begin{itemize}
+    \item \textbf{Pattern Command} : Chaque action est encapsulée dans un objet \texttt{Move}, avec le choix de l’action spécifié par un enum \texttt{MoveType} (PLAY, EXCHANGE et PASS). La logique d’application des \texttt{Move} sera géré par la classe \texttt{MoveHandler}, pour séparer cette logique des données. Ces choix d’implémentation faciliteront l’implémentation d’undo/redo, des fichiers de sauvegarde et des différents joueurs.
+    \item \textbf{Format de Sauvegarde Robuste} : Les fichiers de sauvegarde (.txt en ASCII) sont structurés en trois blocs obligatoires : \texttt{[settings]}, \texttt{[game]} et \texttt{[history]}. Notre parseur sera robuste en ignorant les commentaires en ligne (\#) ou en bloc (\{\dots\}) et en signalant précisément la ligne en cas d'erreur de format.
+\end{itemize}
+
+\subsection{Algorithmes, Dictionnaire et Réseau}
+Cette section regroupe les composants les plus techniques du projet, où la performance du moteur de jeu rencontre les capacités d'extension réseau.
+
+\begin{itemize}
+    \item \textbf{Moteur de recherche et Dictionnaire} : La validation des mots et la recherche de coups reposent sur le module \texttt{dictionary}. Il s'agit d'une interface abstraite permettant d'interchanger deux structures de données haute performance : le \textbf{DAWG} (F28), optimisé pour la vérification rapide, et le \textbf{GADDAG} (F29), indispensable pour générer efficacement tous les coups possibles à partir d'un tirage. Le module \texttt{lexicon} assure le chargement de ces données en fonction de la langue choisie (F26).
+    \item \textbf{Intelligence Artificielle} : L'IA exploite les capacités du GADDAG pour trouver les meilleurs placements et simuler des joueurs artificiels \texttt{AIPlayer}. Au-delà d'une simple recherche de score maximal, l'activation de l'option \texttt{-ai-exptiminimax} lance un algorithme qui anticipe les futurs tirages et les réponses probables de l'adversaire (F36). Pour la recherche de mots expérimentale, nous prévoyons l'intégration de la bibliothèque \textbf{TensorFlow Java API} (F37) avec un temps de réflexion borné à 5 secondes par défaut.
+    \item \textbf{Architecture Réseau} : L'infrastructure est centralisée par un \texttt{NetworkManager} qui orchestre les échanges de données. Le \texttt{GameServer} gère les connexions multi-threadées via TCP sur le port 12345, tandis que le \texttt{GameClient} assure la liaison avec le moteur local. Les interactions (coups, invitations) sont encapsulées dans des objets \texttt{Packet} transitant au format ASCII. La découverte automatique s'appuie sur un broadcast UDP sur le port 12346, avec un système d'invitations expirant après 5 minutes (F40).
+\end{itemize}
+
+\subsection{Environnement et Qualité}
+Le projet est automatisé via \textbf{Maven} pour un déploiement sur \textbf{GNU/Linux}. La fiabilité est garantie par une suite de tests \textbf{JUnit} associée à \textbf{Jacoco}, avec un objectif de \textbf{85\% de couverture}. L'intégralité du code et de la \textbf{Javadoc} respecte les standards \textbf{Google} en anglais. Enfin, la robustesse est assurée par un traitement systématique des erreurs sur \textbf{stderr}, garantissant une exécution sans crash.
 
 
 %------------------------------------------------------------------------------
