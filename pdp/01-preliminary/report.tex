@@ -365,6 +365,16 @@ Contrairement au GADDAG, l'algorithme \textbf{DAWG} ne fonctionne que de manièr
 \caption{Comparaison des structures de données pour le Scrabble}
 \end{table}
 
+De plus, il y a un moyen montrer dans l'artcile originel publiant l'idée du GADDAG, de reduire la mémoire utilisé par le GADDAG. 
+Le moyen utiliser est de reduire le nombre de sortie dpour chaque mot en reliant les répétitions inutiles de fin de mots comme le montre cette exemple fait pour le mot CARE.
+
+\begin{figure}[htbp] % h=here, t=top, b=bottom, p=page
+    \centering
+    \includegraphics[width=0.5\textwidth]{semi-minimisation-gaddag.png} 
+    \caption{Graphe du GADDAG semi-minimisé pour « CARE ». (Source : [2])}
+    \label{fig:gaddag_care}
+\end{figure}
+
 \subsection{Synthèse des performances}
 L'utilisation du GADDAG présente des avantages majeurs pour notre moteur de jeu :
 \begin{itemize}
