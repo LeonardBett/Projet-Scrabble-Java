@@ -4,6 +4,9 @@
 \usepackage{xcolor}
 \usepackage{tcolorbox}
 \usepackage{enumitem}
+\usepackage{amsmath}
+\usepackage{minted}
+
 
 \tcbuselibrary{skins, breakable}
 \newtcolorbox{besoinbox}{
@@ -133,6 +136,46 @@ Pour pallier ces manques, nous avons deux algorithmes de théorie des jeux : Min
 
 L'algorithme Minimax est la base de la décision dans les jeux à somme nulle. Il parcourt l'arbre de jeu jusqu'à une profondeur $d$ donnée.
 
+% --- Partie Schéma TikZ ---
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        level 1/.style={sibling distance=5cm},
+        level 2/.style={sibling distance=2.5cm},
+        level distance=2cm,
+        % Styles des nœuds
+        maxnode/.style={rectangle, draw=blue!80, thick, minimum size=10mm, fill=blue!5, text centered},
+        minnode/.style={circle, draw=red!80, thick, minimum size=10mm, fill=red!5, text centered},
+        leaf/.style={rectangle, draw=gray, thin, minimum size=6mm, fill=gray!10},
+        % Style des flèches de remontée de valeur
+        valueprop/.style={->, dashed, thick, color=orange}
+    ]
+
+    % Racine (MAX)
+    \node[maxnode] (root) {4}
+        % Branche Gauche (MIN)
+        child { 
+            node[minnode] {4} 
+            child { node[leaf] {4} edge from parent node[left, font=\scriptsize] {Coup 1.1} }
+            child { node[leaf] {6} edge from parent node[right, font=\scriptsize] {Coup 1.2} }
+            edge from parent node[left, xshift=-5pt] {Coup A}
+        }
+        % Branche Droite (MIN)
+        child { 
+            node[minnode] {2}
+            child { node[leaf] {2} edge from parent node[left, font=\scriptsize] {Coup 2.1} }
+            child { node[leaf] {9} edge from parent node[right, font=\scriptsize] {Coup 2.2} }
+            edge from parent node[right, xshift=5pt] {Coup B}
+        };
+
+    % Annotations explicatives (Optionnel)
+    \node[right=0.5cm of root, text width=4cm, font=\footnotesize, color=blue] 
+        
+    \end{tikzpicture}
+    \caption{Exemple de déroulement d'un arbre Minimax}
+    \label{fig:minimax_tree}
+\end{figure}
+
 \subsubsection*{Fonctionnement}
 L'algorithme alterne entre deux types de nœuds :
 \begin{itemize}
@@ -142,6 +185,36 @@ L'algorithme alterne entre deux types de nœuds :
 
 L'application stricte de Minimax au Scrabble pose un problème de modélisation. Minimax suppose que l'adversaire jouera toujours le coup optimal pour nous contrer. Or, pour déterminer ce coup optimal, l'algorithme doit connaître les lettres de l'adversaire.
 Dans une simulation Minimax, nous devrions supposons le pire cas: l'adversaire possède exactement les lettres nécessaires pour réfuter notre coup (ex: un "Z" pour atteindre un mot compte triple ouvert). Cette approche rend l'IA excessivement défensive et inadaptée à la réalité probabiliste du tirage.
+
+% --- Partie Pseudo-code ---
+\begin{listing}[H]
+\caption{Pseudo-code de l'algorithme Minimax}
+\label{lst:minimax_algo}
+\begin{minted}[frame=lines, framesep=2mm, baselinestretch=1.2, fontsize=\footnotesize, linenos]{text}
+Fonction Minimax(état, profondeur, est_joueur_max):
+    // Cas de base : feuille de l'arbre ou profondeur atteinte
+    SI profondeur == 0 OU partie_terminée(état) ALORS
+        RETOURNER evaluer(état)
+
+    SI est_joueur_max ALORS
+        // Tour de l'IA (Cherche à maximiser son score)
+        meilleure_valeur = -INFINI
+        POUR CHAQUE coup DANS generer_coups_possibles(état) FAIRE
+            nouvel_état = jouer_coup(état, coup)
+            valeur = Minimax(nouvel_état, profondeur - 1, FAUX)
+            meilleure_valeur = MAX(meilleure_valeur, valeur)
+        RETOURNER meilleure_valeur
+
+    SINON
+        // Tour de l'adversaire (Cherche à minimiser notre gain)
+        pire_valeur = +INFINI
+        POUR CHAQUE coup DANS generer_coups_possibles(état) FAIRE
+            nouvel_état = jouer_coup(état, coup)
+            valeur = Minimax(nouvel_état, profondeur - 1, VRAI)
+            pire_valeur = MIN(pire_valeur, valeur)
+        RETOURNER pire_valeur
+\end{minted}
+\end{listing}
 
 \subsection{L'Algorithme Expectiminimax}
 
@@ -161,6 +234,34 @@ La valeur d'un nœud de hasard n'est ni un minimum ni un maximum, mais une espé
 \]
 
 Où $P(r)$ est la probabilité que le tirage soit $r$, sachant les lettres déjà visibles.
+\begin{listing}[H]
+\caption{Pseudo-code de l'algorithme Expectiminimax}
+\label{lst:expectiminimax}
+\begin{minted}[frame=lines, framesep=2mm, baselinestretch=1.2, fontsize=\footnotesize, linenos]{text}
+Fonction Expectiminimax(état, profondeur, type_nœud):
+    SI profondeur == 0 OU partie_finie ALORS
+        RETOURNER evaluer(état)
+
+    SI type_nœud == MAX ALORS
+        valeur_max = -INF
+        POUR CHAQUE coup DANS generer_coups(état) FAIRE
+            val = Expectiminimax(appliquer(état, coup), profondeur-1, CHANCE)
+            valeur_max = MAX(valeur_max, val)
+        RETOURNER valeur_max
+
+    SINON SI type_nœud == CHANCE ALORS
+        somme_valeurs = 0
+        // Échantillonnage de Monte-Carlo
+        mains_simulees = generer_mains_aleatoires(état, 20)
+        POUR CHAQUE main DANS mains_simulees FAIRE
+             // On attribue la main à l'adversaire
+            état_simulé = set_main_adversaire(état, main)
+            somme_valeurs += Expectiminimax(état_simulé, profondeur, MIN)
+        RETOURNER somme_valeurs / 20
+    
+    // ... Cas MIN symétrique au MAX
+\end{minted}
+\end{listing}
 
 \subsubsection*{Défi combinatoire et Échantillonnage}
 Le facteur de branchement aux nœuds de hasard est gigantesque. Simuler tous les tirages possibles de 7 lettres parmi les $N$ lettres restantes est impossible en temps réel.
@@ -174,6 +275,60 @@ L'algorithme devient alors :
     \item Pour chaque main, nous calculons la meilleure réponse de l'adversaire.
     \item La valeur du coup $C$ est la moyenne des scores résultant de ces simulations.
 \end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        level 1/.style={sibling distance=4.5cm},
+        level 2/.style={sibling distance=2cm},
+        level distance=1.5cm,
+        maxnode/.style={rectangle, draw=black, thick, minimum size=8mm, fill=blue!10},
+        chance/.style={circle, draw=black, thick, minimum size=8mm, fill=yellow!10},
+        minnode/.style={rectangle, draw=black, thick, minimum size=8mm, fill=red!10},
+        leaf/.style={rectangle, draw=none, minimum size=6mm}
+    ]
+
+    % Racine : MAX (Notre tour)
+    \node[maxnode] (root) {MAX}
+        % Branche Gauche : Coup A
+        child { 
+            node[chance] {Chance} 
+            child { 
+                node[minnode] {MIN} 
+                child { node[leaf] {10} }
+                child { node[leaf] {15} }
+                edge from parent node[left, font=\tiny] {Tirage 1 (50\%)}
+            }
+            child { 
+                node[minnode] {MIN} 
+                child { node[leaf] {8} }
+                child { node[leaf] {12} }
+                edge from parent node[right, font=\tiny] {Tirage 2 (50\%)}
+            }
+            edge from parent node[left, xshift=-5pt] {Coup A}
+        }
+        % Branche Droite : Coup B
+        child { 
+            node[chance] {Chance}
+            child { 
+                node[minnode] {MIN} 
+                child { node[leaf] {20} }
+                child { node[leaf] {5} }
+                edge from parent node[left, font=\tiny] {Tirage 1}
+            }
+            child { 
+                node[minnode] {MIN} 
+                child { node[leaf] {7} }
+                child { node[leaf] {9} }
+                edge from parent node[right, font=\tiny] {Tirage 2}
+            }
+            edge from parent node[right, xshift=5pt] {Coup B}
+        };
+
+    \end{tikzpicture}
+    \caption{Représentation d'un arbre Expectiminimax à 3 niveaux}
+    \label{fig:tree_structure}
+\end{figure}
 
 
 \section{Structure de données pour la recherche : GADDAG}

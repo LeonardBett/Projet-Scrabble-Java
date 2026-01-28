@@ -1,0 +1,24 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+Fonction Expectiminimax(état, profondeur, type\PYGZus{}nœud):
+    SI profondeur == 0 OU partie\PYGZus{}finie ALORS
+        RETOURNER evaluer(état)
+
+    SI type\PYGZus{}nœud == MAX ALORS
+        valeur\PYGZus{}max = \PYGZhy{}INF
+        POUR CHAQUE coup DANS generer\PYGZus{}coups(état) FAIRE
+            val = Expectiminimax(appliquer(état, coup), profondeur\PYGZhy{}1, CHANCE)
+            valeur\PYGZus{}max = MAX(valeur\PYGZus{}max, val)
+        RETOURNER valeur\PYGZus{}max
+
+    SINON SI type\PYGZus{}nœud == CHANCE ALORS
+        somme\PYGZus{}valeurs = 0
+        // Échantillonnage de Monte\PYGZhy{}Carlo
+        mains\PYGZus{}simulees = generer\PYGZus{}mains\PYGZus{}aleatoires(état, 20)
+        POUR CHAQUE main DANS mains\PYGZus{}simulees FAIRE
+             // On attribue la main à l\PYGZsq{}adversaire
+            état\PYGZus{}simulé = set\PYGZus{}main\PYGZus{}adversaire(état, main)
+            somme\PYGZus{}valeurs += Expectiminimax(état\PYGZus{}simulé, profondeur, MIN)
+        RETOURNER somme\PYGZus{}valeurs / 20
+
+    // ... Cas MIN symétrique au MAX
+\end{MintedVerbatim}
