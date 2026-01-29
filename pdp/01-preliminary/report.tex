@@ -57,9 +57,6 @@
 \begin{document}
 \maketitle
 
-\tableofcontents
-
-
 \section*{Introduction}
 \addcontentsline{toc}{section}{Introduction}
 \hangindent=0.8mm
@@ -476,7 +473,6 @@ L'algorithme devient alors :
 \hangafter=1
 Pour que les algorithmes de décision (Minimax ou Expectiminimax) soient réellement performants, ils doivent pouvoir accéder à la liste exhaustive des coups légaux de manière quasi instantanée. À cette fin, nous utilisons la structure de données \textbf{GADDAG}, inventée par Steven Gordon en 1994.
 
-\vspace{1\baselineskip}
 \hangindent=0.8mm
 \hangafter=1
 Inspiré du \textbf{DAWG} (Directed Acyclic Word Graph), le GADDAG est spécifiquement optimisé pour le Scrabble, car il facilite la construction de mots autour d'une "ancre" (une lettre déjà présente sur le plateau).
@@ -548,7 +544,7 @@ L'utilisation du GADDAG présente des avantages majeurs pour notre moteur de jeu
 
 \hangindent=1.5cm
 \hangafter=1
-\textbf{1. Efficacité maximale} : C’est l’algorithme le plus rapide pour la génération de coups, évitant les répétitions inutiles.
+\textbf{1. Efficacité maximale} : C’est l’algorithme le plus rapide pour la génération de coups, sans répétitions inutiles.
 
 
 \hangindent=1.5cm
@@ -601,10 +597,6 @@ Fonctionnel.
 \hangindent=0.8mm
 \hangafter=1
 \subsection{Découpage en sous-besoins:}
-
-\hangindent=1.5cm
-\hangafter=1
-Pour implémenter cette fonctionnalité, nous avons identifié quatre sous-besoins principaux.
 
 \subsection*{Sous besoins 1. Détecter les modifications non sauvegardées}
 \begin{besoinbox}
@@ -745,14 +737,17 @@ boolean gererErreurSauvegarde(EtatJeu etatJeu)
 \hangafter=1
 Voici comment la fonctionnalité de sauvegarde sera intégrée dans l'architecture globale du projet :
 
+\vspace{1\baselineskip}
 \hangindent=1.5cm
 \hangafter=1
 \textbf{1. Module CLI :} La logique de F16 (demande de sauvegarde avant de quitter) sera intégrée dans le module gérant les commandes utilisateur. Ce module est responsable de l'interaction avec l'utilisateur via le terminal.
 
+\vspace{1\baselineskip}
 \hangindent=1.5cm
 \hangafter=1
 \textbf{2. Module Sauvegarde :} Les fonctions de sauvegarde (\texttt{sauvegarderPartie}, \texttt{gererErreurSauvegarde}) seront regroupées dans un module dédié. Ce module contiendra toute la logique de gestion des fichiers de sauvegarde.
 
+\vspace{1\baselineskip}
 \hangindent=1.5cm
 \hangafter=1
 \textbf{3. Fichiers de configuration :} Le chemin par défaut des sauvegardes sera défini dans le fichier \texttt{.scrabblerc} (F2). Ce fichier de configuration permettra de personnaliser les chemins de sauvegarde et d'autres paramètres du jeu.
@@ -802,6 +797,29 @@ Voici un scénario complet montrant comment l'utilisateur interagit avec la fonc
 \hangindent=0.8mm
 \hangafter=1
 L’objectif de ce projet est de concevoir une application robuste du Scrabble, capable de gérer aussi bien une interface console (CLI) qu’une interface graphique (JavaFX), tout en intégrant des fonctionnalités avancées comme le jeu en réseau et l’intelligence artificielle. Le projet est actuellement structuré sous forme de squelettes de classes.
+
+\subsubsection{Structure des Répertoires}
+\hangindent=0.8mm
+\hangafter=1
+Le projet est organisé selon une structure hiérarchique claire séparant le modèle, les vues et le contrôleur :
+
+\subsubsection{Structure des Répertoires}
+\begin{verbatim}
+src/main/java/fr/u_bordeaux/scrabble/
+|-- model/
+|   |-- core/          (Bag, Board, Game, Move...)
+|   |-- ai/            (AIPlayer, MinimaxSolver)
+|   |-- dictionary/    (Lexicon, Gaddag, Dawg)
+|   |-- network/       (GameServer, GameClient)
+|   +-- enums/
+|-- view/
+|   |-- cli/           (TerminalView, CommandHandler)
+|   +-- gui/           (JavaFxView)
+|-- controller/        (GameController)
++-- io/                (ConfigLoader, GameLoader)
+\end{verbatim}
+
+\vspace{1\baselineskip}
 
 \subsection{Organisation Globale et MVC}
 \hangindent=0.8mm
