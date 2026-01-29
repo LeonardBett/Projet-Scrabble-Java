@@ -530,6 +530,10 @@ Contrairement au GADDAG, l'algorithme \textbf{DAWG} ne fonctionne que de manièr
 \hangafter=1
 De plus, il y a un moyen montré dans l’article originel publiant l’idée du GADDAG, de réduire la mémoire utilisée par le GADDAG. Le moyen utilisé est de réduire le nombre de sorties pour chaque mot en reliant les répétitions inutiles de fin de mots comme le montre cet exemple fait pour le mot CARE.
 
+\hangindent=0.8mm
+\hangafter=1
+Cette minimisation est aussi faite en début d'arbre, juste après la racine, pour les mots finissant avec deux mêmes lettres, par exemple CALL, qui aura, sans minimisation, deux branches de l'arbre commençant avec L, mais en liant les deux à la première ligne, pour les séparer à partir de la lettre suivante, nous gagnons de la mémoire et la structure GADDAG devient déterministe, vu il n'y aura qu'un seul chemin pour chaque possibilité.
+
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.5\textwidth]{semi-minimisation-gaddag.png}
@@ -571,16 +575,18 @@ Le programme doit demander à l'utilisateur s'il souhaite sauvegarder la partie 
 \hangafter=1
 \subsection{Prérequis:}
 
+\vspace{1\baselineskip}
+
 \hangindent=1.5cm
 \hangafter=1
 \textbf{1. F2 :} Fichier de configuration (pour définir les chemins de sauvegarde par défaut).
 
-
+\vspace{1\baselineskip}
 \hangindent=1.5cm
 \hangafter=1
 \textbf{2. F21 :} Format de sauvegarde (pour savoir comment structurer les fichiers de sauvegarde).
 
-
+\vspace{1\baselineskip}
 \hangindent=1.5cm
 \hangafter=1
 \textbf{3. F15 :} Shell interactif (pour gérer les commandes comme quit et save).
