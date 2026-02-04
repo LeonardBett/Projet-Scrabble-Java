@@ -8,7 +8,7 @@ import java.net.Socket;
 import java.net.SocketException;
 
 /**
- * Client réseau pour se connecter à un serveur de jeu.
+ * Network client to connect to a game server.
  */
 public class GameClient {
 
@@ -68,7 +68,7 @@ public class GameClient {
                     long pingEndTime = System.currentTimeMillis();
                     System.out.println("PONG TIME=" + (pingEndTime - pingStartTime) + "ms");
                 } else {
-                    System.out.println(serverMessage);
+                    System.out.println("Client received: " + serverMessage);
                 }
             }
         } catch (SocketException e) {
@@ -79,12 +79,18 @@ public class GameClient {
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
-            quit();
+            if(isRunning){
+                quit();
+            }
         }
     }
 
-    //Close the connexion with the server
+    // Close the connexion with the server
     public void quit() {
+        if(!isRunning){
+            System.out.println("Client is already disconnected");
+            return;
+        }
         isRunning = false;
         try {
             if (socket != null && !socket.isClosed()) {

@@ -4,15 +4,21 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
- * Serveur de jeu pour le mode multijoueur.
- * Gère les connexions clients et les parties en réseau.
+ * Game server for multiplayer mode.
+ * Manages client connections and network games.
  */
 public class GameServer {
 
     private static final int DEFAULT_PORT = 12345;
     private volatile boolean isRunning = false;
+
+    // Thread-safe list of running clients
+    private List<ClientHandler> clients = Collections.synchronizedList(new ArrayList<>());
 
     // Server socket use to accept connexion, need to store it to be able to close it
     private ServerSocket serverSocket;
@@ -31,20 +37,19 @@ public class GameServer {
 
             //Infinite loop for accepting connexion
             while (isRunning) {
-                try {
                     Socket clientSocket = serverSocket.accept();
                     System.out.println("Client connected: " + clientSocket.getInetAddress());
 
                     //We are going to give this socket to a thread
-                    ClientHandler handler = new ClientHandler(clientSocket);
+                    ClientHandler handler = new ClientHandler(clientSocket, this);
+                    addClient(handler);
                     new Thread(handler).start();
-                } catch (SocketException e) {
-                    if (isRunning) {
-                        e.printStackTrace();
-                    }
-                    // If isRunning is false, it means we called stop(), so we just exit the loop
-                }
             }
+        } catch (SocketException e) {
+            if (isRunning) {
+                e.printStackTrace();
+            }
+            // If isRunning is false, it means we called stop(), so we just exit the loop
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
@@ -61,9 +66,21 @@ public class GameServer {
             System.out.println("Server is not running, can't stop it");
             return;
         };
-        
-        System.out.println("Server stopping...");
         isRunning = false;
+
+        System.out.println("Server stopping, disconnecting all clients...");
+        
+        // Create a copy of the list to iterate over, to avoid ConcurrentModificationException
+        // because client.quit() calls removeClient() which modifies the original list
+        List<ClientHandler> clientsCopy;
+        synchronized(clients) {
+            clientsCopy = new ArrayList<>(clients);
+        }
+        for(ClientHandler client : clientsCopy){
+            client.sendMessage("Server is shutting down");
+            client.quit();
+        }
+
         try {
             if (serverSocket != null && !serverSocket.isClosed()) {
                 serverSocket.close();
@@ -71,5 +88,15 @@ public class GameServer {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private void addClient(ClientHandler client){
+        clients.add(client);
+        System.out.println("There is now " + clients.size() + " client(s) connected");
+    }
+
+    public void removeClient(ClientHandler client){
+        clients.remove(client);
+        System.out.println("There is now " + clients.size() + " client(s) connected");
     }
 }

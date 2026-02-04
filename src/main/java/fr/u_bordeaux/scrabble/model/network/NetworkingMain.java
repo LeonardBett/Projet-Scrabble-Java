@@ -1,6 +1,6 @@
 package fr.u_bordeaux.scrabble.model.network;
 
-//temporary main for testing networking without GUI
+// Temporary main for testing networking implementation without GUI
 public class NetworkingMain {
     public static void main(String[] args) throws InterruptedException {
 
@@ -11,40 +11,31 @@ public class NetworkingMain {
         //We wait to be sur that the server has started
         Thread.sleep(50);
 
-        //We create two clients and connect them to the server
+        //We create clients and connect them to the server
         GameClient client1 = new GameClient();
         client1.connect("localhost", 12345);
+        Thread.sleep(50);
         GameClient client2 = new GameClient();
         client2.connect("localhost", 12345);
-
         Thread.sleep(50);
 
         //Testing sending a message
         client1.sendMessage("Hello from client");
-
         Thread.sleep(50);
 
         //Testing the command PING
         client2.sendPing();
-
         Thread.sleep(50);
 
-        //Closing the connexion from client1
+        //Closing the connexion from client1 manually
         client1.quit();
-
         Thread.sleep(50);
 
         //Bug intended => sending a message after closing the connexion
         client1.sendMessage("This will bug");
-
         Thread.sleep(50);
 
-        //Closing the connexion from client2
-        client2.quit();
-
-        Thread.sleep(50);
-
-        //Stop the server
+        //Stop the server and disconnect the clients
         gameServer.stop();
     }
 }
