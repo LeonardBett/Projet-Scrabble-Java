@@ -1,15 +1,16 @@
 package fr.u_bordeaux.scrabble;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import fr.u_bordeaux.scrabble.model.core.Game;
-import fr.u_bordeaux.scrabble.model.core.Move;
 import fr.u_bordeaux.scrabble.model.core.HumanPlayer;
+import fr.u_bordeaux.scrabble.model.core.Move;
 import fr.u_bordeaux.scrabble.model.core.Tile;
 import fr.u_bordeaux.scrabble.model.enums.Direction;
 import fr.u_bordeaux.scrabble.model.interfaces.Player;
 import fr.u_bordeaux.scrabble.model.utils.Point;
-
-import java.util.ArrayList;
-import java.util.List;
+import fr.u_bordeaux.scrabble.view.gui.ScrabbleGUI;
 
 /**
  * Application entry point.
@@ -18,7 +19,12 @@ import java.util.List;
 public class App {
 
     public static void main(String[] args) {
-        start();
+        if (args[0].equals("--gui") ){
+            ScrabbleGUI.main(args);
+        }
+        else{
+            start();
+        }
     }
     
     /**
