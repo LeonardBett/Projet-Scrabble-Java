@@ -41,7 +41,7 @@ public class GameClient {
             // Try to connect to a server
             socket = new Socket(address, port);
 
-            System.out.println("Connected to " + socket.getInetAddress().getHostName());
+            System.out.println("Client : connected to " + socket.getInetAddress().getHostName());
 
             // Set IO for ASCII communication
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -54,7 +54,7 @@ public class GameClient {
 
         } catch (IOException e) {
             e.printStackTrace();
-            System.out.println("Cant connect to the server");
+            System.out.println("Client : Cant connect to the server");
         }
     }
 
@@ -66,9 +66,9 @@ public class GameClient {
             while (isRunning && (serverMessage = in.readLine()) != null) {
                 if ("PONG".equals(serverMessage)) {
                     long pingEndTime = System.currentTimeMillis();
-                    System.out.println("PONG TIME=" + (pingEndTime - pingStartTime) + "ms");
+                    System.out.println("Client : PONG TIME=" + (pingEndTime - pingStartTime) + "ms");
                 } else {
-                    System.out.println("Client received: " + serverMessage);
+                    System.out.println("Client : Received: " + serverMessage);
                 }
             }
         } catch (SocketException e) {
@@ -88,14 +88,15 @@ public class GameClient {
     // Close the connexion with the server
     public void quit() {
         if(!isRunning){
-            System.out.println("Client is already disconnected");
+            System.out.println("Client : This client is already disconnected");
             return;
         }
         isRunning = false;
+
+        System.out.println("Client : connection closed");
         try {
             if (socket != null && !socket.isClosed()) {
                 socket.close();
-                System.out.println("Connection closed");
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -107,7 +108,7 @@ public class GameClient {
         if (isRunning && out != null) {
             out.println(message);
         } else {
-            System.out.println("Client is not running/connected");
+            System.out.println("Client : Client is not running/connected");
         }
     }
 
@@ -117,7 +118,7 @@ public class GameClient {
             pingStartTime = System.currentTimeMillis();
             out.println("PING");
         } else {
-            System.out.println("Client is not running/connected");
+            System.out.println("Client : Client is not running/connected");
         }
     }
 }

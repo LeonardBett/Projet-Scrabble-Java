@@ -10,7 +10,7 @@ import java.net.SocketException;
  */
 public class ClientHandler implements Runnable {
 
-    private volatile  boolean isRunning = false;
+    private volatile boolean isRunning = false;
 
     // Socket use to talk with the client
     private Socket socket;
@@ -39,7 +39,7 @@ public class ClientHandler implements Runnable {
             // Infinite loop for listening to the client
             String clientMessage;
             while (isRunning && (clientMessage = in.readLine()) != null) {
-                System.out.println("Server received: " + clientMessage);
+                System.out.println("Server : Received: " + clientMessage);
 
                 // PING implementation
                 if (clientMessage.equals("PING")) {
