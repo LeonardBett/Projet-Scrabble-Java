@@ -21,5 +21,8 @@
 *.ipr
 out/
 
+#vscode
+**.json
+
 # Maven
 target/
