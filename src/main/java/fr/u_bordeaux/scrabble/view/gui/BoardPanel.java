@@ -1,7 +1,9 @@
 package fr.u_bordeaux.scrabble.view.gui;
 
 import fr.u_bordeaux.scrabble.model.core.Board;
+import fr.u_bordeaux.scrabble.model.core.Square;
 import fr.u_bordeaux.scrabble.model.enums.SquareType;
+import fr.u_bordeaux.scrabble.model.utils.Point;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
@@ -22,10 +24,19 @@ public class BoardPanel extends VBox {
     
     private GridPane gridPane;
     private Label[][] cellLabels;
+    private Board board;
+
     
-    public BoardPanel() {
+    // Constructeur par défaut (crée un nouveau Board)
+    public BoardPanel(Board board) {
+        this.board = board;
         this.cellLabels = new Label[GRID_SIZE][GRID_SIZE];
         initializeUI();
+    }
+    
+    // Constructeur par défaut (crée un nouveau Board)
+    public BoardPanel() {
+        this(new Board());
     }
     
     private void initializeUI() {
@@ -69,9 +80,9 @@ public class BoardPanel extends VBox {
         cell.setFont(Font.font("Arial", FontWeight.BOLD, 18));
         
         // Déterminer le type de case et sa couleur
-        SquareType type = getSquareType(row, col);
+        Square square = board.getSquare(new Point(col, row)); 
+        SquareType type = square.getSquareType();
         applyCellStyle(cell, type, row, col);
-        
         // Ajouter un effet de survol
         cell.setOnMouseEntered(e -> cell.setStyle(cell.getStyle() + "-fx-opacity: 0.8;"));
         cell.setOnMouseExited(e -> cell.setStyle(cell.getStyle().replace("-fx-opacity: 0.8;", "")));
@@ -127,56 +138,56 @@ public class BoardPanel extends VBox {
     }
     
 
-    private SquareType getSquareType(int row, int col) {
+    // private SquareType getSquareType(int row, int col) {
 
-        if ((row == 0 || row == 14) && (col == 0 || col == 7 || col == 14)) {
-            return SquareType.TRIPLE_WORD;
-        }
-        if ((row == 7) && (col == 0 || col == 14)) {
-            return SquareType.TRIPLE_WORD;
-        }
+    //     if ((row == 0 || row == 14) && (col == 0 || col == 7 || col == 14)) {
+    //         return SquareType.TRIPLE_WORD;
+    //     }
+    //     if ((row == 7) && (col == 0 || col == 14)) {
+    //         return SquareType.TRIPLE_WORD;
+    //     }
         
 
-        if (row == col && row >= 1 && row <= 4) {
-            return SquareType.DOUBLE_WORD;
-        }
-        if (row == col && row >= 10 && row <= 13) {
-            return SquareType.DOUBLE_WORD;
-        }
-        if (row + col == 14 && row >= 1 && row <= 4) {
-            return SquareType.DOUBLE_WORD;
-        }
-        if (row + col == 14 && row >= 10 && row <= 13) {
-            return SquareType.DOUBLE_WORD;
-        }
+    //     if (row == col && row >= 1 && row <= 4) {
+    //         return SquareType.DOUBLE_WORD;
+    //     }
+    //     if (row == col && row >= 10 && row <= 13) {
+    //         return SquareType.DOUBLE_WORD;
+    //     }
+    //     if (row + col == 14 && row >= 1 && row <= 4) {
+    //         return SquareType.DOUBLE_WORD;
+    //     }
+    //     if (row + col == 14 && row >= 10 && row <= 13) {
+    //         return SquareType.DOUBLE_WORD;
+    //     }
         
 
-        if ((row == 1 || row == 13) && (col == 5 || col == 9)) {
-            return SquareType.TRIPLE_LETTER;
-        }
-        if ((row == 5 || row == 9) && (col == 1 || col == 5 || col == 9 || col == 13)) {
-            return SquareType.TRIPLE_LETTER;
-        }
+    //     if ((row == 1 || row == 13) && (col == 5 || col == 9)) {
+    //         return SquareType.TRIPLE_LETTER;
+    //     }
+    //     if ((row == 5 || row == 9) && (col == 1 || col == 5 || col == 9 || col == 13)) {
+    //         return SquareType.TRIPLE_LETTER;
+    //     }
         
 
-        if ((row == 0 || row == 14) && (col == 3 || col == 11)) {
-            return SquareType.DOUBLE_LETTER;
-        }
-        if ((row == 2 || row == 12) && (col == 6 || col == 8)) {
-            return SquareType.DOUBLE_LETTER;
-        }
-        if ((row == 3 || row == 11) && (col == 0 || col == 7 || col == 14)) {
-            return SquareType.DOUBLE_LETTER;
-        }
-        if ((row == 6 || row == 8) && (col == 2 || col == 6 || col == 8 || col == 12)) {
-            return SquareType.DOUBLE_LETTER;
-        }
-        if (row == 7 && (col == 3 || col == 11)) {
-            return SquareType.DOUBLE_LETTER;
-        }
+    //     if ((row == 0 || row == 14) && (col == 3 || col == 11)) {
+    //         return SquareType.DOUBLE_LETTER;
+    //     }
+    //     if ((row == 2 || row == 12) && (col == 6 || col == 8)) {
+    //         return SquareType.DOUBLE_LETTER;
+    //     }
+    //     if ((row == 3 || row == 11) && (col == 0 || col == 7 || col == 14)) {
+    //         return SquareType.DOUBLE_LETTER;
+    //     }
+    //     if ((row == 6 || row == 8) && (col == 2 || col == 6 || col == 8 || col == 12)) {
+    //         return SquareType.DOUBLE_LETTER;
+    //     }
+    //     if (row == 7 && (col == 3 || col == 11)) {
+    //         return SquareType.DOUBLE_LETTER;
+    //     }
         
-        return SquareType.NORMAL;
-    }
+    //     return SquareType.NORMAL;
+    // }
     
 
     public void placeTile(int row, int col, char letter, int points) {
@@ -193,7 +204,8 @@ public class BoardPanel extends VBox {
     public void clearTile(int row, int col) {
         if (row >= 0 && row < GRID_SIZE && col >= 0 && col < GRID_SIZE) {
             Label cell = cellLabels[row][col];
-            SquareType type = getSquareType(row, col);
+            Square square = board.getSquare(new Point(col, row)); 
+            SquareType type = square.getSquareType();
             applyCellStyle(cell, type, row, col);
         }
     }
