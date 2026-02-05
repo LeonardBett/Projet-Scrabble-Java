@@ -24,6 +24,8 @@ public class Board {
         this.board = board;
     }
 
+
+
     /**
      * Default constructor: initializes a standard Scrabble board.
      */
