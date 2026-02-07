@@ -138,58 +138,6 @@ public class BoardPanel extends VBox {
     }
     
 
-    // private SquareType getSquareType(int row, int col) {
-
-    //     if ((row == 0 || row == 14) && (col == 0 || col == 7 || col == 14)) {
-    //         return SquareType.TRIPLE_WORD;
-    //     }
-    //     if ((row == 7) && (col == 0 || col == 14)) {
-    //         return SquareType.TRIPLE_WORD;
-    //     }
-        
-
-    //     if (row == col && row >= 1 && row <= 4) {
-    //         return SquareType.DOUBLE_WORD;
-    //     }
-    //     if (row == col && row >= 10 && row <= 13) {
-    //         return SquareType.DOUBLE_WORD;
-    //     }
-    //     if (row + col == 14 && row >= 1 && row <= 4) {
-    //         return SquareType.DOUBLE_WORD;
-    //     }
-    //     if (row + col == 14 && row >= 10 && row <= 13) {
-    //         return SquareType.DOUBLE_WORD;
-    //     }
-        
-
-    //     if ((row == 1 || row == 13) && (col == 5 || col == 9)) {
-    //         return SquareType.TRIPLE_LETTER;
-    //     }
-    //     if ((row == 5 || row == 9) && (col == 1 || col == 5 || col == 9 || col == 13)) {
-    //         return SquareType.TRIPLE_LETTER;
-    //     }
-        
-
-    //     if ((row == 0 || row == 14) && (col == 3 || col == 11)) {
-    //         return SquareType.DOUBLE_LETTER;
-    //     }
-    //     if ((row == 2 || row == 12) && (col == 6 || col == 8)) {
-    //         return SquareType.DOUBLE_LETTER;
-    //     }
-    //     if ((row == 3 || row == 11) && (col == 0 || col == 7 || col == 14)) {
-    //         return SquareType.DOUBLE_LETTER;
-    //     }
-    //     if ((row == 6 || row == 8) && (col == 2 || col == 6 || col == 8 || col == 12)) {
-    //         return SquareType.DOUBLE_LETTER;
-    //     }
-    //     if (row == 7 && (col == 3 || col == 11)) {
-    //         return SquareType.DOUBLE_LETTER;
-    //     }
-        
-    //     return SquareType.NORMAL;
-    // }
-    
-
     public void placeTile(int row, int col, char letter, int points) {
         if (row >= 0 && row < GRID_SIZE && col >= 0 && col < GRID_SIZE) {
             Label cell = cellLabels[row][col];
