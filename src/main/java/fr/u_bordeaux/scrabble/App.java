@@ -13,35 +13,22 @@ import java.util.List;
 
 /**
  * Application entry point.
- * Handles command line arguments (CLI) and initializes the game.
+ * Initializes the MVC architecture (Model - Controller - View).
  */
 public class App {
 
     public static void main(String[] args) {
-        start();
+        System.out.println("Scrabble Java - Starting application...");
     }
-    
-    /**
-     * Starts the game.
-     */
-    public static void start() {
-        System.out.println("Welcome to Scrabble U-Bordeaux!");
 
-        // Initialize the game
+    /**
+     * Test scenario for core implementation (Legacy).
+     * Tests the Game model and Move handling.
+     * You can use this as a reference when implementing the View.
+     */
+    public static void testModel() {
         Game game = new Game();
-
-        // TODO Initialize the controller
-        // TODO Initialize the view
-
-        // Run the test scenario, will be removed
-        test(game);
-    }
-
-    /**
-     * Test core implementation of the Scrabble game, and show the evolution of the game in the terminal
-     * Will be removed
-     */
-    private static void test(Game game){
+        
         game.addPlayer(new HumanPlayer("Player1"));
         game.addPlayer(new HumanPlayer("Player2"));
 
@@ -80,7 +67,6 @@ public class App {
             game.printDebugState(showBonusSquare);
             game.redo();
             game.printDebugState(showBonusSquare);
-
 
             // TURN 3: Player 1 exchanges 3 tiles
             p1 = game.getCurrentPlayer();
