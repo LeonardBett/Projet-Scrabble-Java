@@ -1,21 +1,24 @@
 package fr.u_bordeaux.scrabble;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import fr.u_bordeaux.scrabble.model.core.Game;
-import fr.u_bordeaux.scrabble.model.core.Move;
 import fr.u_bordeaux.scrabble.model.core.HumanPlayer;
+import fr.u_bordeaux.scrabble.model.core.Move;
 import fr.u_bordeaux.scrabble.model.core.Tile;
 import fr.u_bordeaux.scrabble.model.enums.Direction;
 import fr.u_bordeaux.scrabble.model.interfaces.Player;
 import fr.u_bordeaux.scrabble.model.utils.Point;
-
-import java.util.ArrayList;
-import java.util.List;
+import fr.u_bordeaux.scrabble.view.cli.CLIView;
 
 /**
  * Application entry point.
  * Handles command line arguments (CLI) and initializes the game.
  */
 public class App {
+
+    
 
     public static void main(String[] args) {
         start();
@@ -27,14 +30,13 @@ public class App {
     public static void start() {
         System.out.println("Welcome to Scrabble U-Bordeaux!");
 
-        // Initialize the game
         Game game = new Game();
+        game.addPlayer(new HumanPlayer("Player1"));
+        game.addPlayer(new HumanPlayer("Player2"));
+        CLIView cliView = new CLIView(game);
+        cliView.displayGameState(true);
+        cliView.displayCurrentPlayer();
 
-        // TODO Initialize the controller
-        // TODO Initialize the view
-
-        // Run the test scenario, will be removed
-        test(game);
     }
 
     /**
