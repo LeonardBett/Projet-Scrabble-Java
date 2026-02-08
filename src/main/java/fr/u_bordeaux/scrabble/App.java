@@ -10,6 +10,15 @@ import fr.u_bordeaux.scrabble.model.core.Tile;
 import fr.u_bordeaux.scrabble.model.enums.Direction;
 import fr.u_bordeaux.scrabble.model.interfaces.Player;
 import fr.u_bordeaux.scrabble.model.utils.Point;
+import fr.u_bordeaux.scrabble.view.gui.ScrabbleGUI;
+
+import fr.u_bordeaux.scrabble.model.core.Game;
+import fr.u_bordeaux.scrabble.model.core.HumanPlayer;
+import fr.u_bordeaux.scrabble.model.core.Move;
+import fr.u_bordeaux.scrabble.model.core.Tile;
+import fr.u_bordeaux.scrabble.model.enums.Direction;
+import fr.u_bordeaux.scrabble.model.interfaces.Player;
+import fr.u_bordeaux.scrabble.model.utils.Point;
 import fr.u_bordeaux.scrabble.view.cli.CLIView;
 
 /**
@@ -18,6 +27,11 @@ import fr.u_bordeaux.scrabble.view.cli.CLIView;
  */
 public class App {
 
+    public static void main(String[] args) {
+        ScrabbleGUI.main(args);
+       
+    
+    }
     
 
     public static void main(String[] args) {
