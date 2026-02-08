@@ -14,21 +14,15 @@ import fr.u_bordeaux.scrabble.view.cli.CLIView;
 
 /**
  * Application entry point.
- * Handles command line arguments (CLI) and initializes the game.
+ * Initializes the MVC architecture (Model - Controller - View).
  */
 public class App {
 
     
 
     public static void main(String[] args) {
-        start();
+        System.out.println("Scrabble Java - Starting application...");
     }
-    
-    /**
-     * Starts the game.
-     */
-    public static void start() {
-        System.out.println("Welcome to Scrabble U-Bordeaux!");
 
         Game game = new Game();
         game.addPlayer(new HumanPlayer("Player1"));
@@ -82,7 +76,6 @@ public class App {
             game.printDebugState(showBonusSquare);
             game.redo();
             game.printDebugState(showBonusSquare);
-
 
             // TURN 3: Player 1 exchanges 3 tiles
             p1 = game.getCurrentPlayer();
