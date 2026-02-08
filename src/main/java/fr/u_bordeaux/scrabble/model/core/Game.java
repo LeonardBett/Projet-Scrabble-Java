@@ -1,10 +1,10 @@
 package fr.u_bordeaux.scrabble.model.core;
 
-import fr.u_bordeaux.scrabble.model.interfaces.Player;
-import fr.u_bordeaux.scrabble.model.utils.Point;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import fr.u_bordeaux.scrabble.model.interfaces.Player;
+import fr.u_bordeaux.scrabble.model.utils.Point;
 
 /**
  * The main game engine.
@@ -121,6 +121,10 @@ public class Game {
 
     public Bag getBag() {
         return bag;
+    }
+
+    public List<Player> getPlayers() {
+    return players;
     }
     
     public UndoRedo getUndoRedo() {

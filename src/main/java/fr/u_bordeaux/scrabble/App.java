@@ -1,15 +1,16 @@
 package fr.u_bordeaux.scrabble;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import fr.u_bordeaux.scrabble.model.core.Game;
-import fr.u_bordeaux.scrabble.model.core.Move;
 import fr.u_bordeaux.scrabble.model.core.HumanPlayer;
+import fr.u_bordeaux.scrabble.model.core.Move;
 import fr.u_bordeaux.scrabble.model.core.Tile;
 import fr.u_bordeaux.scrabble.model.enums.Direction;
 import fr.u_bordeaux.scrabble.model.interfaces.Player;
 import fr.u_bordeaux.scrabble.model.utils.Point;
-
-import java.util.ArrayList;
-import java.util.List;
+import fr.u_bordeaux.scrabble.view.cli.CLIView;
 
 /**
  * Application entry point.
@@ -17,18 +18,26 @@ import java.util.List;
  */
 public class App {
 
+    
+
     public static void main(String[] args) {
         System.out.println("Scrabble Java - Starting application...");
     }
 
-    /**
-     * Test scenario for core implementation (Legacy).
-     * Tests the Game model and Move handling.
-     * You can use this as a reference when implementing the View.
-     */
-    public static void testModel() {
         Game game = new Game();
-        
+        game.addPlayer(new HumanPlayer("Player1"));
+        game.addPlayer(new HumanPlayer("Player2"));
+        CLIView cliView = new CLIView(game);
+        cliView.displayGameState(true);
+        cliView.displayCurrentPlayer();
+
+    }
+
+    /**
+     * Test core implementation of the Scrabble game, and show the evolution of the game in the terminal
+     * Will be removed
+     */
+    private static void test(Game game){
         game.addPlayer(new HumanPlayer("Player1"));
         game.addPlayer(new HumanPlayer("Player2"));
 
