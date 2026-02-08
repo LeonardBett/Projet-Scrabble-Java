@@ -19,12 +19,9 @@ import fr.u_bordeaux.scrabble.view.gui.ScrabbleGUI;
 public class App {
 
     public static void main(String[] args) {
-        if (args[0].equals("--gui") ){
-            ScrabbleGUI.main(args);
-        }
-        else{
-            start();
-        }
+        ScrabbleGUI.main(args);
+       
+    
     }
     
     /**

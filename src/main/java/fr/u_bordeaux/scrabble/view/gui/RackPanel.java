@@ -21,37 +21,33 @@ import javafx.scene.text.FontWeight;
  */
 public class RackPanel extends VBox {
     
-    private static final int MAX_TILES = Rack.MAX_SIZE; // 7
+    private static final int MAX_TILES = Rack.MAX_SIZE; 
     private static final int TILE_SIZE = 60;
     
     private HBox tilesBox;
-    private StackPane[] tileContainers;  // Conteneurs pour lettre + valeur
-    private Rack rack;  // 🎯 Référence vers le Rack du modèle
+    private StackPane[] tileContainers;  
+    private Rack rack;  
     
-    /**
-     * Constructeur avec Rack du modèle.
-     */
+
     public RackPanel(Rack rack) {
         this.rack = rack;
         this.tileContainers = new StackPane[MAX_TILES];
         initializeUI();
-        updateDisplay();  // Afficher l'état initial
+        updateDisplay();  
     }
     
-    /**
-     * Constructeur par défaut (crée un Rack vide).
-     */
+
     public RackPanel() {
         this(new Rack());
     }
     
     private void initializeUI() {
-        // Titre
+
         Label title = new Label("CHEVALET DU JOUEUR");
         title.setFont(Font.font("Arial", FontWeight.BOLD, 14));
         title.setPadding(new Insets(0, 0, 10, 0));
         
-        // Conteneur horizontal pour les tuiles
+
         tilesBox = new HBox(10);
         tilesBox.setAlignment(Pos.CENTER);
         tilesBox.setPadding(new Insets(10));
@@ -59,7 +55,7 @@ public class RackPanel extends VBox {
         tilesBox.setMaxWidth(GridPane.USE_PREF_SIZE);
         tilesBox.setMaxHeight(GridPane.USE_PREF_SIZE);
         
-        // Créer les 7 emplacements de tuiles
+
         for (int i = 0; i < MAX_TILES; i++) {
             StackPane tileContainer = createTileContainer();
             tileContainers[i] = tileContainer;
@@ -70,9 +66,7 @@ public class RackPanel extends VBox {
         this.getChildren().addAll(title, tilesBox);
     }
     
-    /**
-     * Crée un conteneur pour une tuile (lettre + valeur en petit).
-     */
+
     private StackPane createTileContainer() {
         StackPane container = new StackPane();
         container.setPrefSize(TILE_SIZE, TILE_SIZE);
@@ -84,7 +78,7 @@ public class RackPanel extends VBox {
                           "-fx-background-radius: 5; " +
                           "-fx-border-radius: 5;");
         
-        // Effet de survol
+
         container.setOnMouseEntered(e -> {
             container.setStyle(container.getStyle() + 
                 "-fx-cursor: hand; " +
@@ -99,29 +93,26 @@ public class RackPanel extends VBox {
         return container;
     }
     
-    /**
-     * 🎯 Met à jour l'affichage en lisant le Rack du modèle.
-     */
     public void updateDisplay() {
         List<Tile> tiles = rack.getTiles();
         
         for (int i = 0; i < MAX_TILES; i++) {
             StackPane container = tileContainers[i];
-            container.getChildren().clear();  // Nettoyer l'ancien contenu
+            container.getChildren().clear();  
             
             if (i < tiles.size()) {
-                // 🎯 Récupérer la Tile du modèle
+           
                 Tile tile = tiles.get(i);
                 char letter = tile.getCharacter();
                 int value = tile.getValue();
                 
-                // Créer les labels pour la lettre et la valeur
+         
                 Label letterLabel = new Label(String.valueOf(letter));
                 letterLabel.setFont(Font.font("Arial", FontWeight.BOLD, 28));
                 letterLabel.setTextFill(Color.BLACK);
                 StackPane.setAlignment(letterLabel, Pos.CENTER);
                 
-                // Valeur en petit en bas à droite
+            
                 Label valueLabel = new Label(String.valueOf(value));
                 valueLabel.setFont(Font.font("Arial", FontWeight.NORMAL, 10));
                 valueLabel.setTextFill(Color.DARKGRAY);
@@ -130,21 +121,17 @@ public class RackPanel extends VBox {
                 
                 container.getChildren().addAll(letterLabel, valueLabel);
             }
-            // Si i >= tiles.size(), la case reste vide
+        
         }
     }
     
-    /**
-     * 🎯 Change le Rack affiché (par exemple lors d'un changement de joueur).
-     */
+
     public void setRack(Rack newRack) {
         this.rack = newRack;
         updateDisplay();
     }
     
-    /**
-     * Retourne le Rack associé à ce panel.
-     */
+
     public Rack getRack() {
         return rack;
     }
