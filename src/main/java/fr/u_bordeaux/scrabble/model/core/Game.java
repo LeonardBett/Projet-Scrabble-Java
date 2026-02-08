@@ -131,9 +131,6 @@ public class Game {
         return undoRedo;
     }
     
-    public List<Player> getPlayers() {
-        return new ArrayList<>(players);
-    }
     
     public boolean isGameOver() {
         return isGameOver;

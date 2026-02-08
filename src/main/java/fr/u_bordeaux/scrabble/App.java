@@ -22,7 +22,7 @@ public class App {
 
     public static void main(String[] args) {
         System.out.println("Scrabble Java - Starting application...");
-    }
+    
 
         Game game = new Game();
         game.addPlayer(new HumanPlayer("Player1"));
