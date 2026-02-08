@@ -26,16 +26,12 @@ import fr.u_bordeaux.scrabble.view.cli.CLIView;
  * Initializes the MVC architecture (Model - Controller - View).
  */
 public class App {
+    
 
     public static void main(String[] args) {
         ScrabbleGUI.main(args);
-       
-    
-    }
-    
 
-    public static void main(String[] args) {
-        System.out.println("Scrabble Java - Starting application...");
+        System.out.println("Scrabble Java CLI - Starting application...");
     
 
         Game game = new Game();
