@@ -12,9 +12,18 @@ import fr.u_bordeaux.scrabble.model.interfaces.Player;
 import fr.u_bordeaux.scrabble.model.utils.Point;
 import fr.u_bordeaux.scrabble.view.gui.ScrabbleGUI;
 
+import fr.u_bordeaux.scrabble.model.core.Game;
+import fr.u_bordeaux.scrabble.model.core.HumanPlayer;
+import fr.u_bordeaux.scrabble.model.core.Move;
+import fr.u_bordeaux.scrabble.model.core.Tile;
+import fr.u_bordeaux.scrabble.model.enums.Direction;
+import fr.u_bordeaux.scrabble.model.interfaces.Player;
+import fr.u_bordeaux.scrabble.model.utils.Point;
+import fr.u_bordeaux.scrabble.view.cli.CLIView;
+
 /**
  * Application entry point.
- * Handles command line arguments (CLI) and initializes the game.
+ * Initializes the MVC architecture (Model - Controller - View).
  */
 public class App {
 
@@ -24,20 +33,18 @@ public class App {
     
     }
     
-    /**
-     * Starts the game.
-     */
-    public static void start() {
-        System.out.println("Welcome to Scrabble U-Bordeaux!");
 
-        // Initialize the game
+    public static void main(String[] args) {
+        System.out.println("Scrabble Java - Starting application...");
+    
+
         Game game = new Game();
+        game.addPlayer(new HumanPlayer("Player1"));
+        game.addPlayer(new HumanPlayer("Player2"));
+        CLIView cliView = new CLIView(game);
+        cliView.displayGameState(true);
+        cliView.displayCurrentPlayer();
 
-        // TODO Initialize the controller
-        // TODO Initialize the view
-
-        // Run the test scenario, will be removed
-        test(game);
     }
 
     /**
@@ -83,7 +90,6 @@ public class App {
             game.printDebugState(showBonusSquare);
             game.redo();
             game.printDebugState(showBonusSquare);
-
 
             // TURN 3: Player 1 exchanges 3 tiles
             p1 = game.getCurrentPlayer();
