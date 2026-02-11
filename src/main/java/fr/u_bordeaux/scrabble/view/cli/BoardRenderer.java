@@ -20,7 +20,7 @@ public class BoardRenderer {
     private static final String WHITE_TEXT = "\u001B[37m";
     
     /**
-     * Affiche le plateau de jeu avec couleurs .
+     * Renders the game board with color highlights.
      */
     public void render(Board board, boolean showBonusSquares) {
         renderColumnHeaders();

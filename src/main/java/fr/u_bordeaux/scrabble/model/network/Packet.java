@@ -1,6 +1,6 @@
 package fr.u_bordeaux.scrabble.model.network;
 /**
- * Représente un paquet de données échangé sur le réseau.
+ * Represents a data packet exchanged over the network.
  */
 public class Packet {
 }

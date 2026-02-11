@@ -1,8 +1,8 @@
 package fr.u_bordeaux.scrabble.model.network;
 
 /**
- * Serveur de jeu pour le mode multijoueur.
- * Gère les connexions clients et les parties en réseau.
+ * Game server for multiplayer mode.
+ * Manages client connections and networked games.
  */
 public class GameServer {
 }

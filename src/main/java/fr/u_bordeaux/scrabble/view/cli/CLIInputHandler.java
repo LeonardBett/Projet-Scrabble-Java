@@ -11,7 +11,7 @@ import fr.u_bordeaux.scrabble.model.interfaces.Player;
 import fr.u_bordeaux.scrabble.model.utils.Point;
 
 /**
- * Gère les entrées utilisateur en CLI.
+ * Handles user input in the CLI.
  */
 public class CLIInputHandler {
     
@@ -24,7 +24,7 @@ public class CLIInputHandler {
     }
     
     /**
-     * Demande au joueur quelle action il veut effectuer.
+     * Asks the player which action they want to perform.
      */
     public String askAction() {
         messageRenderer.sectionTitle("CHOISISSEZ UNE ACTION");
@@ -40,32 +40,32 @@ public class CLIInputHandler {
     }
     
     /**
-     * Demande au joueur de créer un coup "jouer un mot".
+     * Asks the player to build a "play word" move.
      */
     public Move askPlayMove(Player player) {
         try {
-            // 1. Demander la position de départ
+            // 1. Ask for the starting position
             System.out.print("\nPosition de départ (format: x y, ex: 7 7) : ");
             String[] posInput = scanner.nextLine().trim().split("\\s+");
             int x = Integer.parseInt(posInput[0]);
             int y = Integer.parseInt(posInput[1]);
             Point startPoint = new Point(x, y);
             
-            // 2. Demander la direction
+            // 2. Ask for the direction
             System.out.print("Direction (H pour horizontal, V pour vertical) : ");
             String dirInput = scanner.nextLine().trim().toUpperCase();
             Direction direction = dirInput.equals("H") ? Direction.HORIZONTAL : Direction.VERTICAL;
             
-            // 3. Demander les lettres à jouer
+            // 3. Ask for the letters to play
             System.out.print("Lettres à jouer (ex: HELLO) : ");
             String lettersInput = scanner.nextLine().trim().toUpperCase();
             
-            // 4. Convertir les lettres en Tiles
+            // 4. Convert letters into Tiles
             List<Tile> tiles = new ArrayList<>();
             List<Tile> rack = player.getRack().getTiles();
             
             for (char letter : lettersInput.toCharArray()) {
-                // Chercher la lettre dans le chevalet
+                // Find the letter in the rack
                 boolean found = false;
                 for (Tile tile : rack) {
                     if (tile.getCharacter() == letter && !tiles.contains(tile)) {
@@ -90,7 +90,7 @@ public class CLIInputHandler {
     }
     
     /**
-     * Demande au joueur quelles lettres échanger.
+     * Asks the player which letters to exchange.
      */
     public Move askExchangeMove(Player player) {
         try {
@@ -125,7 +125,7 @@ public class CLIInputHandler {
     }
     
     /**
-     * Demande le nombre de joueurs.
+     * Asks for the number of players.
      */
     public int askNumberOfPlayers() {
         while (true) {
@@ -143,7 +143,7 @@ public class CLIInputHandler {
     }
     
     /**
-     * Demande le nom d'un joueur.
+     * Asks for a player's name.
      */
     public String askPlayerName(int playerNumber) {
         System.out.print("Nom du joueur " + playerNumber + " : ");
@@ -151,7 +151,7 @@ public class CLIInputHandler {
     }
     
     /**
-     * Demande une confirmation (oui/non).
+     * Asks for a confirmation (yes/no).
      */
     public boolean askConfirmation(String question) {
         System.out.print(question + " (o/n) : ");

@@ -1,8 +1,8 @@
 package fr.u_bordeaux.scrabble.model.dictionary;
 
 /**
- * Interface pour les structures de données de dictionnaire (DAWG, GADDAG).
- * Permet de vérifier la validité des mots.
+ * Interface for dictionary data structures (DAWG, GADDAG).
+ * Allows checking the validity of words.
  */
 public interface Dictionary {
 }

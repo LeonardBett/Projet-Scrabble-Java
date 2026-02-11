@@ -14,8 +14,8 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
 /**
- * Panel représentant le plateau de Scrabble (grille 15x15).
- * Affiche les cases avec leurs bonus et les lettres jouées.
+ * Panel representing the Scrabble board (15x15 grid).
+ * Displays squares with their bonuses and the letters played.
  */
 public class BoardPanel extends VBox {
     
@@ -69,7 +69,7 @@ public class BoardPanel extends VBox {
     }
     
     /**
-     * Crée une case du plateau avec la couleur appropriée selon le bonus.
+        * Creates a board cell with the appropriate color according to its bonus.
      */
     private Label createCell(int row, int col) {
         Label cell = new Label();
@@ -91,7 +91,7 @@ public class BoardPanel extends VBox {
     }
     
     /**
-     * Applique le style à une case en fonction de son type.
+        * Applies styling to a cell depending on its type.
      */
     private void applyCellStyle(Label cell, SquareType type, int row, int col) {
         String style = "-fx-border-color: #333333; -fx-border-width: 1;";

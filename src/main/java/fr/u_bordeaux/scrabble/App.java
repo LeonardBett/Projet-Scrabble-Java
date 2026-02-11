@@ -14,8 +14,8 @@ import fr.u_bordeaux.scrabble.model.utils.Point;
 import fr.u_bordeaux.scrabble.view.cli.CLIView;
 
 /**
- * Point d'entrée de l'application.
- * Initialise l'architecture MVC.
+ * Application entry point.
+ * Initializes the MVC architecture.
  */
 public class App {
     
@@ -26,57 +26,57 @@ public class App {
     }
     
     /**
-     * Lance l'interface graphique (GUI).
+        * Launches the graphical interface (GUI).
      */
 
     
     /**
-     * Lance l'interface en ligne de commande (CLI).
+        * Launches the command-line interface (CLI).
      */
 
     private static void launchCLI() {
-        // 🎯 1. Créer le MODÈLE
+        // 🎯 1. Create the MODEL
         Game game = new Game();
         
-        // 🎯 2. Créer la VUE
+        // 🎯 2. Create the VIEW
         CLIView view = new CLIView(game);
         
-        // 🎯 3. Créer le CONTRÔLEUR
+        // 🎯 3. Create the CONTROLLER
         GameController controller = new GameController(game, view);
         
-        // Démarre la boucle CLI interactive (le contrôleur demandera les joueurs si besoin)
+        // Start the interactive CLI loop (the controller will ask for players if needed)
         controller.runCli();
     }
 
     private static void launchCLI_test() {
-        // 🎯 1. Créer le MODÈLE
+        // 🎯 1. Create the MODEL
         Game game = new Game();
         
-        // 🎯 2. Créer la VUE
+        // 🎯 2. Create the VIEW
         CLIView view = new CLIView(game);
         
-        // 🎯 3. Créer le CONTRÔLEUR
+        // 🎯 3. Create the CONTROLLER
         GameController controller = new GameController(game, view);
 
         
         controller.addPlayer(new HumanPlayer("Alice"));
         controller.addPlayer(new HumanPlayer("Bob"));
         
-        // 🎯 5. Démarrer le jeu
+        // 🎯 5. Start the game
         controller.startGame();
         
-        // 🎯 6. Simuler quelques coups (test)
+        // 🎯 6. Simulate a few moves (test)
         testGameWithController(controller);
     }
     
     /**
-     * Test du jeu avec le contrôleur MVC.
+     * Test the game using the MVC controller.
      */
     private static void testGameWithController(GameController controller) {
         Game game = controller.getGame();
         
         try {
-            // TOUR 1 : Alice joue
+            // TURN 1: Alice plays
             Player p1 = game.getCurrentPlayer();
             List<Tile> rack1 = p1.getRack().getTiles();
             List<Tile> word1 = new ArrayList<>(rack1.subList(0, Math.min(5, rack1.size())));
@@ -85,7 +85,7 @@ public class App {
             Move move1 = Move.createPlay(p1, word1, new Point(7, 7), Direction.HORIZONTAL);
             controller.handlePlayerMove(move1);
             
-            // TOUR 2 : Bob joue
+            // TURN 2: Bob plays
             Player p2 = game.getCurrentPlayer();
             List<Tile> rack2 = p2.getRack().getTiles();
             List<Tile> word2 = new ArrayList<>(rack2.subList(0, Math.min(7, rack2.size())));
@@ -101,7 +101,7 @@ public class App {
             controller.redo();
             controller.redo();
             
-            // TOUR 3 : Alice échange
+            // TURN 3: Alice exchanges
             p1 = game.getCurrentPlayer();
             rack1 = p1.getRack().getTiles();
             List<Tile> exchange = new ArrayList<>(rack1.subList(0, Math.min(3, rack1.size())));
@@ -109,7 +109,7 @@ public class App {
             Move moveExchange = Move.createExchange(p1, exchange);
             controller.handlePlayerMove(moveExchange);
             
-            // TOUR 4 : Bob passe
+            // TURN 4: Bob passes
             p2 = game.getCurrentPlayer();
             Move movePass = Move.createPass(p2);
             controller.handlePlayerMove(movePass);

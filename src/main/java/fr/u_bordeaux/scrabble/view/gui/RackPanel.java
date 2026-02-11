@@ -16,8 +16,8 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
 /**
- * Panel représentant le chevalet du joueur (rack).
- * Affiche les tuiles du Rack du modèle.
+ * Panel representing the player's rack.
+ * Displays the tiles from the model's Rack.
  */
 public class RackPanel extends VBox {
     

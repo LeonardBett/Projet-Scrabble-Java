@@ -7,7 +7,7 @@ import fr.u_bordeaux.scrabble.model.core.Tile;
 import fr.u_bordeaux.scrabble.model.interfaces.Player;
 
 /**
- * Responsable de l'affichage du chevalet d'un joueur.
+ * Responsible for rendering a player's rack.
  */
 public class RackRenderer {
     
@@ -16,7 +16,7 @@ public class RackRenderer {
         Rack rack = player.getRack();
         List<Tile> tiles = rack.getTiles();
         
-        System.out.print("Chevalet : [ ");
+        System.out.print("Rack : [ ");
         for (Tile tile : tiles) {
             renderTile(tile);
         }

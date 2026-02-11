@@ -5,7 +5,7 @@ import fr.u_bordeaux.scrabble.model.interfaces.Player;
 import fr.u_bordeaux.scrabble.view.UserInterface;
 
 /**
- * Vue CLI complète avec implémentation de UserInterface.
+ * Full CLI view implementing UserInterface.
  */
 public class CLIView implements UserInterface {
     
@@ -26,7 +26,7 @@ public class CLIView implements UserInterface {
     public CLIView(Game game, boolean isBlitzMode) {
         this.game = game;
         this.isBlitzMode = isBlitzMode;
-        this.showBonusSquares = true;  // Par défaut, on affiche les couleurs
+        this.showBonusSquares = true;  // By default, bonus squares are shown
         this.boardRenderer = new BoardRenderer();
         this.playerRenderer = new PlayerRenderer();
         this.rackRenderer = new RackRenderer();
@@ -35,8 +35,8 @@ public class CLIView implements UserInterface {
     }
     
     /**
-     * 🎯 Implémentation de UserInterface.refresh()
-     * Rafraîchit tout l'affichage.
+     * 🎯 Implementation of UserInterface.refresh()
+     * Refreshes the entire display.
      */
     @Override
     public void refresh() {
@@ -44,7 +44,7 @@ public class CLIView implements UserInterface {
     }
     
     /**
-     * Affiche l'état complet du jeu.
+     * Displays the complete state of the game.
      */
     public void displayGameState(boolean showBonusSquares) {
         messageRenderer.separator();
@@ -55,7 +55,7 @@ public class CLIView implements UserInterface {
     }
     
     /**
-     * Affiche le joueur actuel et son chevalet.
+     * Displays the current player and their rack.
      */
     public void displayCurrentPlayer() {
         Player current = game.getCurrentPlayer();
@@ -66,7 +66,7 @@ public class CLIView implements UserInterface {
     }
     
     /**
-     * 🎯 Implémentation de UserInterface.displayMessage()
+     * 🎯 Implementation of UserInterface.displayMessage()
      */
     @Override
     public void displayMessage(String message) {
@@ -74,7 +74,7 @@ public class CLIView implements UserInterface {
     }
     
     /**
-     * 🎯 Implémentation de UserInterface.displayError()
+     * 🎯 Implementation of UserInterface.displayError()
      */
     @Override
     public void displayError(String error) {
@@ -82,7 +82,7 @@ public class CLIView implements UserInterface {
     }
     
     /**
-     * 🎯 Implémentation de UserInterface.displaySuccess()
+     * 🎯 Implementation of UserInterface.displaySuccess()
      */
     @Override
     public void displaySuccess(String message) {
@@ -90,14 +90,14 @@ public class CLIView implements UserInterface {
     }
     
     /**
-     * Affiche le message de bienvenue.
+     * Displays the welcome message.
      */
     public void displayWelcome() {
         messageRenderer.welcome();
     }
     
     /**
-     * Affiche la légende des couleurs.
+     * Displays the color legend.
      */
 
     
@@ -109,7 +109,7 @@ public class CLIView implements UserInterface {
         this.showBonusSquares = show;
     }
     
-    // Getters pour accès direct aux renderers si nécessaire
+    // Getters for direct access to renderers if needed
     public BoardRenderer getBoardRenderer() { return boardRenderer; }
     public PlayerRenderer getPlayerRenderer() { return playerRenderer; }
     public RackRenderer getRackRenderer() { return rackRenderer; }

@@ -1,26 +1,26 @@
 package fr.u_bordeaux.scrabble.view;
 
 /**
- * Interface commune pour les vues (CLI et GUI).
+ * Common interface for views (CLI and GUI).
  */
 public interface UserInterface {
     /**
-     * Rafraîchit l'affichage complet du jeu.
+     * Refreshes the complete game display.
      */
     void refresh();
     
     /**
-     * Affiche un message d'information.
+     * Displays an informational message.
      */
     void displayMessage(String message);
     
     /**
-     * Affiche un message d'erreur.
+     * Displays an error message.
      */
     void displayError(String error);
     
     /**
-     * Affiche un message de succès.
+     * Displays a success message.
      */
     void displaySuccess(String message);
 }
