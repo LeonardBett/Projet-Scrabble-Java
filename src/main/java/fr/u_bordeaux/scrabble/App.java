@@ -33,7 +33,22 @@ public class App {
     /**
      * Lance l'interface en ligne de commande (CLI).
      */
+
     private static void launchCLI() {
+        // 🎯 1. Créer le MODÈLE
+        Game game = new Game();
+        
+        // 🎯 2. Créer la VUE
+        CLIView view = new CLIView(game);
+        
+        // 🎯 3. Créer le CONTRÔLEUR
+        GameController controller = new GameController(game, view);
+        
+        // Démarre la boucle CLI interactive (le contrôleur demandera les joueurs si besoin)
+        controller.runCli();
+    }
+
+    private static void launchCLI_test() {
         // 🎯 1. Créer le MODÈLE
         Game game = new Game();
         

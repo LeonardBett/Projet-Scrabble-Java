@@ -4,6 +4,9 @@ import fr.u_bordeaux.scrabble.model.core.Game;
 import fr.u_bordeaux.scrabble.model.core.Move;
 import fr.u_bordeaux.scrabble.model.interfaces.Player;
 import fr.u_bordeaux.scrabble.view.UserInterface;
+import fr.u_bordeaux.scrabble.view.cli.CLIInputHandler;
+import fr.u_bordeaux.scrabble.view.cli.CLIView;
+import fr.u_bordeaux.scrabble.model.core.HumanPlayer;
 
 /**
  * Main controller (application logic).
@@ -39,6 +42,107 @@ public class GameController {
         // Initialize the game
         game.startGame();
         view.refresh();
+    }
+
+    /**
+     * Runs a CLI game loop if the provided view is a CLIView.
+     * This will prompt for players (if missing), start the game and process
+     * player actions until the game ends or the user quits.
+     */
+    public void runCli() {
+        if (!(view instanceof CLIView)) {
+            throw new IllegalStateException("CLI loop requires a CLIView instance as view.");
+        }
+
+        CLIInputHandler input = new CLIInputHandler();
+        CLIView cliView = (CLIView) view;
+
+        cliView.displayWelcome();
+
+        // If not enough players, ask to create them
+        if (game.getPlayers().size() < 2) {
+            int num = input.askNumberOfPlayers();
+            for (int i = 1; i <= num; i++) {
+                String name = input.askPlayerName(i);
+                Player p = new HumanPlayer(name);
+                addPlayer(p);
+            }
+        }
+
+        startGame();
+
+        boolean running = true;
+        while (running && !game.isGameOver()) {
+            view.refresh();
+            Player current = game.getCurrentPlayer();
+
+            String action = input.askAction();
+            switch (action) {
+                case "1": // Play a word
+                {
+                    Move move = input.askPlayMove(current);
+                    if (move != null) {
+                        try {
+                            handlePlayerMove(move);
+                            view.displaySuccess("Coup joué.");
+                        } catch (RuntimeException e) {
+                            view.displayError(e.getMessage());
+                        }
+                    }
+                    break;
+                }
+                case "2": // Exchange
+                {
+                    Move move = input.askExchangeMove(current);
+                    if (move != null) {
+                        try {
+                            handlePlayerMove(move);
+                            view.displaySuccess("Lettres échangées.");
+                        } catch (RuntimeException e) {
+                            view.displayError(e.getMessage());
+                        }
+                    }
+                    break;
+                }
+                case "3": // Pass
+                {
+                    try {
+                        handlePlayerMove(Move.createPass(current));
+                        view.displayMessage(current.getName() + " a passé son tour.");
+                    } catch (RuntimeException e) {
+                        view.displayError(e.getMessage());
+                    }
+                    break;
+                }
+                case "4": // Undo
+                {
+                    undo();
+                    break;
+                }
+                case "5": // Redo
+                {
+                    redo();
+                    break;
+                }
+                case "6": // Quit
+                {
+                    if (input.askConfirmation("Voulez-vous vraiment quitter ?")) {
+                        running = false;
+                    }
+                    break;
+                }
+                default:
+                    view.displayError("Choix invalide.");
+            }
+        }
+
+        // Game ended or user quit
+        Player winner = game.determineWinner();
+        if (winner != null) {
+            view.displaySuccess("Partie terminée. Vainqueur: " + winner.getName());
+        }
+
+        input.close();
     }
     
     /**
