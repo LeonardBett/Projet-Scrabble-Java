@@ -1,6 +1,6 @@
 package fr.u_bordeaux.scrabble.model.ai;
 /**
- * Implémente l'algorithme Exptiminimax pour la prise de décision de l'IA.
+ * Implements the Exptiminimax algorithm for AI decision making.
  */
 public class MinimaxSolver {
 }

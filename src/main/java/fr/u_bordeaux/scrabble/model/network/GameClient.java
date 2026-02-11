@@ -1,7 +1,7 @@
 package fr.u_bordeaux.scrabble.model.network;
 
 /**
- * Client réseau pour se connecter à un serveur de jeu.
+ * Network client to connect to a game server.
  */
 public class GameClient {
 }

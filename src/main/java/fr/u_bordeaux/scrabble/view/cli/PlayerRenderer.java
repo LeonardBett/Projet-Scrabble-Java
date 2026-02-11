@@ -5,7 +5,7 @@ import java.util.List;
 import fr.u_bordeaux.scrabble.model.interfaces.Player;
 
 /**
- * Responsable de l'affichage des informations sur les joueurs.
+ * Responsible for rendering player information.
  */
 public class PlayerRenderer {
     
@@ -30,6 +30,6 @@ public class PlayerRenderer {
     
 
     public void renderCurrentPlayer(Player player) {
-        System.out.println("\n>>> Tour de : " + player.getName());
+        System.out.println("\n>>> Current turn: " + player.getName());
     }
 }
