@@ -12,5 +12,25 @@ public class JavaFxView implements UserInterface {
         this.gui = new ScrabbleGUI();
     }
 
+    @Override
+    public void refresh() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public void displayMessage(String message) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public void displayError(String error) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public void displaySuccess(String message) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
     
 }

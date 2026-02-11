@@ -38,7 +38,7 @@ public class GameController {
         
         // Initialize the game
         game.startGame();
-        //view.refresh();
+        view.refresh();
     }
     
     /**
@@ -55,7 +55,8 @@ public class GameController {
             game.executeMove(move);
             
             // Notify the view
-            //view.refresh();
+            view.refresh();
+
             
         } catch (IllegalArgumentException | IllegalStateException e) {
             throw new RuntimeException("Invalid move: " + e.getMessage(), e);
@@ -75,7 +76,7 @@ public class GameController {
      */
     public void undo() {
         game.undo();
-        //view.refresh();
+        view.refresh();
     }
     
     /**
@@ -83,7 +84,7 @@ public class GameController {
      */
     public void redo() {
         game.redo();
-        //view.refresh();
+        view.refresh();
     }
     
     /**
