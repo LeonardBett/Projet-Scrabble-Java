@@ -1,12 +1,12 @@
 package fr.u_bordeaux.scrabble.controller;
 
 import fr.u_bordeaux.scrabble.model.core.Game;
+import fr.u_bordeaux.scrabble.model.core.HumanPlayer;
 import fr.u_bordeaux.scrabble.model.core.Move;
 import fr.u_bordeaux.scrabble.model.interfaces.Player;
 import fr.u_bordeaux.scrabble.view.UserInterface;
 import fr.u_bordeaux.scrabble.view.cli.CLIInputHandler;
 import fr.u_bordeaux.scrabble.view.cli.CLIView;
-import fr.u_bordeaux.scrabble.model.core.HumanPlayer;
 
 /**
  * Main controller (application logic).
@@ -41,7 +41,7 @@ public class GameController {
         
         // Initialize the game
         game.startGame();
-        view.refresh();
+    
     }
 
     /**
