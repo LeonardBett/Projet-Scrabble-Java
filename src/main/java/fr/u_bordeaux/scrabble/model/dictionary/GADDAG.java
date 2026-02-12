@@ -5,13 +5,13 @@ import java.util.Arrays;
 import java.util.HashSet;
 
 public class GADDAG extends Trie {
-    private static char separator = '>';
+    private static final char separator = '>';
 
     public GADDAG(){ root = new Node(Node.root); }
 
     @Override
     public void add(String word){
-        if (word.length() == 0) return;
+        if (word.isEmpty()) return;
 
         word = word.toLowerCase();
 
@@ -36,6 +36,24 @@ public class GADDAG extends Trie {
             validData[i] = validData[validData.length - i - 1];
             validData[validData.length - i - 1] = (char)temp;
         }
+    }
+
+
+    public HashSet<String> findWordsWithRackAndHook(Character[] rack, char hook){
+        HashSet<String> words = new HashSet<String>();
+        Arrays.sort(rack);
+        ArrayList<Character> rackList = new ArrayList<Character>(Arrays.asList(rack));
+
+        if (hook == ' '){
+            char tile;
+            while (rackList.size() > 1){
+                tile = rackList.removeFirst();
+                findWordsRecurse(words, "",  rackList, tile, root, true);
+            }
+        } else {
+            findWordsRecurse(words, "", rackList,  hook, root, true);
+        }
+        return words;
     }
 
     private void findWordsRecurse(HashSet<String> words, String word, ArrayList<Character> rack, char hook, Node cur, boolean direction){
