@@ -1,10 +1,10 @@
 package fr.u_bordeaux.scrabble.model.core;
 
-import fr.u_bordeaux.scrabble.model.interfaces.Player;
-import fr.u_bordeaux.scrabble.model.utils.Point;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import fr.u_bordeaux.scrabble.model.interfaces.Player;
+import fr.u_bordeaux.scrabble.model.utils.Point;
 
 /**
  * The main game engine.
@@ -122,9 +122,39 @@ public class Game {
     public Bag getBag() {
         return bag;
     }
+
+    public List<Player> getPlayers() {
+    return players;
+    }
     
     public UndoRedo getUndoRedo() {
         return undoRedo;
+    }
+    
+    
+    public boolean isGameOver() {
+        return isGameOver;
+    }
+    
+    public void setGameOver(boolean gameOver) {
+        isGameOver = gameOver;
+    }
+    
+    /**
+     * Determines the winner of the game.
+     * @return The player with the highest score
+     */
+    public Player determineWinner() {
+        if (players.isEmpty()) {
+            return null;
+        }
+        Player winner = players.get(0);
+        for (Player player : players) {
+            if (player.getScore() > winner.getScore()) {
+                winner = player;
+            }
+        }
+        return winner;
     }
 
     /**
