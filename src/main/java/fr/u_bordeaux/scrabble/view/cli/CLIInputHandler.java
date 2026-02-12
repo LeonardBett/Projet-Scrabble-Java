@@ -47,8 +47,8 @@ public class CLIInputHandler {
             // 1. Ask for the starting position
             System.out.print("\nPosition de départ (format: x y, ex: 7 7) : ");
             String[] posInput = scanner.nextLine().trim().split("\\s+");
-            int x = Integer.parseInt(posInput[0]);
-            int y = Integer.parseInt(posInput[1]);
+            int x = Integer.parseInt(posInput[0]) - 1;
+            int y = Integer.parseInt(posInput[1]) - 1;
             Point startPoint = new Point(x, y);
             
             // 2. Ask for the direction
