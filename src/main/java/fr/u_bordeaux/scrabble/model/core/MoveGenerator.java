@@ -1,14 +1,12 @@
 package fr.u_bordeaux.scrabble.model.core;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import fr.u_bordeaux.scrabble.model.dictionary.GADDAG;
-import fr.u_bordeaux.scrabble.model.utils.Point;
 import fr.u_bordeaux.scrabble.model.enums.Direction;
 import fr.u_bordeaux.scrabble.model.interfaces.Player;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import fr.u_bordeaux.scrabble.model.utils.Point;
 
 public class MoveGenerator {
 
