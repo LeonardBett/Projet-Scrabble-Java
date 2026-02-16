@@ -18,13 +18,13 @@ public class MoveGenerator {
      * @param gaddag
      * @return Return all words playables with the actual game and an actual rack
      */
-    public List<String> getPlayableWordsList(Game game, GADDAG gaddag) {
-        // For now, we use a HashSet in order to avoid doubles but need to be improved to add direction and position to the play
-        Set<String> playableWords = new HashSet<>();
+    public List<PlayableWord> getPlayableWordsList(Game game, GADDAG gaddag) {
+        // On utilise une List car le même mot peut être joué à plusieurs endroits !
+        List<PlayableWord> playableMoves = new ArrayList<>();
         Board board = game.getBoard();
         Player player = game.getCurrentPlayer();
 
-        if (player == null || gaddag == null) return new ArrayList<>();
+        if (player == null || gaddag == null) return playableMoves;
 
         Character[] rackChars = rackToCharArray(player);
 
@@ -35,19 +35,25 @@ public class MoveGenerator {
                 if (square != null && !square.isEmpty()) {
                     char hookLetter = square.getTile().getCharacter();
 
-                    // Get all the words with the actual hook
-                    Set<String> possibleWords = gaddag.findWordsWithRackAndHook(rackChars, hookLetter);
+                    // Récupération des mots ET de leur représentation GADDAG
+                    for (GADDAG.GaddagResult result : gaddag.findWordsWithRackAndHook(rackChars, hookLetter)) {
+                        String word = result.word;
+                        String gaddagRep = result.gaddagPath;
 
-                    for (String word : possibleWords) {
-                        // If the word is playable in horizontal or vertical, why add it to the HashSet
-                        if (isPlayable(word, x, y, Direction.HORIZONTAL, board) || isPlayable(word, x, y, Direction.VERTICAL, board)) {
-                            playableWords.add(word);
+                        // Vérification Horizontale
+                        if (isPlayable(word, x, y, Direction.HORIZONTAL, board)) {
+                            playableMoves.add(new PlayableWord(x, y, word, Direction.HORIZONTAL, gaddagRep));
+                        }
+
+                        // Vérification Verticale
+                        if (isPlayable(word, x, y, Direction.VERTICAL, board)) {
+                            playableMoves.add(new PlayableWord(x, y, word, Direction.VERTICAL, gaddagRep));
                         }
                     }
                 }
             }
         }
-        return new ArrayList<>(playableWords);
+        return playableMoves;
     }
 
     /**
