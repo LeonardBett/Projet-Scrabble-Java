@@ -3,11 +3,35 @@ package fr.u_bordeaux.scrabble.model.dictionary;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Objects;
 
 public class GADDAG extends Trie {
     private static final char separator = '>';
 
     public GADDAG(){ root = new Node(Node.root); }
+
+    public static class GaddagResult {
+        public final String word;
+        public final String gaddagPath;
+
+        public GaddagResult(String word, String gaddagPath) {
+            this.word = word;
+            this.gaddagPath = gaddagPath;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            GaddagResult that = (GaddagResult) o;
+            return word.equals(that.word) && gaddagPath.equals(that.gaddagPath);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(word, gaddagPath);
+        }
+    }
 
     @Override
     public void add(String word){
@@ -39,45 +63,45 @@ public class GADDAG extends Trie {
     }
 
 
-    public HashSet<String> findWordsWithRackAndHook(Character[] rack, char hook){
-        HashSet<String> words = new HashSet<String>();
+    public HashSet<GaddagResult> findWordsWithRackAndHook(Character[] rack, char hook){
+        HashSet<GaddagResult> words = new HashSet<>();
         Arrays.sort(rack);
-        ArrayList<Character> rackList = new ArrayList<Character>(Arrays.asList(rack));
+        ArrayList<Character> rackList = new ArrayList<>(Arrays.asList(rack));
 
         if (hook == ' '){
             char tile;
             while (rackList.size() > 1){
                 tile = rackList.removeFirst();
-                findWordsRecurse(words, "",  rackList, tile, root, true);
+                // On initialise le gaddagPath avec une chaîne vide ""
+                findWordsRecurse(words, "", "", rackList, tile, root, true);
             }
         } else {
-            findWordsRecurse(words, "", rackList,  hook, root, true);
+            findWordsRecurse(words, "", "", rackList, hook, root, true);
         }
         return words;
     }
 
-    private void findWordsRecurse(HashSet<String> words, String word, ArrayList<Character> rack, char hook, Node cur, boolean direction){
+    private void findWordsRecurse(HashSet<GaddagResult> words, String word, String gaddagPath, ArrayList<Character> rack, char hook, Node cur, boolean direction){
         Node hookNode = cur.getChild(hook);
 
-        //Base case
-        if (hookNode == null)
-            return;
+        if (hookNode == null) return;
 
-        String hookCh = hook == separator ? "" : String.valueOf(hook); //Empty character if we're the separator
-        word = (direction ? hookCh + word : word + hookCh); //Direction-based concatenation (if direction hook+word else word +hook)
+        String hookCh = hook == separator ? "" : String.valueOf(hook);
+        word = (direction ? hookCh + word : word + hookCh);
 
-        //if we've reached the end a word, add the word to output
+        // On accumule le chemin parcouru dans le GADDAG
+        gaddagPath = gaddagPath + hook;
+
         if (hookNode.getFinite())
-            words.add(word);
+            words.add(new GaddagResult(word, gaddagPath)); // On sauvegarde les deux !
 
         for (char nodeKey : hookNode.getKeys()) {
             if (nodeKey == separator)
-                findWordsRecurse(words, word, rack, separator, hookNode, false);
+                findWordsRecurse(words, word, gaddagPath, rack, separator, hookNode, false);
             else if (rack.contains(nodeKey)){
-                //boolean duplicate = (rack.size() > 0 && (rack.get(nodeKey) == rack.get(rack.indexOf(nodeKey) - 1)));
                 ArrayList<Character> newRack = (ArrayList<Character>) rack.clone();
                 newRack.remove((Character)nodeKey);
-                findWordsRecurse(words, word, newRack, nodeKey, hookNode, direction);
+                findWordsRecurse(words, word, gaddagPath, newRack, nodeKey, hookNode, direction);
             }
         }
     }
