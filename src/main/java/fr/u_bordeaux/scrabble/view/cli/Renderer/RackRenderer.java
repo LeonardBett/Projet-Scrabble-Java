@@ -1,4 +1,4 @@
-package fr.u_bordeaux.scrabble.view.cli;
+package fr.u_bordeaux.scrabble.view.cli.Renderer;
 
 import java.util.List;
 

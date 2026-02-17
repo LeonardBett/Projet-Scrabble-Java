@@ -1,4 +1,4 @@
-package fr.u_bordeaux.scrabble.view.cli;
+package fr.u_bordeaux.scrabble.view.cli.Renderer;
 
 import fr.u_bordeaux.scrabble.model.core.Board;
 import fr.u_bordeaux.scrabble.model.core.Square;
