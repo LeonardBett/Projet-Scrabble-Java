@@ -12,6 +12,9 @@ import fr.u_bordeaux.scrabble.model.enums.Direction;
 import fr.u_bordeaux.scrabble.model.interfaces.Player;
 import fr.u_bordeaux.scrabble.model.utils.Point;
 import fr.u_bordeaux.scrabble.view.cli.CLIView;
+import fr.u_bordeaux.scrabble.view.gui.JavaFxView;
+import fr.u_bordeaux.scrabble.view.gui.ScrabbleGUI;
+import javafx.application.Application;
 
 /**
  * Application entry point.
@@ -19,26 +22,31 @@ import fr.u_bordeaux.scrabble.view.cli.CLIView;
  */
 public class App {
     
-    public static void main(String[] args) {
+     public static void main(String[] args) {
+        boolean guiMode = args.length > 0 && args[0].equals("--gui");
 
+        if (guiMode) {
+            launchGUI(args);
+        } else {
             launchCLI();
-        
+        }
     }
     
 
 
     private static void launchCLI() {
-    
         Game game = new Game();
-        
-
         CLIView view = new CLIView(game);
-        
- 
         GameController controller = new GameController(game, view);
-        
-   
         controller.runCli();
+    }
+
+    private static void launchGUI(String[] args) {
+        Game game = new Game();
+        JavaFxView view = new JavaFxView(game);
+        ScrabbleGUI.setGame(game);
+        ScrabbleGUI.setView(view);
+        Application.launch(ScrabbleGUI.class, args);
     }
 
     private static void launchCLI_test() {
