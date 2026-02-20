@@ -111,6 +111,19 @@ public class Game {
         }
     }
 
+    // Returns true if there is at least one tile on the board
+    private boolean boardHasAnyTile() {
+        for (int x = 0; x < Board.SIZE; x++) {
+            for (int y = 0; y < Board.SIZE; y++) {
+                Square sq = board.getSquare(new fr.u_bordeaux.scrabble.model.utils.Point(x, y));
+                if (sq != null && !sq.isEmpty()) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     /**
      * Refills the player's rack from the bag until it is full or the bag is empty.
      * @return The list of tiles added to the rack.
@@ -197,6 +210,10 @@ public class Game {
             if (move.getPlayer() instanceof HumanPlayer) {
                 undoneHumanMove = true;
             }
+        }
+        // If the board is now empty after undoing moves, reset the first-move flag
+        if (!boardHasAnyTile()) {
+            setFirstMoveDone(false);
         }
     }
     
