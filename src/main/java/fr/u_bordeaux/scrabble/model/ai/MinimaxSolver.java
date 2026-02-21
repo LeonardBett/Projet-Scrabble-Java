@@ -22,8 +22,6 @@ import fr.u_bordeaux.scrabble.model.utils.Point;
 /**
  * Implements realistic Minimax and Expectiminimax algorithms for AI decision making.
  * Performs deep simulation by generating opponent moves from sampled remaining tiles.
- * Implements realistic Minimax and Expectiminimax algorithms for AI decision making.
- * Performs deep simulation by generating opponent moves from sampled remaining tiles.
  */
 public class MinimaxSolver {
 
@@ -34,7 +32,7 @@ public class MinimaxSolver {
 
     // Constant to balance performance (Too high = very slow AI)
     // 5 is a good compromise for testing in real conditions without waiting 10 minutes.
-    private static final int SAMPLES_COUNT = 500;
+    private static final int SAMPLES_COUNT = 5; 
 
     public MinimaxSolver(int maxDepth) {
         this.moveGenerator = new MoveGenerator();
@@ -197,7 +195,9 @@ public class MinimaxSolver {
         return rack;
     }
 
+    // =========================================================================
     // UTILITY METHODS FOR PHYSICAL BOARD SIMULATION
+    // =========================================================================
 
     private int simulateAndScoreWord(Board board, PlayableWord move) {
         List<Square> placedSquares = placeWordTemporarily(board, move);
@@ -256,14 +256,25 @@ public class MinimaxSolver {
     }
 
     private int getStartX(Board board, PlayableWord move) {
-        // The GADDAG representation (e.g., "AC>RE") tells us exactly where the hook is.
-        int hookIndex = move.getGaddagRepresentation().indexOf('>') - 1;
-        return (move.getDirection() == Direction.HORIZONTAL) ? move.getHookX() - hookIndex : move.getHookX();
+        Square hookSquare = board.getSquare(new Point(move.getHookX(), move.getHookY()));
+        char hookChar = hookSquare != null && !hookSquare.isEmpty() ? hookSquare.getTile().getCharacter() : '\0';
+        for (int i = 0; i < move.getWord().length(); i++) {
+            if (move.getWord().charAt(i) == hookChar) {
+                return (move.getDirection() == Direction.HORIZONTAL) ? move.getHookX() - i : move.getHookX();
+            }
+        }
+        return move.getHookX();
     }
 
     private int getStartY(Board board, PlayableWord move) {
-        int hookIndex = move.getGaddagRepresentation().indexOf('>') - 1;
-        return (move.getDirection() == Direction.VERTICAL) ? move.getHookY() - hookIndex : move.getHookY();
+        Square hookSquare = board.getSquare(new Point(move.getHookX(), move.getHookY()));
+        char hookChar = hookSquare != null && !hookSquare.isEmpty() ? hookSquare.getTile().getCharacter() : '\0';
+        for (int i = 0; i < move.getWord().length(); i++) {
+            if (move.getWord().charAt(i) == hookChar) {
+                return (move.getDirection() == Direction.VERTICAL) ? move.getHookY() - i : move.getHookY();
+            }
+        }
+        return move.getHookY();
     }
 
     private double evaluateRackLeave(Game game, PlayableWord move) {
@@ -272,9 +283,8 @@ public class MinimaxSolver {
         
         // 1. Retrieve letters from the current rack
         List<String> rackLetters = new ArrayList<>();
-        for (Tile t : player.getRack().getTiles()) {
-            rackLetters.add(String.valueOf(t.getCharacter()));
-        }
+        String rackStr = player.getRack().toString().replaceAll("[^A-Z ]", "");
+        for(char c : rackStr.toCharArray()) rackLetters.add(String.valueOf(c));
 
         String word = move.getWord();
         Direction dir = move.getDirection();

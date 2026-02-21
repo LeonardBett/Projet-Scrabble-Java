@@ -11,8 +11,8 @@ import java.util.List;
 public class MoveGenerator {
 
     /**
-     * Original method used by the game.
-     * It extracts the player's rack and delegates to the overloaded method.
+     * Méthode originale utilisée par le jeu. 
+     * Elle appelle désormais la méthode surchargée en extrayant le chevalet du joueur.
      */
     public List<PlayableWord> getPlayableWordsList(Game game, GADDAG gaddag) {
         Player player = game.getCurrentPlayer();
@@ -21,10 +21,12 @@ public class MoveGenerator {
     }
 
     /**
-     * Overloaded method used by the AI to simulate moves.
+     * NOUVELLE MÉTHODE : Utilisée par l'IA pour générer les mots de l'adversaire
+     * à partir d'un chevalet simulé (Character[]) et d'un plateau.
      */
     public List<PlayableWord> getPlayableWordsList(Board board, Character[] rackChars, GADDAG gaddag) {
         List<PlayableWord> playableMoves = new ArrayList<>();
+        
         if (rackChars == null || gaddag == null) return playableMoves;
 
         for (int y = 0; y < Board.SIZE; y++) {
@@ -42,8 +44,8 @@ public class MoveGenerator {
                         if (isPlayable(word, gaddagRep, x, y, Direction.HORIZONTAL, board, rackChars, gaddag)) {
                             playableMoves.add(new PlayableWord(x, y, word, Direction.HORIZONTAL, gaddagRep));
                         }
-                        // Check Vertical Placement
-                        if (isPlayable(word, gaddagRep, x, y, Direction.VERTICAL, board, rackChars, gaddag)) {
+                        // Vérification Verticale
+                        if (isPlayable(word, x, y, Direction.VERTICAL, board)) {
                             playableMoves.add(new PlayableWord(x, y, word, Direction.VERTICAL, gaddagRep));
                         }
                     }
