@@ -6,27 +6,28 @@ import fr.u_bordeaux.scrabble.model.enums.Direction;
 import fr.u_bordeaux.scrabble.model.interfaces.Player;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 public class MoveGenerator {
 
     /**
-     *
-     * @param game
-     * @param gaddag
-     * @return Return all words playables with the actual game and an actual rack
+     * Méthode originale utilisée par le jeu. 
+     * Elle appelle désormais la méthode surchargée en extrayant le chevalet du joueur.
      */
     public List<PlayableWord> getPlayableWordsList(Game game, GADDAG gaddag) {
-        // On utilise une List car le même mot peut être joué à plusieurs endroits !
-        List<PlayableWord> playableMoves = new ArrayList<>();
-        Board board = game.getBoard();
         Player player = game.getCurrentPlayer();
+        if (player == null || gaddag == null) return new ArrayList<>();
+        return getPlayableWordsList(game.getBoard(), rackToCharArray(player), gaddag);
+    }
 
-        if (player == null || gaddag == null) return playableMoves;
-
-        Character[] rackChars = rackToCharArray(player);
+    /**
+     * NOUVELLE MÉTHODE : Utilisée par l'IA pour générer les mots de l'adversaire
+     * à partir d'un chevalet simulé (Character[]) et d'un plateau.
+     */
+    public List<PlayableWord> getPlayableWordsList(Board board, Character[] rackChars, GADDAG gaddag) {
+        List<PlayableWord> playableMoves = new ArrayList<>();
+        
+        if (rackChars == null || gaddag == null) return playableMoves;
 
         for (int y = 0; y < Board.SIZE; y++) {
             for (int x = 0; x < Board.SIZE; x++) {
@@ -44,7 +45,6 @@ public class MoveGenerator {
                         if (isPlayable(word, x, y, Direction.HORIZONTAL, board)) {
                             playableMoves.add(new PlayableWord(x, y, word, Direction.HORIZONTAL, gaddagRep));
                         }
-
                         // Vérification Verticale
                         if (isPlayable(word, x, y, Direction.VERTICAL, board)) {
                             playableMoves.add(new PlayableWord(x, y, word, Direction.VERTICAL, gaddagRep));
