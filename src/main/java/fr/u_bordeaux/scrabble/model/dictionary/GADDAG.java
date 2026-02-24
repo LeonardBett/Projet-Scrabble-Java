@@ -31,6 +31,11 @@ public class GADDAG extends Trie {
         public int hashCode() {
             return Objects.hash(word, gaddagPath);
         }
+
+        @Override
+        public String toString() {
+            return this.word; // Remplace 'word' par le nom exact de ta variable de texte
+        }
     }
 
     @Override
@@ -72,7 +77,7 @@ public class GADDAG extends Trie {
             char tile;
             while (rackList.size() > 1){
                 tile = rackList.removeFirst();
-                // On initialise le gaddagPath avec une chaîne vide ""
+                // We initialise the gaddagPath with ""
                 findWordsRecurse(words, "", "", rackList, tile, root, true);
             }
         } else {
@@ -89,11 +94,10 @@ public class GADDAG extends Trie {
         String hookCh = hook == separator ? "" : String.valueOf(hook);
         word = (direction ? hookCh + word : word + hookCh);
 
-        // On accumule le chemin parcouru dans le GADDAG
         gaddagPath = gaddagPath + hook;
 
         if (hookNode.getFinite())
-            words.add(new GaddagResult(word, gaddagPath)); // On sauvegarde les deux !
+            words.add(new GaddagResult(word, gaddagPath));
 
         for (char nodeKey : hookNode.getKeys()) {
             if (nodeKey == separator)
@@ -104,5 +108,30 @@ public class GADDAG extends Trie {
                 findWordsRecurse(words, word, gaddagPath, newRack, nodeKey, hookNode, direction);
             }
         }
+    }
+
+    /**
+     * Vérifie si un mot complet (ex: "APPLE") existe dans le dictionnaire.
+     * Cette méthode convertit le mot en format GADDAG (ex: "A>ELPP")
+     * avant d'appeler la recherche par chemin.
+     */
+    public boolean containsWord(String word) {
+        if (word == null || word.length() < 2) {
+            // Un mot d'une lettre se vérifie directement à la racine
+            return this.contains(word.toUpperCase());
+        }
+
+        String upperWord = word.toUpperCase();
+        char firstLetter = upperWord.charAt(0);
+
+        // On inverse le reste du mot
+        StringBuilder suffixInverse = new StringBuilder(upperWord.substring(1)).reverse();
+
+        // On construit le chemin GADDAG : PremièreLettre + Séparateur + ResteInversé
+        // Remplace '>' par ton séparateur exact (ex: '+', ou '\0')
+        String gaddagPath = new String(String.valueOf(firstLetter)) + separator + upperWord.substring(1);
+
+        // On utilise ta fonction de recherche de chemin
+        return this.contains(gaddagPath);
     }
 }
