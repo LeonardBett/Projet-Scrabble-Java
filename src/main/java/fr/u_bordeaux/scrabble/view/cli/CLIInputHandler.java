@@ -9,6 +9,7 @@ import fr.u_bordeaux.scrabble.model.core.Tile;
 import fr.u_bordeaux.scrabble.model.enums.Direction;
 import fr.u_bordeaux.scrabble.model.interfaces.Player;
 import fr.u_bordeaux.scrabble.model.utils.Point;
+import fr.u_bordeaux.scrabble.view.cli.Renderer.MessageRenderer;
 
 /**
  * Handles user input in the CLI.
