@@ -26,47 +26,44 @@ public class MoveHandler {
         Point startPosition = move.getStartPosition();
         Direction direction = move.getDirection();
 
-        // 2. Prepare lists for scoring and rack management
-        List<Square> wordSquares = new ArrayList<>(); //list of squares that contains the tiles of this word
-        List<Square> newlyPlacedSquares = new ArrayList<>(); //list of squares that was empty before the move
+        // Build and validate the word (including prefix/suffix).
+        List<Square> wordSquares = new ArrayList<>();
+        List<Point> wordPositions = new ArrayList<>();
+        List<Square> newlyPlacedSquares = new ArrayList<>();
+        List<Point> newlyPlacedPositions = new ArrayList<>();
+        List<Tile> newlyPlacedTiles = new ArrayList<>();
+        buildWordForMove(startPosition, direction, tiles, wordSquares, wordPositions, newlyPlacedSquares, newlyPlacedPositions, newlyPlacedTiles);
 
-        // 3. Calculate direction deltas (dx, dy) to iterate over the board
-        int x = startPosition.getX();
-        int y = startPosition.getY();
-        int dx = direction == Direction.HORIZONTAL ? 1 : 0;
-        int dy = direction == Direction.VERTICAL ? 1 : 0;
-
-        // 4. Iterate over each tile in the word to place them on the board
-        for (Tile tile : tiles) {
-            Point currentPos = new Point(x, y);
-            Square square = game.getBoard().getSquare(currentPos);
-
-            // Check if the word goes out of bounds
-            if (square == null) {
-                throw new IllegalArgumentException("Word extends beyond board boundaries.");
+        // Place the tiles from the move into the recorded newly placed positions
+        for (int i = 0; i < newlyPlacedPositions.size(); i++) {
+            Point p = newlyPlacedPositions.get(i);
+            Square sq = game.getBoard().getSquare(p);
+            Tile tileToPlace = newlyPlacedTiles.get(i);
+            if (!sq.isEmpty()) {
+                throw new IllegalArgumentException("Attempting to place a tile on a non-empty square.");
             }
-
-            // If the square is empty, we place the tile from the Move and add it to the list of newly placed squares (for scoring)
-            if (square.isEmpty()) {
-                square.setTile(tile);
-                newlyPlacedSquares.add(square);
-            }
-            // If not empty, we skip placing (it's an existing letter on the board)
-
-            // Add the square to the list of the word's squares (for scoring)
-            wordSquares.add(square);
-
-            // Move to the next position
-            x += dx;
-            y += dy;
+            sq.setTile(tileToPlace);
         }
 
-        // 5. Calculate the score using the Scoring utility
-        int score = Scoring.calculateWordScore(wordSquares, newlyPlacedSquares);
-        player.addScore(score);
-        
+        // Save placed positions in the move for undo
+        move.setPlacedPositions(newlyPlacedPositions);
+        move.setPlacedTiles(newlyPlacedTiles);
+
+        // 5. Calculate the score using the Scoring utility (main word + crosses)
+        int totalScore = 0;
+        totalScore += Scoring.calculateWordScore(wordSquares, newlyPlacedSquares);
+
+        for (Point p : newlyPlacedPositions) {
+            List<Square> cross = getPerpendicularWordSquares(p, direction);
+            if (cross.size() > 1) {
+                totalScore += Scoring.calculateWordScore(cross, newlyPlacedSquares);
+            }
+        }
+
+        player.addScore(totalScore);
+
         // Save score in move for undo
-        move.setScoreGained(score);
+        move.setScoreGained(totalScore);
 
         // 6. Remove the used tiles from the player's rack (and throw an error if not present form his rack)
         for (Square square : newlyPlacedSquares) {
@@ -80,7 +77,7 @@ public class MoveHandler {
         List<Tile> drawn = game.refillRack(player);
         move.setDrawnTiles(drawn);
         
-        System.out.println("Player " + player.getName() + " played a word for " + score + " points.");
+        System.out.println("Player " + player.getName() + " played a word for " + totalScore + " points.");
     }
 
     public void handleExchangeMove(Move move) {
@@ -134,23 +131,243 @@ public class MoveHandler {
         }
 
         // 3. Revert Board (Remove placed tiles from board and put them back in rack)
-        int x = move.getStartPosition().getX();
-        int y = move.getStartPosition().getY();
-        int dx = move.getDirection() == Direction.HORIZONTAL ? 1 : 0;
-        int dy = move.getDirection() == Direction.VERTICAL ? 1 : 0;
+        List<Point> placed = move.getPlacedPositions();
+        List<Tile> placedTiles = move.getPlacedTiles();
+        if (placed != null && !placed.isEmpty() && placedTiles != null && !placedTiles.isEmpty()) {
+            for (int i = 0; i < placed.size() && i < placedTiles.size(); i++) {
+                Point currentPos = placed.get(i);
+                Square square = game.getBoard().getSquare(currentPos);
+                Tile tile = placedTiles.get(i);
 
-        for (Tile tile : move.getTiles()) {
-            Point currentPos = new Point(x, y);
-            Square square = game.getBoard().getSquare(currentPos);
-
-            // If the square contains the exact tile instance we played, remove it
-            if (square != null && square.getTile() == tile) {
-                square.setTile(null);
-                player.getRack().addTile(tile);
+                if (square != null && tile != null && square.getTile() == tile) {
+                    square.setTile(null);
+                    player.getRack().addTile(tile);
+                }
             }
-            
-            x += dx;
-            y += dy;
+        }
+    }
+
+    // Helper: compute the list of board positions covered by the move and validate bounds
+    private List<Point> computePositions(Point startPosition, Direction direction, int length) {
+        int startX = startPosition.getX();
+        int startY = startPosition.getY();
+        int dx = direction == Direction.HORIZONTAL ? 1 : 0;
+        int dy = direction == Direction.VERTICAL ? 1 : 0;
+
+        List<Point> positions = new ArrayList<>();
+        for (int i = 0; i < length; i++) {
+            Point p = new Point(startX + i * dx, startY + i * dy);
+            Square sq = game.getBoard().getSquare(p);
+            if (sq == null) {
+                throw new IllegalArgumentException("Word extends beyond board boundaries.");
+            }
+            positions.add(p);
+        }
+        return positions;
+    }
+
+    /**
+     * Build the full word on the board (including existing prefix/suffix),
+     * record newly placed squares/positions and validate first-move/adjacency rules.
+     * Throws IllegalArgumentException on invalid placements.
+     */
+    private void buildWordForMove(Point startPosition,
+                                  Direction direction,
+                                  List<Tile> tiles,
+                                  List<Square> wordSquares,
+                                  List<Point> wordPositions,
+                                  List<Square> newlyPlacedSquares,
+                                  List<Point> newlyPlacedPositions,
+                                  List<Tile> newlyPlacedTiles) {
+
+        int x = startPosition.getX();
+        int y = startPosition.getY();
+        int dx = direction == Direction.HORIZONTAL ? 1 : 0;
+        int dy = direction == Direction.VERTICAL ? 1 : 0;
+
+        // prefix (existing contiguous tiles before start)
+        int bx = x - dx;
+        int by = y - dy;
+        List<Square> prefix = new ArrayList<>();
+        List<Point> prefixPos = new ArrayList<>();
+        while (true) {
+            Point bp = new Point(bx, by);
+            Square bs = game.getBoard().getSquare(bp);
+            if (bs == null || bs.isEmpty()) break;
+            prefix.add(0, bs);
+            prefixPos.add(0, bp);
+            bx -= dx;
+            by -= dy;
+        }
+        wordSquares.addAll(prefix);
+        wordPositions.addAll(prefixPos);
+
+        // forward scan, placing provided tiles on empty squares and including existing tiles
+        int tileIndex = 0;
+        int curX = x;
+        int curY = y;
+        while (true) {
+            Point cp = new Point(curX, curY);
+            Square cs = game.getBoard().getSquare(cp);
+            if (cs == null) {
+                throw new IllegalArgumentException("Word extends beyond board boundaries.");
+            }
+
+                if (!cs.isEmpty()) {
+                    // existing tile contributes to the word; do not consume a provided tile
+                    wordSquares.add(cs);
+                    wordPositions.add(cp);
+                } else if (tileIndex < tiles.size()) {
+                    wordSquares.add(cs);
+                    wordPositions.add(cp);
+                    newlyPlacedSquares.add(cs);
+                    newlyPlacedPositions.add(new Point(curX, curY));
+                    // record which provided tile will be placed here
+                    newlyPlacedTiles.add(tiles.get(tileIndex));
+                    tileIndex++;
+                } else {
+                    break;
+                }
+
+            curX += dx;
+            curY += dy;
+        }
+
+        if (tileIndex != tiles.size()) {
+            throw new IllegalArgumentException("Not enough space on the board to place all tiles of the move.");
+        }
+
+        // Validation: center for first move
+        if (!game.isFirstMoveDone()) {
+            Point center = new Point(Board.SIZE / 2, Board.SIZE / 2);
+            boolean coversCenter = wordPositions.stream().anyMatch(center::equals);
+            if (!coversCenter) {
+                throw new IllegalArgumentException("First word must cover the center square.");
+            }
+        } else {
+            // Non-first move: must touch existing tiles (overlap or adjacency)
+            boolean touchesExisting = false;
+            for (Square sq : wordSquares) {
+                if (!sq.isEmpty() && !newlyPlacedSquares.contains(sq)) {
+                    touchesExisting = true;
+                    break;
+                }
+            }
+
+            if (!touchesExisting) {
+                for (Point npPos : newlyPlacedPositions) {
+                    Point up = new Point(npPos.getX(), npPos.getY() - 1);
+                    Point down = new Point(npPos.getX(), npPos.getY() + 1);
+                    Point left = new Point(npPos.getX() - 1, npPos.getY());
+                    Point right = new Point(npPos.getX() + 1, npPos.getY());
+                    Square su = game.getBoard().getSquare(up);
+                    Square sd = game.getBoard().getSquare(down);
+                    Square sl = game.getBoard().getSquare(left);
+                    Square sr = game.getBoard().getSquare(right);
+                    if ((su != null && !su.isEmpty()) || (sd != null && !sd.isEmpty())
+                            || (sl != null && !sl.isEmpty()) || (sr != null && !sr.isEmpty())) {
+                        touchesExisting = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!touchesExisting) {
+                throw new IllegalArgumentException("Placed word must touch existing tiles on the board.");
+            }
+        }
+    }
+
+    /**
+     * Returns the list of squares forming the perpendicular word that includes the square at `pos`.
+     * The order is from the start of that perpendicular word to its end.
+     */
+    private List<Square> getPerpendicularWordSquares(Point pos, Direction mainDirection) {
+        List<Square> result = new ArrayList<>();
+        int pdx = mainDirection == Direction.HORIZONTAL ? 0 : 1;
+        int pdy = mainDirection == Direction.HORIZONTAL ? 1 : 0;
+
+        // scan backward
+        int bx = pos.getX() - pdx;
+        int by = pos.getY() - pdy;
+        List<Square> prefix = new ArrayList<>();
+        while (true) {
+            Point bp = new Point(bx, by);
+            Square bs = game.getBoard().getSquare(bp);
+            if (bs == null || bs.isEmpty()) break;
+            prefix.add(0, bs);
+            bx -= pdx;
+            by -= pdy;
+        }
+
+        // center
+        Square center = game.getBoard().getSquare(pos);
+        if (center == null) return result;
+
+        // scan forward
+        int fx = pos.getX() + pdx;
+        int fy = pos.getY() + pdy;
+        List<Square> suffix = new ArrayList<>();
+        while (true) {
+            Point fp = new Point(fx, fy);
+            Square fs = game.getBoard().getSquare(fp);
+            if (fs == null || fs.isEmpty()) break;
+            suffix.add(fs);
+            fx += pdx;
+            fy += pdy;
+        }
+
+        result.addAll(prefix);
+        result.add(center);
+        result.addAll(suffix);
+        return result;
+    }
+
+    // Helper: validate placement rules (center coverage for first move, touching existing tiles, conflicts)
+    private void validatePlacement(List<Point> positions, List<Tile> tiles) {
+        // Determine if this is the first play using Game flag (avoid scanning the whole board)
+        boolean boardEmpty = !game.isFirstMoveDone();
+        if (boardEmpty) {
+            Point center = new Point(Board.SIZE / 2, Board.SIZE / 2);
+            boolean coversCenter = positions.stream().anyMatch(center::equals);
+            if (!coversCenter) {
+                throw new IllegalArgumentException("First word must cover the center square.");
+            }
+            return;
+        }
+
+        // Non-first move: must touch existing tiles (overlap allowed if letters match)
+        boolean touchesExisting = false;
+        for (int i = 0; i < positions.size(); i++) {
+            Point p = positions.get(i);
+            Square sq = game.getBoard().getSquare(p);
+            if (!sq.isEmpty()) {
+                Tile existing = sq.getTile();
+                Tile provided = tiles.get(i);
+                if (existing.getCharacter() != provided.getCharacter()) {
+                    throw new IllegalArgumentException("Word conflicts with existing tiles on the board.");
+                }
+                touchesExisting = true;
+                break;
+            }
+
+            Point up = new Point(p.getX(), p.getY() - 1);
+            Point down = new Point(p.getX(), p.getY() + 1);
+            Point left = new Point(p.getX() - 1, p.getY());
+            Point right = new Point(p.getX() + 1, p.getY());
+            Square su = game.getBoard().getSquare(up);
+            Square sd = game.getBoard().getSquare(down);
+            Square sl = game.getBoard().getSquare(left);
+            Square sr = game.getBoard().getSquare(right);
+            if ((su != null && !su.isEmpty()) || (sd != null && !sd.isEmpty())
+                    || (sl != null && !sl.isEmpty()) || (sr != null && !sr.isEmpty())) {
+                touchesExisting = true;
+                break;
+            }
+        }
+
+        if (!touchesExisting) {
+            throw new IllegalArgumentException("Placed word must touch existing tiles on the board.");
         }
     }
 }

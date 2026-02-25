@@ -67,6 +67,6 @@ public class Scoring {
      * @return 50 points if the player used all 7 tiles, otherwise 0.
      */
     public static int calculateBingoBonus(int tilesPlacedCount) {
-        return (tilesPlacedCount + 1) == Rack.MAX_SIZE ? BINGO_BONUS : 0;
+        return tilesPlacedCount == Rack.MAX_SIZE ? BINGO_BONUS : 0;
     }
 }

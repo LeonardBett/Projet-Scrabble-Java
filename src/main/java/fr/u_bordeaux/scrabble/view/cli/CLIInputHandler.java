@@ -66,16 +66,25 @@ public class CLIInputHandler {
             List<Tile> rack = player.getRack().getTiles();
             
             for (char letter : lettersInput.toCharArray()) {
-                // Find the letter in the rack
+                // Find the letter in the rack. Use reference equality to allow identical letters
                 boolean found = false;
                 for (Tile tile : rack) {
-                    if (tile.getCharacter() == letter && !tiles.contains(tile)) {
-                        tiles.add(tile);
-                        found = true;
-                        break;
+                    if (tile.getCharacter() == letter) {
+                        boolean alreadyUsed = false;
+                        for (Tile t : tiles) {
+                            if (t == tile) { // reference equality
+                                alreadyUsed = true;
+                                break;
+                            }
+                        }
+                        if (!alreadyUsed) {
+                            tiles.add(tile);
+                            found = true;
+                            break;
+                        }
                     }
                 }
-                
+
                 if (!found) {
                     messageRenderer.error("La lettre '" + letter + "' n'est pas dans votre chevalet !");
                     return null;
@@ -104,13 +113,22 @@ public class CLIInputHandler {
             for (char letter : lettersInput.toCharArray()) {
                 boolean found = false;
                 for (Tile tile : rack) {
-                    if (tile.getCharacter() == letter && !tiles.contains(tile)) {
-                        tiles.add(tile);
-                        found = true;
-                        break;
+                    if (tile.getCharacter() == letter) {
+                        boolean alreadyUsed = false;
+                        for (Tile t : tiles) {
+                            if (t == tile) {
+                                alreadyUsed = true;
+                                break;
+                            }
+                        }
+                        if (!alreadyUsed) {
+                            tiles.add(tile);
+                            found = true;
+                            break;
+                        }
                     }
                 }
-                
+
                 if (!found) {
                     messageRenderer.error("La lettre '" + letter + "' n'est pas dans votre chevalet !");
                     return null;
