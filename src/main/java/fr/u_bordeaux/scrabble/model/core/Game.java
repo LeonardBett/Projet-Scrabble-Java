@@ -5,6 +5,7 @@ import java.util.List;
 
 import fr.u_bordeaux.scrabble.model.interfaces.Player;
 import fr.u_bordeaux.scrabble.model.utils.Point;
+import fr.u_bordeaux.scrabble.model.enums.MoveType;
 
 /**
  * The main game engine.
@@ -19,6 +20,8 @@ public class Game {
     private boolean isGameOver;
     private final MoveHandler moveHandler;
     private final UndoRedo undoRedo;
+    /** True once the first PLAY move has been successfully executed. */
+    private boolean firstMoveDone;
 
     public Game() {
         this.board = new Board();
@@ -28,6 +31,7 @@ public class Game {
         this.isGameOver = false;
         this.moveHandler = new MoveHandler(this);
         this.undoRedo = new UndoRedo();
+        this.firstMoveDone = false;
     }
 
     public void addPlayer(Player player) {
@@ -81,6 +85,18 @@ public class Game {
             case EXCHANGE -> moveHandler.handleExchangeMove(move);
             case PASS -> moveHandler.handlePassMove(move);
         }
+        // Mark that at least one play has occurred
+        if (move.getType() == MoveType.PLAY) {
+            setFirstMoveDone(true);
+        }
+    }
+
+    public boolean isFirstMoveDone() {
+        return firstMoveDone;
+    }
+
+    public void setFirstMoveDone(boolean firstMoveDone) {
+        this.firstMoveDone = firstMoveDone;
     }
 
     private void nextTurn() {
@@ -93,6 +109,19 @@ public class Game {
         if (!players.isEmpty()) {
             currentPlayerIndex = (currentPlayerIndex - 1 + players.size()) % players.size();
         }
+    }
+
+    // Returns true if there is at least one tile on the board
+    private boolean boardHasAnyTile() {
+        for (int x = 0; x < Board.SIZE; x++) {
+            for (int y = 0; y < Board.SIZE; y++) {
+                Square sq = board.getSquare(new fr.u_bordeaux.scrabble.model.utils.Point(x, y));
+                if (sq != null && !sq.isEmpty()) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /**
@@ -181,6 +210,10 @@ public class Game {
             if (move.getPlayer() instanceof HumanPlayer) {
                 undoneHumanMove = true;
             }
+        }
+        // If the board is now empty after undoing moves, reset the first-move flag
+        if (!boardHasAnyTile()) {
+            setFirstMoveDone(false);
         }
     }
     

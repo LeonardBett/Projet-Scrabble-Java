@@ -28,6 +28,8 @@ public class Move {
     // Data for UNDO (to restore state)
     private int scoreGained;
     private List<Tile> drawnTiles; // Tiles drawn from bag to refill rack
+    private List<Point> placedPositions; // positions where tiles were actually placed (for undo)
+    private List<Tile> placedTiles; // tiles that were actually placed (aligned with placedPositions)
 
     /**
      * Private constructor. Use factory methods to create instances.
@@ -39,6 +41,8 @@ public class Move {
         this.startPosition = startPosition;
         this.direction = direction;
         this.drawnTiles = new ArrayList<>();
+        this.placedPositions = new ArrayList<>();
+        this.placedTiles = new ArrayList<>();
     }
 
     /**
@@ -91,6 +95,22 @@ public class Move {
      */
     public List<Tile> getTiles() {
         return Collections.unmodifiableList(tiles);
+    }
+
+    public List<Point> getPlacedPositions() {
+        return Collections.unmodifiableList(placedPositions);
+    }
+
+    public void setPlacedPositions(List<Point> placedPositions) {
+        this.placedPositions = placedPositions != null ? new ArrayList<>(placedPositions) : new ArrayList<>();
+    }
+
+    public List<Tile> getPlacedTiles() {
+        return Collections.unmodifiableList(placedTiles);
+    }
+
+    public void setPlacedTiles(List<Tile> placedTiles) {
+        this.placedTiles = placedTiles != null ? new ArrayList<>(placedTiles) : new ArrayList<>();
     }
 
     public Point getStartPosition() {
