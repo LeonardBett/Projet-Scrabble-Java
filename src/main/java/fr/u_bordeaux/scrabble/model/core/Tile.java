@@ -6,20 +6,27 @@ import java.util.Objects;
  * Represents a game tile (letter) with its point value.
  */
 public class Tile {
-    /** The character displayed on the tile (e.g., 'A'). */
     private final char character;
-
-    /** The point value of the tile (e.g., 1 for 'A'). */
     private final int value;
+    private final boolean isJoker;
 
     /**
-     * Constructor that automatically assigns the standard Scrabble value based on the letter.
-     *
-     * @param character The letter character.
+     * Standard constructor.
      */
     public Tile(char character) {
         this.character = character;
         this.value = getStandardValue(character);
+        this.isJoker = false;
+    }
+
+    /**
+     * NEW CONSTRUCTOR: Creates a tile acting as a Joker.
+     * It displays the chosen letter, but is worth 0 points.
+     */
+    public Tile(char character, boolean isJoker) {
+        this.character = character;
+        this.value = isJoker ? 0 : getStandardValue(character);
+        this.isJoker = isJoker;
     }
 
     public char getCharacter() {
@@ -30,12 +37,10 @@ public class Tile {
         return value;
     }
 
-    /**
-     * Returns the standard point value for a given letter (French Scrabble rules).
-     *
-     * @param character The letter.
-     * @return The point value (0 for Joker/Blank).
-     */
+    public boolean isJoker() {
+        return isJoker;
+    }
+
     public static int getStandardValue(char character) {
         char c = Character.toUpperCase(character);
         return switch (c) {
@@ -45,7 +50,7 @@ public class Tile {
             case 'F', 'H', 'V' -> 4;
             case 'J', 'Q' -> 8;
             case 'K', 'W', 'X', 'Y', 'Z' -> 10;
-            default -> 0; // Joker (Blank) or invalid characters
+            default -> 0; 
         };
     }
 
@@ -56,12 +61,8 @@ public class Tile {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
         Tile tile = (Tile) o;
         return character == tile.character && value == tile.value;
     }
