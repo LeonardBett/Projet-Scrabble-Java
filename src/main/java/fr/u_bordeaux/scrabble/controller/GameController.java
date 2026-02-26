@@ -13,6 +13,12 @@ import fr.u_bordeaux.scrabble.model.interfaces.Player;
 import fr.u_bordeaux.scrabble.view.UserInterface;
 import fr.u_bordeaux.scrabble.view.cli.CLIInputHandler;
 import fr.u_bordeaux.scrabble.view.cli.CLIView;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import fr.u_bordeaux.scrabble.model.dictionary.GADDAG;
+import fr.u_bordeaux.scrabble.model.ai.AIPlayer;
+import fr.u_bordeaux.scrabble.model.core.HumanPlayer;
 
 
 /**
@@ -79,7 +85,7 @@ public class GameController {
                 
                 // Si le nom commence par "IA", on crée un bot (niveau 1 de profondeur par défaut)
                 if (name.toUpperCase().startsWith("IA") || name.toUpperCase().startsWith("AI")) {
-                    AIPlayer bot = new AIPlayer(name, 3); 
+                    AIPlayer bot = new AIPlayer(name, 1); 
                     
                     // On demande si on veut activer l'Expectiminimax
                     if (input.askConfirmation("Activer le mode Expectiminimax (avancé) pour " + name + " ? (o/n)")) {
@@ -94,6 +100,37 @@ public class GameController {
 
         startGame();
 
+        // 2. Chargement du dictionnaire GADDAG depuis le fichier texte
+        GADDAG gaddag = new GADDAG();
+        System.out.println("\nChargement du dictionnaire GADDAG en cours (cela peut prendre quelques secondes)...");
+        try {
+            // Lecture sécurisée depuis le dossier resources (fonctionne même dans un .jar compilé)
+            InputStream is = getClass().getClassLoader().getResourceAsStream("dictionaries/lexicon_en.txt");
+            
+            if (is == null) {
+                System.err.println("ERREUR : Fichier lexicon_en.txt introuvable dans src/main/resources/dictionaries/");
+            } else {
+                BufferedReader br = new BufferedReader(new InputStreamReader(is));
+                String line;
+                int wordCount = 0;
+                
+                while ((line = br.readLine()) != null) {
+                    String cleanWord = line.trim();
+                    if (!cleanWord.isEmpty()) {
+                        gaddag.add(cleanWord);
+                        wordCount++;
+                    }
+                }
+                br.close();
+                System.out.println("Dictionnaire chargé avec succès ! (" + wordCount + " mots ajoutés).\n");
+                System.out.println("PICKETE est dans le GADDAG ? " + gaddag.containsWord("PICKETE"));
+                System.out.println("BICKERE est dans le GADDAG ? " + gaddag.containsWord("BICKERE"));
+            }
+        } catch (Exception e) {
+            System.err.println("Erreur lors de la lecture du dictionnaire : " + e.getMessage());
+            e.printStackTrace();
+        }
+        // 3. Boucle principale du jeu
         // 2. Chargement du dictionnaire GADDAG depuis le fichier texte
         GADDAG gaddag = new GADDAG();
         System.out.println("\nChargement du dictionnaire GADDAG en cours (cela peut prendre quelques secondes)...");
@@ -212,6 +249,7 @@ public class GameController {
             }
         }
 
+        // Fin de la partie
         // Fin de la partie
         Player winner = game.determineWinner();
         if (winner != null) {

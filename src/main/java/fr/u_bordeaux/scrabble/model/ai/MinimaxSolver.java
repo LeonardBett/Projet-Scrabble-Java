@@ -1,14 +1,27 @@
 package fr.u_bordeaux.scrabble.model.ai;
 
-import fr.u_bordeaux.scrabble.model.core.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+
+import fr.u_bordeaux.scrabble.model.core.Board;
+import fr.u_bordeaux.scrabble.model.core.Game;
+import fr.u_bordeaux.scrabble.model.core.MoveGenerator;
+import fr.u_bordeaux.scrabble.model.core.PlayableWord;
+import fr.u_bordeaux.scrabble.model.core.Scoring;
+import fr.u_bordeaux.scrabble.model.core.Square;
+import fr.u_bordeaux.scrabble.model.core.Tile;
 import fr.u_bordeaux.scrabble.model.dictionary.GADDAG;
 import fr.u_bordeaux.scrabble.model.enums.Direction;
 import fr.u_bordeaux.scrabble.model.interfaces.Player;
 import fr.u_bordeaux.scrabble.model.utils.Point;
 
-import java.util.*;
-
 /**
+ * Implements realistic Minimax and Expectiminimax algorithms for AI decision making.
+ * Performs deep simulation by generating opponent moves from sampled remaining tiles.
  * Implements realistic Minimax and Expectiminimax algorithms for AI decision making.
  * Performs deep simulation by generating opponent moves from sampled remaining tiles.
  */
@@ -21,7 +34,7 @@ public class MinimaxSolver {
 
     // Constant to balance performance (Too high = very slow AI)
     // 5 is a good compromise for testing in real conditions without waiting 10 minutes.
-    private static final int SAMPLES_COUNT = 200; 
+    private static final int SAMPLES_COUNT = 5; 
 
     public MinimaxSolver(int maxDepth) {
         this.moveGenerator = new MoveGenerator();
@@ -38,30 +51,22 @@ public class MinimaxSolver {
         return useExpectiminimax;
     }
 
-    private static final long TIME_LIMIT_MS = 5000; 
-
     public PlayableWord findBestMove(Game game, GADDAG gaddag) {
-        long startTime = System.currentTimeMillis(); 
-
         List<PlayableWord> possibleMoves = moveGenerator.getPlayableWordsList(game, gaddag);
         if (possibleMoves.isEmpty()) return null; 
 
         PlayableWord bestMove = null;
         double bestScore = Double.NEGATIVE_INFINITY;
         
+        // Calculate unseen letters (Bag + Opponents) once for the whole turn
         List<Character> unseenTiles = getUnseenTiles(game);
 
         for (PlayableWord move : possibleMoves) {
-            // Checking time taken
-            if (System.currentTimeMillis() - startTime >= TIME_LIMIT_MS) {
-                System.out.println("⏳ Temps imparti écoulé ! L'IA s'arrête et joue le meilleur coup trouvé.");
-                break; // Time out
-            }
-            // Calculate the AI's immediate gain
+            // 1. Calculate the AI's immediate gain
             int immediateScore = simulateAndScoreWord(game.getBoard(), move);
             double rackLeaveScore = evaluateRackLeave(game, move);
             double totalScore = immediateScore + rackLeaveScore;
-
+            
             // Save the real score for display purposes
             move.setScore(immediateScore);
 
@@ -72,11 +77,12 @@ public class MinimaxSolver {
 
                 if (useExpectiminimax) {
                     // Expectiminimax: Subtract the AVERAGE of the best opponent moves
-                    totalScore -= expectiminimax(game.getBoard(), unseenTiles, gaddag, startTime);
+                    totalScore -= expectiminimax(game.getBoard(), unseenTiles, gaddag);
                 } else {
                     // Minimax: Subtract the WORST POSSIBLE MOVE from our samples
-                    totalScore -= minimax(game.getBoard(), unseenTiles, gaddag, startTime);
+                    totalScore -= minimax(game.getBoard(), unseenTiles, gaddag);
                 }
+
                 // Remove our word to test the next one
                 removeWordTemporarily(placedSquares);
             }
@@ -87,7 +93,6 @@ public class MinimaxSolver {
             }
         }
 
-        // 3. On retourne le meilleur coup (même si on a été interrompu)
         return bestMove;
     }
 
@@ -95,38 +100,25 @@ public class MinimaxSolver {
      * EXPECTIMINIMAX: Realistic Monte-Carlo simulation.
      * Generates probable racks and averages the best response.
      */
-    private double expectiminimax(Board board, List<Character> unseen, GADDAG gaddag, long startTime) {
+    private double expectiminimax(Board board, List<Character> unseen, GADDAG gaddag) {
         double totalExpectedOpponentScore = 0.0;
-        int samplesEvaluated = 0; // Counting evaluated samples
         
         for (int i = 0; i < SAMPLES_COUNT; i++) {
-            // Time out
-            if (System.currentTimeMillis() - startTime >= TIME_LIMIT_MS) {
-                break;
-            }
             Character[] simulatedRack = drawRandomRack(unseen, 7);
             totalExpectedOpponentScore += getBestOpponentScore(board, simulatedRack, gaddag);
-            samplesEvaluated++;
         }
         
-        //Security to prevent division by zero
-        if (samplesEvaluated == 0) return 0.0; 
-        
-        return totalExpectedOpponentScore / samplesEvaluated;
+        return totalExpectedOpponentScore / SAMPLES_COUNT;
     }
 
     /**
      * MINIMAX: Worst-case scenario simulation.
      * Among the drawn racks, keeps the one that deals the most damage.
      */
-    private double minimax(Board board, List<Character> unseen, GADDAG gaddag, long startTime) {
+    private double minimax(Board board, List<Character> unseen, GADDAG gaddag) {
         double maxDamage = 0.0;
         
         for (int i = 0; i < SAMPLES_COUNT; i++) {
-            // time out
-            if (System.currentTimeMillis() - startTime >= TIME_LIMIT_MS) {
-                break;
-            }
             Character[] simulatedRack = drawRandomRack(unseen, 7);
             double oppScore = getBestOpponentScore(board, simulatedRack, gaddag);
             if (oppScore > maxDamage) {
@@ -134,7 +126,7 @@ public class MinimaxSolver {
             }
         }
         
-        return maxDamage;
+        return maxDamage; // Returns the score of the worst enemy attack
     }
 
     /**
