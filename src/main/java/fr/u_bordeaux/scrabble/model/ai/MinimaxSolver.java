@@ -21,7 +21,7 @@ public class MinimaxSolver {
 
     // Constant to balance performance (Too high = very slow AI)
     // 5 is a good compromise for testing in real conditions without waiting 10 minutes.
-    private static final int SAMPLES_COUNT = 5; 
+    private static final int SAMPLES_COUNT = 500;
 
     public MinimaxSolver(int maxDepth) {
         this.moveGenerator = new MoveGenerator();
