@@ -12,18 +12,18 @@ public class TestGaddag {
         GADDAG gaddag = new GADDAG();
         String lexiconPath = "/dictionaries/lexicon_en.txt";
 
-        System.out.println("Chargement du dictionnaire...");
+        System.out.println("Loading the dictionary");
         try (InputStream is = TestGaddag.class.getResourceAsStream(lexiconPath)) {
-            if (is == null) throw new Exception("Fichier introuvable : " + lexiconPath);
+            if (is == null) throw new Exception("File not find : " + lexiconPath);
 
             BufferedReader br = new BufferedReader(new InputStreamReader(is));
             String line;
             while ((line = br.readLine()) != null) {
                 gaddag.add(line.trim().toUpperCase());
             }
-            System.out.println("Dictionnaire chargé.");
+            System.out.println("Dictionary loaded");
         } catch (Exception e) {
-            System.err.println("Erreur : " + e.getMessage());
+            System.err.println("Error : " + e.getMessage());
             return;
         }
 
@@ -31,40 +31,40 @@ public class TestGaddag {
         char hook = ' ';
 
         // Pour word = "apple"
-        System.out.println("Est-ce que APPLE est valide ? " + gaddag.containsWord("APPLE")); //true
-        System.out.println("Est-ce que ZYZZYVA est valide ? " + gaddag.containsWord("ZYZZYVA")); //false
+        System.out.println("Is APPLE valid ? " + gaddag.containsWord("APPLE")); //true
+        System.out.println("Is ZYZZYVA valid ? " + gaddag.containsWord("ZYZZYVA")); //false
 
-        String[] wordsToTest = {"APPLE", "ZYZZYVA", "SCRABBLE", "ZURICH"}; // ZURICH est le dernier mot
+        String[] wordsToTest = {"APPLE", "ZYZZYVA", "SCRABBLE", "ZURICH"}; // ZURICH is the last word
 
-        System.out.println("\n--- BENCHMARK RECHERCHE DICTIONNAIRE ---");
+        System.out.println("\n--- BENCHMARK RESEARCH DICTIONARY ---");
 
         for (String word : wordsToTest) {
-            // 1. Démarrage du chrono (en nanosecondes)
+            // 1. Start Chrono (en nanosecondes)
             long startTime = System.nanoTime();
 
-            // 2. Exécution de la recherche
+            // 2. Search
             boolean exists = gaddag.containsWord(word);
 
-            // 3. Fin du chrono
+            // 3. End Chrono
             long endTime = System.nanoTime();
 
-            // 4. Calcul de la durée
+            // 4. Calcul time
             long duration = endTime - startTime;
 
-            // Conversion en microsecondes pour une lecture plus facile (1 µs = 1000 ns)
+            // Conversion (1 µs = 1000 ns)
             double durationInMicro = duration / 1000.0;
 
-            System.out.printf("Mot: %-10s | Existe: %-5b | Temps: %.2f µs%n",
+            System.out.printf("Word : %-10s | Exist: %-5b | Time to find : %.2f µs%n",
                     word, exists, durationInMicro);
         }
 
         System.out.println("\n--- MODE REPL (GADDAG RESULT) ---");
 
-        System.out.println("\n--- TESTEUR DE MOTS GADDAG ---");
-        System.out.println("Commandes :");
-        System.out.println("  h <lettre> : Définir la lettre d'appui sur le plateau (ex: h C)");
-        System.out.println("  r <lettres> : Chercher les mots avec ton rack (ex: r ATSON)");
-        System.out.println("  q : Quitter");
+        System.out.println("\n--- TEST GADDAG ---");
+        System.out.println("Commands :");
+        System.out.println("  h <lettre> :  Define the hook (ex: h C)");
+        System.out.println("  r <lettres> : Search word with this rack (ex: r ATSON)");
+        System.out.println("  q : Quit");
 
         while (true) {
             System.out.print("\n(Hook: '" + hook + "') > ");
@@ -79,12 +79,9 @@ public class TestGaddag {
             else if (cmd.equals("r")) {
                 String rackStr = scan.next().toUpperCase();
 
-                // On garde ta conversion en Character[]
                 Character[] rack = new Character[rackStr.length()];
                 for (int i = 0; i < rackStr.length(); i++) rack[i] = rackStr.charAt(i);
 
-                // --- LA LIGNE CORRIGÉE ---
-                // On utilise le type complexe GADDAG.GaddagResult
                 HashSet<GADDAG.GaddagResult> results = gaddag.findWordsWithRackAndHook(rack, hook);
 
                 if (results == null || results.isEmpty()) {
@@ -92,10 +89,7 @@ public class TestGaddag {
                 } else {
                     System.out.println(results.size() + " résultats trouvés :");
 
-                    // Parcours des objets résultats
                     for (GADDAG.GaddagResult res : results) {
-                        // Ici, j'utilise res.toString().
-                        // Si GaddagResult a une méthode .getWord(), utilise-la !
                         System.out.println(" - " + res.toString());
                     }
                 }
