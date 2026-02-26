@@ -84,9 +84,9 @@ public class TestGaddag {
                 HashSet<GADDAG.GaddagResult> results = gaddag.findWordsWithRackAndHook(rack, hook);
 
                 if (results == null || results.isEmpty()) {
-                    System.out.println("Aucun résultat.");
+                    System.out.println("No result");
                 } else {
-                    System.out.println(results.size() + " résultats trouvés :");
+                    System.out.println(results.size() + " results found :");
 
                     for (GADDAG.GaddagResult res : results) {
                         System.out.println(" - " + res.toString());
