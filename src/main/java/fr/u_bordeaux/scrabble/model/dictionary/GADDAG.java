@@ -42,7 +42,7 @@ public class GADDAG extends Trie {
     public void add(String word){
         if (word.isEmpty()) return;
 
-        word = word.toLowerCase();
+        word = word.toUpperCase();
 
         String prefix;
         char[] ch;
