@@ -30,7 +30,8 @@ public class BoardPanel extends VBox {
 
     private final GridPane gridPane;
     private final Label[][] cellLabels;
-    private final Board board;
+    // board reference may change when starting a new game
+    private Board board;
 
     /**
      * Callback called when a tile is dropped on a cell: (row, col) → ScrabbleGUI.
@@ -211,8 +212,9 @@ public class BoardPanel extends VBox {
         }
     }
 
-      public void setBoard(Board newBoard) {
-      
+        public void setBoard(Board newBoard) {
+        // update the model reference and refresh UI
+        this.board = newBoard;
         updateBoard();
     }
 }

@@ -234,8 +234,9 @@ public class ScrabbleGUI extends Application {
         boardPanel.clearAllPending();
         pendingTiles.clear();
         boardPanel.setBoard(gameInstance.getBoard());
-        refreshAll();
+        // start the game before refreshing the UI so racks are filled
         controller.startGame();
+        refreshAll();
     }
 
     // ─── Refresh (called by JavaFxView) ──────────────────────────────────────
