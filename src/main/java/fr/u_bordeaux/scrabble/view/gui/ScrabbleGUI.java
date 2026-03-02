@@ -29,6 +29,12 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
+import fr.u_bordeaux.scrabble.model.ai.AIPlayer;
+import fr.u_bordeaux.scrabble.model.dictionary.GADDAG;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+
 
 
 
@@ -61,7 +67,7 @@ public class ScrabbleGUI extends Application {
     public static void setView(JavaFxView view) { viewInstance = view; }
 
     // ─── JavaFX entry point ───────────────────────────────────────────────────
-
+    
     @Override
     public void start(Stage stage) {
         if (gameInstance == null) {
@@ -71,8 +77,29 @@ public class ScrabbleGUI extends Application {
         // Ask player names
         Optional<List<String>> namesOpt = PlayerSetup.showDialog();
         if (namesOpt.isEmpty()) { Platform.exit(); return; }
+
+        if (gaddag == null) loadDictionary();
+
         for (String name : namesOpt.get()) {
-            gameInstance.addPlayer(new HumanPlayer(name));
+            String upperName = name.toUpperCase();
+            
+            // 1. Check for advanced AI (Expectiminimax) first
+            if (upperName.startsWith("IAEX") || upperName.startsWith("AIEX")) {
+                // Depth 2 minimum is required for Expectiminimax to anticipate the opponent
+                AIPlayer ai = new AIPlayer(name, 2);
+                ai.setExpectiminimaxMode(true);
+                gameInstance.addPlayer(ai);
+                
+            // 2. Check for standard AI (Classic Minimax)
+            } else if (upperName.startsWith("IA") || upperName.startsWith("AI")) {
+                // Standard AI
+                AIPlayer ai = new AIPlayer(name, 2);
+                gameInstance.addPlayer(ai);
+                
+            // 3. Otherwise, it's a human player
+            } else {
+                gameInstance.addPlayer(new HumanPlayer(name));
+            }
         }
 
         // Wire view
@@ -163,8 +190,30 @@ public class ScrabbleGUI extends Application {
 
     // ─── Game actions (prepare data, delegate to builders, send to controller)
 
+    private static GADDAG gaddag;
+
+    private void loadDictionary() {
+        gaddag = new GADDAG();
+        System.out.println("Chargement du GADDAG pour l'interface graphique...");
+        try {
+            InputStream is = getClass().getClassLoader().getResourceAsStream("dictionaries/lexicon_en.txt");
+            if (is != null) {
+                BufferedReader br = new BufferedReader(new InputStreamReader(is));
+                String line;
+                while ((line = br.readLine()) != null) {
+                    if (!line.trim().isEmpty()) gaddag.add(line.trim());
+                }
+                br.close();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
     /**
-     * ✅ DÉLÈGUE à PendingMoveBuilder — zero logique ici !
+     * Delegates to PendingMoveBuilder.
+     * Captures game engine exceptions to gracefully cancel invalid moves.
      */
     private void submitPendingTiles() {
         if (pendingTiles.isEmpty()) {
@@ -180,8 +229,22 @@ public class ScrabbleGUI extends Application {
             return;
         }
 
-        pendingTiles.clear();
-        controller.handlePlayerMove(move);
+        // NEW: Try-catch block to handle invalid moves rejected by the game engine
+        try {
+            // Attempt to execute the move in the model
+            controller.handlePlayerMove(move);
+            
+            // If the move is valid and executed successfully, clear the pending tiles map
+            pendingTiles.clear();
+            
+        } catch (RuntimeException e) {
+            // The game engine rejected the move (e.g., word doesn't touch existing tiles)
+            // Show the exact error message to the player
+            showError("Coup invalide : " + e.getMessage());
+            
+            // Visually remove the tiles from the board and put them back on the rack
+            cancelPendingTiles(); 
+        }
     }
 
     /**
@@ -225,7 +288,15 @@ public class ScrabbleGUI extends Application {
         Optional<List<String>> namesOpt = PlayerSetup.showDialog();
         if (namesOpt.isEmpty()) return;
 
-        for (String name : namesOpt.get()) gameInstance.addPlayer(new HumanPlayer(name));
+        if (gaddag == null) loadDictionary();
+
+        for (String name : namesOpt.get()) {
+            if (name.toUpperCase().startsWith("IA") || name.toUpperCase().startsWith("AI")) {
+                gameInstance.addPlayer(new AIPlayer(name, 3));
+            } else {
+                gameInstance.addPlayer(new HumanPlayer(name));
+            }
+        }
 
         viewInstance = new JavaFxView(gameInstance);
         viewInstance.setGUI(this);
@@ -240,10 +311,58 @@ public class ScrabbleGUI extends Application {
 
     // ─── Refresh (called by JavaFxView) ──────────────────────────────────────
 
-    public void refreshAll() {
+public void refreshAll() {
         refreshBoard();
         refreshRack();
         refreshScores();
+        
+        // NEW: At each refresh, check if it is the AI's turn to play
+        checkAITurn();
+    }
+
+    private void checkAITurn() {
+        // Prevent launching the AI multiple times if the UI is already locked
+        if (boardPanel.isDisable()) {
+            return;
+        }
+
+        Player current = gameInstance.getCurrentPlayer();
+        
+        // If the current player is an AI and the game is not over
+        if (current instanceof AIPlayer && !gameInstance.isGameOver()) {
+            AIPlayer ai = (AIPlayer) current;
+            
+            // 1. Disable the UI (to prevent the human from clicking everywhere)
+            boardPanel.setDisable(true);
+            rackPanel.setDisable(true);
+            controlPanel.setDisable(true);
+
+            // 2. Launch the AI's logic in a SEPARATE THREAD
+            new Thread(() -> {
+                try {
+                    // Small 1-second pause for visual effect ("AI is thinking...")
+                    Thread.sleep(1000); 
+                    
+                    // The AI runs its algorithm (which will auto-stop at 4.8s)
+                    ai.playTurn(gameInstance, gaddag);
+                    
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    // In case of an AI error, force it to pass its turn
+                    Platform.runLater(() -> {
+                        controller.handlePlayerMove(Move.createPass(ai));
+                    });
+                } finally {
+                        Platform.runLater(() -> {
+                        boardPanel.setDisable(false);
+                        rackPanel.setDisable(false);
+                        controlPanel.setDisable(false);
+                        
+                        refreshAll();
+                    });
+                }
+            }).start();
+        }
     }
 
     public void refreshBoard() {

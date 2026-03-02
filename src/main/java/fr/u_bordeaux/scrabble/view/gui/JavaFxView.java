@@ -31,17 +31,15 @@ public class JavaFxView implements UserInterface {
 
     // ─── UserInterface ────────────────────────────────────────────────────────
 
-    /**
-     * Refreshes all GUI panels (board, rack, scores).
+/**
+     * Refreshes all GUI panels (board, rack, scores) and triggers AI check.
      * Always runs on the JavaFX thread.
      */
     @Override
     public void refresh() {
         runOnFxThread(() -> {
             if (gui != null) {
-                gui.refreshBoard();
-                gui.refreshRack();
-                gui.refreshScores();
+                gui.refreshAll();
             }
         });
     }
