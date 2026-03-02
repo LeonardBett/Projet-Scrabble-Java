@@ -242,9 +242,12 @@ public class MoveHandler {
         while (true) {
             Point cp = new Point(curX, curY);
             Square cs = game.getBoard().getSquare(cp);
-            if (cs == null) {
+                if (cs == null) {
+                    if (tileIndex == tiles.size()) {
+                        break;
+                    }
                 throw new IllegalArgumentException("Word extends beyond board boundaries.");
-            }
+                }
 
                 if (!cs.isEmpty()) {
                     // existing tile contributes to the word; do not consume a provided tile
