@@ -99,7 +99,7 @@ public class GameController {
                 
                 // Si le nom commence par "IA", on crée un bot (niveau 1 de profondeur par défaut)
                 if (name.toUpperCase().startsWith("IA") || name.toUpperCase().startsWith("AI")) {
-                    AIPlayer bot = new AIPlayer(name, 1); 
+                    AIPlayer bot = new AIPlayer(name, 3); 
                     
                     // On demande si on veut activer l'Expectiminimax
                     if (input.askConfirmation("Activer le mode Expectiminimax (avancé) pour " + name + " ? (o/n)")) {
