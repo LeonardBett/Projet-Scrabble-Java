@@ -5,6 +5,7 @@ import static fr.u_bordeaux.scrabble.model.network.NetworkManager.DEFAULT_TCP_PO
 
 import fr.u_bordeaux.scrabble.model.core.Game;
 import fr.u_bordeaux.scrabble.model.core.HumanPlayer;
+import fr.u_bordeaux.scrabble.model.core.Tile;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -12,6 +13,8 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /** Network client to connect to a game server. */
@@ -37,7 +40,9 @@ public class GameClient {
   // because we have to stop it manually when quit() is called to avoid blocking for 30sec
   private Thread heartbeatThread;
 
-  private Game localGame;
+  private Game localGame; // Local model for CLI/GUI
+
+  private int myId; // My private ID on the server
 
   /**
    * Connect to a server on a specific address and port.
@@ -88,6 +93,13 @@ public class GameClient {
         Packet packet = new Packet(serverMessage);
 
         switch (packet.getCommand()) {
+          case "WELCOME":
+            // The server send us our ID when connecting for the first time
+            if (!packet.getEntries().isEmpty()) {
+              this.myId = Integer.parseInt(packet.getEntries().getFirst().get("ID"));
+              System.out.println("Client : My ID is " + myId);
+            }
+            break;
           case "PONG":
             long pingEndTime = System.currentTimeMillis();
             System.out.println("Client : PONG TIME=" + (pingEndTime - pingStartTime) + "ms");
@@ -139,6 +151,28 @@ public class GameClient {
             for (Map<String, String> playerData : packet.getEntries()) {
               String name = playerData.get("NAME");
               this.localGame.addPlayer(new HumanPlayer(name));
+            }
+            break;
+
+          case "SET_RACK":
+            if (localGame != null && !packet.getEntries().isEmpty()) {
+              String tilesStr = packet.getEntries().getFirst().get("TILES");
+              if (tilesStr != null) {
+                // We need our name in the model
+                String myName = "Player-" + myId;
+
+                // We build the list of Tile from the server message
+                List<Tile> receivedTiles = new ArrayList<>();
+                if (!tilesStr.trim().isEmpty()) {
+                  for (String letter : tilesStr.split(",")) {
+                    receivedTiles.add(new Tile(letter.charAt(0)));
+                  }
+                }
+
+                // We update our local model with this Tile list
+                //localGame.forceTilesToPlayer(myName, receivedTiles);
+                System.out.println("Local rack updated: " + tilesStr);
+              }
             }
             break;
 

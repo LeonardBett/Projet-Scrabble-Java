@@ -57,6 +57,8 @@ public class ClientHandler implements Runnable {
       in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
       out = new PrintWriter(socket.getOutputStream(), true);
 
+      sendMessage("WELCOME:ID=" + clientInfo.getId()); // Sending the server id to this client
+
       // Infinite loop for listening to the client
       String clientMessage;
       while (isRunning && (clientMessage = in.readLine()) != null) {
