@@ -1,17 +1,15 @@
-package fr.u_bordeaux.scrabble.view.gui;
+package fr.u_bordeaux.scrabble.model.core;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import fr.u_bordeaux.scrabble.model.core.Move;
-import fr.u_bordeaux.scrabble.model.core.Tile;
 import fr.u_bordeaux.scrabble.model.interfaces.Player;
 
 /**
  * Builds an EXCHANGE Move from a string typed by the user in the dialog.
  *
  * ✅ MVC: Converts raw user input (String) → Move object.
- * Belongs in the view package because it depends on user input format.
+ * Belongs in the model because it encapsulates Move construction logic.
  */
 public class ExchangeMoveBuilder {
 

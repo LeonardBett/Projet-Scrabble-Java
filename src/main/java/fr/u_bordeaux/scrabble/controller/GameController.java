@@ -93,7 +93,7 @@ public class GameController {
                 }
                 case "2": // Exchange
                 {
-                    Move move = input.askExchangeMove(current);
+                    Move move = input.exchangeMove(current);
                     if (move != null) {
                         try {
                             handlePlayerMove(move);

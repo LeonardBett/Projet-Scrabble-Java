@@ -6,9 +6,11 @@ import java.util.Map;
 import java.util.Optional;
 
 import fr.u_bordeaux.scrabble.controller.GameController;
+import fr.u_bordeaux.scrabble.model.core.ExchangeMoveBuilder;
 import fr.u_bordeaux.scrabble.model.core.Game;
 import fr.u_bordeaux.scrabble.model.core.HumanPlayer;
 import fr.u_bordeaux.scrabble.model.core.Move;
+import fr.u_bordeaux.scrabble.model.core.PendingMoveBuilder;
 import fr.u_bordeaux.scrabble.model.core.Rack;
 import fr.u_bordeaux.scrabble.model.core.Tile;
 import fr.u_bordeaux.scrabble.model.interfaces.Player;

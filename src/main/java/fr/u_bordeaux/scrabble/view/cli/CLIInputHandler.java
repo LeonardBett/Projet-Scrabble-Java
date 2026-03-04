@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
+import fr.u_bordeaux.scrabble.model.core.ExchangeMoveBuilder;
 import fr.u_bordeaux.scrabble.model.core.Move;
 import fr.u_bordeaux.scrabble.model.core.Tile;
 import fr.u_bordeaux.scrabble.model.enums.Direction;
@@ -102,41 +103,13 @@ public class CLIInputHandler {
     /**
      * Asks the player which letters to exchange.
      */
-    public Move askExchangeMove(Player player) {
+    public Move exchangeMove(Player player) {
+        // Delegate actual exchange logic to the model builder
         try {
             System.out.print("\nLettres à échanger (ex: ABC) : ");
             String lettersInput = scanner.nextLine().trim().toUpperCase();
-            
-            List<Tile> tiles = new ArrayList<>();
-            List<Tile> rack = player.getRack().getTiles();
-            
-            for (char letter : lettersInput.toCharArray()) {
-                boolean found = false;
-                for (Tile tile : rack) {
-                    if (tile.getCharacter() == letter) {
-                        boolean alreadyUsed = false;
-                        for (Tile t : tiles) {
-                            if (t == tile) {
-                                alreadyUsed = true;
-                                break;
-                            }
-                        }
-                        if (!alreadyUsed) {
-                            tiles.add(tile);
-                            found = true;
-                            break;
-                        }
-                    }
-                }
 
-                if (!found) {
-                    messageRenderer.error("La lettre '" + letter + "' n'est pas dans votre chevalet !");
-                    return null;
-                }
-            }
-            
-            return Move.createExchange(player, tiles);
-            
+            return ExchangeMoveBuilder.build(lettersInput, player);
         } catch (Exception e) {
             messageRenderer.error("Format invalide ! " + e.getMessage());
             return null;
