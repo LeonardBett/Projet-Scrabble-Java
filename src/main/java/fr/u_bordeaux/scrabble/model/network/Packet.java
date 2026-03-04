@@ -51,7 +51,7 @@ public class Packet {
 
       for (String pair : pairs) {
         // 3. We split each attribute with = (ex: ID=1)
-        String[] kv = pair.split("=");
+        String[] kv = pair.split("=", 2);
         if (kv.length == 2) {
           entityData.put(kv[0], kv[1]);
         }

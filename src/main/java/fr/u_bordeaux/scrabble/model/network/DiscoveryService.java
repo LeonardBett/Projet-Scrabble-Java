@@ -78,7 +78,7 @@ public class DiscoveryService {
 
                 // Infinite loop of sending periodic broadcast message
                 while (isBroadcasting) {
-                  System.out.println("Broadcast : Sending a broadcast message");
+                  // System.out.println("Broadcast : Sending a broadcast message");
 
                   // We send the UDP packet, then sleep
                   broadcastSocket.send(packet);
@@ -159,7 +159,7 @@ public class DiscoveryService {
                   // Block here => waiting a message
                   // Will deblock if the socket is closed, and raise a SocketException
                   listenSocket.receive(packet);
-                  System.out.println("Listening : Received a broadcast message");
+                  // System.out.println("Listening : Received a broadcast message");
 
                   // Extract and send the data to processing
                   String message = new String(packet.getData(), 0, packet.getLength());

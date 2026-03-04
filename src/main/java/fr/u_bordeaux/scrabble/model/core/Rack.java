@@ -74,4 +74,9 @@ public class Rack {
     public String toString() {
         return "Rack{" + "tiles=" + tiles + '}';
     }
+
+    public void setTiles(List<Tile> tiles) {
+        this.tiles.clear();
+        this.tiles.addAll(tiles);
+    }
 }

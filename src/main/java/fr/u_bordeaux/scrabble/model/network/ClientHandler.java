@@ -65,10 +65,19 @@ public class ClientHandler implements Runnable {
         // Check for command with parameters
         if (clientMessage.startsWith("NEW_")) {
           handleNewGameRequest(clientMessage);
+
+        } else if (clientMessage.startsWith("MOVE:")) {
+          if (activeGame == null) {
+            sendMessage("ERROR: You are not currently in a game");
+          } else {
+            activeGame.processMove(this, new Packet(clientMessage));
+          }
+
         } else {
           // Fixed command with no parameters
           switch (clientMessage) {
             case "PING" -> sendMessage("PONG");
+            case "PINGS" -> sendMessage("PONGS");
             case "SERVER_STATUS" -> sendMessage(server.getStatusResponse());
             case "PLAYERS" -> sendMessage(server.getPlayerResponse());
             case "SCOREBOARD" -> sendMessage(server.getScoreboardResponse());

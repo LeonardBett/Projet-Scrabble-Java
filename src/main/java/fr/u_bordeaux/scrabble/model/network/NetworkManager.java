@@ -186,6 +186,50 @@ public class NetworkManager {
     gameClient.sendScoreboard();
   }
 
+  /**
+   * COMMAND new PLAYER_ID : Starts a new game with the specified player if they are IDLE.
+   * If the player does not exist or is unavailable, display an error message.
+   * If the game supports more than two players, simply provide multiple player IDs as arguments to the command.
+   */
+  public void newPlayerId(int targetId) {
+    gameClient.sendNew(targetId);
+  }
+
+  /**
+   * COMMAND move PLAY: Plays a word on the board at the specified coordinates and direction.
+   *
+   * @param x the x coordinate (column)
+   * @param y the y coordinate (row)
+   * @param direction the direction (H for horizontal, V for vertical)
+   * @param tile the word to place on the board
+   */
+  public void play(int x, int y, String direction, String tile) {
+    if (gameClient != null) {
+      gameClient.sendPlayMove(x, y, direction, tile);
+    }
+  }
+
+  /**
+   * COMMAND move EXCHANGE: Exchanges specified tiles from the player's rack with new ones from bag
+   *
+   * @param tiles the tiles to exchange (ex: "A,B,C")
+   */
+  public void exchange(String tiles) {
+    if (gameClient != null) {
+      gameClient.sendExchangeMove(tiles);
+    }
+  }
+
+  /**
+   * COMMAND move PASS: Skips the current player's turn.
+   */
+  public void pass() {
+    if (gameClient != null) {
+      gameClient.sendPassMove();
+    }
+  }
+
+
   // -----F4O-----
 
   // TODO:

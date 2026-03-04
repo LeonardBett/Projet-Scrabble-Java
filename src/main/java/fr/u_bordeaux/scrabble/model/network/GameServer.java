@@ -237,9 +237,6 @@ public class GameServer {
     initiator.getClientInfo().setStatus(PlayerStatus.INGAME);
     target.getClientInfo().setStatus(PlayerStatus.INGAME);
 
-    // 5. Notify both players
-    session.broadcast("GAME_START: ");
-
     return "SUCCESS: Game started";
   }
 }

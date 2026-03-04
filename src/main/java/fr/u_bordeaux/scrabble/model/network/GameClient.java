@@ -100,9 +100,13 @@ public class GameClient {
               System.out.println("Client : My ID is " + myId);
             }
             break;
+
           case "PONG":
             long pingEndTime = System.currentTimeMillis();
             System.out.println("Client : PONG TIME=" + (pingEndTime - pingStartTime) + "ms");
+            break;
+
+          case "PONGS":
             break;
 
           case "SERVER_STATUS":
@@ -170,10 +174,28 @@ public class GameClient {
                 }
 
                 // We update our local model with this Tile list
-                //localGame.forceTilesToPlayer(myName, receivedTiles);
-                System.out.println("Local rack updated: " + tilesStr);
+                localGame.forceTilesToPlayer(myName, receivedTiles);
+                // System.out.println("Local rack updated: " + tilesStr);
+                localGame.printDebugState(false);
               }
             }
+            break;
+
+          case "OPPONENT_MOVE":
+            Map<String, String> move = packet.getEntries().getFirst();
+            String type = move.get("TYPE");
+            String pName = move.get("PLAYER");
+
+            if ("PLAY".equals(type)) {
+              String boardData = move.get("BOARD");
+
+              // We sync the local model board with the one send by the server
+              if (boardData != null) {
+                localGame.syncBoard(boardData);
+              }
+            }
+            localGame.printDebugState(false);
+
             break;
 
           default:
@@ -238,6 +260,11 @@ public class GameClient {
     sendMessage("PING");
   }
 
+  /** Send ping command to the server only for timeout management. */
+  public void sendPingSilent() {
+    sendMessage("PINGS");
+  }
+
   /** Send server status command to the server. */
   public void sendServerStatus() {
     sendMessage("SERVER_STATUS");
@@ -262,6 +289,40 @@ public class GameClient {
     sendMessage("NEW_" + playerId);
   }
 
+  /**
+   * Send PLAY move command to the server.
+   *
+   * @param x the x coordinate on the board
+   * @param y the y coordinate on the board
+   * @param direction the direction of the move
+   * @param tile the word to play
+   */
+  public void sendPlayMove(int x, int y, String direction, String tile) {
+    // Format: MOVE:TYPE=PLAY;X=7;Y=7;DIR=H;WORD=CHAT
+    String message = String.format("MOVE:TYPE=PLAY;X=%d;Y=%d;DIR=%s;TILES=%s",
+            x, y, direction, tile);
+    sendMessage(message);
+  }
+
+  /**
+   * Send EXCHANGE move command to the server.
+   *
+   * @param tiles the tiles to exchange (ex: "A,B,C")
+   */
+  public void sendExchangeMove(String tiles) {
+    // Format: MOVE:TYPE=EXCHANGE;TILES=A,B,C
+    String message = String.format("MOVE:TYPE=EXCHANGE;TILES=%s", tiles);
+    sendMessage(message);
+  }
+
+  /**
+   * Send PASS move command to the server.
+   */
+  public void sendPassMove() {
+    // Format: MOVE:TYPE=PASS
+    sendMessage("MOVE:TYPE=PASS");
+  }
+
   // Method use in a Thread
   // Needed since the server timeout is 60sec, we ping it every 30sec to avoid disconnecting
   private void startHeartbeat() {
@@ -269,7 +330,7 @@ public class GameClient {
       while (isRunning) {
         Thread.sleep(30000);
         if (isRunning && !socket.isClosed()) {
-          this.sendPing();
+          this.sendPingSilent();
         }
       }
     } catch (InterruptedException e) {

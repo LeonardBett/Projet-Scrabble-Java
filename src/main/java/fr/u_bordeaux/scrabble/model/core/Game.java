@@ -293,4 +293,57 @@ public class Game {
 
         System.out.println("-------------------------\n");
     }
+
+
+    /**-----NETWORKING-----**/
+    /**
+     * Finds a player in the game by their name.
+     * Needed for networking
+     * @param name The name of the player to find
+     * @return The Player object if found, null otherwise.
+     */
+    public Player getPlayerFromName(String name) {
+        for (Player p : players) {
+            if (p.getName().equals(name)) {
+                return p;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Synchronizes a player's rack with a specific list of tiles.
+     * Used for updating local game in network play.
+     */
+    public void forceTilesToPlayer(String playerName, List<Tile> tiles) {
+        Player p = getPlayerFromName(playerName);
+        if (p != null) {
+            p.getRack().setTiles(tiles);
+        }
+    }
+
+    public int getCurrentPlayerIndex() {
+        return currentPlayerIndex;
+    }
+
+    /**
+     * Synchronizes the board with a full board state string from the server.
+     * Used for updating local game in network play.
+     */
+    public void syncBoard(String boardData) {
+        if (boardData == null || boardData.length() != 225) return; // Sécurité (15x15)
+
+        for (int i = 0; i < boardData.length(); i++) {
+            int x = i % 15;
+            int y = i / 15;
+            char c = boardData.charAt(i);
+
+            Square sq = board.getSquare(new Point(x, y));
+            if (c == '.') {
+                // TODO: Méthode pour vider la case si nécessaire (ex: sq.setTile(null))
+            } else {
+                sq.setTile(new Tile(c));
+            }
+        }
+    }
 }
