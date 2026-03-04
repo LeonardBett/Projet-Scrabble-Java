@@ -13,7 +13,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /** The type Discovery service. */
-// Class use for the discovery service (broadcast and listen)
 public class DiscoveryService {
 
   // Default value for the discovery service

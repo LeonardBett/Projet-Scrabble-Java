@@ -123,6 +123,18 @@ public class NetworkingMain {
     networkManager.ping();
     Thread.sleep(100);
 
+    // User ask for server information
+    networkManager.serverStatus();
+    Thread.sleep(100);
+
+    // User ask for servers players
+    networkManager.players();
+    Thread.sleep(100);
+
+    // User ask for scoreboard
+    networkManager.scoreboard();
+    Thread.sleep(100);
+
     // User quit the server he is connected to (his own)
     networkManager.quit();
     Thread.sleep(100);

@@ -24,16 +24,25 @@ public class ClientHandler implements Runnable {
   // Simplify sending data to the client (no need to use an array of bit)
   private PrintWriter out;
 
+  // Useful player information
+  private ClientInfo clientInfo;
+
+  // Active game for this client
+  private ActiveGame activeGame;
+
   /**
    * Instantiates a new Client handler.
    *
    * @param socket the socket
    * @param server the server
    */
-  public ClientHandler(Socket socket, GameServer server) {
+  public ClientHandler(Socket socket, GameServer server, int playerId) {
     this.socket = socket;
     this.server = server;
-    isRunning = true;
+
+    this.clientInfo = new ClientInfo(playerId);
+
+    this.isRunning = true;
   }
 
   // Needed since this class will be called in a Thread
@@ -51,11 +60,19 @@ public class ClientHandler implements Runnable {
       // Infinite loop for listening to the client
       String clientMessage;
       while (isRunning && (clientMessage = in.readLine()) != null) {
-        System.out.println("Server : Received: " + clientMessage);
+        // Check for command with parameters
+        if (clientMessage.startsWith("NEW_")) {
+          handleNewGameRequest(clientMessage);
+        } else {
+          // Fixed command with no parameters
+          switch (clientMessage) {
+            case "PING" -> sendMessage("PONG");
+            case "SERVER_STATUS" -> sendMessage(server.getStatusResponse());
+            case "PLAYERS" -> sendMessage(server.getPlayerResponse());
+            case "SCOREBOARD" -> sendMessage(server.getScoreboardResponse());
 
-        // PING implementation
-        if (clientMessage.equals("PING")) {
-          sendMessage("PONG");
+            default -> System.out.println("Server : Received unknow command: " + clientMessage);
+          }
         }
       }
     } catch (SocketTimeoutException e) {
@@ -106,5 +123,38 @@ public class ClientHandler implements Runnable {
     } catch (IOException e) {
       e.printStackTrace();
     }
+  }
+
+  /**
+   * Gets client info.
+   *
+   * @return the client info
+   */
+  public ClientInfo getClientInfo() {
+    return clientInfo;
+  }
+
+  /**
+   * Parses the 'new' command and requests game creation from the server.
+   *
+   * @param message the NEW command
+   */
+  private void handleNewGameRequest(String message) {
+    try {
+      // Extract the ID from "new ID"
+      int targetId = Integer.parseInt(message.substring(4).trim());
+      String response = server.createNewGame(this, targetId);
+
+      // If there's an error, we notify the requester
+      if (response.startsWith("ERROR")) {
+        sendMessage(response);
+      }
+    } catch (NumberFormatException | StringIndexOutOfBoundsException e) {
+      sendMessage("ERROR: Invalid format. Use 'new PLAYER_ID'");
+    }
+  }
+
+  public void setActiveGame(ActiveGame activeGame) {
+    this.activeGame = activeGame;
   }
 }

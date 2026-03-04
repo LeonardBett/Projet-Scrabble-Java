@@ -96,8 +96,8 @@ public class NetworkManager {
   }
 
   /**
-   * COMMAND server stop: Stops the game server. The connected client is notified
-   * of the shutdown and disconnected.
+   * COMMAND server stop: Stops the game server. The connected client is notified of the shutdown
+   * and disconnected.
    */
   public void serverStop() {
     // We check if the server is running before trying to stop it
@@ -163,7 +163,28 @@ public class NetworkManager {
 
   // -----F39-----
 
-  // TODO:
+  /**
+   * COMMAND server status: Displays the server status. Listening port, number of connected clients,
+   * number of ongoing games
+   */
+  public void serverStatus() {
+    gameClient.sendServerStatus();
+  }
+
+  /**
+   * COMMAND players : Show server connected players with their id, name and status (idle, ingame).
+   */
+  public void players() {
+    gameClient.sendPlayers();
+  }
+
+  /**
+   * COMMAND scoreboard : Show player scoreboard for this server, with number of win, loose and
+   * games played
+   */
+  public void scoreboard() {
+    gameClient.sendScoreboard();
+  }
 
   // -----F4O-----
 

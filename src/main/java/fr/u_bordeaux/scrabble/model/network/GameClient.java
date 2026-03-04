@@ -3,12 +3,16 @@ package fr.u_bordeaux.scrabble.model.network;
 import static fr.u_bordeaux.scrabble.model.network.NetworkManager.DEFAULT_ADDRESS;
 import static fr.u_bordeaux.scrabble.model.network.NetworkManager.DEFAULT_TCP_PORT;
 
+import fr.u_bordeaux.scrabble.model.core.Game;
+import fr.u_bordeaux.scrabble.model.core.HumanPlayer;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.Map;
 
 /** Network client to connect to a game server. */
 public class GameClient {
@@ -32,6 +36,8 @@ public class GameClient {
   // Need to keep the reference of the Thread running startHeartbeat,
   // because we have to stop it manually when quit() is called to avoid blocking for 30sec
   private Thread heartbeatThread;
+
+  private Game localGame;
 
   /**
    * Connect to a server on a specific address and port.
@@ -61,30 +67,84 @@ public class GameClient {
       heartbeatThread.start();
 
     } catch (IOException e) {
-      e.printStackTrace();
+      System.err.println("Client Error: Could no connect to server " + e.getMessage());
       System.out.println("Client : Cant connect to the server");
     }
   }
 
-  /**
-   * Connect to a server on the default address and port.
-   */
+  /** Connect to a server on the default address and port. */
   public void connect() {
     connect(DEFAULT_ADDRESS, DEFAULT_TCP_PORT);
   }
 
   // Infinite loop for listening to the server incoming messages
   // This method will only be call in a Thread
+  // This loop print receive messages, but they will later be notified with observer for CLI/GUI
   private void listenServerLoop() {
     try {
       // Infinite loop for listening to the server
       String serverMessage;
       while (isRunning && (serverMessage = in.readLine()) != null) {
-        if ("PONG".equals(serverMessage)) {
-          long pingEndTime = System.currentTimeMillis();
-          System.out.println("Client : PONG TIME=" + (pingEndTime - pingStartTime) + "ms");
-        } else {
-          System.out.println("Client : Received: " + serverMessage);
+        Packet packet = new Packet(serverMessage);
+
+        switch (packet.getCommand()) {
+          case "PONG":
+            long pingEndTime = System.currentTimeMillis();
+            System.out.println("Client : PONG TIME=" + (pingEndTime - pingStartTime) + "ms");
+            break;
+
+          case "SERVER_STATUS":
+            if (packet.getEntries().isEmpty()) {
+              break;
+            }
+            System.out.println("\n--- Remote Server Status ---");
+            Map<String, String> info = packet.getEntries().getFirst();
+            System.out.println("Port : " + info.get("PORT"));
+            System.out.println("Clients connected : " + info.get("CLIENTS"));
+            System.out.println("Games in progress : " + info.get("GAMES"));
+            break;
+
+          case "PLAYERS":
+            System.out.println("\n--- Connected Players ---");
+            for (Map<String, String> player : packet.getEntries()) {
+              System.out.println(
+                  "ID: "
+                      + player.get("ID")
+                      + " | Name: "
+                      + player.get("NAME")
+                      + " | Status: "
+                      + player.get("STATUS"));
+            }
+            break;
+
+          case "SCOREBOARD":
+            System.out.println("\n--- Server Scoreboard ---");
+            // Iterate through the scoreboard and display stats (F39)
+            for (Map<String, String> stats : packet.getEntries()) {
+              System.out.println(
+                  stats.get("NAME")
+                      + " -> Wins: "
+                      + stats.get("WINS")
+                      + " | Losses: "
+                      + stats.get("LOSSES")
+                      + " | Total: "
+                      + stats.get("TOTAL"));
+            }
+            break;
+
+          case "GAME_START":
+            System.out.println("\n--- Game Started ---");
+            localGame = new Game();
+
+            for (Map<String, String> playerData : packet.getEntries()) {
+              String name = playerData.get("NAME");
+              this.localGame.addPlayer(new HumanPlayer(name));
+            }
+            break;
+
+          default:
+            System.out.println("Client : Received: " + serverMessage);
+            break;
         }
       }
     } catch (SocketException e) {
@@ -101,9 +161,7 @@ public class GameClient {
     }
   }
 
-  /**
-   * // Close the connexion with the server.
-   */
+  /** Close the connexion with the server. */
   public void quit() {
     if (!isRunning) {
       System.out.println("Client : This client is already disconnected");
@@ -128,7 +186,7 @@ public class GameClient {
   }
 
   /**
-   * Send a message to the server.
+   * Send a message to the server. Use for all command
    *
    * @param message the message
    */
@@ -140,14 +198,34 @@ public class GameClient {
     }
   }
 
-  /** Send ping to the server. */
+  /** Send ping command to the server. */
   public void sendPing() {
-    if (isRunning && out != null) {
-      pingStartTime = System.currentTimeMillis();
-      out.println("PING");
-    } else {
-      System.out.println("Client : Client is not running/connected");
-    }
+    pingStartTime = System.currentTimeMillis();
+    sendMessage("PING");
+  }
+
+  /** Send server status command to the server. */
+  public void sendServerStatus() {
+    sendMessage("SERVER_STATUS");
+  }
+
+  /** Send players command to the server. */
+  public void sendPlayers() {
+    sendMessage("PLAYERS");
+  }
+
+  /** Send scoreboard command to the server. */
+  public void sendScoreboard() {
+    sendMessage("SCOREBOARD");
+  }
+
+  /**
+   * Send new PLAYER_ID command to the server.
+   *
+   * @param playerId the target id
+   */
+  public void sendNew(int playerId) {
+    sendMessage("NEW_" + playerId);
   }
 
   // Method use in a Thread
