@@ -163,6 +163,8 @@ public class ActiveGame {
     broadcast(String.format("OPPONENT_MOVE:PLAYER=%s;TYPE=PLAY;BOARD=%s",
             sender.getClientInfo().getName(), getSerializedBoard()));
 
+    sendRack(sender, player);
+
     game.printDebugState(false);
   }
 
