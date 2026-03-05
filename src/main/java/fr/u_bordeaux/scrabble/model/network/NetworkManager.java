@@ -75,7 +75,7 @@ public class NetworkManager {
   public void serverStart(int port) {
     // We check if the server is not already running
     if (gameServer != null) {
-      System.out.println("User : Server is already running, can't start it");
+      System.err.println("User : Server is already running, can't start it");
       return;
     }
     gameServer = new GameServer();
@@ -87,7 +87,7 @@ public class NetworkManager {
     // System user's name
     // I will ask teachers about this next session
     String defaultName = "Server-" + System.getProperty("user.name");
-    discoveryService.startBroadcasting(defaultName, port);
+    discoveryService.startBroadcasting(defaultName, port, gameServer.getLocalNetworkIp());
   }
 
   /** COMMAND server start : start with default port. */
@@ -102,7 +102,7 @@ public class NetworkManager {
   public void serverStop() {
     // We check if the server is running before trying to stop it
     if (gameServer == null) {
-      System.out.println("User : Server is not running, can't stop it");
+      System.err.println("User : Server is not running, can't stop it");
       return;
     }
 
@@ -122,7 +122,7 @@ public class NetworkManager {
   public void join(String address, int port) {
     // We check if the client isn't already connected
     if (gameClient != null) {
-      System.out.println("User : Client is already connected, can't connect it");
+      System.err.println("User : Client is already connected, can't connect it");
       return;
     }
 
@@ -145,7 +145,7 @@ public class NetworkManager {
   public void quit() {
     // We check if the client is connected before trying to disconnect it
     if (gameClient == null) {
-      System.out.println("User : Client is not connected, can't disconnect it");
+      System.err.println("User : Client is not connected, can't disconnect it");
       return;
     }
 
@@ -158,6 +158,10 @@ public class NetworkManager {
    * response time is displayed. This command allows testing the connection.
    */
   public void ping() {
+    if (gameClient == null) {
+      System.err.println("User : Client is not connected, can't send a ping");
+      return;
+    }
     gameClient.sendPing();
   }
 
@@ -168,6 +172,10 @@ public class NetworkManager {
    * number of ongoing games
    */
   public void serverStatus() {
+    if (gameClient == null) {
+      System.err.println("User : Client is not connected, can't show server status");
+      return;
+    }
     gameClient.sendServerStatus();
   }
 
@@ -175,6 +183,10 @@ public class NetworkManager {
    * COMMAND players : Show server connected players with their id, name and status (idle, ingame).
    */
   public void players() {
+    if (gameClient == null) {
+      System.err.println("User : Client is not connected, can't show players");
+      return;
+    }
     gameClient.sendPlayers();
   }
 
@@ -183,7 +195,62 @@ public class NetworkManager {
    * games played
    */
   public void scoreboard() {
+    if (gameClient == null) {
+      System.err.println("User : Client is not connected, can't show scoreboard");
+      return;
+    }
     gameClient.sendScoreboard();
+  }
+
+  /**
+   * COMMAND new PLAYER_ID : Starts a new game with the specified player if they are IDLE. If the
+   * player does not exist or is unavailable, display an error message. If the game supports more
+   * than two players, simply provide multiple player IDs as arguments to the command.
+   */
+  public void newPlayerId(int targetId) {
+    if (gameClient == null) {
+      System.err.println("User : Client is not connected, can't start a new game");
+      return;
+    }
+    gameClient.sendNew(targetId);
+  }
+
+  /**
+   * COMMAND move PLAY: Plays a word on the board at the specified coordinates and direction.
+   *
+   * @param x the x coordinate (column)
+   * @param y the y coordinate (row)
+   * @param direction the direction (H for horizontal, V for vertical)
+   * @param tile the word to place on the board
+   */
+  public void play(int x, int y, String direction, String tile) {
+    if (gameClient == null) {
+      System.err.println("User : Client is not connected, can't play a move");
+      return;
+    }
+    gameClient.sendPlayMove(x, y, direction, tile);
+  }
+
+  /**
+   * COMMAND move EXCHANGE: Exchanges specified tiles from the player's rack with new ones from bag
+   *
+   * @param tiles the tiles to exchange (ex: "A,B,C")
+   */
+  public void exchange(String tiles) {
+    if (gameClient == null) {
+      System.err.println("User : Client is not connected, can't exchange tiles");
+      return;
+    }
+    gameClient.sendExchangeMove(tiles);
+  }
+
+  /** COMMAND move PASS: Skips the current player's turn. */
+  public void pass() {
+    if (gameClient == null) {
+      System.err.println("User : Client is not connected, can't skip a turn");
+      return;
+    }
+    gameClient.sendPassMove();
   }
 
   // -----F4O-----

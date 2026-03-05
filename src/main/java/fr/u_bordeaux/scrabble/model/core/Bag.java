@@ -13,6 +13,9 @@ public class Bag {
     private final List<Tile> tiles;
     private final Random random;
 
+    // Size of the bag, only use in online client mode
+    private int onlineSize = -1;
+
     /**
      * Constructor: initializes the bag with the standard distribution of tiles.
      */
@@ -109,5 +112,18 @@ public class Bag {
 
     public int size() {
         return tiles.size();
+    }
+
+    /**
+     * Set the size of the bag used in online client mode.
+     *
+     * @param bagSize the new size of the bag
+     */
+    public void setOnlineSize(int bagSize) {
+        this.onlineSize = bagSize;
+    }
+
+    public int getOnlineSize() {
+        return onlineSize;
     }
 }

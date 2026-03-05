@@ -6,7 +6,7 @@ import static fr.u_bordeaux.scrabble.model.network.NetworkManager.DEFAULT_TCP_PO
 import fr.u_bordeaux.scrabble.model.core.Game;
 import fr.u_bordeaux.scrabble.model.core.HumanPlayer;
 import fr.u_bordeaux.scrabble.model.core.Tile;
-
+import fr.u_bordeaux.scrabble.model.interfaces.Player;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -40,9 +40,11 @@ public class GameClient {
   // because we have to stop it manually when quit() is called to avoid blocking for 30sec
   private Thread heartbeatThread;
 
-  private Game localGame; // Local model for CLI/GUI
+  // Local model for CLI/GUI
+  private Game localGame;
 
-  private int myId; // My private ID on the server
+  // My private ID on the server
+  private int myId;
 
   /**
    * Connect to a server on a specific address and port.
@@ -73,7 +75,6 @@ public class GameClient {
 
     } catch (IOException e) {
       System.err.println("Client Error: Could no connect to server " + e.getMessage());
-      System.out.println("Client : Cant connect to the server");
     }
   }
 
@@ -84,7 +85,7 @@ public class GameClient {
 
   // Infinite loop for listening to the server incoming messages
   // This method will only be call in a Thread
-  // This loop print receive messages, but they will later be notified with observer for CLI/GUI
+  // This loop will later notify with observer for CLI/GUI
   private void listenServerLoop() {
     try {
       // Infinite loop for listening to the server
@@ -100,9 +101,13 @@ public class GameClient {
               System.out.println("Client : My ID is " + myId);
             }
             break;
+
           case "PONG":
             long pingEndTime = System.currentTimeMillis();
             System.out.println("Client : PONG TIME=" + (pingEndTime - pingStartTime) + "ms");
+            break;
+
+          case "PONGS":
             break;
 
           case "SERVER_STATUS":
@@ -145,13 +150,22 @@ public class GameClient {
             break;
 
           case "GAME_START":
-            System.out.println("\n--- Game Started ---");
+            // System.out.println("\n--- Game Started ---");
+            // We create a local model, which will only be updated with server data
             localGame = new Game();
 
+            // Extracting bag size and updating the local model
+            int bagSize = Integer.parseInt(packet.getEntries().getFirst().get("BAG"));
+            localGame.getBag().setOnlineSize(bagSize);
+
+            // Extracting player info and adding them to the local model
             for (Map<String, String> playerData : packet.getEntries()) {
               String name = playerData.get("NAME");
-              this.localGame.addPlayer(new HumanPlayer(name));
+              if (name != null) {
+                this.localGame.addPlayer(new HumanPlayer(name));
+              }
             }
+
             break;
 
           case "SET_RACK":
@@ -170,10 +184,49 @@ public class GameClient {
                 }
 
                 // We update our local model with this Tile list
-                //localGame.forceTilesToPlayer(myName, receivedTiles);
-                System.out.println("Local rack updated: " + tilesStr);
+                localGame.forceTilesToPlayer(myName, receivedTiles);
+                // System.out.println("Local rack updated: " + tilesStr);
+                localGame.printDebugState(false, true);
               }
             }
+            break;
+
+          case "OPPONENT_MOVE":
+            Map<String, String> move = packet.getEntries().getFirst();
+            String type = move.get("TYPE");
+
+            // We extract and get a Player objet from the move
+            String playerName = move.get("PLAYER");
+            Player player = localGame.getPlayerFromName(playerName);
+            if (player == null) {
+              System.err.println("Player " + playerName + " not found");
+              break;
+            }
+
+            if ("PLAY".equals(type)) {
+              // We extract and sync the new board to the local model
+              String boardData = move.get("BOARD");
+              if (boardData != null) {
+                localGame.syncBoard(boardData);
+              }
+
+              // We extract and sync new score to the local model
+              int score = Integer.parseInt(move.get("SCORE"));
+              player.addScore(score);
+
+              // We extract and sync new bag size to the local model
+              int bagSizes = Integer.parseInt(move.get("BAG"));
+              localGame.getBag().setOnlineSize(bagSizes);
+            }
+
+            // Change the turn of the local model
+            localGame.nextTurn();
+
+            // Debug: print the board client side if it was not our play move
+            if (!(playerName.equals("Player-" + myId) && ("PLAY".equals(type)))) {
+              localGame.printDebugState(false, true);
+            }
+
             break;
 
           default:
@@ -182,13 +235,15 @@ public class GameClient {
         }
       }
     } catch (SocketException e) {
-      // Socket closed, normal behavior if we called close()
+      // Socket closed, normal behavior if raised when called close()
       if (isRunning) {
-        e.printStackTrace();
+        System.err.println(
+            "Client Error: Socket error while listening to server " + e.getMessage());
       }
     } catch (IOException e) {
-      e.printStackTrace();
+      System.err.println("Client Error: IO Error while listening to server " + e.getMessage());
     } finally {
+      // If the exception was not intended, we stop the connexion
       if (isRunning) {
         quit();
       }
@@ -210,7 +265,7 @@ public class GameClient {
         socket.close();
       }
     } catch (IOException e) {
-      e.printStackTrace();
+      System.err.println("Client Error: Could not close socket " + e.getMessage());
     }
 
     // Stop the heartbeat Thread
@@ -238,6 +293,11 @@ public class GameClient {
     sendMessage("PING");
   }
 
+  /** Send ping command to the server only for timeout management. */
+  public void sendPingSilent() {
+    sendMessage("PINGS");
+  }
+
   /** Send server status command to the server. */
   public void sendServerStatus() {
     sendMessage("SERVER_STATUS");
@@ -262,6 +322,38 @@ public class GameClient {
     sendMessage("NEW_" + playerId);
   }
 
+  /**
+   * Send PLAY move command to the server.
+   *
+   * @param x the x coordinate on the board
+   * @param y the y coordinate on the board
+   * @param direction the direction of the move
+   * @param tile the word to play
+   */
+  public void sendPlayMove(int x, int y, String direction, String tile) {
+    // Format: MOVE:TYPE=PLAY;X=7;Y=7;DIR=H;WORD=CHAT
+    String message =
+        String.format("MOVE:TYPE=PLAY;X=%d;Y=%d;DIR=%s;TILES=%s", x, y, direction, tile);
+    sendMessage(message);
+  }
+
+  /**
+   * Send EXCHANGE move command to the server.
+   *
+   * @param tiles the tiles to exchange (ex: "A,B,C")
+   */
+  public void sendExchangeMove(String tiles) {
+    // Format: MOVE:TYPE=EXCHANGE;TILES=A,B,C
+    String message = String.format("MOVE:TYPE=EXCHANGE;TILES=%s", tiles);
+    sendMessage(message);
+  }
+
+  /** Send PASS move command to the server. */
+  public void sendPassMove() {
+    // Format: MOVE:TYPE=PASS
+    sendMessage("MOVE:TYPE=PASS");
+  }
+
   // Method use in a Thread
   // Needed since the server timeout is 60sec, we ping it every 30sec to avoid disconnecting
   private void startHeartbeat() {
@@ -269,7 +361,7 @@ public class GameClient {
       while (isRunning) {
         Thread.sleep(30000);
         if (isRunning && !socket.isClosed()) {
-          this.sendPing();
+          this.sendPingSilent();
         }
       }
     } catch (InterruptedException e) {

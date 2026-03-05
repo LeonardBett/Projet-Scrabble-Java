@@ -99,7 +99,7 @@ public class Game {
         this.firstMoveDone = firstMoveDone;
     }
 
-    private void nextTurn() {
+    public void nextTurn() {
         if (!players.isEmpty()) {
             currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
         }
@@ -245,7 +245,7 @@ public class Game {
      * Debug function to display the board and player stats in the terminal.
      * Will be removed
      */
-    public void printDebugState(boolean showBonusSquare) {
+    public void printDebugState(boolean showBonusSquare, boolean clientMode) {
         System.out.println("\n--- DEBUG: GAME STATE ---");
 
         // 1. Print Board
@@ -286,11 +286,70 @@ public class Game {
         }
 
         // 3. Print Bag
-        System.out.println("\nBag: " + bag.size() + " tiles left");
+        if(clientMode){
+            System.out.println("\nBag: " + bag.getOnlineSize() + " tiles left");
+        } else {
+            System.out.println("\nBag: " + bag.size() + " tiles left");
+        }
 
         // 4. Print Turn
         System.out.println("\nNext Turn: " + getCurrentPlayer().getName());
 
         System.out.println("-------------------------\n");
+    }
+
+
+    /**-----NETWORKING-----**/
+    // These methods are needed for online play, for manipulating client side model
+    // with data from the server side model directly, without redoing calculation
+    /**
+     * Finds a player in the game by their name.
+     * Needed for networking
+     * @param name The name of the player to find
+     * @return The Player object if found, null otherwise.
+     */
+    public Player getPlayerFromName(String name) {
+        for (Player p : players) {
+            if (p.getName().equals(name)) {
+                return p;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Synchronizes a player's rack with a specific list of tiles.
+     * Used for updating local game in network play.
+     */
+    public void forceTilesToPlayer(String playerName, List<Tile> tiles) {
+        Player p = getPlayerFromName(playerName);
+        if (p != null) {
+            p.getRack().setTiles(tiles);
+        }
+    }
+
+    public int getCurrentPlayerIndex() {
+        return currentPlayerIndex;
+    }
+
+    /**
+     * Synchronizes the board with a full board state string from the server.
+     * Used for updating local game in network play.
+     */
+    public void syncBoard(String boardData) {
+        if (boardData == null || boardData.length() != 225) return; // Sécurité (15x15)
+
+        for (int i = 0; i < boardData.length(); i++) {
+            int x = i % 15;
+            int y = i / 15;
+            char c = boardData.charAt(i);
+
+            Square sq = board.getSquare(new Point(x, y));
+            if (c == '.') {
+                // TODO: Méthode pour vider la case si nécessaire (ex: sq.setTile(null))
+            } else {
+                sq.setTile(new Tile(c));
+            }
+        }
     }
 }

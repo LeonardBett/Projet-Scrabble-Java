@@ -6,9 +6,8 @@ public class ServerInfo {
   private final int port;
   private final String name;
 
-  /** The constant SERVER_TIMEOUT. */
-  // We will be changed for 30000 in final version
-  public static final int SERVER_TIMEOUT = 15000;
+  // The timeout of this server in ms
+  public static final int SERVER_TIMEOUT = 30000;
 
   // Store the last time this server was seen
   private long lastSeen;
@@ -27,46 +26,29 @@ public class ServerInfo {
     this.lastSeen = System.currentTimeMillis();
   }
 
-  /** Update last seen. */
-  // Update the last time this server was seen, when we receive a signal
+  /** Update last seen of this server. */
   public void updateLastSeen() {
     this.lastSeen = System.currentTimeMillis();
   }
 
   /**
-   * Is expired boolean.
+   * Return if this server is expired (lastseen > SERVER_TIMEOUT).
    *
    * @return the boolean
    */
-  // Return true if this server is expired, false otherwise
   public boolean isExpired() {
     return (System.currentTimeMillis() - lastSeen) > SERVER_TIMEOUT;
   }
 
-  /**
-   * Gets ip.
-   *
-   * @return the ip
-   */
   // Getter
   public String getIp() {
     return ip;
   }
 
-  /**
-   * Gets port.
-   *
-   * @return the port
-   */
   public int getPort() {
     return port;
   }
 
-  /**
-   * Gets name.
-   *
-   * @return the name
-   */
   public String getName() {
     return name;
   }

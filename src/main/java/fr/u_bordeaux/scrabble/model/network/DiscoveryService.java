@@ -46,8 +46,9 @@ public class DiscoveryService {
    *
    * @param serverName the server name
    * @param tcpPort the tcp port
+   * @param localIp the local ip to broadcast on
    */
-  public void startBroadcasting(String serverName, int tcpPort) {
+  public void startBroadcasting(String serverName, int tcpPort, String localIp) {
     if (isBroadcasting) {
       System.out.println("Broadcasting is already running");
       return;
@@ -60,7 +61,8 @@ public class DiscoveryService {
     broadCastThread =
         new Thread(
             () -> {
-              try (DatagramSocket broadcastSocket = new DatagramSocket()) {
+              try (DatagramSocket broadcastSocket =
+                  new DatagramSocket(new java.net.InetSocketAddress(localIp, 0))) {
                 // We have to set the broadcast to true to be able to send broadcast message
                 broadcastSocket.setBroadcast(true);
 
@@ -78,7 +80,7 @@ public class DiscoveryService {
 
                 // Infinite loop of sending periodic broadcast message
                 while (isBroadcasting) {
-                  System.out.println("Broadcast : Sending a broadcast message");
+                  // System.out.println("Broadcast : Sending a broadcast message");
 
                   // We send the UDP packet, then sleep
                   broadcastSocket.send(packet);
@@ -91,7 +93,7 @@ public class DiscoveryService {
                   Thread.currentThread().interrupt();
                 }
               } catch (Exception e) {
-                e.printStackTrace();
+                System.err.println("Broadcast : Exception caught with message : " + e.getMessage());
               } finally {
                 if (isBroadcasting) {
                   stopBroadcasting();
@@ -107,8 +109,8 @@ public class DiscoveryService {
    *
    * @param serverName the server name
    */
-  public void startBroadcasting(String serverName) {
-    startBroadcasting(serverName, DEFAULT_TCP_PORT);
+  public void startBroadcasting(String serverName, String localIp) {
+    startBroadcasting(serverName, DEFAULT_TCP_PORT, localIp);
   }
 
   /** Stop broadcasting. */
@@ -143,10 +145,17 @@ public class DiscoveryService {
     new Thread(
             () -> {
               try {
+                listenSocket = new DatagramSocket(null);
+
+                // We allow reuse of the port to allow multiple client on the same computer
+                listenSocket.setReuseAddress(true);
+
                 // We specify 0.0.0.0 to be able to listen on all network interfaces
+                listenSocket.bind(
+                    new java.net.InetSocketAddress(
+                        InetAddress.getByName("0.0.0.0"), DEFAULT_UDP_PORT));
+
                 // We have to set the broadcast to true to be able to receive broadcast message
-                listenSocket =
-                    new DatagramSocket(DEFAULT_UDP_PORT, InetAddress.getByName("0.0.0.0"));
                 listenSocket.setBroadcast(true);
 
                 // Buffer use for stocking the received data
@@ -159,7 +168,7 @@ public class DiscoveryService {
                   // Block here => waiting a message
                   // Will deblock if the socket is closed, and raise a SocketException
                   listenSocket.receive(packet);
-                  System.out.println("Listening : Received a broadcast message");
+                  // System.out.println("Listening : Received a broadcast message");
 
                   // Extract and send the data to processing
                   String message = new String(packet.getData(), 0, packet.getLength());
@@ -168,10 +177,11 @@ public class DiscoveryService {
               } catch (SocketException e) {
                 // Normal behavior if we closed the socket with stopListening()
                 if (isListening) {
-                  e.printStackTrace();
+                  System.err.println(
+                      "Listening : Socket Exception caught with message : " + e.getMessage());
                 }
               } catch (Exception e) {
-                e.printStackTrace();
+                System.err.println("Listening : Exception caught with message : " + e.getMessage());
               } finally {
                 if (isListening) {
                   stopListening();
