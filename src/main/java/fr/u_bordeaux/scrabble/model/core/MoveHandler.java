@@ -19,6 +19,34 @@ public class MoveHandler {
         this.game = game;
     }
 
+    /**
+     * Extracts the complete word string formed by placing tiles at the given position.
+     * This includes existing tiles on the board (prefix and suffix) combined with new tiles.
+     * 
+     * @param startPosition Starting position of the word
+     * @param direction Direction of the word (HORIZONTAL or VERTICAL)
+     * @param tiles Tiles to be placed
+     * @return The complete word as a String (including existing tiles from the board)
+     */
+    public String getCompleteWord(Point startPosition, Direction direction, List<Tile> tiles) {
+        List<Square> wordSquares = new ArrayList<>();
+        List<Point> wordPositions = new ArrayList<>();
+        List<Square> newlyPlacedSquares = new ArrayList<>();
+        List<Point> newlyPlacedPositions = new ArrayList<>();
+        List<Tile> newlyPlacedTiles = new ArrayList<>();
+        
+        buildWordForMove(startPosition, direction, tiles, wordSquares, wordPositions, 
+                        newlyPlacedSquares, newlyPlacedPositions, newlyPlacedTiles);
+        
+        StringBuilder word = new StringBuilder();
+        for (Square square : wordSquares) {
+            if (!square.isEmpty()) {
+                word.append(square.getTile().getCharacter());
+            }
+        }
+        return word.toString();
+    }
+
     public void handlePlayMove(Move move) {
         // 1. Extract move details
         Player player = move.getPlayer();
