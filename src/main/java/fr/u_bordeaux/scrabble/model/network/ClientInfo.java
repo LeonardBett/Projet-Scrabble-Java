@@ -1,16 +1,16 @@
 package fr.u_bordeaux.scrabble.model.network;
 
-import jdk.jshell.Snippet;
-
-/** Store all information for a client (an online player). */
+/** Store all information for a client (an online player). Use in ClientHandler */
 public class ClientInfo {
   private final int id; // Unique id for this player
   private final String name;
 
+  // Stats needed for scoreboard
   private int wins;
   private int losses;
   private int gamesPlayed;
 
+  // Status of this player
   private PlayerStatus status;
 
   /**
@@ -28,7 +28,7 @@ public class ClientInfo {
   }
 
   /**
-   * Gets player essential info. Use for the COMMAND players
+   * Gets player essential info in a string. Use for the command PLAYERS
    *
    * @return the player info
    */
@@ -37,7 +37,7 @@ public class ClientInfo {
   }
 
   /**
-   * Gets player score info.
+   * Gets player score info in a String. Use for the command SCOREBOARD
    *
    * @return the player score info
    */

@@ -28,7 +28,8 @@ public class ClientHandler implements Runnable {
   private ClientInfo clientInfo;
 
   // Active game for this client
-  private ActiveGame activeGame;
+  // null if no current game
+  private OnlineGame onlineGame;
 
   /**
    * Instantiates a new Client handler.
@@ -57,7 +58,7 @@ public class ClientHandler implements Runnable {
       in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
       out = new PrintWriter(socket.getOutputStream(), true);
 
-      sendMessage("WELCOME:ID=" + clientInfo.getId()); // Sending the server id to this client
+      sendMessage("WELCOME:ID=" + clientInfo.getId()); // Sending the server id of this client to it
 
       // Infinite loop for listening to the client
       String clientMessage;
@@ -65,13 +66,8 @@ public class ClientHandler implements Runnable {
         // Check for command with parameters
         if (clientMessage.startsWith("NEW_")) {
           handleNewGameRequest(clientMessage);
-
         } else if (clientMessage.startsWith("MOVE:")) {
-          if (activeGame == null) {
-            sendMessage("ERROR: You are not currently in a game");
-          } else {
-            activeGame.processMove(this, new Packet(clientMessage));
-          }
+          handleMoveRequest(clientMessage);
 
         } else {
           // Fixed command with no parameters
@@ -90,12 +86,13 @@ public class ClientHandler implements Runnable {
       System.out.println("Server : Socket Timeout Exception");
       this.quit();
     } catch (SocketException e) {
-      if (isRunning) {
-        e.printStackTrace();
-      }
       // If isRunning is false, it means we called stop(), so we just exit the loop
+      if (isRunning) {
+        System.err.println(
+            "ClientHandler run() : Unintended socket Exception with message: " + e.getMessage());
+      }
     } catch (IOException e) {
-      e.printStackTrace();
+      System.err.println("ClientHandler run() : IOException with message: " + e.getMessage());
     } finally {
       if (isRunning) {
         this.quit();
@@ -124,6 +121,10 @@ public class ClientHandler implements Runnable {
     }
     isRunning = false;
 
+    if (onlineGame != null) {
+      onlineGame.terminateGame(clientInfo.getName() + " disconnected");
+    }
+
     // We need to remove this ClientHandler from the list of clients
     server.removeClient(this);
 
@@ -132,7 +133,7 @@ public class ClientHandler implements Runnable {
         socket.close();
       }
     } catch (IOException e) {
-      e.printStackTrace();
+      System.err.println("ClientHandler quit() : IOException with message: " + e.getMessage());
     }
   }
 
@@ -165,7 +166,19 @@ public class ClientHandler implements Runnable {
     }
   }
 
-  public void setActiveGame(ActiveGame activeGame) {
-    this.activeGame = activeGame;
+  private void handleMoveRequest(String message) {
+    if (onlineGame == null) {
+      sendMessage("ERROR: You are not currently in a game");
+    } else {
+      onlineGame.processMove(this, new Packet(message));
+    }
+  }
+
+  public void setOnlineGame(OnlineGame onlineGame) {
+    this.onlineGame = onlineGame;
+  }
+
+  public GameServer getServer() {
+    return server;
   }
 }

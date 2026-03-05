@@ -1,6 +1,7 @@
 package fr.u_bordeaux.scrabble.model.network;
 
 import static fr.u_bordeaux.scrabble.model.network.NetworkManager.DEFAULT_TCP_PORT;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -19,7 +20,7 @@ public class GameServer {
   private final List<ClientHandler> clients = Collections.synchronizedList(new ArrayList<>());
 
   // Thread-safe list of outgoing online games
-  private final List<ActiveGame> activeGames = Collections.synchronizedList(new ArrayList<>());
+  private final List<OnlineGame> onlineGames = Collections.synchronizedList(new ArrayList<>());
 
   // Server socket use to accept connexion, need to store it to be able to close it
   private ServerSocket serverSocket;
@@ -125,24 +126,26 @@ public class GameServer {
   }
 
   /**
-   * Gets local network ip of this server.
-   * Needed for getting server infos
+   * Gets local network ip of this server. Needed for getting server infos
    *
    * @return the local network ip
    */
-  private String getLocalNetworkIp() {
+  public String getLocalNetworkIp() {
     try {
       var interfaces = java.net.NetworkInterface.getNetworkInterfaces();
       while (interfaces.hasMoreElements()) {
         var iface = interfaces.nextElement();
-        // We ignore inactive, virtual and loopback interfaces
-        if (iface.isLoopback() || !iface.isUp() || iface.isVirtual()) continue;
+        // We ignore loopback and virtual interfaces
+        if (iface.isLoopback() || !iface.isUp() || iface.isVirtual()) {
+          continue;
+        }
 
         var addresses = iface.getInetAddresses();
         while (addresses.hasMoreElements()) {
           var addr = addresses.nextElement();
-          // We ignore IPv6
-          if (addr instanceof java.net.Inet4Address) {
+
+          // We look for an ipv4 address which is not link local
+          if (addr instanceof java.net.Inet4Address && !addr.isLinkLocalAddress()) {
             return addr.getHostAddress();
           }
         }
@@ -150,7 +153,7 @@ public class GameServer {
     } catch (java.net.SocketException e) {
       System.err.println("Server Error: Unable to scan network interfaces.");
     }
-    return "127.0.0.1"; // Default value if no IP is found
+    return "127.0.0.1";
   }
 
   /**
@@ -161,10 +164,9 @@ public class GameServer {
   public String getStatusResponse() {
     int port = serverInfo.getPort();
     int clientCount = clients.size();
-    int gameCount = activeGames.size();
+    int gameCount = onlineGames.size();
 
-    return String.format("SERVER_STATUS:PORT=%d;CLIENTS=%d;GAMES=%d",
-            port, clientCount, gameCount);
+    return String.format("SERVER_STATUS:PORT=%d;CLIENTS=%d;GAMES=%d", port, clientCount, gameCount);
   }
 
   /**
@@ -198,14 +200,15 @@ public class GameServer {
   }
 
   /**
-   * Starts a new game between the requester and a target player.
-   * Will support multiple target player in the future.
+   * Starts a new game between the requester and a target player. Will support multiple target
+   * player in the future.
+   *
    * @param initiator The client who sent the "new" command
    * @param targetId The ID of the player to invite
    * @return String response for the initiator
    */
   public synchronized String createNewGame(ClientHandler initiator, int targetId) {
-    // 1. Find the target client
+    // Find the target client
     ClientHandler target = null;
     synchronized (clients) {
       for (ClientHandler c : clients) {
@@ -216,7 +219,7 @@ public class GameServer {
       }
     }
 
-    // 2. Check if  the target player is valid and not busy
+    // Check if  the target player is valid and not busy
     if (target == null) {
       return "ERROR: Player not found";
     }
@@ -230,13 +233,23 @@ public class GameServer {
       return "ERROR: You are already in game";
     }
 
-    ActiveGame session = new ActiveGame(List.of(initiator, target));
-    activeGames.add(session);
+    // Create the online game and add it to the list of current online game
+    OnlineGame session = new OnlineGame(List.of(initiator, target));
+    onlineGames.add(session);
 
-    // 4. Update status
+    // Update status of players
     initiator.getClientInfo().setStatus(PlayerStatus.INGAME);
     target.getClientInfo().setStatus(PlayerStatus.INGAME);
 
     return "SUCCESS: Game started";
+  }
+
+  /**
+   * Remove an online game from the list of active online game.
+   *
+   * @param game the game to remove
+   */
+  public void removeOnlineGame(OnlineGame game) {
+    onlineGames.remove(game);
   }
 }
