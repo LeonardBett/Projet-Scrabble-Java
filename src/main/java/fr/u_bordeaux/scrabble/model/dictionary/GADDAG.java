@@ -111,27 +111,21 @@ public class GADDAG extends Trie {
     }
 
     /**
-     * Vérifie si un mot complet (ex: "APPLE") existe dans le dictionnaire.
-     * Cette méthode convertit le mot en format GADDAG (ex: "A>ELPP")
-     * avant d'appeler la recherche par chemin.
+     * Check if a word is in the dictionary with gaddag
      */
     public boolean containsWord(String word) {
         if (word == null || word.length() < 2) {
-            // Un mot d'une lettre se vérifie directement à la racine
+            // Check for a one-letter word
             return this.contains(word.toUpperCase());
         }
 
         String upperWord = word.toUpperCase();
         char firstLetter = upperWord.charAt(0);
 
-        // On inverse le reste du mot
-        StringBuilder suffixInverse = new StringBuilder(upperWord.substring(1)).reverse();
-
-        // On construit le chemin GADDAG : PremièreLettre + Séparateur + ResteInversé
-        // Remplace '>' par ton séparateur exact (ex: '+', ou '\0')
+        // We build the gaddag path : FirstLetter + > + rest
         String gaddagPath = new String(String.valueOf(firstLetter)) + separator + upperWord.substring(1);
 
-        // On utilise ta fonction de recherche de chemin
+        // We check with contains
         return this.contains(gaddagPath);
     }
 }
