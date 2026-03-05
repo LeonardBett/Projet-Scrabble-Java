@@ -61,6 +61,13 @@ public class MoveHandler {
         List<Point> newlyPlacedPositions = new ArrayList<>();
         List<Tile> newlyPlacedTiles = new ArrayList<>();
         buildWordForMove(startPosition, direction, tiles, wordSquares, wordPositions, newlyPlacedSquares, newlyPlacedPositions, newlyPlacedTiles);
+        // IMPORTANT: Verify player has all required tiles BEFORE modifying the board
+        for (Tile tile : newlyPlacedTiles) {
+            if (!player.getRack().getTiles().contains(tile)) {
+                throw new IllegalArgumentException("Player does not have the tile " + tile.getCharacter());
+            }
+        }
+
 
         // Place the tiles from the move into the recorded newly placed positions
         for (int i = 0; i < newlyPlacedPositions.size(); i++) {
@@ -93,12 +100,10 @@ public class MoveHandler {
         // Save score in move for undo
         move.setScoreGained(totalScore);
 
-        // 6. Remove the used tiles from the player's rack (and throw an error if not present form his rack)
+        // 6. Remove the used tiles from the player's rack (already validated above)
         for (Square square : newlyPlacedSquares) {
             Tile tile = square.getTile();
-            if (!player.getRack().removeTile(tile)) {
-                throw new IllegalArgumentException("Player does not have the tile " + tile.getCharacter());
-            }
+            player.getRack().removeTile(tile); // Safe: already validated above
         }
 
         // 7. Refill the player's rack from the bag
