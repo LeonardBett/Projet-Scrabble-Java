@@ -170,7 +170,7 @@ public class ClientHandler implements Runnable {
     if (onlineGame == null) {
       sendMessage("ERROR: You are not currently in a game");
     } else {
-      onlineGame.processMove(this, new Packet(message));
+      onlineGame.processMove(this, new PacketParser(message));
     }
   }
 

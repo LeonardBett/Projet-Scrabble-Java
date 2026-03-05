@@ -91,13 +91,13 @@ public class GameClient {
       // Infinite loop for listening to the server
       String serverMessage;
       while (isRunning && (serverMessage = in.readLine()) != null) {
-        Packet packet = new Packet(serverMessage);
+        PacketParser packetParser = new PacketParser(serverMessage);
 
-        switch (packet.getCommand()) {
+        switch (packetParser.getCommand()) {
           case "WELCOME":
             // The server send us our ID when connecting for the first time
-            if (!packet.getEntries().isEmpty()) {
-              this.myId = Integer.parseInt(packet.getEntries().getFirst().get("ID"));
+            if (!packetParser.getEntries().isEmpty()) {
+              this.myId = Integer.parseInt(packetParser.getEntries().getFirst().get("ID"));
               System.out.println("Client : My ID is " + myId);
             }
             break;
@@ -111,11 +111,11 @@ public class GameClient {
             break;
 
           case "SERVER_STATUS":
-            if (packet.getEntries().isEmpty()) {
+            if (packetParser.getEntries().isEmpty()) {
               break;
             }
             System.out.println("\n--- Remote Server Status ---");
-            Map<String, String> info = packet.getEntries().getFirst();
+            Map<String, String> info = packetParser.getEntries().getFirst();
             System.out.println("Port : " + info.get("PORT"));
             System.out.println("Clients connected : " + info.get("CLIENTS"));
             System.out.println("Games in progress : " + info.get("GAMES"));
@@ -123,7 +123,7 @@ public class GameClient {
 
           case "PLAYERS":
             System.out.println("\n--- Connected Players ---");
-            for (Map<String, String> player : packet.getEntries()) {
+            for (Map<String, String> player : packetParser.getEntries()) {
               System.out.println(
                   "ID: "
                       + player.get("ID")
@@ -137,7 +137,7 @@ public class GameClient {
           case "SCOREBOARD":
             System.out.println("\n--- Server Scoreboard ---");
             // Iterate through the scoreboard and display stats (F39)
-            for (Map<String, String> stats : packet.getEntries()) {
+            for (Map<String, String> stats : packetParser.getEntries()) {
               System.out.println(
                   stats.get("NAME")
                       + " -> Wins: "
@@ -155,11 +155,11 @@ public class GameClient {
             localGame = new Game();
 
             // Extracting bag size and updating the local model
-            int bagSize = Integer.parseInt(packet.getEntries().getFirst().get("BAG"));
+            int bagSize = Integer.parseInt(packetParser.getEntries().getFirst().get("BAG"));
             localGame.getBag().setOnlineSize(bagSize);
 
             // Extracting player info and adding them to the local model
-            for (Map<String, String> playerData : packet.getEntries()) {
+            for (Map<String, String> playerData : packetParser.getEntries()) {
               String name = playerData.get("NAME");
               if (name != null) {
                 this.localGame.addPlayer(new HumanPlayer(name));
@@ -169,8 +169,8 @@ public class GameClient {
             break;
 
           case "SET_RACK":
-            if (localGame != null && !packet.getEntries().isEmpty()) {
-              String tilesStr = packet.getEntries().getFirst().get("TILES");
+            if (localGame != null && !packetParser.getEntries().isEmpty()) {
+              String tilesStr = packetParser.getEntries().getFirst().get("TILES");
               if (tilesStr != null) {
                 // We need our name in the model
                 String myName = "Player-" + myId;
@@ -192,7 +192,7 @@ public class GameClient {
             break;
 
           case "OPPONENT_MOVE":
-            Map<String, String> move = packet.getEntries().getFirst();
+            Map<String, String> move = packetParser.getEntries().getFirst();
             String type = move.get("TYPE");
 
             // We extract and get a Player objet from the move

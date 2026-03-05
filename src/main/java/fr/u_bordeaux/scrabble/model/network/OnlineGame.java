@@ -103,11 +103,11 @@ public class OnlineGame {
    * Processes a move command from a client and updates the game state.
    *
    * @param sender the client handler who sent the move
-   * @param packet the parsed move packet
+   * @param packetParser the parsed move packetParser
    */
-  public void processMove(ClientHandler sender, Packet packet) {
-    // Check if we have data in the packet
-    if (packet.getEntries().isEmpty()) {
+  public void processMove(ClientHandler sender, PacketParser packetParser) {
+    // Check if we have data in the packetParser
+    if (packetParser.getEntries().isEmpty()) {
       return;
     }
 
@@ -119,7 +119,7 @@ public class OnlineGame {
       return;
     }
 
-    Map<String, String> data = packet.getEntries().getFirst();
+    Map<String, String> data = packetParser.getEntries().getFirst();
     String type = data.get("TYPE");
 
     try {

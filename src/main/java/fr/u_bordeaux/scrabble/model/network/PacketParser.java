@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 /** Represents a parsed network packet for command and data extraction. */
-public class Packet {
+public class PacketParser {
 
   // The command name (ex: PLAYERS, PING, ...)
   private final String command; // The command name (ex: PLAYERS, PING, ...)
@@ -18,12 +18,12 @@ public class Packet {
   private final List<Map<String, String>> entries = new ArrayList<>();
 
   /**
-   * Create an instance of the Packet class It will be parsed automatically, no need to call a
+   * Create an instance of the PacketParser class It will be parsed automatically, no need to call a
    * method for that.
    *
    * @param rawMessage the raw message receive by the client form the server
    */
-  public Packet(String rawMessage) {
+  public PacketParser(String rawMessage) {
     // We check if this raw message is a simple world (ex: PONG for the command PING)
     if (rawMessage == null || !rawMessage.contains(":")) {
       this.command = rawMessage;
@@ -84,6 +84,6 @@ public class Packet {
 
   @Override
   public String toString() {
-    return "Packet [command=" + command + ", entries=" + entries + "]";
+    return "PacketParser [command=" + command + ", entries=" + entries + "]";
   }
 }
