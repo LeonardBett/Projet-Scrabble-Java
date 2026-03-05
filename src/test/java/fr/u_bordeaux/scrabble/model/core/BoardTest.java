@@ -11,6 +11,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class BoardTest {
 
+    /**
+     * Test that the Board constructor rejects invalid inputs such as
+     * null grids or grids with incorrect dimensions.
+     */
     @Test
     void constructorShouldRejectInvalidDimensions() {
         Square[][] wrongSize = new Square[Board.SIZE - 1][Board.SIZE];
@@ -19,6 +23,10 @@ class BoardTest {
         assertThrows(IllegalArgumentException.class, () -> new Board(wrongSize));
     }
 
+    /**
+     * Test that getSquare returns the correct square for valid coordinates
+     * and null for coordinates outside the board boundaries.
+     */
     @Test
     void getSquareShouldReturnSquareInsideBoundsAndNullOutside() {
         Board board = new Board(createEmptyGrid());
@@ -31,6 +39,10 @@ class BoardTest {
         assertNull(board.getSquare(new Point(0, Board.SIZE)));
     }
 
+    /**
+     * Test that the default Board constructor creates a standard Scrabble board
+     * with the correct special square types (triple word, double word, etc.).
+     */
     @Test
     void defaultConstructorShouldCreateStandardBoardLayout() {
         Board board = new Board();

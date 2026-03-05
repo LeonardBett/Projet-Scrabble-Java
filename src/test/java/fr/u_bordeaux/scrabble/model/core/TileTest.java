@@ -7,6 +7,10 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 class TileTest {
 
+    /**
+     * Test that the Tile constructor correctly assigns the character
+     * and retrieves its standard point value from the scoring system.
+     */
     @Test
     void constructorShouldAssignCharacterAndStandardValue() {
         Tile tile = new Tile('a');
@@ -15,6 +19,10 @@ class TileTest {
         assertEquals(1, tile.getValue());
     }
 
+    /**
+     * Test that getStandardValue returns the correct Scrabble point values
+     * for various letters, including high-value letters (J, Z) and blanks.
+     */
     @Test
     void getStandardValueShouldReturnExpectedScores() {
         assertEquals(1, Tile.getStandardValue('E'));
@@ -27,6 +35,10 @@ class TileTest {
         assertEquals(0, Tile.getStandardValue('?'));
     }
 
+    /**
+     * Test that equals and hashCode methods work correctly based on
+     * the tile's character and value, ensuring proper behavior in collections.
+     */
     @Test
     void equalsAndHashCodeShouldUseCharacterAndValue() {
         Tile first = new Tile('K');
@@ -38,6 +50,9 @@ class TileTest {
         assertNotEquals(first, different);
     }
 
+    /**
+     * Test that the toString method returns the tile's character as a string.
+     */
     @Test
     void toStringShouldReturnCharacterAsString() {
         Tile tile = new Tile('Q');

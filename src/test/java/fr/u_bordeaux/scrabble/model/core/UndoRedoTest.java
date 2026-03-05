@@ -9,6 +9,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class UndoRedoTest {
 
+    /**
+     * Test that the undo/redo mechanism correctly manages history stacks,
+     * allowing moves to be undone and redone in proper order.
+     */
     @Test
     void undoAndRedoShouldFollowHistoryStacks() {
         UndoRedo undoRedo = new UndoRedo();
@@ -30,6 +34,10 @@ class UndoRedoTest {
         assertTrue(undoRedo.canUndo());
     }
 
+    /**
+     * Test that adding a new move after undoing clears the redo stack,
+     * preventing invalid redo operations on an alternate history branch.
+     */
     @Test
     void addMoveShouldClearRedoStack() {
         UndoRedo undoRedo = new UndoRedo();
@@ -44,6 +52,10 @@ class UndoRedoTest {
         assertFalse(undoRedo.canRedo());
     }
 
+    /**
+     * Test that undo and redo operations return null when there are
+     * no moves available to undo or redo.
+     */
     @Test
     void undoAndRedoShouldReturnNullWhenUnavailable() {
         UndoRedo undoRedo = new UndoRedo();

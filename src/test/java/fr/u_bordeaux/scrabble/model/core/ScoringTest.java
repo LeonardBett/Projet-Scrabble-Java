@@ -12,6 +12,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class ScoringTest {
 
+    /**
+     * Test that word score calculation correctly applies letter and word multipliers
+     * only to newly placed tiles, not to tiles already on the board.
+     */
     @Test
     void calculateWordScoreShouldApplyLetterAndWordMultipliersOnlyOnNewTiles() {
         Square s1 = squareWithTile(0, 0, SquareType.DOUBLE_LETTER, 'A');
@@ -23,6 +27,10 @@ class ScoringTest {
         assertEquals(21, score);
     }
 
+    /**
+     * Test that placing all 7 tiles from the rack (a "bingo") adds
+     * a 50-point bonus to the word score.
+     */
     @Test
     void calculateWordScoreShouldAddBingoBonusWhenSevenTilesPlaced() {
         List<Square> wordSquares = new ArrayList<>();
@@ -35,6 +43,10 @@ class ScoringTest {
         assertEquals(57, score);
     }
 
+    /**
+     * Test that calculateWordScore validates its inputs and throws appropriate
+     * exceptions for null parameters, empty squares, or squares without tiles.
+     */
     @Test
     void calculateWordScoreShouldValidateInputs() {
         Square filled = squareWithTile(0, 0, SquareType.NORMAL, 'A');
@@ -46,6 +58,10 @@ class ScoringTest {
         assertThrows(IllegalArgumentException.class, () -> Scoring.calculateWordScore(List.of(empty), List.of(empty)));
     }
 
+    /**
+     * Test that the bingo bonus returns 50 points only when exactly
+     * 7 tiles (rack maximum) are placed, and 0 otherwise.
+     */
     @Test
     void calculateBingoBonusShouldReturnFiftyOnlyForRackMaxSize() {
         assertEquals(50, Scoring.calculateBingoBonus(Rack.MAX_SIZE));

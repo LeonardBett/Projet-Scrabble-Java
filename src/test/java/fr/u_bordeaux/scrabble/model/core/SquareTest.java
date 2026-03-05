@@ -10,6 +10,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SquareTest {
 
+    /**
+     * Test that creating a Square without a tile results in an empty square
+     * with the correct position and type.
+     */
     @Test
     void constructorWithoutTileShouldCreateEmptySquare() {
         Point point = new Point(2, 3);
@@ -20,6 +24,10 @@ class SquareTest {
         assertEquals(SquareType.DOUBLE_LETTER, square.getSquareType());
     }
 
+    /**
+     * Test that setting and removing tiles on a square correctly updates
+     * the square's occupancy status.
+     */
     @Test
     void setTileShouldUpdateSquareOccupancy() {
         Square square = new Square(new Point(0, 0), SquareType.NORMAL);

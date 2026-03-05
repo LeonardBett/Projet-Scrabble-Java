@@ -10,6 +10,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class GameTest {
 
+    /**
+     * Test that attempting to start a game without any players
+     * throws an IllegalStateException.
+     */
     @Test
     void startGameShouldFailWhenNoPlayersExist() {
         Game game = new Game();
@@ -17,6 +21,10 @@ class GameTest {
         assertThrows(IllegalStateException.class, game::startGame);
     }
 
+    /**
+     * Test that starting a game correctly fills each player's rack
+     * with the maximum number of tiles from the bag.
+     */
     @Test
     void startGameShouldFillPlayerRacks() {
         Game game = new Game();
@@ -34,6 +42,10 @@ class GameTest {
         assertEquals(initialBagSize - 2 * Rack.MAX_SIZE, game.getBag().size());
     }
 
+    /**
+     * Test that executing a move for a player who is not the current player
+     * throws an IllegalArgumentException.
+     */
     @Test
     void executeMoveShouldRejectWrongPlayerTurn() {
         Game game = new Game();
@@ -47,6 +59,10 @@ class GameTest {
         assertThrows(IllegalArgumentException.class, () -> game.executeMove(wrongTurnMove));
     }
 
+    /**
+     * Test that executing a pass move advances the turn to the next player
+     * and adds the move to the game's history.
+     */
     @Test
     void executePassMoveShouldAdvanceTurnAndTrackHistory() {
         Game game = new Game();
@@ -61,6 +77,10 @@ class GameTest {
         assertEquals(1, game.getUndoRedo().getHistory().size());
     }
 
+    /**
+     * Test that determining the winner returns the player with the highest score,
+     * or null if there are no players in the game.
+     */
     @Test
     void determineWinnerShouldReturnHighestScoreOrNullWhenNoPlayers() {
         Game emptyGame = new Game();
@@ -77,6 +97,10 @@ class GameTest {
         assertEquals(bob, game.determineWinner());
     }
 
+    /**
+     * Test that refilling a player's rack draws tiles from the bag
+     * until the rack is full or the bag is empty.
+     */
     @Test
     void refillRackShouldAddTilesUntilFullOrBagEmpty() {
         Game game = new Game();

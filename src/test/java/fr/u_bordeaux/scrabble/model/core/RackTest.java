@@ -10,6 +10,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class RackTest {
 
+    /**
+     * Test that tiles can be added to a rack until it reaches maximum capacity,
+     * after which additional tiles cannot be added.
+     */
     @Test
     void addTileShouldSucceedUntilRackIsFull() {
         Rack rack = new Rack();
@@ -23,6 +27,10 @@ class RackTest {
         assertEquals(Rack.MAX_SIZE, rack.getTiles().size());
     }
 
+    /**
+     * Test that removing a tile returns true when the tile exists in the rack
+     * and false when attempting to remove a non-existent tile.
+     */
     @Test
     void removeTileShouldReturnTrueOnlyWhenTileExists() {
         Rack rack = new Rack();
@@ -34,6 +42,10 @@ class RackTest {
         assertTrue(rack.isEmpty());
     }
 
+    /**
+     * Test that getTiles returns a defensive copy of the tiles list,
+     * preventing external modification of the rack's internal state.
+     */
     @Test
     void getTilesShouldReturnDefensiveCopy() {
         Rack rack = new Rack();

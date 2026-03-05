@@ -8,6 +8,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class PlayableWordTest {
 
+    /**
+     * Test that the PlayableWord constructor correctly initializes all fields
+     * (position, word, direction, GADDAG representation) and allows score updates.
+     */
     @Test
     void constructorShouldExposeAllFieldsAndAllowScoreUpdate() {
         PlayableWord playableWord = new PlayableWord(5, 6, "WORD", Direction.VERTICAL, "WO+RD");
@@ -23,6 +27,10 @@ class PlayableWordTest {
         assertEquals(19, playableWord.getScore());
     }
 
+    /**
+     * Test that the toString method produces a string containing
+     * the main information about the playable word (word, position, score).
+     */
     @Test
     void toStringShouldContainMainInformation() {
         PlayableWord playableWord = new PlayableWord(1, 2, "HI", Direction.HORIZONTAL, "H+I");
