@@ -1,4 +1,6 @@
-package fr.u_bordeaux.scrabble.model.network;
+package fr.u_bordeaux.scrabble.model.network.server;
+
+import fr.u_bordeaux.scrabble.model.network.PacketParser;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -78,12 +80,12 @@ public class ClientHandler implements Runnable {
             case "PLAYERS" -> sendMessage(server.getPlayerResponse());
             case "SCOREBOARD" -> sendMessage(server.getScoreboardResponse());
 
-            default -> System.out.println("Server : Received unknow command: " + clientMessage);
+            default -> System.err.println("Server : Received unknow command: " + clientMessage);
           }
         }
       }
     } catch (SocketTimeoutException e) {
-      System.out.println("Server : Socket Timeout Exception");
+      System.err.println("Server : Socket Timeout Exception");
       this.quit();
     } catch (SocketException e) {
       // If isRunning is false, it means we called stop(), so we just exit the loop
@@ -109,14 +111,14 @@ public class ClientHandler implements Runnable {
     if (out != null) {
       out.println(message);
     } else {
-      System.out.println("Client is not connected");
+      System.err.println("Client is not connected");
     }
   }
 
   /** Close the connexion with the client. */
   public void quit() {
     if (!isRunning) {
-      System.out.println("Client is already disconnected");
+      System.err.println("Client is already disconnected");
       return;
     }
     isRunning = false;

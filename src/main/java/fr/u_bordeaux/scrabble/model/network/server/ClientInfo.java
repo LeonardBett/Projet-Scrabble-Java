@@ -1,4 +1,6 @@
-package fr.u_bordeaux.scrabble.model.network;
+package fr.u_bordeaux.scrabble.model.network.server;
+
+import fr.u_bordeaux.scrabble.model.network.PlayerStatus;
 
 /** Store all information for a client (an online player). Use in ClientHandler */
 public class ClientInfo {

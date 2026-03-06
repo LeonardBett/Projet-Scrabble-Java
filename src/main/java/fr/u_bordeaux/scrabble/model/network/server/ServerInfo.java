@@ -1,4 +1,4 @@
-package fr.u_bordeaux.scrabble.model.network;
+package fr.u_bordeaux.scrabble.model.network.server;
 
 /** Store data of server, use for the Map of active server of DiscoveryService. */
 public class ServerInfo {

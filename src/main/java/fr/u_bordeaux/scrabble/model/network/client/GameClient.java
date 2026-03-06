@@ -1,4 +1,4 @@
-package fr.u_bordeaux.scrabble.model.network;
+package fr.u_bordeaux.scrabble.model.network.client;
 
 import static fr.u_bordeaux.scrabble.model.network.NetworkManager.DEFAULT_ADDRESS;
 import static fr.u_bordeaux.scrabble.model.network.NetworkManager.DEFAULT_TCP_PORT;
@@ -7,6 +7,9 @@ import fr.u_bordeaux.scrabble.model.core.Game;
 import fr.u_bordeaux.scrabble.model.core.HumanPlayer;
 import fr.u_bordeaux.scrabble.model.core.Tile;
 import fr.u_bordeaux.scrabble.model.interfaces.Player;
+import fr.u_bordeaux.scrabble.model.network.NetworkObserver;
+import fr.u_bordeaux.scrabble.model.network.PacketParser;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -19,6 +22,9 @@ import java.util.Map;
 
 /** Network client to connect to a game server. */
 public class GameClient {
+
+  // List of observers
+  private final List<NetworkObserver> observers = new ArrayList<>();
 
   // Volatile because it can be read/write in the same time by two thread (main and
   // listenServerLoop)
@@ -57,7 +63,7 @@ public class GameClient {
       // Try to connect to a server
       socket = new Socket(address, port);
 
-      System.out.println("Client : connected to " + socket.getInetAddress().getHostName());
+      // System.out.println("Client : connected to " + socket.getInetAddress().getHostName());
 
       // Set IO for ASCII communication
       in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -98,13 +104,19 @@ public class GameClient {
             // The server send us our ID when connecting for the first time
             if (!packetParser.getEntries().isEmpty()) {
               this.myId = Integer.parseInt(packetParser.getEntries().getFirst().get("ID"));
-              System.out.println("Client : My ID is " + myId);
+              // System.out.println("Client : My ID is " + myId);
+              for (NetworkObserver obs : observers) {
+                obs.messageUpdate("Client : Connected to server, my ID on it is " + myId);
+              }
             }
             break;
 
           case "PONG":
             long pingEndTime = System.currentTimeMillis();
-            System.out.println("Client : PONG TIME=" + (pingEndTime - pingStartTime) + "ms");
+            // System.out.println("Client : PONG TIME=" + (pingEndTime - pingStartTime) + "ms");
+            for (NetworkObserver obs : observers) {
+              obs.messageUpdate("Client : PONG TIME=" + (pingEndTime - pingStartTime) + "ms");
+            }
             break;
 
           case "PONGS":
@@ -114,38 +126,48 @@ public class GameClient {
             if (packetParser.getEntries().isEmpty()) {
               break;
             }
-            System.out.println("\n--- Remote Server Status ---");
             Map<String, String> info = packetParser.getEntries().getFirst();
-            System.out.println("Port : " + info.get("PORT"));
-            System.out.println("Clients connected : " + info.get("CLIENTS"));
-            System.out.println("Games in progress : " + info.get("GAMES"));
+            // System.out.println("\n--- Remote Server Status ---");
+            // System.out.println("Port : " + info.get("PORT"));
+            // System.out.println("Clients connected : " + info.get("CLIENTS"));
+            // System.out.println("Games in progress : " + info.get("GAMES"));
+            for (NetworkObserver obs : observers) {
+              obs.serverStatusUpdate(info);
+            }
             break;
 
           case "PLAYERS":
-            System.out.println("\n--- Connected Players ---");
-            for (Map<String, String> player : packetParser.getEntries()) {
-              System.out.println(
-                  "ID: "
-                      + player.get("ID")
-                      + " | Name: "
-                      + player.get("NAME")
-                      + " | Status: "
-                      + player.get("STATUS"));
+            //            System.out.println("\n--- Connected Players ---");
+            //            for (Map<String, String> player : packetParser.getEntries()) {
+            //              System.out.println(
+            //                  "ID: "
+            //                      + player.get("ID")
+            //                      + " | Name: "
+            //                      + player.get("NAME")
+            //                      + " | Status: "
+            //                      + player.get("STATUS"));
+            //            }
+
+            for (NetworkObserver obs : observers) {
+              obs.playersUpdate(packetParser.getEntries());
             }
             break;
 
           case "SCOREBOARD":
-            System.out.println("\n--- Server Scoreboard ---");
+            // System.out.println("\n--- Server Scoreboard ---");
             // Iterate through the scoreboard and display stats (F39)
-            for (Map<String, String> stats : packetParser.getEntries()) {
-              System.out.println(
-                  stats.get("NAME")
-                      + " -> Wins: "
-                      + stats.get("WINS")
-                      + " | Losses: "
-                      + stats.get("LOSSES")
-                      + " | Total: "
-                      + stats.get("TOTAL"));
+            //            for (Map<String, String> stats : packetParser.getEntries()) {
+            //              System.out.println(
+            //                  stats.get("NAME")
+            //                      + " -> Wins: "
+            //                      + stats.get("WINS")
+            //                      + " | Losses: "
+            //                      + stats.get("LOSSES")
+            //                      + " | Total: "
+            //                      + stats.get("TOTAL"));
+            //            }
+            for (NetworkObserver obs : observers) {
+              obs.scoreboardUpdate(packetParser.getEntries());
             }
             break;
 
@@ -164,6 +186,10 @@ public class GameClient {
               if (name != null) {
                 this.localGame.addPlayer(new HumanPlayer(name));
               }
+            }
+
+            for (NetworkObserver obs : observers) {
+              obs.localModelUpdate();
             }
 
             break;
@@ -186,7 +212,11 @@ public class GameClient {
                 // We update our local model with this Tile list
                 localGame.forceTilesToPlayer(myName, receivedTiles);
                 // System.out.println("Local rack updated: " + tilesStr);
-                localGame.printDebugState(false, true);
+                // localGame.printDebugState(false, true);
+
+                for (NetworkObserver obs : observers) {
+                  obs.localModelUpdate();
+                }
               }
             }
             break;
@@ -223,14 +253,21 @@ public class GameClient {
             localGame.nextTurn();
 
             // Debug: print the board client side if it was not our play move
-            if (!(playerName.equals("Player-" + myId) && ("PLAY".equals(type)))) {
-              localGame.printDebugState(false, true);
+            // if (!(playerName.equals("Player-" + myId) && ("PLAY".equals(type)))) {
+            //  localGame.printDebugState(false, true);
+            // }
+
+            for (NetworkObserver obs : observers) {
+              obs.localModelUpdate();
             }
 
             break;
 
           default:
-            System.out.println("Client : Received: " + serverMessage);
+            // System.out.println("Client : Received: " + serverMessage);
+            for (NetworkObserver obs : observers) {
+              obs.messageUpdate(serverMessage);
+            }
             break;
         }
       }
@@ -253,12 +290,12 @@ public class GameClient {
   /** Close the connexion with the server. */
   public void quit() {
     if (!isRunning) {
-      System.out.println("Client : This client is already disconnected");
+      System.err.println("Client : This client is already disconnected");
       return;
     }
     isRunning = false;
 
-    System.out.println("Client : connection closed");
+    // System.out.println("Client : connection closed");
     // Try closing the socket, if success will stop listenServerLoop() Thread in consequence
     try {
       if (socket != null && !socket.isClosed()) {
@@ -283,7 +320,7 @@ public class GameClient {
     if (isRunning && out != null) {
       out.println(message);
     } else {
-      System.out.println("Client : Client is not running/connected");
+      System.err.println("Client : Client is not running/connected");
     }
   }
 
@@ -367,6 +404,26 @@ public class GameClient {
     } catch (InterruptedException e) {
       // Normal stop for this thread, call by stop()
       Thread.currentThread().interrupt();
+    }
+  }
+
+  /**
+   * Add an observer to the list.
+   *
+   * @param observer the new observer to add
+   */
+  public void addObserver(NetworkObserver observer) {
+    observers.add(observer);
+  }
+
+  /**
+   * Remove an observer to the list.
+   *
+   * @param observer the new observer to remove
+   */
+  public void removeObserver(NetworkObserver observer) {
+    if (!observers.remove(observer)) {
+      System.err.println("User : Observer not found, can't remove it from the list");
     }
   }
 }

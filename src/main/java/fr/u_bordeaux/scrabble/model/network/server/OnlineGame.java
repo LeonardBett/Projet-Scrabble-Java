@@ -1,8 +1,10 @@
-package fr.u_bordeaux.scrabble.model.network;
+package fr.u_bordeaux.scrabble.model.network.server;
 
 import fr.u_bordeaux.scrabble.model.core.*;
 import fr.u_bordeaux.scrabble.model.enums.Direction;
 import fr.u_bordeaux.scrabble.model.interfaces.Player;
+import fr.u_bordeaux.scrabble.model.network.PacketParser;
+import fr.u_bordeaux.scrabble.model.network.PlayerStatus;
 import fr.u_bordeaux.scrabble.model.utils.Point;
 import java.util.ArrayList;
 import java.util.List;
@@ -147,6 +149,7 @@ public class OnlineGame {
 
     // We extract and create a list of tiles to place
     String tilesStr = data.get("TILES");
+    tilesStr = tilesStr.replaceAll("[\\[\\]\\s,]", "").toUpperCase();
     List<Tile> tilesToPlace = new ArrayList<>();
     for (char c : tilesStr.toCharArray()) {
       tilesToPlace.add(new Tile(c));
@@ -156,15 +159,15 @@ public class OnlineGame {
     Move playMove = Move.createPlay(player, tilesToPlace, startPosition, direction);
     game.executeMove(playMove);
 
-    System.out.println(
-        "Server : "
-            + sender.getClientInfo().getName()
-            + " plays "
-            + tilesStr
-            + " at "
-            + x
-            + ":"
-            + y);
+    //    System.out.println(
+    //        "Server : "
+    //            + sender.getClientInfo().getName()
+    //            + " plays "
+    //            + tilesStr
+    //            + " at "
+    //            + x
+    //            + ":"
+    //            + y);
 
     // We notify and update players with new board/score/bag
     broadcast(
@@ -184,8 +187,9 @@ public class OnlineGame {
 
   /** Handles the exchange of tiles. */
   private void handleExchange(ClientHandler sender, Map<String, String> data, Player player) {
-    // We extract and create a list of tiles to exchange
+    // We extract, clean and create a list of tiles to exchange
     String tilesStr = data.get("TILES");
+    tilesStr = tilesStr.replaceAll("[\\[\\]\\s,]", "").toUpperCase();
     List<Tile> tilesToExchange = new ArrayList<>();
     for (char c : tilesStr.toCharArray()) {
       tilesToExchange.add(new Tile(c));
@@ -195,7 +199,7 @@ public class OnlineGame {
     Move exchangeMove = Move.createExchange(player, tilesToExchange);
     game.executeMove(exchangeMove);
 
-    System.out.println("Server : " + sender.getClientInfo().getName() + " plays " + tilesStr);
+    // System.out.println("Server : " + sender.getClientInfo().getName() + " plays " + tilesStr);
 
     // We notify and update players with new board/score/bag
     // Maybe not useful in this case, but is needed for changing the turn of locals models

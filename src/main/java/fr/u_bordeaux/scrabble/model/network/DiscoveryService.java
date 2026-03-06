@@ -1,5 +1,7 @@
 package fr.u_bordeaux.scrabble.model.network;
 
+import fr.u_bordeaux.scrabble.model.network.server.ServerInfo;
+
 import static fr.u_bordeaux.scrabble.model.network.NetworkManager.DEFAULT_TCP_PORT;
 import static fr.u_bordeaux.scrabble.model.network.NetworkManager.DEFAULT_UDP_PORT;
 
@@ -14,6 +16,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /** The type Discovery service. */
 public class DiscoveryService {
+
+  // List of observers
+  private final List<NetworkObserver> observers = new ArrayList<>();
 
   // Default value for the discovery service
   private static final String DEFAULT_BROADCAST = "255.255.255.255";
@@ -50,11 +55,11 @@ public class DiscoveryService {
    */
   public void startBroadcasting(String serverName, int tcpPort, String localIp) {
     if (isBroadcasting) {
-      System.out.println("Broadcasting is already running");
+      System.err.println("Broadcasting is already running");
       return;
     }
     isBroadcasting = true;
-    System.out.println("Broadcast : Broadcasting started");
+    // System.out.println("Broadcast : Broadcasting started");
 
     // Lambda use to shortcut of the run method of Runnable
     // Can be put in an external methode
@@ -116,11 +121,11 @@ public class DiscoveryService {
   /** Stop broadcasting. */
   public void stopBroadcasting() {
     if (!isBroadcasting) {
-      System.out.println("Broadcasting is already stopped");
+      System.err.println("Broadcasting is already stopped");
       return;
     }
     isBroadcasting = false;
-    System.out.println("Broadcast : Broadcasting stopped");
+    // System.out.println("Broadcast : Broadcasting stopped");
 
     // Stop the broadcasting Thread, this will stop the broadcast loop
     if (broadCastThread != null) {
@@ -135,11 +140,11 @@ public class DiscoveryService {
   /** Start listening to broadcast message. */
   public void startListening() {
     if (isListening) {
-      System.out.println("Listening is already running");
+      // System.out.println("Listening is already running");
       return;
     }
     isListening = true;
-    System.out.println("Listening : Listening started");
+    // System.out.println("Listening : Listening started");
 
     // Anonym Thread because we will stop it with his socket
     new Thread(
@@ -216,6 +221,7 @@ public class DiscoveryService {
         if (existing != null) {
           existing.updateLastSeen();
         }
+        notifyListeners();
       }
     } catch (NumberFormatException e) {
       System.err.println("Malformed packet received (Invalid port)");
@@ -227,11 +233,11 @@ public class DiscoveryService {
   /** Stop listening to broadcast message. */
   public void stopListening() {
     if (!isListening) {
-      System.out.println("Listening is already stopped");
+      System.err.println("Listening is already stopped");
       return;
     }
     isListening = false;
-    System.out.println("Listening : Listening stopped");
+    // System.out.println("Listening : Listening stopped");
 
     // Close the socket if opened, this will stop the listening loop
     if (listenSocket != null && !listenSocket.isClosed()) {
@@ -250,5 +256,32 @@ public class DiscoveryService {
 
     // We return a new List to avoid concurrency
     return new ArrayList<>(discoveredServer.values());
+  }
+
+  /**
+   * Add an observer to the list.
+   *
+   * @param observer the new observer to add
+   */
+  public void addObserver(NetworkObserver observer) {
+    observers.add(observer);
+  }
+
+  /**
+   * Remove an observer to the list.
+   *
+   * @param observer the new observer to remove
+   */
+  public void removeObserver(NetworkObserver observer) {
+    if (!observers.remove(observer)) {
+      System.err.println("User : Observer not found, can't remove it from the list");
+    }
+  }
+
+  private void notifyListeners() {
+    List<ServerInfo> servers = getActiveServer();
+    for (NetworkObserver o : observers) {
+      o.serverListUpdate(servers);
+    }
   }
 }

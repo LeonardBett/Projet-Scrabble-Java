@@ -1,9 +1,19 @@
 package fr.u_bordeaux.scrabble.model.network;
 
+import fr.u_bordeaux.scrabble.model.network.client.GameClient;
+import fr.u_bordeaux.scrabble.model.network.server.GameServer;
+import fr.u_bordeaux.scrabble.model.network.server.ServerInfo;
+
+import java.util.ArrayList;
 import java.util.List;
 
 /** Manages network operations and acts as a facade for the network layer. */
 public class NetworkManager {
+
+  // List of observers for the network manager
+  // Since the gameClient instance will be deleted when we stop online play,
+  // we have to keep here the real list of Observer (CLI/GUI)
+  private final List<NetworkObserver> observers = new ArrayList<>();
 
   // Default values use in the package
   public static final int DEFAULT_TCP_PORT = 12345;
@@ -42,6 +52,37 @@ public class NetworkManager {
     if (gameClient != null) {
       gameClient.quit();
       gameClient = null;
+    }
+  }
+
+  /**
+   * Add an observer to the list. Since NetworkManager observer list is the one who rules, we apply
+   * change on gameClient and discoveryService
+   *
+   * @param observer the new observer to add
+   */
+  public void addObserver(NetworkObserver observer) {
+    observers.add(observer);
+    discoveryService.addObserver(observer);
+    if (gameClient != null) {
+      gameClient.addObserver(observer);
+    }
+  }
+
+  /**
+   * Remove an observer to the list. Since NetworkManager observer list is the one who rules, we
+   * apply change on gameClient and discoveryService
+   *
+   * @param observer the new observer to remove
+   */
+  public void removeObserver(NetworkObserver observer) {
+    if (!observers.remove(observer)) {
+      System.err.println("User : Observer not found, can't remove it from the list");
+    } else {
+      discoveryService.removeObserver(observer);
+      if (gameClient != null) {
+        gameClient.removeObserver(observer);
+      }
     }
   }
 
@@ -127,6 +168,10 @@ public class NetworkManager {
     }
 
     gameClient = new GameClient();
+    for (NetworkObserver o : observers) {
+      gameClient.addObserver(o);
+    }
+
     gameClient.connect(address, port);
   }
 
@@ -256,4 +301,5 @@ public class NetworkManager {
   // -----F4O-----
 
   // TODO:
+
 }
