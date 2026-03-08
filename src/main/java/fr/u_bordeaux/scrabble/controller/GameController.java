@@ -13,12 +13,6 @@ import fr.u_bordeaux.scrabble.model.interfaces.Player;
 import fr.u_bordeaux.scrabble.view.UserInterface;
 import fr.u_bordeaux.scrabble.view.cli.CLIInputHandler;
 import fr.u_bordeaux.scrabble.view.cli.CLIView;
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import fr.u_bordeaux.scrabble.model.dictionary.GADDAG;
-import fr.u_bordeaux.scrabble.model.ai.AIPlayer;
-import fr.u_bordeaux.scrabble.model.core.HumanPlayer;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
