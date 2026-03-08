@@ -7,6 +7,13 @@ import fr.u_bordeaux.scrabble.model.interfaces.Player;
 import fr.u_bordeaux.scrabble.view.UserInterface;
 import fr.u_bordeaux.scrabble.view.cli.CLIInputHandler;
 import fr.u_bordeaux.scrabble.view.cli.CLIView;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import fr.u_bordeaux.scrabble.model.dictionary.GADDAG;
+import fr.u_bordeaux.scrabble.model.ai.AIPlayer;
+import fr.u_bordeaux.scrabble.model.core.HumanPlayer;
+
 
 /**
  * Main controller (application logic).
@@ -49,6 +56,11 @@ public class GameController {
      * This will prompt for players (if missing), start the game and process
      * player actions until the game ends or the user quits.
      */
+/**
+     * Runs a CLI game loop if the provided view is a CLIView.
+     * This will prompt for players (if missing), start the game and process
+     * player actions until the game ends or the user quits.
+     */
     public void runCli() {
         if (!(view instanceof CLIView)) {
             throw new IllegalStateException("CLI loop requires a CLIView instance as view.");
@@ -59,23 +71,87 @@ public class GameController {
 
         cliView.displayWelcome();
 
-        // If not enough players, ask to create them
+        // 1. Initialisation des joueurs (Détection de l'IA)
         if (game.getPlayers().size() < 2) {
             int num = input.askNumberOfPlayers();
             for (int i = 1; i <= num; i++) {
                 String name = input.askPlayerName(i);
-                Player p = new HumanPlayer(name);
-                addPlayer(p);
+                
+                // Si le nom commence par "IA", on crée un bot (niveau 1 de profondeur par défaut)
+                if (name.toUpperCase().startsWith("IA") || name.toUpperCase().startsWith("AI")) {
+                    AIPlayer bot = new AIPlayer(name, 3); 
+                    
+                    // On demande si on veut activer l'Expectiminimax
+                    if (input.askConfirmation("Activer le mode Expectiminimax (avancé) pour " + name + " ? (o/n)")) {
+                        bot.setExpectiminimaxMode(true);
+                    }
+                    addPlayer(bot);
+                } else {
+                    addPlayer(new HumanPlayer(name));
+                }
             }
         }
 
         startGame();
 
+        // 2. Chargement du dictionnaire GADDAG depuis le fichier texte
+        GADDAG gaddag = new GADDAG();
+        System.out.println("\nChargement du dictionnaire GADDAG en cours (cela peut prendre quelques secondes)...");
+        try {
+            // Lecture sécurisée depuis le dossier resources (fonctionne même dans un .jar compilé)
+            InputStream is = getClass().getClassLoader().getResourceAsStream("dictionaries/lexicon_en.txt");
+            
+            if (is == null) {
+                System.err.println("ERREUR : Fichier lexicon_en.txt introuvable dans src/main/resources/dictionaries/");
+            } else {
+                BufferedReader br = new BufferedReader(new InputStreamReader(is));
+                String line;
+                int wordCount = 0;
+                
+                while ((line = br.readLine()) != null) {
+                    String cleanWord = line.trim();
+                    if (!cleanWord.isEmpty()) {
+                        gaddag.add(cleanWord);
+                        wordCount++;
+                    }
+                }
+                br.close();
+                System.out.println("Dictionnaire chargé avec succès ! (" + wordCount + " mots ajoutés).\n");
+                System.out.println("PICKETE est dans le GADDAG ? " + gaddag.containsWord("PICKETE"));
+                System.out.println("BICKERE est dans le GADDAG ? " + gaddag.containsWord("BICKERE"));
+            }
+        } catch (Exception e) {
+            System.err.println("Erreur lors de la lecture du dictionnaire : " + e.getMessage());
+            e.printStackTrace();
+        }
+        // 3. Boucle principale du jeu
         boolean running = true;
         while (running && !game.isGameOver()) {
             view.refresh();
             Player current = game.getCurrentPlayer();
 
+            // --- GESTION DU TOUR DE L'IA ---
+            if (current instanceof AIPlayer) {
+                view.displayMessage("\n--- C'est au tour de l'IA (" + current.getName() + ") ---");
+                AIPlayer ai = (AIPlayer) current;
+                
+                try {
+                    // L'IA calcule et joue son coup
+                    ai.playTurn(game, gaddag);
+                    
+                    // Petite pause de 2 secondes pour que l'humain ait le temps de lire l'action de l'IA
+                    Thread.sleep(2000); 
+                } catch (Exception e) {
+                    view.displayError("Erreur pendant le tour de l'IA : " + e.getMessage());
+                    e.printStackTrace();
+                    // En cas de crash inattendu, on force l'IA à passer pour ne pas bloquer le jeu
+                    handlePlayerMove(Move.createPass(current));
+                }
+                
+                continue; // On repart au début de la boucle sans demander d'input humain
+            }
+
+            // --- GESTION DU TOUR D'UN JOUEUR HUMAIN ---
             String action = input.askAction();
             switch (action) {
                 case "1": // Play a word
@@ -136,7 +212,7 @@ public class GameController {
             }
         }
 
-        // Game ended or user quit
+        // Fin de la partie
         Player winner = game.determineWinner();
         if (winner != null) {
             view.displaySuccess("Partie terminée. Vainqueur: " + winner.getName());

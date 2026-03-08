@@ -31,13 +31,18 @@ public class GADDAG extends Trie {
         public int hashCode() {
             return Objects.hash(word, gaddagPath);
         }
+
+        @Override
+        public String toString() {
+            return this.word; // Remplace 'word' par le nom exact de ta variable de texte
+        }
     }
 
     @Override
     public void add(String word){
         if (word.isEmpty()) return;
 
-        word = word.toLowerCase();
+        word = word.toUpperCase();
 
         String prefix;
         char[] ch;
@@ -72,7 +77,7 @@ public class GADDAG extends Trie {
             char tile;
             while (rackList.size() > 1){
                 tile = rackList.removeFirst();
-                // On initialise le gaddagPath avec une chaîne vide ""
+                // We initialise the gaddagPath with ""
                 findWordsRecurse(words, "", "", rackList, tile, root, true);
             }
         } else {
@@ -89,11 +94,10 @@ public class GADDAG extends Trie {
         String hookCh = hook == separator ? "" : String.valueOf(hook);
         word = (direction ? hookCh + word : word + hookCh);
 
-        // On accumule le chemin parcouru dans le GADDAG
         gaddagPath = gaddagPath + hook;
 
         if (hookNode.getFinite())
-            words.add(new GaddagResult(word, gaddagPath)); // On sauvegarde les deux !
+            words.add(new GaddagResult(word, gaddagPath));
 
         for (char nodeKey : hookNode.getKeys()) {
             if (nodeKey == separator)
@@ -104,5 +108,24 @@ public class GADDAG extends Trie {
                 findWordsRecurse(words, word, gaddagPath, newRack, nodeKey, hookNode, direction);
             }
         }
+    }
+
+    /**
+     * Check if a word is in the dictionary with gaddag
+     */
+    public boolean containsWord(String word) {
+        if (word == null || word.length() < 2) {
+            // Check for a one-letter word
+            return this.contains(word.toUpperCase());
+        }
+
+        String upperWord = word.toUpperCase();
+        char firstLetter = upperWord.charAt(0);
+
+        // We build the gaddag path : FirstLetter + > + rest
+        String gaddagPath = new String(String.valueOf(firstLetter)) + separator + upperWord.substring(1);
+
+        // We check with contains
+        return this.contains(gaddagPath);
     }
 }
