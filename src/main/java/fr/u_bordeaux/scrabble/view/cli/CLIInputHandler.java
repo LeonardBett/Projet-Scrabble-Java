@@ -46,10 +46,40 @@ public class CLIInputHandler {
     public Move askPlayMove(Player player) {
         try {
             // 1. Ask for the starting position
-            System.out.print("\nPosition de départ (format: x y, ex: 7 7) : ");
+            System.out.print("\nPosition de départ (format: h 8 ou 8 8) : ");
             String[] posInput = scanner.nextLine().trim().split("\\s+");
-            int x = Integer.parseInt(posInput[0]) - 1;
-            int y = Integer.parseInt(posInput[1]) - 1;
+            if (posInput.length < 2) {
+                throw new IllegalArgumentException("Entrez 2 valeurs: ligne colonne.");
+            }
+
+            int x;
+            int y;
+
+            // Version simple: si on envoie une lettre (ex: h), on prend son index dans a..o.
+            if (posInput[0].matches("[a-oA-O]")) {
+                String[] rows = {"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o"};
+                String row = posInput[0].toLowerCase();
+
+                int rowIndex = -1;
+                for (int i = 0; i < rows.length; i++) {
+                    if (rows[i].equals(row)) {
+                        rowIndex = i;
+                        break;
+                    }
+                }
+
+                if (rowIndex == -1) {
+                    throw new IllegalArgumentException("Ligne invalide: " + posInput[0]);
+                }
+
+                y = rowIndex;
+                x = Integer.parseInt(posInput[1]) - 1;
+            } else {
+                // Compatibilite: ancien format numerique x y
+                x = Integer.parseInt(posInput[0]) - 1;
+                y = Integer.parseInt(posInput[1]) - 1;
+            }
+
             Point startPoint = new Point(x, y);
             
             // 2. Ask for the direction
