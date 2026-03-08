@@ -68,11 +68,6 @@ public class ScrabbleGUI extends Application {
         boardPanel   = new BoardPanel(gameInstance.getBoard());
         rackPanel    = new RackPanel(getCurrentRack());
 
-        Optional<List<String>> namesOpt = PlayerSetup.showDialog();
-        if (namesOpt.isEmpty()) { Platform.exit(); return; }
-        for (String name : namesOpt.get()) {
-            gameInstance.addPlayer(new HumanPlayer(name));
-        }
 
         if (viewInstance == null) viewInstance = new JavaFxView(gameInstance);
         viewInstance.setGUI(this);

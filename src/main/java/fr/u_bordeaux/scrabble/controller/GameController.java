@@ -1,7 +1,6 @@
 package fr.u_bordeaux.scrabble.controller;
 
 import fr.u_bordeaux.scrabble.model.core.Game;
-import fr.u_bordeaux.scrabble.model.core.HumanPlayer;
 import fr.u_bordeaux.scrabble.model.core.Move;
 import fr.u_bordeaux.scrabble.model.interfaces.Player;
 import fr.u_bordeaux.scrabble.view.UserInterface;
@@ -59,14 +58,8 @@ public class GameController {
 
         cliView.displayWelcome();
 
-        // If not enough players, ask to create them
         if (game.getPlayers().size() < 2) {
-            int num = input.askNumberOfPlayers();
-            for (int i = 1; i <= num; i++) {
-                String name = input.askPlayerName(i);
-                Player p = new HumanPlayer(name);
-                addPlayer(p);
-            }
+            throw new IllegalStateException( "Aucun joueur configuré. Utilisez -p pour spécifier le nombre de joueurs.");
         }
 
         startGame();
