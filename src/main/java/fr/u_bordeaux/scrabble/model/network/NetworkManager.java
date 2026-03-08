@@ -1,11 +1,12 @@
 package fr.u_bordeaux.scrabble.model.network;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import fr.u_bordeaux.scrabble.model.core.Game;
 import fr.u_bordeaux.scrabble.model.network.client.GameClient;
 import fr.u_bordeaux.scrabble.model.network.server.GameServer;
 import fr.u_bordeaux.scrabble.model.network.server.ServerInfo;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /** Manages network operations and acts as a facade for the network layer. */
 public class NetworkManager {
@@ -300,6 +301,34 @@ public class NetworkManager {
 
   // -----F4O-----
 
-  // TODO:
+  /**
+   * Returns the local game model managed by the client.
+   * Null if not connected or no game started.
+   *
+   * @return the local Game, or null
+   */
+  public Game getLocalGame() {
+    if (gameClient == null) return null;
+    return gameClient.getLocalGame();
+  }
+
+  /**
+   * Returns true if a client is connected AND a local game is in progress.
+   *
+   * @return true if online game is active
+   */
+  public boolean isInOnlineGame() {
+    return gameClient != null && gameClient.getLocalGame() != null;
+  }
+
+  /**
+   * Returns this client's player name on the server (format: "Player-ID").
+   *
+   * @return the name, or null if not connected
+   */
+  public String getMyOnlineName() {
+    if (gameClient == null) return null;
+    return "Player-" + gameClient.getMyId();
+  }
 
 }

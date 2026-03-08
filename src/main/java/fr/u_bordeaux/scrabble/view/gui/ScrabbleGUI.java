@@ -12,9 +12,11 @@ import fr.u_bordeaux.scrabble.model.core.Move;
 import fr.u_bordeaux.scrabble.model.core.Rack;
 import fr.u_bordeaux.scrabble.model.core.Tile;
 import fr.u_bordeaux.scrabble.model.interfaces.Player;
+import fr.u_bordeaux.scrabble.model.network.NetworkManager;
 import fr.u_bordeaux.scrabble.model.utils.Point;
 import fr.u_bordeaux.scrabble.view.gui.panel.BoardPanel;
 import fr.u_bordeaux.scrabble.view.gui.panel.ControlPanel;
+import fr.u_bordeaux.scrabble.view.gui.panel.MessagePanel;
 import fr.u_bordeaux.scrabble.view.gui.panel.RackPanel;
 import fr.u_bordeaux.scrabble.view.gui.panel.ScorePanel;
 import javafx.application.Application;
@@ -22,77 +24,65 @@ import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
-
-
-
-/**
- * JavaFX application window.
- *
- * ✅ MVC PROPRE:
- *  - ZERO logique métier (pas de Direction, pas de validation de tuiles)
- *  - Délègue à PendingMoveBuilder et ExchangeMoveBuilder
- *  - Envoie des Move au contrôleur, point final
- */
 public class ScrabbleGUI extends Application {
 
-    private static Game        gameInstance;
-    private static JavaFxView  viewInstance;
+    private static Game       gameInstance;
+    private static JavaFxView viewInstance;
 
     private GameController controller;
     private BoardPanel     boardPanel;
     private RackPanel      rackPanel;
     private ScorePanel     scorePanel;
     private ControlPanel   controlPanel;
+    private MessagePanel   messagePanel;
 
-    /** UI state: tiles placed but not yet sent to controller */
     private final Map<Point, Tile> pendingTiles = new HashMap<>();
     private Tile currentlyDraggedTile = null;
 
-    // ─── Static setters ───────────────────────────────────────────────────────
+    private NetworkManager    networkManager;
+    private NetworkGameBridge networkBridge;
+    private NetworkLobbyView  lobbyView;
+    private boolean onlineMode = false;
 
     public static void setGame(Game game)       { gameInstance = game; }
     public static void setView(JavaFxView view) { viewInstance = view; }
 
-    // ─── JavaFX entry point ───────────────────────────────────────────────────
-
     @Override
     public void start(Stage stage) {
         if (gameInstance == null) {
-            throw new IllegalStateException("Call ScrabbleGUI.setGame() before launching.");
+            throw new IllegalStateException("Appelez ScrabbleGUI.setGame() avant de lancer.");
         }
 
-        // Ask player names
+        networkManager = new NetworkManager();
+        networkBridge  = new NetworkGameBridge(networkManager);
+        networkBridge.setGui(this);
+
+        messagePanel = new MessagePanel();
+        scorePanel   = new ScorePanel();
+        controlPanel = new ControlPanel();
+        boardPanel   = new BoardPanel(gameInstance.getBoard());
+        rackPanel    = new RackPanel(getCurrentRack());
+
         Optional<List<String>> namesOpt = PlayerSetup.showDialog();
         if (namesOpt.isEmpty()) { Platform.exit(); return; }
         for (String name : namesOpt.get()) {
             gameInstance.addPlayer(new HumanPlayer(name));
         }
 
-        // Wire view
         if (viewInstance == null) viewInstance = new JavaFxView(gameInstance);
         viewInstance.setGUI(this);
-
-        // Build panels
-        scorePanel   = new ScorePanel();
-        controlPanel = new ControlPanel();
-        boardPanel   = new BoardPanel(gameInstance.getBoard());
-        rackPanel    = new RackPanel(getCurrentRack());
 
         boardPanel.setOnTileDropped(this::onTileDropped);
         rackPanel.setOnTileDragged(this::onTileDragged);
 
-        // Build controller
         controller = new GameController(gameInstance, viewInstance);
         connectButtons();
 
-        // Layout
         BorderPane root = new BorderPane();
         root.setPadding(new Insets(10));
         root.setStyle("-fx-background-color: #115829;");
@@ -105,6 +95,7 @@ public class ScrabbleGUI extends Application {
         root.setRight(right);
         root.setBottom(rackPanel);
 
+        stage.setOnCloseRequest(e -> networkBridge.dispose());
         stage.setTitle("Scrabble U-Bordeaux");
         stage.setScene(new Scene(root, 1200, 800));
         stage.setFullScreen(true);
@@ -114,30 +105,65 @@ public class ScrabbleGUI extends Application {
         refreshAll();
     }
 
-    // ─── Button wiring ────────────────────────────────────────────────────────
-
     private void connectButtons() {
-        // Game actions → controller
         controlPanel.getPlayButton().setOnAction(e -> submitPendingTiles());
-        controlPanel.getPassButton().setOnAction(e -> 
-            controller.handlePlayerMove(Move.createPass(gameInstance.getCurrentPlayer())));
-        controlPanel.getExchangeButton().setOnAction(e -> openExchangeDialog());
-        controlPanel.getUndoButton().setOnAction(e -> controller.undo());
-        controlPanel.getRedoButton().setOnAction(e -> controller.redo());
 
-        // Pure view actions
-       
+        controlPanel.getPassButton().setOnAction(e -> {
+            if (onlineMode) {
+                networkManager.pass();
+            } else {
+                controller.handlePlayerMove(Move.createPass(gameInstance.getCurrentPlayer()));
+            }
+        });
+
+        controlPanel.getExchangeButton().setOnAction(e -> openExchangeDialog());
+        controlPanel.getCancelPlacementButton().setOnAction(e -> cancelPendingTiles());
+
+        controlPanel.getUndoButton().setOnAction(e -> { if (!onlineMode) controller.undo(); });
+        controlPanel.getRedoButton().setOnAction(e -> { if (!onlineMode) controller.redo(); });
+
+        controlPanel.getOnlineButton().setOnAction(e -> openNetworkLobby());
         controlPanel.getNewGameButton().setOnAction(e -> handleNewGame());
-        controlPanel.getSaveButton().setOnAction(e -> showInfo("À venir", "Sauvegarde bientôt disponible."));
-        controlPanel.getLoadButton().setOnAction(e -> showInfo("À venir", "Chargement bientôt disponible."));
+
+        controlPanel.getSaveButton().setOnAction(e ->
+            showInfo("À venir", "Sauvegarde bientôt disponible."));
+        controlPanel.getLoadButton().setOnAction(e ->
+            showInfo("À venir", "Chargement bientôt disponible."));
+
         controlPanel.getQuitButton().setOnAction(e -> {
-            Optional<ButtonType> r = new Alert(Alert.AlertType.CONFIRMATION,
-                    "Voulez-vous vraiment quitter ?").showAndWait();
-            if (r.isPresent() && r.get() == ButtonType.OK) Platform.exit();
+            if (messagePanel.showConfirmation("Voulez-vous vraiment quitter ?")) {
+                networkBridge.dispose();
+                Platform.exit();
+            }
         });
     }
 
-    // ─── Drag & drop (pure view — no logic) ──────────────────────────────────
+    private void openNetworkLobby() {
+        if (lobbyView == null) {
+            lobbyView = new NetworkLobbyView(networkBridge);
+        }
+        lobbyView.show();
+        lobbyView.toFront();
+    }
+
+    public void switchToOnlineGame(Game onlineGame) {
+        gameInstance = onlineGame;
+        onlineMode   = true;
+        controlPanel.getUndoButton().setDisable(true);
+        controlPanel.getRedoButton().setDisable(true);
+        boardPanel.setBoard(gameInstance.getBoard());
+        pendingTiles.clear();
+        refreshAll();
+        showInfo("Partie en ligne", "La partie a commencé ! Bonne chance 🎮");
+    }
+
+    public void exitOnlineMode() {
+        onlineMode = false;
+        controlPanel.getUndoButton().setDisable(false);
+        controlPanel.getRedoButton().setDisable(false);
+    }
+
+    public boolean isOnlineMode() { return onlineMode; }
 
     public void onTileDragged(Tile tile) {
         currentlyDraggedTile = tile;
@@ -161,11 +187,6 @@ public class ScrabbleGUI extends Application {
         currentlyDraggedTile = null;
     }
 
-    // ─── Game actions (prepare data, delegate to builders, send to controller)
-
-    /**
-     * ✅ DÉLÈGUE à PendingMoveBuilder — zero logique ici !
-     */
     private void submitPendingTiles() {
         if (pendingTiles.isEmpty()) {
             showError("Placez au moins une tuile avant de valider !");
@@ -181,15 +202,22 @@ public class ScrabbleGUI extends Application {
         }
 
         pendingTiles.clear();
-        controller.handlePlayerMove(move);
+
+        if (onlineMode) {
+            Point  origin = move.getStartPosition();
+            String dir    = move.getDirection().name().substring(0, 1);
+            String word   = move.getTiles().stream()
+                                .map(t -> String.valueOf(t.getCharacter()))
+                                .reduce("", String::concat);
+            networkManager.play(origin.getX(), origin.getY(), dir, word);
+        } else {
+            controller.handlePlayerMove(move);
+        }
     }
 
-    /**
-     * ✅ DÉLÈGUE à ExchangeMoveBuilder — zero logique ici !
-     */
     private void openExchangeDialog() {
         if (!pendingTiles.isEmpty()) {
-            showError("Annulez d'abord les tuiles placées.");
+            showError("Annulez d'abord les tuiles placées (bouton ↩).");
             return;
         }
 
@@ -200,26 +228,31 @@ public class ScrabbleGUI extends Application {
 
         Optional<String> result = dialog.showAndWait();
         result.ifPresent(input -> {
-            Move move = ExchangeMoveBuilder.build(input.trim().toUpperCase(),
-                    gameInstance.getCurrentPlayer());
-            if (move == null) {
-                showError("Certaines lettres ne sont pas dans votre chevalet !");
-                return;
+            String letters = input.trim().toUpperCase();
+            if (letters.isEmpty()) return;
+
+            if (onlineMode) {
+                networkManager.exchange(letters);
+            } else {
+                Move move = ExchangeMoveBuilder.build(letters, gameInstance.getCurrentPlayer());
+                if (move == null) {
+                    showError("Certaines lettres ne sont pas dans votre chevalet !");
+                    return;
+                }
+                controller.handlePlayerMove(move);
             }
-            controller.handlePlayerMove(move);
         });
     }
 
     private void cancelPendingTiles() {
+        if (pendingTiles.isEmpty()) return;
         pendingTiles.forEach((p, t) -> boardPanel.clearTile(p.getY(), p.getX()));
         pendingTiles.clear();
         refreshRack();
     }
 
     private void handleNewGame() {
-        Optional<ButtonType> confirm = new Alert(Alert.AlertType.CONFIRMATION,
-                "Abandonner la partie en cours et recommencer ?").showAndWait();
-        if (confirm.isEmpty() || confirm.get() != ButtonType.OK) return;
+        if (!messagePanel.showConfirmation("Abandonner la partie en cours et recommencer ?")) return;
 
         gameInstance = new Game();
         Optional<List<String>> namesOpt = PlayerSetup.showDialog();
@@ -231,14 +264,16 @@ public class ScrabbleGUI extends Application {
         viewInstance.setGUI(this);
         controller = new GameController(gameInstance, viewInstance);
 
+        onlineMode = false;
+        controlPanel.getUndoButton().setDisable(false);
+        controlPanel.getRedoButton().setDisable(false);
+
         boardPanel.clearAllPending();
         pendingTiles.clear();
         boardPanel.setBoard(gameInstance.getBoard());
         refreshAll();
         controller.startGame();
     }
-
-    // ─── Refresh (called by JavaFxView) ──────────────────────────────────────
 
     public void refreshAll() {
         refreshBoard();
@@ -261,22 +296,19 @@ public class ScrabbleGUI extends Application {
         int[]    scores = players.stream().mapToInt(Player::getScore).toArray();
         scorePanel.updateScores(names, scores);
         scorePanel.updateBagInfo(gameInstance.getBag().size());
-        int idx = players.indexOf(gameInstance.getCurrentPlayer());
-        if (idx >= 0) scorePanel.highlightCurrentPlayer(idx);
+        Player current = gameInstance.getCurrentPlayer();
+        int idx = players.indexOf(current);
+        if (idx >= 0 && current != null) {
+            scorePanel.highlightCurrentPlayer(idx, current.getName());
+        }
     }
 
-    // ─── Popup helpers ────────────────────────────────────────────────────────
-
     public void showInfo(String title, String message) {
-        Alert a = new Alert(Alert.AlertType.INFORMATION);
-        a.setTitle(title); a.setHeaderText(null); a.setContentText(message);
-        a.showAndWait();
+        messagePanel.showInfo(title, message);
     }
 
     public void showError(String message) {
-        Alert a = new Alert(Alert.AlertType.ERROR);
-        a.setTitle("Erreur"); a.setHeaderText(null); a.setContentText(message);
-        a.showAndWait();
+        messagePanel.showError(message);
     }
 
     private Rack getCurrentRack() {

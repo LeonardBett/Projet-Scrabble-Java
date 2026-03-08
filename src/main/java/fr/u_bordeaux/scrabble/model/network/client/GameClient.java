@@ -1,15 +1,5 @@
 package fr.u_bordeaux.scrabble.model.network.client;
 
-import static fr.u_bordeaux.scrabble.model.network.NetworkManager.DEFAULT_ADDRESS;
-import static fr.u_bordeaux.scrabble.model.network.NetworkManager.DEFAULT_TCP_PORT;
-
-import fr.u_bordeaux.scrabble.model.core.Game;
-import fr.u_bordeaux.scrabble.model.core.HumanPlayer;
-import fr.u_bordeaux.scrabble.model.core.Tile;
-import fr.u_bordeaux.scrabble.model.interfaces.Player;
-import fr.u_bordeaux.scrabble.model.network.NetworkObserver;
-import fr.u_bordeaux.scrabble.model.network.PacketParser;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -19,6 +9,15 @@ import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import fr.u_bordeaux.scrabble.model.core.Game;
+import fr.u_bordeaux.scrabble.model.core.HumanPlayer;
+import fr.u_bordeaux.scrabble.model.core.Tile;
+import fr.u_bordeaux.scrabble.model.interfaces.Player;
+import static fr.u_bordeaux.scrabble.model.network.NetworkManager.DEFAULT_ADDRESS;
+import static fr.u_bordeaux.scrabble.model.network.NetworkManager.DEFAULT_TCP_PORT;
+import fr.u_bordeaux.scrabble.model.network.NetworkObserver;
+import fr.u_bordeaux.scrabble.model.network.PacketParser;
 
 /** Network client to connect to a game server. */
 public class GameClient {
@@ -405,6 +404,25 @@ public class GameClient {
       // Normal stop for this thread, call by stop()
       Thread.currentThread().interrupt();
     }
+  }
+
+    /**
+   * Returns the local game model synchronized with the server.
+   * Used by the GUI to display the online game state.
+   *
+   * @return the local game, or null if no game is in progress
+   */
+  public Game getLocalGame() {
+    return localGame;
+  }
+
+  /**
+   * Returns this client's ID on the server.
+   *
+   * @return the player ID
+   */
+  public int getMyId() {
+    return myId;
   }
 
   /**
