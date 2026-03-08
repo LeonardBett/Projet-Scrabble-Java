@@ -18,9 +18,11 @@ import fr.u_bordeaux.scrabble.model.core.Tile;
 import fr.u_bordeaux.scrabble.model.dictionary.GADDAG;
 import fr.u_bordeaux.scrabble.model.interfaces.Player;
 import fr.u_bordeaux.scrabble.model.network.NetworkManager;
+import fr.u_bordeaux.scrabble.model.network.NetworkManager;
 import fr.u_bordeaux.scrabble.model.utils.Point;
 import fr.u_bordeaux.scrabble.view.gui.panel.BoardPanel;
 import fr.u_bordeaux.scrabble.view.gui.panel.ControlPanel;
+import fr.u_bordeaux.scrabble.view.gui.panel.MessagePanel;
 import fr.u_bordeaux.scrabble.view.gui.panel.MessagePanel;
 import fr.u_bordeaux.scrabble.view.gui.panel.RackPanel;
 import fr.u_bordeaux.scrabble.view.gui.panel.ScorePanel;
@@ -46,8 +48,16 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
+import fr.u_bordeaux.scrabble.model.ai.AIPlayer;
+import fr.u_bordeaux.scrabble.model.dictionary.GADDAG;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+
 public class ScrabbleGUI extends Application {
 
+    private static Game       gameInstance;
+    private static JavaFxView viewInstance;
     private static Game       gameInstance;
     private static JavaFxView viewInstance;
 
@@ -57,10 +67,15 @@ public class ScrabbleGUI extends Application {
     private ScorePanel     scorePanel;
     private ControlPanel   controlPanel;
     private MessagePanel   messagePanel;
+    private MessagePanel   messagePanel;
 
     private final Map<Point, Tile> pendingTiles = new HashMap<>();
     private Tile currentlyDraggedTile = null;
 
+    private NetworkManager    networkManager;
+    private NetworkGameBridge networkBridge;
+    private NetworkLobbyView  lobbyView;
+    private boolean onlineMode = false;
     private NetworkManager    networkManager;
     private NetworkGameBridge networkBridge;
     private NetworkLobbyView  lobbyView;
@@ -82,7 +97,11 @@ public class ScrabbleGUI extends Application {
         networkBridge.setGui(this);
 
         messagePanel = new MessagePanel();
-        // Ask player names
+        scorePanel   = new ScorePanel();
+        controlPanel = new ControlPanel();
+        boardPanel   = new BoardPanel(gameInstance.getBoard());
+        rackPanel    = new RackPanel(getCurrentRack());
+
         Optional<List<String>> namesOpt = PlayerSetup.showDialog();
         if (namesOpt.isEmpty()) { Platform.exit(); return; }
 
@@ -132,15 +151,12 @@ public class ScrabbleGUI extends Application {
             }
         }
 
-        // Wire view
         if (viewInstance == null) viewInstance = new JavaFxView(gameInstance);
         viewInstance.setGUI(this);
 
-        // Build panels
-        scorePanel   = new ScorePanel();
-        controlPanel = new ControlPanel();
-        boardPanel   = new BoardPanel(gameInstance.getBoard());
-        rackPanel    = new RackPanel(getCurrentRack());
+
+        if (viewInstance == null) viewInstance = new JavaFxView(gameInstance);
+        viewInstance.setGUI(this);
 
 
         if (viewInstance == null) viewInstance = new JavaFxView(gameInstance);
@@ -165,6 +181,7 @@ public class ScrabbleGUI extends Application {
         root.setBottom(rackPanel);
 
         stage.setOnCloseRequest(e -> networkBridge.dispose());
+        stage.setOnCloseRequest(e -> networkBridge.dispose());
         stage.setTitle("Scrabble U-Bordeaux");
         stage.setScene(new Scene(root, 1200, 800));
         stage.setFullScreen(true);
@@ -185,9 +202,23 @@ public class ScrabbleGUI extends Application {
             }
         });
 
+
+        controlPanel.getPassButton().setOnAction(e -> {
+            if (onlineMode) {
+                networkManager.pass();
+            } else {
+                controller.handlePlayerMove(Move.createPass(gameInstance.getCurrentPlayer()));
+            }
+        });
+
         controlPanel.getExchangeButton().setOnAction(e -> openExchangeDialog());
         controlPanel.getCancelPlacementButton().setOnAction(e -> cancelPendingTiles());
+        controlPanel.getCancelPlacementButton().setOnAction(e -> cancelPendingTiles());
 
+        controlPanel.getUndoButton().setOnAction(e -> { if (!onlineMode) controller.undo(); });
+        controlPanel.getRedoButton().setOnAction(e -> { if (!onlineMode) controller.redo(); });
+
+        controlPanel.getOnlineButton().setOnAction(e -> openNetworkLobby());
         controlPanel.getUndoButton().setOnAction(e -> { if (!onlineMode) controller.undo(); });
         controlPanel.getRedoButton().setOnAction(e -> { if (!onlineMode) controller.redo(); });
 
@@ -199,7 +230,46 @@ public class ScrabbleGUI extends Application {
         controlPanel.getLoadButton().setOnAction(e ->
             showInfo("À venir", "Chargement bientôt disponible."));
 
+
+        controlPanel.getSaveButton().setOnAction(e ->
+            showInfo("À venir", "Sauvegarde bientôt disponible."));
+        controlPanel.getLoadButton().setOnAction(e ->
+            showInfo("À venir", "Chargement bientôt disponible."));
+
         controlPanel.getQuitButton().setOnAction(e -> {
+            if (messagePanel.showConfirmation("Voulez-vous vraiment quitter ?")) {
+                networkBridge.dispose();
+                Platform.exit();
+            }
+        });
+    }
+
+    private void openNetworkLobby() {
+        if (lobbyView == null) {
+            lobbyView = new NetworkLobbyView(networkBridge);
+        }
+        lobbyView.show();
+        lobbyView.toFront();
+    }
+
+    public void switchToOnlineGame(Game onlineGame) {
+        gameInstance = onlineGame;
+        onlineMode   = true;
+        controlPanel.getUndoButton().setDisable(true);
+        controlPanel.getRedoButton().setDisable(true);
+        boardPanel.setBoard(gameInstance.getBoard());
+        pendingTiles.clear();
+        refreshAll();
+        showInfo("Partie en ligne", "La partie a commencé ! Bonne chance 🎮");
+    }
+
+    public void exitOnlineMode() {
+        onlineMode = false;
+        controlPanel.getUndoButton().setDisable(false);
+        controlPanel.getRedoButton().setDisable(false);
+    }
+
+    public boolean isOnlineMode() { return onlineMode; }
             if (messagePanel.showConfirmation("Voulez-vous vraiment quitter ?")) {
                 networkBridge.dispose();
                 Platform.exit();
@@ -327,7 +397,16 @@ public class ScrabbleGUI extends Application {
             
             // If the move is valid and executed successfully, clear the pending tiles map
             pendingTiles.clear();
-            
+
+        if (onlineMode) {
+            Point  origin = move.getStartPosition();
+            String dir    = move.getDirection().name().substring(0, 1);
+            String word   = move.getTiles().stream()
+                                .map(t -> String.valueOf(t.getCharacter()))
+                                .reduce("", String::concat);
+            networkManager.play(origin.getX(), origin.getY(), dir, word);
+        } else {
+                
         } catch (RuntimeException e) {
             // The game engine rejected the move (e.g., word doesn't touch existing tiles)
             // Show the exact error message to the player
@@ -353,6 +432,7 @@ public class ScrabbleGUI extends Application {
     private void openExchangeDialog() {
         if (!pendingTiles.isEmpty()) {
             showError("Annulez d'abord les tuiles placées (bouton ↩).");
+            showError("Annulez d'abord les tuiles placées (bouton ↩).");
             return;
         }
 
@@ -376,10 +456,24 @@ public class ScrabbleGUI extends Application {
                 }
                 controller.handlePlayerMove(move);
             }
+            String letters = input.trim().toUpperCase();
+            if (letters.isEmpty()) return;
+
+            if (onlineMode) {
+                networkManager.exchange(letters);
+            } else {
+                Move move = ExchangeMoveBuilder.build(letters, gameInstance.getCurrentPlayer());
+                if (move == null) {
+                    showError("Certaines lettres ne sont pas dans votre chevalet !");
+                    return;
+                }
+                controller.handlePlayerMove(move);
+            }
         });
     }
 
     private void cancelPendingTiles() {
+        if (pendingTiles.isEmpty()) return;
         if (pendingTiles.isEmpty()) return;
         pendingTiles.forEach((p, t) -> boardPanel.clearTile(p.getY(), p.getX()));
         pendingTiles.clear();
@@ -387,6 +481,7 @@ public class ScrabbleGUI extends Application {
     }
 
     private void handleNewGame() {
+        if (!messagePanel.showConfirmation("Abandonner la partie en cours et recommencer ?")) return;
         if (!messagePanel.showConfirmation("Abandonner la partie en cours et recommencer ?")) return;
 
         gameInstance = new Game();
@@ -420,14 +515,16 @@ public class ScrabbleGUI extends Application {
         controlPanel.getUndoButton().setDisable(false);
         controlPanel.getRedoButton().setDisable(false);
 
+        onlineMode = false;
+        controlPanel.getUndoButton().setDisable(false);
+        controlPanel.getRedoButton().setDisable(false);
+
         boardPanel.clearAllPending();
         pendingTiles.clear();
         boardPanel.setBoard(gameInstance.getBoard());
         refreshAll();
         controller.startGame();
     }
-
-    // ─── Refresh (called by JavaFxView) ──────────────────────────────────────
 
 public void refreshAll() {
         refreshBoard();
@@ -552,12 +649,20 @@ public void refreshAll() {
             scorePanel.highlightCurrentPlayer(idx, current.getName());
         }
     }
+        Player current = gameInstance.getCurrentPlayer();
+        int idx = players.indexOf(current);
+        if (idx >= 0 && current != null) {
+            scorePanel.highlightCurrentPlayer(idx, current.getName());
+        }
+    }
 
     public void showInfo(String title, String message) {
+        messagePanel.showInfo(title, message);
         messagePanel.showInfo(title, message);
     }
 
     public void showError(String message) {
+        messagePanel.showError(message);
         messagePanel.showError(message);
     }
 
