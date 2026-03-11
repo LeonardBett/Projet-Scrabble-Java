@@ -2,6 +2,8 @@ package fr.u_bordeaux.scrabble.model.core;
 
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -111,5 +113,59 @@ class GameTest {
         assertNotNull(drawn);
         assertTrue(drawn.size() <= Rack.MAX_SIZE);
         assertEquals(drawn.size(), player.getRack().getTiles().size());
+    }
+
+    @Test
+    void blitzModeShouldStartOnlyCurrentPlayerTimer() {
+        Game game = new Game();
+        HumanPlayer alice = new HumanPlayer("Alice");
+        HumanPlayer bob = new HumanPlayer("Bob");
+        game.addPlayer(alice);
+        game.addPlayer(bob);
+
+        game.enableBlitzMode(Duration.ofSeconds(30));
+        game.startGame();
+
+        assertTrue(game.isBlitzModeEnabled());
+        assertTrue(alice.isBlitzClockEnabled());
+        assertTrue(bob.isBlitzClockEnabled());
+        assertTrue(alice.isTurnTimerRunning());
+        assertTrue(!bob.isTurnTimerRunning());
+    }
+
+    @Test
+    void blitzModeShouldPauseAndResumeOnTurnChange() throws InterruptedException {
+        Game game = new Game();
+        HumanPlayer alice = new HumanPlayer("Alice");
+        HumanPlayer bob = new HumanPlayer("Bob");
+        game.addPlayer(alice);
+        game.addPlayer(bob);
+
+        game.enableBlitzMode(Duration.ofMillis(300));
+        game.startGame();
+
+        Thread.sleep(120);
+        game.executeMove(Move.createPass(alice));
+
+        assertTrue(!alice.isTurnTimerRunning());
+        assertTrue(bob.isTurnTimerRunning());
+        assertTrue(alice.getRemainingTimeMillis() < 300);
+        assertTrue(bob.getRemainingTimeMillis() <= 300);
+    }
+
+    @Test
+    void blitzModeShouldEndGameWhenCurrentPlayerTimesOut() throws InterruptedException {
+        Game game = new Game();
+        HumanPlayer alice = new HumanPlayer("Alice");
+        HumanPlayer bob = new HumanPlayer("Bob");
+        game.addPlayer(alice);
+        game.addPlayer(bob);
+
+        game.enableBlitzMode(Duration.ofMillis(80));
+        game.startGame();
+        Thread.sleep(150);
+
+        assertThrows(IllegalStateException.class, () -> game.executeMove(Move.createPass(alice)));
+        assertTrue(game.isGameOver());
     }
 }

@@ -99,6 +99,12 @@ public class GameController {
             view.refresh();
             Player current = game.getCurrentPlayer();
 
+            if (game.isBlitzModeEnabled() && current != null && current.isOutOfTime()) {
+                game.setGameOver(true);
+                view.displayError("Temps ecoule pour " + current.getName() + ". Partie terminee.");
+                break;
+            }
+
             // --- GESTION DU TOUR DE L'IA ---
             if (current instanceof AIPlayer) {
                 view.displayMessage("\n--- C'est au tour de l'IA (" + current.getName() + ") ---");

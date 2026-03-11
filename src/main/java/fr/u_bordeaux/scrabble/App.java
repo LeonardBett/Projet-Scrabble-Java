@@ -23,25 +23,38 @@ import javafx.application.Application;
 public class App {
     
      public static void main(String[] args) {
-        boolean guiMode = args.length > 0 && args[0].equals("--gui");
+        boolean guiMode = false;
+        boolean blitzMode = false;
+
+        for (String arg : args) {
+            if ("--gui".equals(arg)) {
+                guiMode = true;
+            } else if ("--blitz".equals(arg)) {
+                blitzMode = true;
+            }
+        }
 
         if (guiMode) {
-            launchGUI(args);
+            launchGUI(args, blitzMode);
         } else {
-            launchCLI();
+            launchCLI(blitzMode);
         }
     }
     
 
 
-    private static void launchCLI() {
+    private static void launchCLI(boolean blitzMode) {
         Game game = new Game();
+        if (blitzMode) {
+            game.enableBlitzMode();
+        }
         CLIView view = new CLIView(game);
+        view.setBlitzMode(blitzMode);
         GameController controller = new GameController(game, view);
         controller.runCli();
     }
 
-    private static void launchGUI(String[] args) {
+    private static void launchGUI(String[] args, boolean blitzMode) {
         Game game = new Game();
         JavaFxView view = new JavaFxView(game);
         ScrabbleGUI.setGame(game);
