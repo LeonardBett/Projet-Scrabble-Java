@@ -23,9 +23,7 @@ public class TestDAWG {
                 words.add(line.trim().toUpperCase());
             }
 
-            long sortStartTime = System.currentTimeMillis();
             Collections.sort(words);
-            long sortEndTime = System.currentTimeMillis();
 
             for (String word : words) {
                 dawg.add(word);

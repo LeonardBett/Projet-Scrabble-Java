@@ -3,7 +3,7 @@ package fr.u_bordeaux.scrabble.model.dictionary;
 import java.util.*;
 
 public class DAWG {
-    private DAWGNode root = new DAWGNode('~');
+    private final DAWGNode root = new DAWGNode('~');
     private String lastWord = "";
 
     // List of nodes not yet minimized for the current word being processed
