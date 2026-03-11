@@ -57,7 +57,20 @@ class MoveHandlerTest {
 
         String word = handler.getCompleteWord(new Point(7, 7), Direction.HORIZONTAL, List.of(new Tile('a')));
 
-        assertEquals("ct", word);
+        assertEquals("cat", word);
+    }
+
+    @Test
+    void getCompleteWordShouldIncludeNewlyPlacedTilesOnEmptyBoard() {
+        Game game = new Game();
+        MoveHandler handler = new MoveHandler(game);
+
+        String word = handler.getCompleteWord(
+                new Point(7, 7),
+                Direction.HORIZONTAL,
+                List.of(new Tile('r'), new Tile('u'), new Tile('e'), new Tile('s')));
+
+        assertEquals("rues", word);
     }
 
     @Test
