@@ -24,12 +24,19 @@ public class PlayerRenderer {
     
 
     private void renderPlayerScore(Player player) {
-        System.out.printf("║ %-30s Score: %4d pts ║%n", 
-            player.getName(), player.getScore());
+        String timerPart = player.isBlitzClockEnabled()
+            ? " | " + player.getRemainingTimeDisplay()
+            : "";
+        System.out.printf("║ %-18s Score: %4d pts%-11s ║%n",
+            player.getName(), player.getScore(), timerPart);
     }
     
 
     public void renderCurrentPlayer(Player player) {
+        if (player.isBlitzClockEnabled()) {
+            System.out.println("\n>>> Current turn: " + player.getName() + " (" + player.getRemainingTimeDisplay() + ")");
+            return;
+        }
         System.out.println("\n>>> Current turn: " + player.getName());
     }
 }
