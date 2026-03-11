@@ -10,6 +10,9 @@ public class UndoRedo {
     private final Stack<Move> history;
     private final Stack<Move> redoStack;
 
+    /**
+     * Creates an empty undo/redo history.
+     */
     public UndoRedo() {
         this.history = new Stack<>();
         this.redoStack = new Stack<>();
@@ -72,6 +75,11 @@ public class UndoRedo {
         return move;
     }
 
+    /**
+     * Returns the underlying move history stack.
+     *
+     * @return move history stack.
+     */
     public Stack<Move> getHistory() {
         return history;
     }

@@ -8,11 +8,18 @@ import fr.u_bordeaux.scrabble.model.interfaces.Player;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Generates playable words from the current board state and a rack.
+ */
 public class MoveGenerator {
 
     /**
      * Original method used by the game.
      * It extracts the player's rack and delegates to the overloaded method.
+      *
+      * @param game current game.
+      * @param gaddag dictionary structure used for lookups.
+      * @return list of playable words for the current player.
      */
     public List<PlayableWord> getPlayableWordsList(Game game, GADDAG gaddag) {
         Player player = game.getCurrentPlayer();
@@ -22,6 +29,11 @@ public class MoveGenerator {
 
     /**
      * Overloaded method used by the AI to simulate moves.
+      *
+      * @param board board snapshot to evaluate.
+      * @param rackChars rack letters available for placement.
+      * @param gaddag dictionary structure used for lookups.
+      * @return list of playable words.
      */
     public List<PlayableWord> getPlayableWordsList(Board board, Character[] rackChars, GADDAG gaddag) {
         List<PlayableWord> playableMoves = new ArrayList<>();

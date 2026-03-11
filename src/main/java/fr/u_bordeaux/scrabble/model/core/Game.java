@@ -23,6 +23,9 @@ public class Game {
     /** True once the first PLAY move has been successfully executed. */
     private boolean firstMoveDone;
 
+    /**
+     * Builds a new game with an empty player list and initialized board/bag.
+     */
     public Game() {
         this.board = new Board();
         this.bag = new Bag();
@@ -34,6 +37,11 @@ public class Game {
         this.firstMoveDone = false;
     }
 
+    /**
+     * Adds a player to the game turn order.
+     *
+     * @param player player to add.
+     */
     public void addPlayer(Player player) {
         players.add(player);
     }
@@ -91,14 +99,27 @@ public class Game {
         }
     }
 
+    /**
+     * Indicates whether at least one valid PLAY move has already been made.
+     *
+     * @return true when the first word has been played.
+     */
     public boolean isFirstMoveDone() {
         return firstMoveDone;
     }
 
+    /**
+     * Updates the first-move marker used by move validation.
+     *
+     * @param firstMoveDone new first-move state.
+     */
     public void setFirstMoveDone(boolean firstMoveDone) {
         this.firstMoveDone = firstMoveDone;
     }
 
+    /**
+     * Advances to the next player in turn order.
+     */
     public void nextTurn() {
         if (!players.isEmpty()) {
             currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
@@ -126,6 +147,8 @@ public class Game {
 
     /**
      * Refills the player's rack from the bag until it is full or the bag is empty.
+      *
+      * @param player player whose rack is refilled.
      * @return The list of tiles added to the rack.
      */
     public List<Tile> refillRack(Player player) {
@@ -140,31 +163,66 @@ public class Game {
         return addedTiles;
     }
 
+    /**
+     * Returns the player whose turn is currently active.
+     *
+     * @return current player, or null when no player exists.
+     */
     public Player getCurrentPlayer() {
         return players.isEmpty() ? null : players.get(currentPlayerIndex);
     }
 
+    /**
+     * Returns the game board.
+     *
+     * @return board instance.
+     */
     public Board getBoard() {
         return board;
     }
 
+    /**
+     * Returns the tile bag.
+     *
+     * @return bag instance.
+     */
     public Bag getBag() {
         return bag;
     }
 
+    /**
+     * Returns the mutable list of players in turn order.
+     *
+     * @return players list.
+     */
     public List<Player> getPlayers() {
     return players;
     }
     
+    /**
+     * Returns the undo/redo history manager.
+     *
+     * @return undo/redo manager.
+     */
     public UndoRedo getUndoRedo() {
         return undoRedo;
     }
     
     
+    /**
+     * Indicates whether the game has ended.
+     *
+     * @return true when game over flag is set.
+     */
     public boolean isGameOver() {
         return isGameOver;
     }
     
+    /**
+     * Sets the game-over state.
+     *
+     * @param gameOver new game-over value.
+     */
     public void setGameOver(boolean gameOver) {
         isGameOver = gameOver;
     }
@@ -217,6 +275,9 @@ public class Game {
         }
     }
     
+    /**
+     * Redoes move(s) from history until the next human move is reapplied.
+     */
     public void redo() {
         if (!(getCurrentPlayer() instanceof HumanPlayer)) {
             System.out.println("Only human players can redo.");
@@ -244,6 +305,9 @@ public class Game {
     /**
      * Debug function to display the board and player stats in the terminal.
      * Will be removed
+     *
+     * @param showBonusSquare whether bonus square codes should be displayed.
+     * @param clientMode whether to display online synchronized bag size.
      */
     public void printDebugState(boolean showBonusSquare, boolean clientMode) {
         System.out.println("\n--- DEBUG: GAME STATE ---");
@@ -320,6 +384,9 @@ public class Game {
     /**
      * Synchronizes a player's rack with a specific list of tiles.
      * Used for updating local game in network play.
+     *
+     * @param playerName target player name.
+     * @param tiles rack content to force.
      */
     public void forceTilesToPlayer(String playerName, List<Tile> tiles) {
         Player p = getPlayerFromName(playerName);
@@ -328,6 +395,11 @@ public class Game {
         }
     }
 
+    /**
+     * Returns the index of the current player in turn order.
+     *
+     * @return current player index.
+     */
     public int getCurrentPlayerIndex() {
         return currentPlayerIndex;
     }
@@ -335,6 +407,8 @@ public class Game {
     /**
      * Synchronizes the board with a full board state string from the server.
      * Used for updating local game in network play.
+     *
+     * @param boardData serialized board state (225 chars for 15x15).
      */
     public void syncBoard(String boardData) {
         if (boardData == null || boardData.length() != 225) return; // Sécurité (15x15)

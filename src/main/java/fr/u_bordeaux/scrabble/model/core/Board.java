@@ -8,6 +8,7 @@ import fr.u_bordeaux.scrabble.model.utils.Point;
  * Manages the placement of tiles and special squares (bonuses).
  */
 public class Board {
+    /** Official board side length (15x15). */
     public static final int SIZE = 15;
     private Square[][] board;
 
@@ -35,6 +36,12 @@ public class Board {
         this.board = tempBoard.board;
     }
 
+    /**
+     * Returns the square at the provided coordinates.
+     *
+     * @param point board coordinates.
+     * @return the corresponding square, or null when out of bounds.
+     */
     public Square getSquare(Point point) {
         if (point.getX() >= 0 && point.getX() < SIZE && point.getY() >= 0 && point.getY() < SIZE) {
             return board[point.getX()][point.getY()];

@@ -106,10 +106,20 @@ public class Bag {
         return tiles.remove(tile);
     }
 
+    /**
+     * Indicates whether the local bag has no remaining tiles.
+     *
+     * @return true when no tile can be drawn locally.
+     */
     public boolean isEmpty() {
         return tiles.isEmpty();
     }
 
+    /**
+     * Returns the number of tiles currently available in the local bag.
+     *
+     * @return the local bag size.
+     */
     public int size() {
         return tiles.size();
     }
@@ -123,6 +133,11 @@ public class Bag {
         this.onlineSize = bagSize;
     }
 
+    /**
+     * Returns the synchronized bag size used by online clients.
+     *
+     * @return the remote bag size, or -1 when not set.
+     */
     public int getOnlineSize() {
         return onlineSize;
     }

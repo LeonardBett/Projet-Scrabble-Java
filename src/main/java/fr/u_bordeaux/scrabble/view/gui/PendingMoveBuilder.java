@@ -13,9 +13,9 @@ import fr.u_bordeaux.scrabble.model.utils.Point;
 /**
  * Builds a PLAY Move from the pending tiles map.
  *
- * ✅ MVC: This is VIEW logic (converting UI state → Move object).
+ * MVC: This is VIEW logic (converting UI state to a Move object).
  * It does NOT belong in the controller (which should receive a ready Move)
- * nor in the model (which knows nothing about drag & drop).
+ * nor in the model (which knows nothing about drag-and-drop).
  */
 public class PendingMoveBuilder {
 
