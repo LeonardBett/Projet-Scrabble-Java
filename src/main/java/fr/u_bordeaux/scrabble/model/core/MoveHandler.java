@@ -47,6 +47,12 @@ public class MoveHandler {
         for (Square square : wordSquares) {
             if (!square.isEmpty()) {
                 word.append(square.getTile().getCharacter());
+                continue;
+            }
+
+            int placedIndex = newlyPlacedSquares.indexOf(square);
+            if (placedIndex >= 0) {
+                word.append(newlyPlacedTiles.get(placedIndex).getCharacter());
             }
         }
         return word.toString();

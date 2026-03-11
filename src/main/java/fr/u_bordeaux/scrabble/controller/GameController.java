@@ -8,11 +8,18 @@ import fr.u_bordeaux.scrabble.model.ai.AIPlayer;
 import fr.u_bordeaux.scrabble.model.core.Game;
 import fr.u_bordeaux.scrabble.model.core.HumanPlayer;
 import fr.u_bordeaux.scrabble.model.core.Move;
+import fr.u_bordeaux.scrabble.model.core.MoveHandler;
+import fr.u_bordeaux.scrabble.model.enums.MoveType;
 import fr.u_bordeaux.scrabble.model.dictionary.GADDAG;
 import fr.u_bordeaux.scrabble.model.interfaces.Player;
 import fr.u_bordeaux.scrabble.view.UserInterface;
 import fr.u_bordeaux.scrabble.view.cli.CLIInputHandler;
 import fr.u_bordeaux.scrabble.view.cli.CLIView;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import fr.u_bordeaux.scrabble.model.dictionary.GADDAG;
+import fr.u_bordeaux.scrabble.model.ai.AIPlayer;
 
 
 /**
@@ -27,6 +34,7 @@ import fr.u_bordeaux.scrabble.view.cli.CLIView;
 public class GameController {
     private Game game;
     private UserInterface view;
+    private GADDAG gaddag;
     
     public GameController(Game game, UserInterface view) {
         this.game = game;
@@ -51,12 +59,7 @@ public class GameController {
     
     }
 
-    /**
-     * Runs a CLI game loop if the provided view is a CLIView.
-     * This will prompt for players (if missing), start the game and process
-     * player actions until the game ends or the user quits.
-     */
-/**
+        /**
      * Runs a CLI game loop if the provided view is a CLIView.
      * This will prompt for players (if missing), start the game and process
      * player actions until the game ends or the user quits.
@@ -95,35 +98,7 @@ public class GameController {
         startGame();
 
         // 2. Chargement du dictionnaire GADDAG depuis le fichier texte
-        GADDAG gaddag = new GADDAG();
-        System.out.println("\nChargement du dictionnaire GADDAG en cours (cela peut prendre quelques secondes)...");
-        try {
-            // Lecture sécurisée depuis le dossier resources (fonctionne même dans un .jar compilé)
-            InputStream is = getClass().getClassLoader().getResourceAsStream("dictionaries/lexicon_en.txt");
-            
-            if (is == null) {
-                System.err.println("ERREUR : Fichier lexicon_en.txt introuvable dans src/main/resources/dictionaries/");
-            } else {
-                BufferedReader br = new BufferedReader(new InputStreamReader(is));
-                String line;
-                int wordCount = 0;
-                
-                while ((line = br.readLine()) != null) {
-                    String cleanWord = line.trim();
-                    if (!cleanWord.isEmpty()) {
-                        gaddag.add(cleanWord);
-                        wordCount++;
-                    }
-                }
-                br.close();
-                System.out.println("Dictionnaire chargé avec succès ! (" + wordCount + " mots ajoutés).\n");
-                System.out.println("PICKETE est dans le GADDAG ? " + gaddag.containsWord("PICKETE"));
-                System.out.println("BICKERE est dans le GADDAG ? " + gaddag.containsWord("BICKERE"));
-            }
-        } catch (Exception e) {
-            System.err.println("Erreur lors de la lecture du dictionnaire : " + e.getMessage());
-            e.printStackTrace();
-        }
+        GADDAG gaddag = getOrLoadGaddag();
         // 3. Boucle principale du jeu
         boolean running = true;
         while (running && !game.isGameOver()) {
@@ -230,6 +205,19 @@ public class GameController {
             if (move == null) {
                 return;
             }
+
+            if (move.getType() == MoveType.PLAY) {
+                GADDAG dictionary = getOrLoadGaddag();
+                MoveHandler moveHandler = new MoveHandler(game);
+                String completeWord = moveHandler.getCompleteWord(
+                        move.getStartPosition(),
+                        move.getDirection(),
+                        move.getTiles());
+
+                if (completeWord == null || completeWord.isBlank() || !dictionary.containsWord(completeWord.toUpperCase())) {
+                    throw new IllegalArgumentException("Word not found in dictionary: " + completeWord);
+                }
+            }
             
             // Execute the move in the model
             game.executeMove(move);
@@ -240,6 +228,38 @@ public class GameController {
             
         } catch (IllegalArgumentException | IllegalStateException e) {
             throw new RuntimeException("Invalid move: " + e.getMessage(), e);
+        }
+    }
+
+    private GADDAG getOrLoadGaddag() {
+        if (gaddag != null) {
+            return gaddag;
+        }
+
+        gaddag = new GADDAG();
+        System.out.println("\nChargement du dictionnaire GADDAG en cours (cela peut prendre quelques secondes)...");
+
+        try (InputStream is = getClass().getClassLoader().getResourceAsStream("dictionaries/lexicon_en.txt")) {
+            if (is == null) {
+                throw new IllegalStateException("Fichier lexicon_en.txt introuvable dans resources/dictionaries/");
+            }
+
+            int wordCount = 0;
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    String cleanWord = line.trim().toUpperCase();
+                    if (!cleanWord.isEmpty()) {
+                        gaddag.add(cleanWord);
+                        wordCount++;
+                    }
+                }
+            }
+
+            System.out.println("Dictionnaire charge avec succes ! (" + wordCount + " mots ajoutes).\n");
+            return gaddag;
+        } catch (Exception e) {
+            throw new IllegalStateException("Erreur lors du chargement du dictionnaire: " + e.getMessage(), e);
         }
     }
     
