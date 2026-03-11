@@ -203,13 +203,13 @@ public class GameController {
             if (move.getType() == MoveType.PLAY) {
                 GADDAG dictionary = getOrLoadGaddag();
                 MoveHandler moveHandler = new MoveHandler(game);
-                String completeWord = moveHandler.getCompleteWord(
+                for (String formedWord : moveHandler.getFormedWords(
                         move.getStartPosition(),
                         move.getDirection(),
-                        move.getTiles());
-
-                if (completeWord == null || completeWord.isBlank() || !dictionary.containsWord(completeWord.toUpperCase())) {
-                    throw new IllegalArgumentException("Word not found in dictionary: " + completeWord);
+                        move.getTiles())) {
+                    if (formedWord == null || formedWord.isBlank() || !dictionary.containsWord(formedWord.toUpperCase())) {
+                        throw new IllegalArgumentException("Word not found in dictionary: " + formedWord);
+                    }
                 }
             }
             
