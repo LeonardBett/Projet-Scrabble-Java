@@ -75,6 +75,12 @@ public class Rack {
         return "Rack{" + "tiles=" + tiles + '}';
     }
 
+    /**
+     * Replaces all rack tiles with the provided list.
+     * Primarily used by networking synchronization.
+     *
+     * @param tiles new rack content.
+     */
     public void setTiles(List<Tile> tiles) {
         this.tiles.clear();
         this.tiles.addAll(tiles);

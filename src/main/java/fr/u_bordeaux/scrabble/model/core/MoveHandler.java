@@ -15,6 +15,11 @@ import java.util.List;
 public class MoveHandler {
     private final Game game;
 
+    /**
+     * Creates a move handler bound to a game instance.
+     *
+     * @param game owning game.
+     */
     public MoveHandler(Game game) {
         this.game = game;
     }
@@ -47,6 +52,11 @@ public class MoveHandler {
         return word.toString();
     }
 
+    /**
+     * Validates and applies a PLAY move.
+     *
+     * @param move move to apply.
+     */
     public void handlePlayMove(Move move) {
         // 1. Extract move details
         Player player = move.getPlayer();
@@ -113,6 +123,11 @@ public class MoveHandler {
         System.out.println("Player " + player.getName() + " played a word for " + totalScore + " points.");
     }
 
+    /**
+     * Applies an EXCHANGE move by returning selected tiles to the bag and drawing new ones.
+     *
+     * @param move move to apply.
+     */
     public void handleExchangeMove(Move move) {
         Player player = move.getPlayer();
         List<Tile> tilesToExchange = move.getTiles();
@@ -140,10 +155,20 @@ public class MoveHandler {
         System.out.println("Player " + player.getName() + " exchanged " + tilesToExchange.size() + " tiles.");
     }
 
+    /**
+     * Applies a PASS move.
+     *
+     * @param move move to apply.
+     */
     public void handlePassMove(Move move) {
         System.out.println("Player " + move.getPlayer() + " passed.");
     }
 
+    /**
+     * Reverts a previously applied move.
+     *
+     * @param move move to revert.
+     */
     public void revertMove(Move move) {
         if (move.getType() != MoveType.PLAY) {
             return; // Only PLAY moves are handled for now

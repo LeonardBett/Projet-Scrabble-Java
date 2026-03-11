@@ -37,22 +37,47 @@ public class Square {
         this.squareType = squareType;
     }
 
+    /**
+     * Indicates whether this square currently contains a tile.
+     *
+     * @return true when no tile is placed.
+     */
     public boolean isEmpty() {
         return tile == null;
     }
 
+    /**
+     * Places or removes a tile on this square.
+     *
+     * @param tile tile to place, or null to clear the square.
+     */
     public void setTile(Tile tile) {
         this.tile = tile;
     }
 
+    /**
+     * Returns the tile currently on this square.
+     *
+     * @return tile on the square, or null when empty.
+     */
     public Tile getTile() {
         return tile;
     }
 
+    /**
+     * Returns this square coordinates.
+     *
+     * @return immutable board position.
+     */
     public Point getPosition() {
         return position;
     }
 
+    /**
+     * Returns the bonus type associated with this square.
+     *
+     * @return square bonus type.
+     */
     public SquareType getSquareType() {
         return squareType;
     }
