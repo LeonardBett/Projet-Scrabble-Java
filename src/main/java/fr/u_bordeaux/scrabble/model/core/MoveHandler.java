@@ -34,6 +34,20 @@ public class MoveHandler {
      * @return The complete word as a String (including existing tiles from the board)
      */
     public String getCompleteWord(Point startPosition, Direction direction, List<Tile> tiles) {
+        List<String> formedWords = getFormedWords(startPosition, direction, tiles);
+        return formedWords.isEmpty() ? "" : formedWords.getFirst();
+    }
+
+    /**
+     * Extracts all words formed by placing the tiles at the given position.
+     * The main word is returned first, followed by any perpendicular words created.
+     *
+     * @param startPosition starting position of the move.
+     * @param direction direction of the move.
+     * @param tiles tiles to be placed.
+     * @return ordered list of formed words.
+     */
+    public List<String> getFormedWords(Point startPosition, Direction direction, List<Tile> tiles) {
         List<Square> wordSquares = new ArrayList<>();
         List<Point> wordPositions = new ArrayList<>();
         List<Square> newlyPlacedSquares = new ArrayList<>();
@@ -42,7 +56,21 @@ public class MoveHandler {
         
         buildWordForMove(startPosition, direction, tiles, wordSquares, wordPositions, 
                         newlyPlacedSquares, newlyPlacedPositions, newlyPlacedTiles);
-        
+
+        List<String> formedWords = new ArrayList<>();
+        formedWords.add(buildWord(wordSquares, newlyPlacedSquares, newlyPlacedTiles));
+
+        for (int i = 0; i < newlyPlacedPositions.size(); i++) {
+            String crossWord = buildPerpendicularWord(newlyPlacedPositions.get(i), direction, newlyPlacedTiles.get(i));
+            if (crossWord.length() > 1) {
+                formedWords.add(crossWord);
+            }
+        }
+
+        return formedWords;
+    }
+
+    private String buildWord(List<Square> wordSquares, List<Square> newlyPlacedSquares, List<Tile> newlyPlacedTiles) {
         StringBuilder word = new StringBuilder();
         for (Square square : wordSquares) {
             if (!square.isEmpty()) {
@@ -55,6 +83,47 @@ public class MoveHandler {
                 word.append(newlyPlacedTiles.get(placedIndex).getCharacter());
             }
         }
+        return word.toString();
+    }
+
+    private String buildPerpendicularWord(Point pos, Direction mainDirection, Tile placedTile) {
+        int pdx = mainDirection == Direction.HORIZONTAL ? 0 : 1;
+        int pdy = mainDirection == Direction.HORIZONTAL ? 1 : 0;
+
+        StringBuilder word = new StringBuilder();
+
+        int bx = pos.getX() - pdx;
+        int by = pos.getY() - pdy;
+        List<Character> prefix = new ArrayList<>();
+        while (true) {
+            Point bp = new Point(bx, by);
+            Square bs = game.getBoard().getSquare(bp);
+            if (bs == null || bs.isEmpty()) {
+                break;
+            }
+            prefix.add(0, bs.getTile().getCharacter());
+            bx -= pdx;
+            by -= pdy;
+        }
+
+        for (char prefixLetter : prefix) {
+            word.append(prefixLetter);
+        }
+        word.append(placedTile.getCharacter());
+
+        int fx = pos.getX() + pdx;
+        int fy = pos.getY() + pdy;
+        while (true) {
+            Point fp = new Point(fx, fy);
+            Square fs = game.getBoard().getSquare(fp);
+            if (fs == null || fs.isEmpty()) {
+                break;
+            }
+            word.append(fs.getTile().getCharacter());
+            fx += pdx;
+            fy += pdy;
+        }
+
         return word.toString();
     }
 
