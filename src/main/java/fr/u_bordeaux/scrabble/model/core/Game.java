@@ -1,5 +1,6 @@
 package fr.u_bordeaux.scrabble.model.core;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,6 +14,8 @@ import fr.u_bordeaux.scrabble.model.enums.MoveType;
  * This is where the "business logic" resides.
  */
 public class Game {
+    private static final Duration DEFAULT_BLITZ_TIME = Duration.ofMinutes(30);
+
     private final Board board;
     private final Bag bag;
     private final List<Player> players;
@@ -22,6 +25,8 @@ public class Game {
     private final UndoRedo undoRedo;
     /** True once the first PLAY move has been successfully executed. */
     private boolean firstMoveDone;
+    private boolean blitzModeEnabled;
+    private Duration blitzTimePerPlayer;
 
     /**
      * Builds a new game with an empty player list and initialized board/bag.
@@ -35,6 +40,8 @@ public class Game {
         this.moveHandler = new MoveHandler(this);
         this.undoRedo = new UndoRedo();
         this.firstMoveDone = false;
+        this.blitzModeEnabled = false;
+        this.blitzTimePerPlayer = DEFAULT_BLITZ_TIME;
     }
 
     /**
@@ -44,6 +51,46 @@ public class Game {
      */
     public void addPlayer(Player player) {
         players.add(player);
+        if (blitzModeEnabled) {
+            player.enableBlitzClock(blitzTimePerPlayer);
+        }
+    }
+
+    /**
+     * Enables blitz mode with default 30 minutes per player.
+     */
+    public void enableBlitzMode() {
+        enableBlitzMode(DEFAULT_BLITZ_TIME);
+    }
+
+    /**
+     * Enables blitz mode with a custom time per player.
+     */
+    public void enableBlitzMode(Duration timePerPlayer) {
+        if (timePerPlayer == null || timePerPlayer.isNegative() || timePerPlayer.isZero()) {
+            throw new IllegalArgumentException("Blitz time per player must be positive.");
+        }
+
+        this.blitzModeEnabled = true;
+        this.blitzTimePerPlayer = timePerPlayer;
+
+        for (Player player : players) {
+            player.enableBlitzClock(timePerPlayer);
+        }
+    }
+
+    /**
+     * Disables blitz mode for the current game.
+     */
+    public void disableBlitzMode() {
+        this.blitzModeEnabled = false;
+        for (Player player : players) {
+            player.disableBlitzClock();
+        }
+    }
+
+    public boolean isBlitzModeEnabled() {
+        return blitzModeEnabled;
     }
 
     /**
@@ -56,6 +103,20 @@ public class Game {
         for (Player player : players) {
             refillRack(player);
         }
+
+        if (blitzModeEnabled) {
+            for (Player player : players) {
+                if (!player.isBlitzClockEnabled()) {
+                    player.enableBlitzClock(blitzTimePerPlayer);
+                }
+                player.pauseTurnTimer();
+            }
+            Player current = getCurrentPlayer();
+            if (current != null) {
+                current.startTurnTimer();
+            }
+        }
+
         System.out.println("Game started! Tiles distributed.");
     }
 
@@ -71,8 +132,15 @@ public class Game {
             throw new IllegalStateException("Game is over.");
         }
 
+        Player currentPlayer = getCurrentPlayer();
+        if (blitzModeEnabled && currentPlayer != null && currentPlayer.isOutOfTime()) {
+            currentPlayer.pauseTurnTimer();
+            setGameOver(true);
+            throw new IllegalStateException("Time is over for " + currentPlayer.getName() + ".");
+        }
+
         // 1. Validate that it's the correct player's turn
-        if (!move.getPlayer().equals(getCurrentPlayer())) {
+        if (!move.getPlayer().equals(currentPlayer)) {
             throw new IllegalArgumentException("It is not " + move.getPlayer() + "'s turn.");
         }
 
@@ -121,14 +189,42 @@ public class Game {
      * Advances to the next player in turn order.
      */
     public void nextTurn() {
-        if (!players.isEmpty()) {
-            currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
+        if (players.isEmpty()) {
+            return;
+        }
+
+        Player current = getCurrentPlayer();
+        if (blitzModeEnabled && current != null) {
+            current.pauseTurnTimer();
+        }
+
+        currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
+
+        Player next = getCurrentPlayer();
+        if (blitzModeEnabled && next != null) {
+            if (next.isOutOfTime()) {
+                setGameOver(true);
+                return;
+            }
+            next.startTurnTimer();
         }
     }
     
     private void previousTurn() {
-        if (!players.isEmpty()) {
-            currentPlayerIndex = (currentPlayerIndex - 1 + players.size()) % players.size();
+        if (players.isEmpty()) {
+            return;
+        }
+
+        Player current = getCurrentPlayer();
+        if (blitzModeEnabled && current != null) {
+            current.pauseTurnTimer();
+        }
+
+        currentPlayerIndex = (currentPlayerIndex - 1 + players.size()) % players.size();
+
+        Player previous = getCurrentPlayer();
+        if (blitzModeEnabled && previous != null && !previous.isOutOfTime()) {
+            previous.startTurnTimer();
         }
     }
 
