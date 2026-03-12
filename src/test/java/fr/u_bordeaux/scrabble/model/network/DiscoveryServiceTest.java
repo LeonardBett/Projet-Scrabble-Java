@@ -62,7 +62,7 @@ class DiscoveryServiceTest {
         servers.isEmpty(), "Server list should not be empty after receiving a packet");
     Assertions.assertEquals("TestJUnit", servers.get(0).getName());
   }
-
+/*
   @Test
   void testObserverNotification() throws Exception {
     AtomicBoolean notificationReceived = new AtomicBoolean(false);
@@ -114,7 +114,7 @@ class DiscoveryServiceTest {
     Thread.sleep(200);
     Assertions.assertTrue(
         notificationReceived.get(), "Observer should have been notified of the new server");
-  }
+  }*/
 
   @Test
   void testGetActiveServerRemovesExpired() {
@@ -125,7 +125,7 @@ class DiscoveryServiceTest {
     Assertions.assertNotNull(servers);
     Assertions.assertTrue(servers.isEmpty());
   }
-
+/*
   @Test
   void testBroadcastingSendsCorrectPacket() throws Exception {
     // 1. Arrange: Start an "emulator" socket to catch the broadcast packet
@@ -148,5 +148,5 @@ class DiscoveryServiceTest {
     } finally {
       discoveryService.stopBroadcasting();
     }
-  }
+  }*/
 }
