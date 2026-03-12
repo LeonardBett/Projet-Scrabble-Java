@@ -20,7 +20,7 @@ public class ServerInfo {
    * @param port the port
    * @param name the name
    */
-  public ServerInfo(String ip, int port, String name) {
+public ServerInfo(String ip, int port, String name) {
     this.ip = ip;
     this.port = port;
     this.name = name;
@@ -28,25 +28,25 @@ public class ServerInfo {
   }
 
   /** Update last seen of this server. */
-  public void updateLastSeen() {
+public void updateLastSeen() {
     this.lastSeen = System.currentTimeMillis();
   }
 
   /**
    * Return if this server is expired (lastseen > SERVER_TIMEOUT).
    *
-   * @return the boolean
+   * @return  the boolean
    */
-  public boolean isExpired() {
+public boolean isExpired() {
     return (System.currentTimeMillis() - lastSeen) > SERVER_TIMEOUT;
   }
 
   /**
    * Gets ip.
    *
-   * @return the ip
+   * @return  the ip
    */
-  // Getter
+// Getter
   public String getIp() {
     return ip;
   }
@@ -54,18 +54,18 @@ public class ServerInfo {
   /**
    * Gets port.
    *
-   * @return the port
+   * @return  the port
    */
-  public int getPort() {
+public int getPort() {
     return port;
   }
 
   /**
    * Gets name.
    *
-   * @return the name
+   * @return  the name
    */
-  public String getName() {
+public String getName() {
     return name;
   }
 

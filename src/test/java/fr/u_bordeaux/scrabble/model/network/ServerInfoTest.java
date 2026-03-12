@@ -1,5 +1,6 @@
-package fr.u_bordeaux.scrabble.model.network.server;
+package fr.u_bordeaux.scrabble.model.network;
 
+import fr.u_bordeaux.scrabble.model.network.server.ServerInfo;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

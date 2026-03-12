@@ -57,7 +57,7 @@ public class GameClient {
    * @param address the address
    * @param port the port
    */
-  public void connect(String address, int port) {
+public void connect(String address, int port) {
     try {
       // Try to connect to a server
       socket = new Socket(address, port);
@@ -79,12 +79,12 @@ public class GameClient {
       heartbeatThread.start();
 
     } catch (IOException e) {
-      System.err.println("Client Error: Could no connect to server " + e.getMessage());
+      System.err.println("Client Error: Could not connect to server " + e.getMessage());
     }
   }
 
   /** Connect to a server on the default address and port. */
-  public void connect() {
+public void connect() {
     connect(DEFAULT_ADDRESS, DEFAULT_TCP_PORT);
   }
 
@@ -228,7 +228,7 @@ public class GameClient {
             String playerName = move.get("PLAYER");
             Player player = localGame.getPlayerFromName(playerName);
             if (player == null) {
-              System.err.println("Player " + playerName + " not found");
+              // System.err.println("Player " + playerName + " not found");
               break;
             }
 
@@ -287,9 +287,9 @@ public class GameClient {
   }
 
   /** Close the connexion with the server. */
-  public void quit() {
+public void quit() {
     if (!isRunning) {
-      System.err.println("Client : This client is already disconnected");
+      // System.err.println("Client : This client is already disconnected");
       return;
     }
     isRunning = false;
@@ -315,37 +315,38 @@ public class GameClient {
    *
    * @param message the message
    */
-  public void sendMessage(String message) {
+public void sendMessage(String message) {
     if (isRunning && out != null) {
       out.println(message);
     } else {
-      System.err.println("Client : Client is not running/connected");
+      // System.err.println("Client : Client is not running/connected");
+      return;
     }
   }
 
   /** Send ping command to the server. */
-  public void sendPing() {
+public void sendPing() {
     pingStartTime = System.currentTimeMillis();
     sendMessage("PING");
   }
 
   /** Send ping command to the server only for timeout management. */
-  public void sendPingSilent() {
+public void sendPingSilent() {
     sendMessage("PINGS");
   }
 
   /** Send server status command to the server. */
-  public void sendServerStatus() {
+public void sendServerStatus() {
     sendMessage("SERVER_STATUS");
   }
 
   /** Send players command to the server. */
-  public void sendPlayers() {
+public void sendPlayers() {
     sendMessage("PLAYERS");
   }
 
   /** Send scoreboard command to the server. */
-  public void sendScoreboard() {
+public void sendScoreboard() {
     sendMessage("SCOREBOARD");
   }
 
@@ -354,8 +355,33 @@ public class GameClient {
    *
    * @param playerId the target id
    */
-  public void sendNew(int playerId) {
-    sendMessage("NEW_" + playerId);
+public void sendNew(int playerId) {
+    String message = String.format("NEW:PLAYER1=%d", playerId);
+    sendMessage(message);
+  }
+
+  /**
+   * Send new PLAYER_ID command to the server.
+   *
+   * @param playerId1 the target id of the player 1
+   * @param playerId2 the target id of the player 2
+   */
+public void sendNew(int playerId1, int playerId2) {
+    String message = String.format("NEW:PLAYER1=%d;PLAYER2=%d", playerId1, playerId2);
+    sendMessage(message);
+  }
+
+  /**
+   * Send new PLAYER_ID command to the server.
+   *
+   * @param playerId1 the target id of the player 1
+   * @param playerId2 the target id of the player 2
+   * @param playerId3 the target id of the player 3
+   */
+public void sendNew(int playerId1, int playerId2, int playerId3) {
+    String message =
+        String.format("NEW:PLAYER1=%d;PLAYER2=%d;PLAYER3=%d", playerId1, playerId2, playerId3);
+    sendMessage(message);
   }
 
   /**
@@ -366,7 +392,7 @@ public class GameClient {
    * @param direction the direction of the move
    * @param tile the word to play
    */
-  public void sendPlayMove(int x, int y, String direction, String tile) {
+public void sendPlayMove(int x, int y, String direction, String tile) {
     // Format: MOVE:TYPE=PLAY;X=7;Y=7;DIR=H;WORD=CHAT
     String message =
         String.format("MOVE:TYPE=PLAY;X=%d;Y=%d;DIR=%s;TILES=%s", x, y, direction, tile);
@@ -378,14 +404,14 @@ public class GameClient {
    *
    * @param tiles the tiles to exchange (ex: "A,B,C")
    */
-  public void sendExchangeMove(String tiles) {
+public void sendExchangeMove(String tiles) {
     // Format: MOVE:TYPE=EXCHANGE;TILES=A,B,C
     String message = String.format("MOVE:TYPE=EXCHANGE;TILES=%s", tiles);
     sendMessage(message);
   }
 
   /** Send PASS move command to the server. */
-  public void sendPassMove() {
+public void sendPassMove() {
     // Format: MOVE:TYPE=PASS
     sendMessage("MOVE:TYPE=PASS");
   }
@@ -411,7 +437,7 @@ public class GameClient {
    *
    * @param observer the new observer to add
    */
-  public void addObserver(NetworkObserver observer) {
+public void addObserver(NetworkObserver observer) {
     observers.add(observer);
   }
 
@@ -420,9 +446,19 @@ public class GameClient {
    *
    * @param observer the new observer to remove
    */
-  public void removeObserver(NetworkObserver observer) {
+public void removeObserver(NetworkObserver observer) {
     if (!observers.remove(observer)) {
-      System.err.println("User : Observer not found, can't remove it from the list");
+      // System.err.println("User : Observer not found, can't remove it from the list");
+      return;
     }
+  }
+
+  /**
+   * Gets local game.
+   *
+   * @return the local game
+   */
+  public Game getLocalGame() {
+    return localGame;
   }
 }

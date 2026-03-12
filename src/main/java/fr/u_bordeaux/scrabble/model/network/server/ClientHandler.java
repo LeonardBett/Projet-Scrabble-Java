@@ -8,6 +8,9 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /** Handles communication with a single connected client. Runs in its own thread. */
 public class ClientHandler implements Runnable {
@@ -39,7 +42,7 @@ public class ClientHandler implements Runnable {
    * @param server the server
    * @param playerId the player id
    */
-  public ClientHandler(Socket socket, GameServer server, int playerId) {
+public ClientHandler(Socket socket, GameServer server, int playerId) {
     this.socket = socket;
     this.server = server;
 
@@ -66,7 +69,7 @@ public class ClientHandler implements Runnable {
       String clientMessage;
       while (isRunning && (clientMessage = in.readLine()) != null) {
         // Check for command with parameters
-        if (clientMessage.startsWith("NEW_")) {
+        if (clientMessage.startsWith("NEW")) {
           handleNewGameRequest(clientMessage);
         } else if (clientMessage.startsWith("MOVE:")) {
           handleMoveRequest(clientMessage);
@@ -80,7 +83,7 @@ public class ClientHandler implements Runnable {
             case "PLAYERS" -> sendMessage(server.getPlayerResponse());
             case "SCOREBOARD" -> sendMessage(server.getScoreboardResponse());
 
-            default -> System.err.println("Server : Received unknow command: " + clientMessage);
+            default -> sendMessage("ERROR: Unknown command");
           }
         }
       }
@@ -90,8 +93,13 @@ public class ClientHandler implements Runnable {
     } catch (SocketException e) {
       // If isRunning is false, it means we called stop(), so we just exit the loop
       if (isRunning) {
-        System.err.println(
-            "ClientHandler run() : Unintended socket Exception with message: " + e.getMessage());
+        // We filter standard disconnection messages to keep the console clean
+        if (!e.getMessage().contains("reset")
+            && !e.getMessage().contains("abandonnée")
+            && !e.getMessage().contains("closed")) {
+          System.err.println(
+              "ClientHandler run() : Unintended socket Exception: " + e.getMessage());
+        }
       }
     } catch (IOException e) {
       System.err.println("ClientHandler run() : IOException with message: " + e.getMessage());
@@ -107,18 +115,19 @@ public class ClientHandler implements Runnable {
    *
    * @param message the message
    */
-  public void sendMessage(String message) {
+public void sendMessage(String message) {
     if (out != null) {
       out.println(message);
     } else {
-      System.err.println("Client is not connected");
+      // System.err.println("Client is not connected");
+      return;
     }
   }
 
   /** Close the connexion with the client. */
-  public void quit() {
+public void quit() {
     if (!isRunning) {
-      System.err.println("Client is already disconnected");
+      // err.println("Client is already disconnected");
       return;
     }
     isRunning = false;
@@ -142,9 +151,9 @@ public class ClientHandler implements Runnable {
   /**
    * Gets client info.
    *
-   * @return the client info
+   * @return  the client info
    */
-  public ClientInfo getClientInfo() {
+public ClientInfo getClientInfo() {
     return clientInfo;
   }
 
@@ -155,16 +164,34 @@ public class ClientHandler implements Runnable {
    */
   private void handleNewGameRequest(String message) {
     try {
-      // Extract the ID from "new ID"
-      int targetId = Integer.parseInt(message.substring(4).trim());
-      String response = server.createNewGame(this, targetId);
+      // We parse the message
+      PacketParser packet = new PacketParser(message);
+      if (packet.getEntries().isEmpty()) {
+        return;
+      }
+      Map<String, String> data = packet.getEntries().getFirst();
 
-      // If there's an error, we notify the requester
+      // We create an array for storing targets ID
+      List<Integer> targetIds = new ArrayList<>();
+
+      // We check each key of the map
+      for (String key : data.keySet()) {
+        if (key.startsWith("PLAYER")) {
+          String val = data.get(key);
+          if (val != null && !val.isEmpty()) {
+            targetIds.add(Integer.parseInt(val));
+          }
+        }
+      }
+
+      // We give the target list to the server to create a new game
+      String response = server.createNewGame(this, targetIds);
+
       if (response.startsWith("ERROR")) {
         sendMessage(response);
       }
-    } catch (NumberFormatException | StringIndexOutOfBoundsException e) {
-      sendMessage("ERROR: Invalid format. Use 'new PLAYER_ID'");
+    } catch (NumberFormatException e) {
+      sendMessage("ERROR: Invalid ID format.");
     }
   }
 
@@ -181,19 +208,24 @@ public class ClientHandler implements Runnable {
    *
    * @param onlineGame the online game
    */
-  public void setOnlineGame(OnlineGame onlineGame) {
+public void setOnlineGame(OnlineGame onlineGame) {
     this.onlineGame = onlineGame;
   }
 
   /**
    * Gets server.
    *
-   * @return the server
+   * @return  the server
    */
-  public GameServer getServer() {
+public GameServer getServer() {
     return server;
   }
 
+  /**
+   * Gets online game.
+   *
+   * @return the online game
+   */
   public OnlineGame getOnlineGame() {
     return onlineGame;
   }

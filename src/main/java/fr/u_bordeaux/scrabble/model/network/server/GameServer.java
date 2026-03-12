@@ -33,7 +33,7 @@ public class GameServer {
   private int idCounter = 1;
 
   /** Start the server on the default port. */
-  public void start() {
+public void start() {
     start(DEFAULT_TCP_PORT);
   }
 
@@ -42,7 +42,7 @@ public class GameServer {
    *
    * @param port the port
    */
-  public void start(int port) {
+public void start(int port) {
     // System.out.println("Server : Server Starting...");
     isRunning = true;
     try {
@@ -64,7 +64,7 @@ public class GameServer {
         new Thread(handler).start();
       }
     } catch (java.net.BindException e) {
-      System.err.println("Server Error: Port " + port + " is already in use.");
+      // System.err.println("Server Error: Port " + port + " is already in use.");
       isRunning = false;
     } catch (SocketException e) {
       if (isRunning) {
@@ -82,9 +82,9 @@ public class GameServer {
   }
 
   /** Stop the server. */
-  public void stop() {
+public void stop() {
     if (!isRunning) {
-      System.err.println("Server : Server is not running, can't stop it");
+      // System.err.println("Server : Server is not running, can't stop it");
       return;
     }
     isRunning = false;
@@ -121,7 +121,7 @@ public class GameServer {
    *
    * @param client the client
    */
-  public void removeClient(ClientHandler client) {
+public void removeClient(ClientHandler client) {
     clients.remove(client);
     // System.out.println("Server : There is now " + clients.size() + " client(s) connected");
   }
@@ -129,9 +129,9 @@ public class GameServer {
   /**
    * Gets local network ip of this server. Needed for getting server infos
    *
-   * @return the local network ip
+   * @return  the local network ip
    */
-  public String getLocalNetworkIp() {
+public String getLocalNetworkIp() {
     try {
       var interfaces = java.net.NetworkInterface.getNetworkInterfaces();
       while (interfaces.hasMoreElements()) {
@@ -160,9 +160,9 @@ public class GameServer {
   /**
    * Create the STATUS command response with server information.
    *
-   * @return the server STATUS command response
+   * @return  the server STATUS command response
    */
-  public String getStatusResponse() {
+public String getStatusResponse() {
     int port = serverInfo.getPort();
     int clientCount = clients.size();
     int gameCount = onlineGames.size();
@@ -173,9 +173,9 @@ public class GameServer {
   /**
    * Create the string with players infos needed for PLAYER command.
    *
-   * @return the string with PLAYERS command response infos
+   * @return  the string with PLAYERS command response infos
    */
-  public String getPlayerResponse() {
+public String getPlayerResponse() {
     StringBuilder sb = new StringBuilder("PLAYERS:");
     synchronized (clients) {
       for (ClientHandler client : clients) {
@@ -188,9 +188,9 @@ public class GameServer {
   /**
    * Create the string with players infos needed for SCOREBOARD command.
    *
-   * @return the string with SCOREBOARD command response infos
+   * @return  the string with SCOREBOARD command response infos
    */
-  public String getScoreboardResponse() {
+public String getScoreboardResponse() {
     StringBuilder sb = new StringBuilder("SCOREBOARD:");
     synchronized (clients) {
       for (ClientHandler client : clients) {
@@ -201,46 +201,58 @@ public class GameServer {
   }
 
   /**
-   * Starts a new game between the requester and a target player. Will support multiple target
-   * player in the future.
+   * Starts a new game between the initiator and a list of target players. Supports multiplayer
+   * sessions (2 to 4 players total).
    *
    * @param initiator The client who sent the "new" command
-   * @param targetId The ID of the player to invite
-   * @return String response for the initiator
+   * @param targetIds The list of player IDs to invite to the game
+   * @return  String response for the initiator indicating success or failure
    */
-  public synchronized String createNewGame(ClientHandler initiator, int targetId) {
-    // Find the target client
-    ClientHandler target = null;
+public synchronized String createNewGame(ClientHandler initiator, List<Integer> targetIds) {
+    List<ClientHandler> participants = new ArrayList<>();
+    participants.add(initiator);
+
+    // Verify if the initiator is available to play
+    if (initiator.getClientInfo().getStatus() != PlayerStatus.IDLE) {
+      return "ERROR: You are already in a game";
+    }
+
+    // Locate and validate all invited opponents
     synchronized (clients) {
-      for (ClientHandler c : clients) {
-        if (c.getClientInfo().getId() == targetId) {
-          target = c;
-          break;
+      for (int id : targetIds) {
+        ClientHandler target = null;
+        for (ClientHandler c : clients) {
+          if (c.getClientInfo().getId() == id) {
+            target = c;
+            break;
+          }
         }
+
+        // Check if the target player exists
+        if (target == null) {
+          return "ERROR: Player " + id + " not found";
+        }
+        // Check for self-invitation
+        if (target == initiator) {
+          return "ERROR: You cannot play against yourself";
+        }
+        // Verify availability
+        if (target.getClientInfo().getStatus() != PlayerStatus.IDLE) {
+          return "ERROR: Player " + target.getClientInfo().getName() + " is busy";
+        }
+
+        participants.add(target);
       }
     }
 
-    // Check if  the target player is valid and not busy
-    if (target == null) {
-      return "ERROR: Player not found";
-    }
-    if (target == initiator) {
-      return "ERROR: You cannot play against yourself";
-    }
-    if (target.getClientInfo().getStatus() != PlayerStatus.IDLE) {
-      return "ERROR: Player is busy";
-    }
-    if (initiator.getClientInfo().getStatus() != PlayerStatus.IDLE) {
-      return "ERROR: You are already in game";
-    }
-
-    // Create the online game and add it to the list of current online game
-    OnlineGame session = new OnlineGame(List.of(initiator, target));
+    // Create the online game session and add it to the active list
+    OnlineGame session = new OnlineGame(participants);
     onlineGames.add(session);
 
-    // Update status of players
-    initiator.getClientInfo().setStatus(PlayerStatus.INGAME);
-    target.getClientInfo().setStatus(PlayerStatus.INGAME);
+    // Update the status of all participants to prevent them from joining other games
+    for (ClientHandler p : participants) {
+      p.getClientInfo().setStatus(PlayerStatus.INGAME);
+    }
 
     return "SUCCESS: Game started";
   }

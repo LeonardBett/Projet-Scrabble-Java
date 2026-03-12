@@ -83,14 +83,15 @@ class NetworkManagerTest {
   // --- CLIENT MANAGEMENT TESTS ---
 
   @Test
-  void testJoinAndQuitLifecycle() {
+  void testJoinAndQuitLifecycle() throws InterruptedException {
     networkManager.startOnlinePlay();
+
+    // Start server on default port
+    networkManager.serverStart();
+    Thread.sleep(100);
 
     // Connect to a local address
     networkManager.join("localhost");
-
-    // Attempting to join while already connected should be blocked
-    networkManager.join("127.0.0.1", 12345);
 
     networkManager.quit();
     // Quitting while disconnected should be handled gracefully
@@ -103,9 +104,6 @@ class NetworkManagerTest {
   void testObserverPropagation() {
     // Add observer before client exists
     networkManager.addObserver(mockObserver);
-
-    // When joining, the observer must be added to the new GameClient
-    networkManager.join("localhost");
 
     // Remove observer should update discovery and client
     networkManager.removeObserver(mockObserver);

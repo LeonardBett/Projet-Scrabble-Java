@@ -115,25 +115,45 @@ class ClientServerTest {
   // --- 3. MULTIPLAYER & GAMEPLAY TESTS ---
 
   @Test
-  void testMultiplayerGameInitialization() throws InterruptedException {
-    // Connect a second client to simulate a multiplayer environment
+  void testRealMultiplayerInteraction() throws InterruptedException {
+    // 1. Setup: Connect a second client to the server
     GameClient client2 = new GameClient();
+    TestObserver observer2 = new TestObserver();
+    client2.addObserver(observer2);
     client2.connect("127.0.0.1", TEST_PORT);
-    Thread.sleep(150); // Allow handshake
 
-    // Send a request from Client 1 to start a game with Client 2 (ID is 2)
-    client.sendNew(2);
+    // Wait for the TCP handshake to complete
     Thread.sleep(200);
 
-    // Verify that gameplay commands write to the output stream without throwing exceptions.
-    // Full gameplay logic validation depends on OnlineGame.java.
-    Assertions.assertDoesNotThrow(
-        () -> {
-          client.sendPlayMove(7, 7, "H", "HELLO");
-          client.sendExchangeMove("A,B,C");
-          client.sendPassMove();
-        });
+    // 2. Action: Client 1 invites Client 2 (assuming Client 2 has ID 2)
+    client.sendNew(2);
 
+    // Allow time for the server to create the OnlineGame session and broadcast GAME_START
+    Thread.sleep(500);
+
+    // 3. Verification: Ensure both clients received the GAME_START command and initialized their
+    // local models
+    Assertions.assertTrue(
+        spyObserver.localModelUpdated,
+        "Client 1 should have received GAME_START and updated its local model");
+    Assertions.assertTrue(
+        observer2.localModelUpdated,
+        "Client 2 should have received GAME_START and updated its local model");
+
+    // 4. Action: Client 1 performs a "PASS" move
+    client.sendPassMove();
+
+    // Allow time for the server to process the move and broadcast the update to all participants
+    Thread.sleep(200);
+
+    // 5. Final Verification: Check if Client 2's local model successfully updated the turn order
+    // In a 2-player game, after Player-1 passes, the current player must be Player-2
+    Assertions.assertEquals(
+        "Player-2",
+        client2.getLocalGame().getCurrentPlayer().getName(),
+        "Client 2's local game should have advanced the turn to Player-2");
+
+    // Cleanup: Disconnect the second client
     client2.quit();
   }
 

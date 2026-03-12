@@ -27,7 +27,7 @@ public class OnlineGame {
    *
    * @param handlers the clients
    */
-  public OnlineGame(List<ClientHandler> handlers) {
+public OnlineGame(List<ClientHandler> handlers) {
     this.game = new Game();
     this.handlers = handlers;
 
@@ -54,7 +54,7 @@ public class OnlineGame {
     }
 
     // Debug: print the board server side
-    game.printDebugState(false, false);
+    // game.printDebugState(false, false);
   }
 
   /**
@@ -62,7 +62,7 @@ public class OnlineGame {
    *
    * @param message the message to send
    */
-  public void broadcast(String message) {
+public void broadcast(String message) {
     for (ClientHandler p : handlers) {
       p.sendMessage(message);
     }
@@ -97,7 +97,7 @@ public class OnlineGame {
    * @param handler the handler
    * @param player the player
    */
-  public void sendRack(ClientHandler handler, Player player) {
+public void sendRack(ClientHandler handler, Player player) {
     List<Tile> tiles = player.getRack().getTiles();
 
     // We create a simple message of characters: "A,B,C,Q,Z,Y,X"
@@ -113,7 +113,7 @@ public class OnlineGame {
    * @param sender the client handler who sent the move
    * @param packetParser the parsed move packetParser
    */
-  public void processMove(ClientHandler sender, PacketParser packetParser) {
+public synchronized void processMove(ClientHandler sender, PacketParser packetParser) {
     // Check if we have data in the packetParser
     if (packetParser.getEntries().isEmpty()) {
       return;
@@ -188,7 +188,7 @@ public class OnlineGame {
     sendRack(sender, player);
 
     // Debug: print the board server side
-    game.printDebugState(false, false);
+    // game.printDebugState(false, false);
   }
 
   /** Handles the exchange of tiles. */
@@ -216,7 +216,7 @@ public class OnlineGame {
     sendRack(sender, player);
 
     // Debug: print the board server side
-    game.printDebugState(false, false);
+    // game.printDebugState(false, false);
   }
 
   /** Handles skipping a turn. */
@@ -230,7 +230,7 @@ public class OnlineGame {
     broadcast(String.format("OPPONENT_MOVE:PLAYER=%s;TYPE=PASS", sender.getClientInfo().getName()));
 
     // Debug: print the board server side
-    game.printDebugState(false, false);
+    // game.printDebugState(false, false);
   }
 
   /**
@@ -253,7 +253,7 @@ public class OnlineGame {
    *
    * @param reason The reason why the game is ending (e.g., "A player disconnected")
    */
-  public void terminateGame(String reason) {
+public void terminateGame(String reason) {
     // Notify all remaining connected players
     broadcast("ERROR: Game terminated - " + reason);
 
@@ -265,5 +265,14 @@ public class OnlineGame {
 
     // Remove this game from the server's list
     handlers.getFirst().getServer().removeOnlineGame(this);
+  }
+
+  /**
+   * Gets game.
+   *
+   * @return the game
+   */
+  public Game getGame() {
+    return game;
   }
 }

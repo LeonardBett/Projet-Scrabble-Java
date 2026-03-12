@@ -23,7 +23,7 @@ public class PacketParser {
    *
    * @param rawMessage the raw message receive by the client form the server
    */
-  public PacketParser(String rawMessage) {
+public PacketParser(String rawMessage) {
     // We check if this raw message is a simple world (ex: PONG for the command PING)
     if (rawMessage == null || !rawMessage.contains(":")) {
       this.command = rawMessage;
@@ -67,9 +67,9 @@ public class PacketParser {
   /**
    * Return the command name of this packet.
    *
-   * @return the command name (ex: PLAYERS, PING, ...)
+   * @return  the command name (ex: PLAYERS, PING, ...)
    */
-  public String getCommand() {
+public String getCommand() {
     return command;
   }
 

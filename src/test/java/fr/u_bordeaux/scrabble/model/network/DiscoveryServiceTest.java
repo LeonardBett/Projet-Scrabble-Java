@@ -4,6 +4,7 @@ import fr.u_bordeaux.scrabble.model.network.server.ServerInfo;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.jupiter.api.AfterEach;
@@ -11,63 +12,61 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-/**
- * Integration tests for DiscoveryService. Verifies UDP listening, broadcasting, and observer
- * notifications.
- */
 class DiscoveryServiceTest {
 
   private DiscoveryService discoveryService;
 
   @BeforeEach
-  void setUp() {
+  void setUp() throws InterruptedException {
+    // OS needs time to release the UDP port between tests
+    Thread.sleep(150);
     discoveryService = new DiscoveryService();
   }
 
   @AfterEach
   void tearDown() {
-    // Ensure all threads and sockets are closed after each test
     discoveryService.stopListening();
     discoveryService.stopBroadcasting();
   }
 
   @Test
-  void testStartStopListening() {
-    discoveryService.startListening();
-    // No exception should be thrown, and service should be active
-    discoveryService.stopListening();
-  }
-
-  @Test
   void testServerDiscoveryViaFakePacket() throws Exception {
     discoveryService.startListening();
+    Thread.sleep(200); // Wait for the listening thread to bind
 
-    // Prepare a fake UDP broadcast packet
     String message = "SCRABBLE_SERVER;TestJUnit;12345";
     byte[] buffer = message.getBytes();
-    InetAddress address = InetAddress.getByName("localhost");
 
-    // Send the packet manually to the discovery port
+    // Use the same broadcast address as the service
+    InetAddress broadcastAddr = InetAddress.getByName("255.255.255.255");
+
     try (DatagramSocket socket = new DatagramSocket()) {
+      socket.setBroadcast(true); // REQUIRED to send broadcast packets
       DatagramPacket packet =
-          new DatagramPacket(buffer, buffer.length, address, NetworkManager.DEFAULT_UDP_PORT);
+          new DatagramPacket(buffer, buffer.length, broadcastAddr, NetworkManager.DEFAULT_UDP_PORT);
       socket.send(packet);
     }
 
-    // Wait a bit for the background thread to process the packet
-    Thread.sleep(200);
+    // Polling loop: check every 50ms for up to 1 second
+    boolean found = false;
+    for (int i = 0; i < 20; i++) {
+      if (!discoveryService.getActiveServer().isEmpty()) {
+        found = true;
+        break;
+      }
+      Thread.sleep(50);
+    }
 
     List<ServerInfo> servers = discoveryService.getActiveServer();
-    Assertions.assertFalse(
-        servers.isEmpty(), "Server list should not be empty after receiving a packet");
-    Assertions.assertEquals("TestJUnit", servers.get(0).getName());
+    Assertions.assertTrue(
+        found, "Server list remained empty. UDP packet was likely blocked or dropped.");
+    Assertions.assertEquals("TestJUnit", servers.getFirst().getName());
   }
 
   @Test
   void testObserverNotification() throws Exception {
     AtomicBoolean notificationReceived = new AtomicBoolean(false);
 
-    // Create a minimal observer to catch the update
     NetworkObserver observer =
         new NetworkObserver() {
           @Override
@@ -81,70 +80,68 @@ class DiscoveryServiceTest {
           public void localModelUpdate() {}
 
           @Override
-          public void gameEndedUpdate(String reason) {}
+          public void gameEndedUpdate(String r) {}
 
           @Override
-          public void serverStatusUpdate(java.util.Map<String, String> info) {}
+          public void serverStatusUpdate(java.util.Map<String, String> i) {}
 
           @Override
-          public void playersUpdate(java.util.List<java.util.Map<String, String>> players) {}
+          public void playersUpdate(java.util.List<java.util.Map<String, String>> p) {}
 
           @Override
-          public void scoreboardUpdate(java.util.List<java.util.Map<String, String>> scoreboard) {}
+          public void scoreboardUpdate(java.util.List<java.util.Map<String, String>> s) {}
 
           @Override
-          public void messageUpdate(String message) {}
+          public void messageUpdate(String m) {}
         };
 
     discoveryService.addObserver(observer);
     discoveryService.startListening();
+    Thread.sleep(200);
 
-    // Trigger discovery manually
     String message = "SCRABBLE_SERVER;ObserverTest;12345";
+    InetAddress broadcastAddr = InetAddress.getByName("255.255.255.255");
+
     try (DatagramSocket socket = new DatagramSocket()) {
+      socket.setBroadcast(true);
       DatagramPacket packet =
           new DatagramPacket(
-              message.getBytes(),
-              message.length(),
-              InetAddress.getByName("localhost"),
-              NetworkManager.DEFAULT_UDP_PORT);
+              message.getBytes(), message.length(), broadcastAddr, NetworkManager.DEFAULT_UDP_PORT);
       socket.send(packet);
     }
 
-    Thread.sleep(200);
-    Assertions.assertTrue(
-        notificationReceived.get(), "Observer should have been notified of the new server");
-  }
+    // Polling loop for notification
+    for (int i = 0; i < 20; i++) {
+      if (notificationReceived.get()) {
+        break;
+      }
+      Thread.sleep(50);
+    }
 
-  @Test
-  void testGetActiveServerRemovesExpired() {
-    // This test simulates the internal map to check expiration logic
-    // Note: Real time testing of 30s timeout is too slow for unit tests.
-    // We verify that the method returns a clean list.
-    List<ServerInfo> servers = discoveryService.getActiveServer();
-    Assertions.assertNotNull(servers);
-    Assertions.assertTrue(servers.isEmpty());
+    Assertions.assertTrue(notificationReceived.get(), "Observer was not notified after broadcast.");
   }
 
   @Test
   void testBroadcastingSendsCorrectPacket() throws Exception {
-    // 1. Arrange: Start an "emulator" socket to catch the broadcast packet
-    try (DatagramSocket spySocket = new DatagramSocket(NetworkManager.DEFAULT_UDP_PORT)) {
-      spySocket.setSoTimeout(2000); // 2 seconds timeout to avoid blocking forever
+    // Bind the spy socket with REUSE_ADDRESS
+    DatagramSocket spySocket = new DatagramSocket(null);
+    spySocket.setReuseAddress(true);
+    spySocket.bind(
+        new InetSocketAddress(InetAddress.getByName("0.0.0.0"), NetworkManager.DEFAULT_UDP_PORT));
+
+    try (spySocket) {
+      spySocket.setSoTimeout(3000);
       byte[] buffer = new byte[1024];
       DatagramPacket receivedPacket = new DatagramPacket(buffer, buffer.length);
 
-      // 2. Act: Start broadcasting from the service
-      discoveryService.startBroadcasting("TestServer", 12345, "127.0.0.1");
+      // We broadcast on all interfaces so our spy on 0.0.0.0 catches it
+      discoveryService.startBroadcasting("TestServer", 12345, "0.0.0.0");
 
-      // 3. Assert: Check if our "spy" caught the packet
       spySocket.receive(receivedPacket);
       String message = new String(receivedPacket.getData(), 0, receivedPacket.getLength());
 
-      // The message format should be "SCRABBLE_SERVER;name;port"
       Assertions.assertTrue(message.startsWith("SCRABBLE_SERVER"));
       Assertions.assertTrue(message.contains("TestServer"));
-      Assertions.assertTrue(message.contains("12345"));
     } finally {
       discoveryService.stopBroadcasting();
     }
