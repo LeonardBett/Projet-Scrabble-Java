@@ -193,4 +193,8 @@ public class ClientHandler implements Runnable {
   public GameServer getServer() {
     return server;
   }
+
+  public OnlineGame getOnlineGame() {
+    return onlineGame;
+  }
 }
