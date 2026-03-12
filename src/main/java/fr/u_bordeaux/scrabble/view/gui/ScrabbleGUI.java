@@ -3,6 +3,9 @@ package fr.u_bordeaux.scrabble.view.gui;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -10,11 +13,13 @@ import java.util.Optional;
 
 import fr.u_bordeaux.scrabble.controller.GameController;
 import fr.u_bordeaux.scrabble.model.ai.AIPlayer;
+import fr.u_bordeaux.scrabble.model.ai.AIPlayer;
 import fr.u_bordeaux.scrabble.model.core.Game;
 import fr.u_bordeaux.scrabble.model.core.HumanPlayer;
 import fr.u_bordeaux.scrabble.model.core.Move;
 import fr.u_bordeaux.scrabble.model.core.Rack;
 import fr.u_bordeaux.scrabble.model.core.Tile;
+import fr.u_bordeaux.scrabble.model.dictionary.GADDAG;
 import fr.u_bordeaux.scrabble.model.dictionary.GADDAG;
 import fr.u_bordeaux.scrabble.model.interfaces.Player;
 import fr.u_bordeaux.scrabble.model.network.NetworkManager;
@@ -102,62 +107,32 @@ public class ScrabbleGUI extends Application {
         boardPanel   = new BoardPanel(gameInstance.getBoard());
         rackPanel    = new RackPanel(getCurrentRack());
 
-        Optional<List<String>> namesOpt = PlayerSetup.showDialog();
-        if (namesOpt.isEmpty()) { Platform.exit(); return; }
+        // Optional<List<String>> namesOpt = PlayerSetup.showDialog();
+        // if (namesOpt.isEmpty()) { Platform.exit(); return; }
 
-        if (gaddag == null) loadDictionary();
+        // if (gaddag == null) loadDictionary();
 
-
-        if (gaddag == null) loadDictionary();
-
-        for (String name : namesOpt.get()) {
-            String upperName = name.toUpperCase();
+        // for (String name : namesOpt.get()) {
+        //     String upperName = name.toUpperCase();
             
-            // 1. Check for advanced AI (Expectiminimax) first
-            if (upperName.startsWith("IAEX") || upperName.startsWith("AIEX")) {
-                // Depth 2 minimum is required for Expectiminimax to anticipate the opponent
-                AIPlayer ai = new AIPlayer(name, 2);
-                ai.setExpectiminimaxMode(true);
-                gameInstance.addPlayer(ai);
+        //     // 1. Check for advanced AI (Expectiminimax) first
+        //     if (upperName.startsWith("IAEX") || upperName.startsWith("AIEX")) {
+        //         // Depth 2 minimum is required for Expectiminimax to anticipate the opponent
+        //         AIPlayer ai = new AIPlayer(name, 2);
+        //         ai.setExpectiminimaxMode(true);
+        //         gameInstance.addPlayer(ai);
                 
-            // 2. Check for standard AI (Classic Minimax)
-            } else if (upperName.startsWith("IA") || upperName.startsWith("AI")) {
-                // Standard AI
-                AIPlayer ai = new AIPlayer(name, 2);
-                gameInstance.addPlayer(ai);
+        //     // 2. Check for standard AI (Classic Minimax)
+        //     } else if (upperName.startsWith("IA") || upperName.startsWith("AI")) {
+        //         // Standard AI
+        //         AIPlayer ai = new AIPlayer(name, 2);
+        //         gameInstance.addPlayer(ai);
                 
-            // 3. Otherwise, it's a human player
-            } else {
-                gameInstance.addPlayer(new HumanPlayer(name));
-            }
-            String upperName = name.toUpperCase();
-            
-            // 1. Check for advanced AI (Expectiminimax) first
-            if (upperName.startsWith("IAEX") || upperName.startsWith("AIEX")) {
-                // Depth 2 minimum is required for Expectiminimax to anticipate the opponent
-                AIPlayer ai = new AIPlayer(name, 2);
-                ai.setExpectiminimaxMode(true);
-                gameInstance.addPlayer(ai);
-                
-            // 2. Check for standard AI (Classic Minimax)
-            } else if (upperName.startsWith("IA") || upperName.startsWith("AI")) {
-                // Standard AI
-                AIPlayer ai = new AIPlayer(name, 2);
-                gameInstance.addPlayer(ai);
-                
-            // 3. Otherwise, it's a human player
-            } else {
-                gameInstance.addPlayer(new HumanPlayer(name));
-            }
-        }
-
-        if (viewInstance == null) viewInstance = new JavaFxView(gameInstance);
-        viewInstance.setGUI(this);
-
-
-        if (viewInstance == null) viewInstance = new JavaFxView(gameInstance);
-        viewInstance.setGUI(this);
-
+        //     // 3. Otherwise, it's a human player
+        //     } else {
+        //         gameInstance.addPlayer(new HumanPlayer(name));
+        //     }
+        // }
 
         if (viewInstance == null) viewInstance = new JavaFxView(gameInstance);
         viewInstance.setGUI(this);
@@ -405,7 +380,7 @@ public class ScrabbleGUI extends Application {
                                 .map(t -> String.valueOf(t.getCharacter()))
                                 .reduce("", String::concat);
             networkManager.play(origin.getX(), origin.getY(), dir, word);
-        } else {
+        } 
                 
         } catch (RuntimeException e) {
             // The game engine rejected the move (e.g., word doesn't touch existing tiles)
