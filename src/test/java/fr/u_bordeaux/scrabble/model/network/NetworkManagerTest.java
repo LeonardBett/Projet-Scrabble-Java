@@ -91,7 +91,7 @@ class NetworkManagerTest {
     Thread.sleep(100);
 
     // Connect to a local address
-    networkManager.join("localhost");
+    networkManager.join("127.0.0.1");
 
     networkManager.quit();
     // Quitting while disconnected should be handled gracefully
