@@ -9,6 +9,9 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
+/**
+ * JavaFX panel containing all game action buttons (play, pass, exchange, undo, etc.).
+ */
 public class ControlPanel extends VBox {
 
     private final Button playButton;
@@ -23,6 +26,9 @@ public class ControlPanel extends VBox {
     private final Button loadButton;
     private final Button quitButton;
 
+    /**
+     * Creates the ControlPanel and initializes all buttons.
+     */
     public ControlPanel() {
         playButton            = createButton("▶  Jouer",                "#4CAF50");
         passButton            = createButton("⏭  Passer",               "#FF9800");
@@ -35,7 +41,6 @@ public class ControlPanel extends VBox {
         saveButton            = createButton("💾 Sauvegarder",          "#00BCD4");
         loadButton            = createButton("📁 Charger",              "#00BCD4");
         quitButton            = createButton("❌ Quitter",              "#F44336");
-
         initializeUI();
     }
 
@@ -87,15 +92,26 @@ public class ControlPanel extends VBox {
         return sep;
     }
 
+    /** @return the play button */
     public Button getPlayButton()            { return playButton; }
+    /** @return the pass button */
     public Button getPassButton()            { return passButton; }
+    /** @return the exchange button */
     public Button getExchangeButton()        { return exchangeButton; }
+    /** @return the cancel placement button */
     public Button getCancelPlacementButton() { return cancelPlacementButton; }
+    /** @return the undo button */
     public Button getUndoButton()            { return undoButton; }
+    /** @return the redo button */
     public Button getRedoButton()            { return redoButton; }
+    /** @return the new game button */
     public Button getNewGameButton()         { return newGameButton; }
+    /** @return the online multiplayer button */
     public Button getOnlineButton()          { return onlineButton; }
+    /** @return the save button */
     public Button getSaveButton()            { return saveButton; }
+    /** @return the load button */
     public Button getLoadButton()            { return loadButton; }
+    /** @return the quit button */
     public Button getQuitButton()            { return quitButton; }
 }

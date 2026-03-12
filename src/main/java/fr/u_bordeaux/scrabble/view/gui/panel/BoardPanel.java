@@ -16,6 +16,9 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
+/**
+ * JavaFX panel that renders the Scrabble board as a grid of draggable cells.
+ */
 public class BoardPanel extends VBox {
 
     private static final int GRID_SIZE = Board.SIZE;
@@ -23,10 +26,15 @@ public class BoardPanel extends VBox {
 
     private final GridPane  gridPane;
     private final Label[][] cellLabels;
-    private Board board; // non-final : mis à jour par setBoard() en mode réseau
+    private Board board;
 
     private BiConsumer<Integer, Integer> onTileDropped;
 
+    /**
+     * Creates a BoardPanel displaying the given board.
+     *
+     * @param board the board model to display
+     */
     public BoardPanel(Board board) {
         this.board      = board;
         this.cellLabels = new Label[GRID_SIZE][GRID_SIZE];
@@ -34,6 +42,11 @@ public class BoardPanel extends VBox {
         initializeUI();
     }
 
+    /**
+     * Sets the callback invoked when a tile is dropped on a cell.
+     *
+     * @param callback a BiConsumer receiving (row, col) of the drop target
+     */
     public void setOnTileDropped(BiConsumer<Integer, Integer> callback) {
         this.onTileDropped = callback;
     }
@@ -82,27 +95,20 @@ public class BoardPanel extends VBox {
 
     private void setupDropTarget(Label cell, int row, int col) {
         cell.setOnDragOver(event -> {
-            if (event.getDragboard().hasString()) {
-                event.acceptTransferModes(TransferMode.MOVE);
-            }
+            if (event.getDragboard().hasString()) event.acceptTransferModes(TransferMode.MOVE);
             event.consume();
         });
-
         cell.setOnDragEntered(event -> {
             if (event.getDragboard().hasString()) cell.setOpacity(0.6);
             event.consume();
         });
-
         cell.setOnDragExited(event -> {
             cell.setOpacity(1.0);
             event.consume();
         });
-
         cell.setOnDragDropped(event -> {
             boolean success = event.getDragboard().hasString();
-            if (success && onTileDropped != null) {
-                onTileDropped.accept(row, col);
-            }
+            if (success && onTileDropped != null) onTileDropped.accept(row, col);
             event.setDropCompleted(success);
             event.consume();
         });
@@ -133,12 +139,14 @@ public class BoardPanel extends VBox {
         cell.setStyle(style);
     }
 
+    /**
+     * Refreshes all cells to reflect the current board state.
+     */
     public void updateBoard() {
         for (int row = 0; row < GRID_SIZE; row++) {
             for (int col = 0; col < GRID_SIZE; col++) {
                 Square square = board.getSquare(new Point(col, row));
                 Label  cell   = cellLabels[row][col];
-
                 if (!square.isEmpty()) {
                     char letter = Character.toUpperCase(square.getTile().getCharacter());
                     cell.setText(String.valueOf(letter));
@@ -152,6 +160,14 @@ public class BoardPanel extends VBox {
         }
     }
 
+    /**
+     * Places a tile visually on a cell (pending placement, not yet validated).
+     *
+     * @param row    the row index
+     * @param col    the column index
+     * @param letter the letter to display
+     * @param value  the tile point value (unused visually, kept for API consistency)
+     */
     public void placeTile(int row, int col, char letter, int value) {
         if (row < 0 || row >= GRID_SIZE || col < 0 || col >= GRID_SIZE) return;
         Label cell = cellLabels[row][col];
@@ -161,23 +177,35 @@ public class BoardPanel extends VBox {
         cell.setTextFill(Color.BLACK);
     }
 
+    /**
+     * Removes a pending tile from a cell, restoring its original style.
+     *
+     * @param row the row index
+     * @param col the column index
+     */
     public void clearTile(int row, int col) {
         if (row < 0 || row >= GRID_SIZE || col < 0 || col >= GRID_SIZE) return;
         Square square = board.getSquare(new Point(col, row));
         applyCellStyle(cellLabels[row][col], square.getSquareType(), row, col);
     }
 
+    /**
+     * Clears all pending (unvalidated) tiles from the board display.
+     */
     public void clearAllPending() {
         for (int row = 0; row < GRID_SIZE; row++) {
             for (int col = 0; col < GRID_SIZE; col++) {
                 Square square = board.getSquare(new Point(col, row));
-                if (square.isEmpty()) {
-                    applyCellStyle(cellLabels[row][col], square.getSquareType(), row, col);
-                }
+                if (square.isEmpty()) applyCellStyle(cellLabels[row][col], square.getSquareType(), row, col);
             }
         }
     }
 
+    /**
+     * Replaces the current board model and refreshes the display.
+     *
+     * @param newBoard the new board to display
+     */
     public void setBoard(Board newBoard) {
         this.board = newBoard;
         updateBoard();

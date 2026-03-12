@@ -113,7 +113,7 @@ public class GADDAG extends Trie {
     /**
      * Check if a word is in the dictionary with gaddag
      */
-    public boolean containsWord(String word) {
+    public boolean containsWord1(String word) {
         if (word == null || word.length() < 2) {
             // Check for a one-letter word
             return this.contains(word.toUpperCase());

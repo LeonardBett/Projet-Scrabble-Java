@@ -13,9 +13,14 @@ public class GUILauncher {
 
     private GUILauncher() {}
 
-    public static void launch(String[] args,int players) {
+    /**
+     * Starts the game in GUI mode with the given number of players.
+     *
+     * @param args    the command-line arguments passed to JavaFX
+     * @param players the number of players (between 2 and 4)
+     */
+    public static void launch(String[] args, int players) {
         Game game = new Game();
-
         for (int i = 1; i <= players; i++) {
             game.addPlayer(new HumanPlayer("Player" + i));
         }

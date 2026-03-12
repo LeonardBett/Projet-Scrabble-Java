@@ -1,10 +1,5 @@
 package fr.u_bordeaux.scrabble.model.core;
 
-import fr.u_bordeaux.scrabble.model.ai.AIPlayer;
-import fr.u_bordeaux.scrabble.model.enums.Direction;
-import fr.u_bordeaux.scrabble.model.utils.Point;
-import org.junit.jupiter.api.Test;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,6 +9,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.Test;
+
+import fr.u_bordeaux.scrabble.model.ai.AIPlayer;
+import fr.u_bordeaux.scrabble.model.enums.Direction;
+import fr.u_bordeaux.scrabble.model.utils.Point;
 
 class GameAdvancedTest {
 
@@ -53,7 +53,7 @@ class GameAdvancedTest {
     @Test
     void undoRedoShouldDoNothingWhenCurrentPlayerIsNotHuman() {
         Game game = new Game();
-        AIPlayer bot = new AIPlayer("Bot",1);
+        AIPlayer bot = new AIPlayer(null, 0);
         game.addPlayer(bot);
 
         assertDoesNotThrow(game::undo);

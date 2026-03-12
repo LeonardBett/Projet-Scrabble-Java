@@ -1,10 +1,8 @@
 package fr.u_bordeaux.scrabble.model.ai;
 
-import fr.u_bordeaux.scrabble.model.core.Game;
-import fr.u_bordeaux.scrabble.model.core.Move;
-import fr.u_bordeaux.scrabble.model.core.PlayableWord;
-import fr.u_bordeaux.scrabble.model.core.Tile;
-import fr.u_bordeaux.scrabble.model.dictionary.GADDAG;
+import java.util.ArrayList;
+import java.util.List;
+
 import fr.u_bordeaux.scrabble.model.core.Game;
 import fr.u_bordeaux.scrabble.model.core.Move;
 import fr.u_bordeaux.scrabble.model.core.PlayableWord;
@@ -13,13 +11,6 @@ import fr.u_bordeaux.scrabble.model.dictionary.GADDAG;
 import fr.u_bordeaux.scrabble.model.interfaces.Player;
 import fr.u_bordeaux.scrabble.model.utils.Point;
 
-import java.util.ArrayList;
-import java.util.List;
-import fr.u_bordeaux.scrabble.model.utils.Point;
-
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Represents an artificial player (AI).
  */
@@ -27,9 +18,7 @@ public class AIPlayer extends Player {
     
     private final MinimaxSolver solver;
 
-public class AIPlayer extends Player {
-    
-    private final MinimaxSolver solver;
+
 
     /**
      * Base constructor for any player.
@@ -39,7 +28,7 @@ public class AIPlayer extends Player {
      * @param difficultyLevel Defines the search depth (e.g., 1 = basic, 2 = medium)
      */
     public AIPlayer(String name, int difficultyLevel) {
-    public AIPlayer(String name, int difficultyLevel) {
+
         super(name);
         this.solver = new MinimaxSolver(difficultyLevel);
     }
