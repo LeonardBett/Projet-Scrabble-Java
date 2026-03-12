@@ -1,7 +1,6 @@
 package fr.u_bordeaux.scrabble.model.network;
 
 import fr.u_bordeaux.scrabble.model.network.server.ServerInfo;
-
 import java.util.List;
 import java.util.Map;
 
@@ -54,6 +53,7 @@ public interface NetworkObserver {
   /**
    * Call when we receive a generic message from the server.
    *
+   * @param message the message
    */
   void messageUpdate(String message);
 }

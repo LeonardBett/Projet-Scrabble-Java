@@ -3,7 +3,6 @@ package fr.u_bordeaux.scrabble.model.network;
 import fr.u_bordeaux.scrabble.model.network.client.GameClient;
 import fr.u_bordeaux.scrabble.model.network.server.GameServer;
 import fr.u_bordeaux.scrabble.model.network.server.ServerInfo;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,9 +14,14 @@ public class NetworkManager {
   // we have to keep here the real list of Observer (CLI/GUI)
   private final List<NetworkObserver> observers = new ArrayList<>();
 
+  /** The constant DEFAULT_TCP_PORT. */
   // Default values use in the package
   public static final int DEFAULT_TCP_PORT = 12345;
+
+  /** The constant DEFAULT_UDP_PORT. */
   public static final int DEFAULT_UDP_PORT = 12346;
+
+  /** The constant DEFAULT_ADDRESS. */
   public static final String DEFAULT_ADDRESS = "localhost";
 
   // Reference to server/client instances
@@ -237,7 +241,7 @@ public class NetworkManager {
 
   /**
    * COMMAND scoreboard : Show player scoreboard for this server, with number of win, loose and
-   * games played
+   * games played.
    */
   public void scoreboard() {
     if (gameClient == null) {
@@ -251,6 +255,8 @@ public class NetworkManager {
    * COMMAND new PLAYER_ID : Starts a new game with the specified player if they are IDLE. If the
    * player does not exist or is unavailable, display an error message. If the game supports more
    * than two players, simply provide multiple player IDs as arguments to the command.
+   *
+   * @param targetId the target id
    */
   public void newPlayerId(int targetId) {
     if (gameClient == null) {
@@ -277,7 +283,7 @@ public class NetworkManager {
   }
 
   /**
-   * COMMAND move EXCHANGE: Exchanges specified tiles from the player's rack with new ones from bag
+   * COMMAND move EXCHANGE: Exchanges specified tiles from the player's rack with new ones from bag.
    *
    * @param tiles the tiles to exchange (ex: "A,B,C")
    */

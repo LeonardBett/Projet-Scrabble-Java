@@ -1,6 +1,9 @@
 package fr.u_bordeaux.scrabble.model.network.server;
 
-import fr.u_bordeaux.scrabble.model.core.*;
+import fr.u_bordeaux.scrabble.model.core.Game;
+import fr.u_bordeaux.scrabble.model.core.Move;
+import fr.u_bordeaux.scrabble.model.core.Square;
+import fr.u_bordeaux.scrabble.model.core.Tile;
 import fr.u_bordeaux.scrabble.model.enums.Direction;
 import fr.u_bordeaux.scrabble.model.interfaces.Player;
 import fr.u_bordeaux.scrabble.model.network.PacketParser;
@@ -90,6 +93,9 @@ public class OnlineGame {
   /**
    * Sends the current full rack to a specific player. This ensures the client is always
    * synchronized with the server's authoritative model.
+   *
+   * @param handler the handler
+   * @param player the player
    */
   public void sendRack(ClientHandler handler, Player player) {
     List<Tile> tiles = player.getRack().getTiles();

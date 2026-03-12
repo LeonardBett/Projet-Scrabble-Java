@@ -9,7 +9,6 @@ import fr.u_bordeaux.scrabble.model.core.Tile;
 import fr.u_bordeaux.scrabble.model.interfaces.Player;
 import fr.u_bordeaux.scrabble.model.network.NetworkObserver;
 import fr.u_bordeaux.scrabble.model.network.PacketParser;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;

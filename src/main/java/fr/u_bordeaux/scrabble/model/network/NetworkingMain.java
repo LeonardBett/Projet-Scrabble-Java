@@ -15,9 +15,6 @@ public class NetworkingMain {
    * @throws InterruptedException the interrupted exception
    */
   public static void main(String[] args) throws InterruptedException {
-    // testIndividualNetworkClass();
-    // testDiscoveryService();
-    // testNetworkManager();
     testManualMultiplayer(args);
   }
 
@@ -216,17 +213,19 @@ public class NetworkingMain {
       Thread.sleep(500);
     }
 
-    Scanner scanner = new Scanner(System.in);
     System.out.println("\n--- Mode Réseau Actif ---");
     System.out.println("Commandes réseau : list | join <IP> | quit");
     System.out.println(
-        "Commandes jeu : players | status | new <ID> | play <x> <y> <H|V> <tiles> | exchange <tiles> | pass");
+        "Use : players | status | new <ID> | play <x> <y> <H|V> <tiles> | exchange <tiles> | pass");
 
+    Scanner scanner = new Scanner(System.in);
     while (true) {
       System.out.print("> ");
       String input = scanner.nextLine();
       String[] parts = input.split(" ");
-      if (parts.length == 0) continue;
+      if (parts.length == 0) {
+        continue;
+      }
       String command = parts[0].toLowerCase();
 
       switch (command) {
@@ -249,7 +248,9 @@ public class NetworkingMain {
         case "status" -> nm.serverStatus();
         case "scoreboard" -> nm.scoreboard();
         case "new" -> {
-          if (parts.length > 1) nm.newPlayerId(Integer.parseInt(parts[1]));
+          if (parts.length > 1) {
+            nm.newPlayerId(Integer.parseInt(parts[1]));
+          }
         }
         case "play" -> {
           if (parts.length == 5) {
@@ -259,7 +260,9 @@ public class NetworkingMain {
           }
         }
         case "exchange" -> {
-          if (parts.length > 1) nm.exchange(parts[1]);
+          if (parts.length > 1) {
+            nm.exchange(parts[1]);
+          }
         }
         case "pass" -> nm.pass();
         case "quit" -> {
