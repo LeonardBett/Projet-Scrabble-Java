@@ -24,7 +24,8 @@ stages:
 run_tests:
   stage: test
   tags:
-  - docker
+  - Docker
+  - CREMI
   script:
     - mvn clean test
   artifacts:
