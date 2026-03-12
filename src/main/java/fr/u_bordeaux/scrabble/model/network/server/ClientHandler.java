@@ -42,7 +42,7 @@ public class ClientHandler implements Runnable {
    * @param server the server
    * @param playerId the player id
    */
-public ClientHandler(Socket socket, GameServer server, int playerId) {
+  public ClientHandler(Socket socket, GameServer server, int playerId) {
     this.socket = socket;
     this.server = server;
 
@@ -115,7 +115,7 @@ public ClientHandler(Socket socket, GameServer server, int playerId) {
    *
    * @param message the message
    */
-public void sendMessage(String message) {
+  public void sendMessage(String message) {
     if (out != null) {
       out.println(message);
     } else {
@@ -125,7 +125,7 @@ public void sendMessage(String message) {
   }
 
   /** Close the connexion with the client. */
-public void quit() {
+  public void quit() {
     if (!isRunning) {
       // err.println("Client is already disconnected");
       return;
@@ -151,9 +151,9 @@ public void quit() {
   /**
    * Gets client info.
    *
-   * @return  the client info
+   * @return the client info
    */
-public ClientInfo getClientInfo() {
+  public ClientInfo getClientInfo() {
     return clientInfo;
   }
 
@@ -208,16 +208,16 @@ public ClientInfo getClientInfo() {
    *
    * @param onlineGame the online game
    */
-public void setOnlineGame(OnlineGame onlineGame) {
+  public void setOnlineGame(OnlineGame onlineGame) {
     this.onlineGame = onlineGame;
   }
 
   /**
    * Gets server.
    *
-   * @return  the server
+   * @return the server
    */
-public GameServer getServer() {
+  public GameServer getServer() {
     return server;
   }
 

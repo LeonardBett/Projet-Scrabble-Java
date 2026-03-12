@@ -52,7 +52,7 @@ public class DiscoveryService {
    * @param tcpPort the tcp port
    * @param localIp the local ip to broadcast on
    */
-public void startBroadcasting(String serverName, int tcpPort, String localIp) {
+  public void startBroadcasting(String serverName, int tcpPort, String localIp) {
     if (isBroadcasting) {
       // System.err.println("Broadcasting is already running");
       return;
@@ -114,12 +114,12 @@ public void startBroadcasting(String serverName, int tcpPort, String localIp) {
    * @param serverName the server name
    * @param localIp the local ip
    */
-public void startBroadcasting(String serverName, String localIp) {
+  public void startBroadcasting(String serverName, String localIp) {
     startBroadcasting(serverName, DEFAULT_TCP_PORT, localIp);
   }
 
   /** Stop broadcasting. */
-public void stopBroadcasting() {
+  public void stopBroadcasting() {
     if (!isBroadcasting) {
       return;
     }
@@ -137,7 +137,7 @@ public void stopBroadcasting() {
   // =========================================================================
 
   /** Start listening to broadcast message. */
-public void startListening() {
+  public void startListening() {
     if (isListening) {
       // System.out.println("Listening is already running");
       return;
@@ -230,7 +230,7 @@ public void startListening() {
   }
 
   /** Stop listening to broadcast message. */
-public void stopListening() {
+  public void stopListening() {
     if (!isListening) {
       return;
     }
@@ -246,9 +246,9 @@ public void stopListening() {
   /**
    * Get the list of known server (and remove expired one).
    *
-   * @return  the active server
+   * @return the active server
    */
-public List<ServerInfo> getActiveServer() {
+  public List<ServerInfo> getActiveServer() {
     // We remove expired server from the map
     discoveredServer.values().removeIf(ServerInfo::isExpired);
 
@@ -261,7 +261,7 @@ public List<ServerInfo> getActiveServer() {
    *
    * @param observer the new observer to add
    */
-public void addObserver(NetworkObserver observer) {
+  public void addObserver(NetworkObserver observer) {
     observers.add(observer);
   }
 

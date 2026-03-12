@@ -15,11 +15,11 @@ public class NetworkManager {
   private final List<NetworkObserver> observers = new ArrayList<>();
 
   /** The constant DEFAULT_TCP_PORT. */
-// Default values use in the package
+  // Default values use in the package
   public static final int DEFAULT_TCP_PORT = 12345;
 
   /** The constant DEFAULT_UDP_PORT. */
-public static final int DEFAULT_UDP_PORT = 12346;
+  public static final int DEFAULT_UDP_PORT = 12346;
 
   /** The constant DEFAULT_ADDRESS. */
   public static final String DEFAULT_ADDRESS = "localhost";
@@ -34,17 +34,17 @@ public static final int DEFAULT_UDP_PORT = 12346;
   private final DiscoveryService discoveryService;
 
   /** Instantiates a new Network manager. */
-public NetworkManager() {
+  public NetworkManager() {
     discoveryService = new DiscoveryService();
   }
 
   /** Start online play. */
-public void startOnlinePlay() {
+  public void startOnlinePlay() {
     discoveryService.startListening();
   }
 
   /** Stop online play. */
-public void stopOnlinePlay() {
+  public void stopOnlinePlay() {
     discoveryService.stopListening();
     discoveryService.stopBroadcasting();
 
@@ -65,7 +65,7 @@ public void stopOnlinePlay() {
    *
    * @param observer the new observer to add
    */
-public void addObserver(NetworkObserver observer) {
+  public void addObserver(NetworkObserver observer) {
     observers.add(observer);
     discoveryService.addObserver(observer);
     if (gameClient != null) {
@@ -79,7 +79,7 @@ public void addObserver(NetworkObserver observer) {
    *
    * @param observer the new observer to remove
    */
-public void removeObserver(NetworkObserver observer) {
+  public void removeObserver(NetworkObserver observer) {
     if (!observers.remove(observer)) {
       // System.err.println("User : Observer not found, can't remove it from the list");
       return;
@@ -104,9 +104,9 @@ public void removeObserver(NetworkObserver observer) {
    * containing the server name and TCP port. A server is removed from the list if no message is
    * received for 30 seconds.
    *
-   * @return  the list
+   * @return the list
    */
-public List<ServerInfo> serverList() {
+  public List<ServerInfo> serverList() {
     return discoveryService.getActiveServer();
   }
 
@@ -118,7 +118,7 @@ public List<ServerInfo> serverList() {
    *
    * @param port the port
    */
-public void serverStart(int port) {
+  public void serverStart(int port) {
     // We check if the server is not already running
     if (gameServer != null) {
       // System.err.println("User : Server is already running, can't start it");
@@ -137,7 +137,7 @@ public void serverStart(int port) {
   }
 
   /** COMMAND server start : start with default port. */
-public void serverStart() {
+  public void serverStart() {
     serverStart(DEFAULT_TCP_PORT);
   }
 
@@ -145,7 +145,7 @@ public void serverStart() {
    * COMMAND server stop: Stops the game server. The connected client is notified of the shutdown
    * and disconnected.
    */
-public void serverStop() {
+  public void serverStop() {
     // We check if the server is running before trying to stop it
     if (gameServer == null) {
       // System.err.println("User : Server is not running, can't stop it");
@@ -165,7 +165,7 @@ public void serverStop() {
    * @param address the address
    * @param port the port
    */
-public void join(String address, int port) {
+  public void join(String address, int port) {
     // We check if the client isn't already connected
     if (gameClient != null) {
       // System.err.println("User : Client is already connected, can't connect it");
@@ -187,12 +187,12 @@ public void join(String address, int port) {
    *
    * @param address the address
    */
-public void join(String address) {
+  public void join(String address) {
     this.join(address, DEFAULT_TCP_PORT);
   }
 
   /** COMMAND quit: Leaves the server and returns to local mode. */
-public void quit() {
+  public void quit() {
     // We check if the client is connected before trying to disconnect it
     if (gameClient == null) {
       // System.err.println("User : Client is not connected, can't disconnect it");
@@ -207,7 +207,7 @@ public void quit() {
    * COMMAND ping: Sends a ping message to the server. The server responds with a pong and the
    * response time is displayed. This command allows testing the connection.
    */
-public void ping() {
+  public void ping() {
     if (gameClient == null) {
       // System.err.println("User : Client is not connected, can't send a ping");
       return;
@@ -221,7 +221,7 @@ public void ping() {
    * COMMAND server status: Displays the server status. Listening port, number of connected clients,
    * number of ongoing games
    */
-public void serverStatus() {
+  public void serverStatus() {
     if (gameClient == null) {
       // System.err.println("User : Client is not connected, can't show server status");
       return;
@@ -232,7 +232,7 @@ public void serverStatus() {
   /**
    * COMMAND players : Show server connected players with their id, name and status (idle, ingame).
    */
-public void players() {
+  public void players() {
     if (gameClient == null) {
       // System.err.println("User : Client is not connected, can't show players");
       return;
@@ -244,7 +244,7 @@ public void players() {
    * COMMAND scoreboard : Show player scoreboard for this server, with number of win, loose and
    * games played.
    */
-public void scoreboard() {
+  public void scoreboard() {
     if (gameClient == null) {
       // System.err.println("User : Client is not connected, can't show scoreboard");
       return;
@@ -259,7 +259,7 @@ public void scoreboard() {
    *
    * @param targetId the target id
    */
-public void newPlayerId(int targetId) {
+  public void newPlayerId(int targetId) {
     if (gameClient == null) {
       // err.println("User : Client is not connected, can't start a new game");
       return;
@@ -275,7 +275,7 @@ public void newPlayerId(int targetId) {
    * @param targetId1 the target id of the player 1
    * @param targetId2 the target id of the player 2
    */
-public void newPlayerId(int targetId1, int targetId2) {
+  public void newPlayerId(int targetId1, int targetId2) {
     if (gameClient == null) {
       // System.err.println("User : Client is not connected, can't start a new game");
       return;
@@ -292,7 +292,7 @@ public void newPlayerId(int targetId1, int targetId2) {
    * @param targetId2 the target id of the player 2
    * @param targetId3 the target id of the player 3
    */
-public void newPlayerId(int targetId1, int targetId2, int targetId3) {
+  public void newPlayerId(int targetId1, int targetId2, int targetId3) {
     if (gameClient == null) {
       // System.err.println("User : Client is not connected, can't start a new game");
       return;
@@ -308,7 +308,7 @@ public void newPlayerId(int targetId1, int targetId2, int targetId3) {
    * @param direction the direction (H for horizontal, V for vertical)
    * @param tile the word to place on the board
    */
-public void play(int x, int y, String direction, String tile) {
+  public void play(int x, int y, String direction, String tile) {
     if (gameClient == null) {
       // System.err.println("User : Client is not connected, can't play a move");
       return;
@@ -321,7 +321,7 @@ public void play(int x, int y, String direction, String tile) {
    *
    * @param tiles the tiles to exchange (ex: "A,B,C")
    */
-public void exchange(String tiles) {
+  public void exchange(String tiles) {
     if (gameClient == null) {
       // System.err.println("User : Client is not connected, can't exchange tiles");
       return;
@@ -330,7 +330,7 @@ public void exchange(String tiles) {
   }
 
   /** COMMAND move PASS: Skips the current player's turn. */
-public void pass() {
+  public void pass() {
     if (gameClient == null) {
       // System.err.println("User : Client is not connected, can't skip a turn");
       return;

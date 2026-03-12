@@ -33,7 +33,7 @@ public class GameServer {
   private int idCounter = 1;
 
   /** Start the server on the default port. */
-public void start() {
+  public void start() {
     start(DEFAULT_TCP_PORT);
   }
 
@@ -42,7 +42,7 @@ public void start() {
    *
    * @param port the port
    */
-public void start(int port) {
+  public void start(int port) {
     // System.out.println("Server : Server Starting...");
     isRunning = true;
     try {
@@ -82,7 +82,7 @@ public void start(int port) {
   }
 
   /** Stop the server. */
-public void stop() {
+  public void stop() {
     if (!isRunning) {
       // System.err.println("Server : Server is not running, can't stop it");
       return;
@@ -121,7 +121,7 @@ public void stop() {
    *
    * @param client the client
    */
-public void removeClient(ClientHandler client) {
+  public void removeClient(ClientHandler client) {
     clients.remove(client);
     // System.out.println("Server : There is now " + clients.size() + " client(s) connected");
   }
@@ -129,9 +129,9 @@ public void removeClient(ClientHandler client) {
   /**
    * Gets local network ip of this server. Needed for getting server infos
    *
-   * @return  the local network ip
+   * @return the local network ip
    */
-public String getLocalNetworkIp() {
+  public String getLocalNetworkIp() {
     try {
       var interfaces = java.net.NetworkInterface.getNetworkInterfaces();
       while (interfaces.hasMoreElements()) {
@@ -160,9 +160,9 @@ public String getLocalNetworkIp() {
   /**
    * Create the STATUS command response with server information.
    *
-   * @return  the server STATUS command response
+   * @return the server STATUS command response
    */
-public String getStatusResponse() {
+  public String getStatusResponse() {
     int port = serverInfo.getPort();
     int clientCount = clients.size();
     int gameCount = onlineGames.size();
@@ -173,9 +173,9 @@ public String getStatusResponse() {
   /**
    * Create the string with players infos needed for PLAYER command.
    *
-   * @return  the string with PLAYERS command response infos
+   * @return the string with PLAYERS command response infos
    */
-public String getPlayerResponse() {
+  public String getPlayerResponse() {
     StringBuilder sb = new StringBuilder("PLAYERS:");
     synchronized (clients) {
       for (ClientHandler client : clients) {
@@ -188,9 +188,9 @@ public String getPlayerResponse() {
   /**
    * Create the string with players infos needed for SCOREBOARD command.
    *
-   * @return  the string with SCOREBOARD command response infos
+   * @return the string with SCOREBOARD command response infos
    */
-public String getScoreboardResponse() {
+  public String getScoreboardResponse() {
     StringBuilder sb = new StringBuilder("SCOREBOARD:");
     synchronized (clients) {
       for (ClientHandler client : clients) {
@@ -206,9 +206,9 @@ public String getScoreboardResponse() {
    *
    * @param initiator The client who sent the "new" command
    * @param targetIds The list of player IDs to invite to the game
-   * @return  String response for the initiator indicating success or failure
+   * @return String response for the initiator indicating success or failure
    */
-public synchronized String createNewGame(ClientHandler initiator, List<Integer> targetIds) {
+  public synchronized String createNewGame(ClientHandler initiator, List<Integer> targetIds) {
     List<ClientHandler> participants = new ArrayList<>();
     participants.add(initiator);
 

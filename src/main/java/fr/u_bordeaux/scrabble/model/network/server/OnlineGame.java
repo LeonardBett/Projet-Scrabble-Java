@@ -27,7 +27,7 @@ public class OnlineGame {
    *
    * @param handlers the clients
    */
-public OnlineGame(List<ClientHandler> handlers) {
+  public OnlineGame(List<ClientHandler> handlers) {
     this.game = new Game();
     this.handlers = handlers;
 
@@ -62,7 +62,7 @@ public OnlineGame(List<ClientHandler> handlers) {
    *
    * @param message the message to send
    */
-public void broadcast(String message) {
+  public void broadcast(String message) {
     for (ClientHandler p : handlers) {
       p.sendMessage(message);
     }
@@ -97,7 +97,7 @@ public void broadcast(String message) {
    * @param handler the handler
    * @param player the player
    */
-public void sendRack(ClientHandler handler, Player player) {
+  public void sendRack(ClientHandler handler, Player player) {
     List<Tile> tiles = player.getRack().getTiles();
 
     // We create a simple message of characters: "A,B,C,Q,Z,Y,X"
@@ -113,7 +113,7 @@ public void sendRack(ClientHandler handler, Player player) {
    * @param sender the client handler who sent the move
    * @param packetParser the parsed move packetParser
    */
-public synchronized void processMove(ClientHandler sender, PacketParser packetParser) {
+  public synchronized void processMove(ClientHandler sender, PacketParser packetParser) {
     // Check if we have data in the packetParser
     if (packetParser.getEntries().isEmpty()) {
       return;
@@ -253,7 +253,7 @@ public synchronized void processMove(ClientHandler sender, PacketParser packetPa
    *
    * @param reason The reason why the game is ending (e.g., "A player disconnected")
    */
-public void terminateGame(String reason) {
+  public void terminateGame(String reason) {
     // Notify all remaining connected players
     broadcast("ERROR: Game terminated - " + reason);
 
