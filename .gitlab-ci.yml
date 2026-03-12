@@ -23,6 +23,8 @@ stages:
 
 run_tests:
   stage: test
+  tags:
+  - docker
   script:
     - mvn clean test
   artifacts:
