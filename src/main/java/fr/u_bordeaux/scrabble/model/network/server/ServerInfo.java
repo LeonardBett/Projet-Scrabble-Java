@@ -6,6 +6,7 @@ public class ServerInfo {
   private final int port;
   private final String name;
 
+  /** The constant SERVER_TIMEOUT. */
   // The timeout of this server in ms
   public static final int SERVER_TIMEOUT = 30000;
 
@@ -40,15 +41,30 @@ public class ServerInfo {
     return (System.currentTimeMillis() - lastSeen) > SERVER_TIMEOUT;
   }
 
+  /**
+   * Gets ip.
+   *
+   * @return the ip
+   */
   // Getter
   public String getIp() {
     return ip;
   }
 
+  /**
+   * Gets port.
+   *
+   * @return the port
+   */
   public int getPort() {
     return port;
   }
 
+  /**
+   * Gets name.
+   *
+   * @return the name
+   */
   public String getName() {
     return name;
   }

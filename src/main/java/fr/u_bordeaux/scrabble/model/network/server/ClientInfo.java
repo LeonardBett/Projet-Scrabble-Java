@@ -48,18 +48,38 @@ public class ClientInfo {
         "ID=%d;NAME=%s;WINS=%d;LOSSES=%d;TOTAL=%d", id, name, wins, losses, gamesPlayed);
   }
 
+  /**
+   * Gets id.
+   *
+   * @return the id
+   */
   public int getId() {
     return id;
   }
 
+  /**
+   * Gets name.
+   *
+   * @return the name
+   */
   public String getName() {
     return name;
   }
 
+  /**
+   * Gets status.
+   *
+   * @return the status
+   */
   public PlayerStatus getStatus() {
     return status;
   }
 
+  /**
+   * Sets status.
+   *
+   * @param playerStatus the player status
+   */
   public void setStatus(PlayerStatus playerStatus) {
     this.status = playerStatus;
   }

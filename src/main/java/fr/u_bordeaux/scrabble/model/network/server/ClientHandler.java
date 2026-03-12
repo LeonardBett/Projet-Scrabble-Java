@@ -1,7 +1,6 @@
 package fr.u_bordeaux.scrabble.model.network.server;
 
 import fr.u_bordeaux.scrabble.model.network.PacketParser;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -38,6 +37,7 @@ public class ClientHandler implements Runnable {
    *
    * @param socket the socket
    * @param server the server
+   * @param playerId the player id
    */
   public ClientHandler(Socket socket, GameServer server, int playerId) {
     this.socket = socket;
@@ -176,11 +176,25 @@ public class ClientHandler implements Runnable {
     }
   }
 
+  /**
+   * Sets online game.
+   *
+   * @param onlineGame the online game
+   */
   public void setOnlineGame(OnlineGame onlineGame) {
     this.onlineGame = onlineGame;
   }
 
+  /**
+   * Gets server.
+   *
+   * @return the server
+   */
   public GameServer getServer() {
     return server;
+  }
+
+  public OnlineGame getOnlineGame() {
+    return onlineGame;
   }
 }

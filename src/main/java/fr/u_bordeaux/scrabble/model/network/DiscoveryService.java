@@ -1,10 +1,9 @@
 package fr.u_bordeaux.scrabble.model.network;
 
-import fr.u_bordeaux.scrabble.model.network.server.ServerInfo;
-
 import static fr.u_bordeaux.scrabble.model.network.NetworkManager.DEFAULT_TCP_PORT;
 import static fr.u_bordeaux.scrabble.model.network.NetworkManager.DEFAULT_UDP_PORT;
 
+import fr.u_bordeaux.scrabble.model.network.server.ServerInfo;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -113,6 +112,7 @@ public class DiscoveryService {
    * Start broadcasting with default port.
    *
    * @param serverName the server name
+   * @param localIp the local ip
    */
   public void startBroadcasting(String serverName, String localIp) {
     startBroadcasting(serverName, DEFAULT_TCP_PORT, localIp);
@@ -121,7 +121,6 @@ public class DiscoveryService {
   /** Stop broadcasting. */
   public void stopBroadcasting() {
     if (!isBroadcasting) {
-      System.err.println("Broadcasting is already stopped");
       return;
     }
     isBroadcasting = false;
@@ -233,7 +232,6 @@ public class DiscoveryService {
   /** Stop listening to broadcast message. */
   public void stopListening() {
     if (!isListening) {
-      System.err.println("Listening is already stopped");
       return;
     }
     isListening = false;
