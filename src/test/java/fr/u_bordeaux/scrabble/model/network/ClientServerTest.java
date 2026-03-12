@@ -16,30 +16,42 @@ import org.junit.jupiter.api.Test;
  */
 class ClientServerTest {
 
-  private static final int TEST_PORT = 12350;
+  // Static counter to use a different TCP port for EACH test.
+  // Prevents "Address already in use" (TIME_WAIT) crashes on Linux and CI environments.
+  private static int portCounter = 12350;
+
+  private int currentTestPort;
   private GameServer server;
   private GameClient client;
   private TestObserver spyObserver;
 
   @BeforeEach
   void setUp() throws InterruptedException {
-    // 1. Start the server in a separate background thread
+    // 1. Define a new port for this specific test
+    currentTestPort = portCounter++;
+
+    // 2. Start the server in a separate background thread
     server = new GameServer();
-    new Thread(() -> server.start(TEST_PORT)).start();
+    new Thread(() -> server.start(currentTestPort)).start();
 
-    // Allow time for the server socket to bind
-    Thread.sleep(100);
+    // Slightly increased delay to allow the OS to bind the socket
+    Thread.sleep(300);
 
-    // 2. Initialize the client and attach the spy observer
+    // 3. Initialize the client and attach the spy observer
     client = new GameClient();
     spyObserver = new TestObserver();
     client.addObserver(spyObserver);
 
-    // 3. Connect the client to the local server
-    client.connect("127.0.0.1", TEST_PORT);
+    // 4. Connect the client to the local server
+    client.connect("127.0.0.1", currentTestPort);
 
-    // Allow time for the TCP handshake and the WELCOME message to be processed
-    Thread.sleep(150);
+    // Polling: wait (max 1 second) for the client to confirm its connection
+    for (int i = 0; i < 20; i++) {
+      if (spyObserver.lastMessage.contains("Connected to server")) {
+        break;
+      }
+      Thread.sleep(50);
+    }
   }
 
   @AfterEach
@@ -57,20 +69,23 @@ class ClientServerTest {
 
   @Test
   void testConnectionAndWelcomeMessage() {
-    // Upon connection, the server sends "WELCOME:ID=...".
-    // Verify the client parses it and notifies the observer.
-    Assertions.assertTrue(spyObserver.lastMessage.contains("Connected to server"));
+    Assertions.assertTrue(
+        spyObserver.lastMessage.contains("Connected to server"),
+        "The WELCOME message was not received");
   }
 
   @Test
   void testPingProtocol() throws InterruptedException {
-    // Test standard PING command
     client.sendPing();
-    Thread.sleep(100); // Wait for round-trip
 
+    // Polling to wait for the PONG response
+    for (int i = 0; i < 20; i++) {
+      if (spyObserver.lastMessage.contains("PONG TIME=")) {
+        break;
+      }
+      Thread.sleep(50);
+    }
     Assertions.assertTrue(spyObserver.lastMessage.contains("PONG TIME="));
-
-    // Test silent PING used for heartbeats (should not trigger UI updates)
     Assertions.assertDoesNotThrow(() -> client.sendPingSilent());
   }
 
@@ -78,21 +93,27 @@ class ClientServerTest {
 
   @Test
   void testServerStatusRequest() throws InterruptedException {
-    // Request server status and wait for the asynchronous response
     client.sendServerStatus();
-    Thread.sleep(100);
+
+    // Wait for the asynchronous response
+    for (int i = 0; i < 20 && spyObserver.lastStatus == null; i++) {
+      Thread.sleep(50);
+    }
 
     Map<String, String> status = spyObserver.lastStatus;
     Assertions.assertNotNull(status, "Client did not receive the SERVER_STATUS response");
-    Assertions.assertEquals(String.valueOf(TEST_PORT), status.get("PORT"));
-    Assertions.assertEquals("1", status.get("CLIENTS")); // Only our test client is connected
+    Assertions.assertEquals(String.valueOf(currentTestPort), status.get("PORT"));
+    Assertions.assertEquals("1", status.get("CLIENTS"));
   }
 
   @Test
   void testPlayersListRequest() throws InterruptedException {
-    // Request connected players list
     client.sendPlayers();
-    Thread.sleep(100);
+
+    // Wait for the asynchronous response
+    for (int i = 0; i < 20 && spyObserver.lastPlayers == null; i++) {
+      Thread.sleep(50);
+    }
 
     List<Map<String, String>> players = spyObserver.lastPlayers;
     Assertions.assertNotNull(players, "Client did not receive the PLAYERS list");
@@ -102,9 +123,12 @@ class ClientServerTest {
 
   @Test
   void testScoreboardRequest() throws InterruptedException {
-    // Request scoreboard statistics
     client.sendScoreboard();
-    Thread.sleep(100);
+
+    // Wait for the asynchronous response
+    for (int i = 0; i < 20 && spyObserver.lastScoreboard == null; i++) {
+      Thread.sleep(50);
+    }
 
     List<Map<String, String>> scoreboard = spyObserver.lastScoreboard;
     Assertions.assertNotNull(scoreboard, "Client did not receive the SCOREBOARD response");
@@ -116,44 +140,47 @@ class ClientServerTest {
 
   @Test
   void testRealMultiplayerInteraction() throws InterruptedException {
-    // 1. Setup: Connect a second client to the server
+    // Setup: Connect a second client to the server
     GameClient client2 = new GameClient();
     TestObserver observer2 = new TestObserver();
     client2.addObserver(observer2);
-    client2.connect("127.0.0.1", TEST_PORT);
+    client2.connect("127.0.0.1", currentTestPort);
 
-    // Wait for the TCP handshake to complete
-    Thread.sleep(200);
-
-    // 2. Action: Client 1 invites Client 2 (assuming Client 2 has ID 2)
+    // Wait for the second client to connect
+    for (int i = 0; i < 20 && !observer2.lastMessage.contains("Connected to server"); i++) {
+      Thread.sleep(50);
+    }
+    // Client 1 invites Client 2
     client.sendNew(2);
 
-    // Allow time for the server to create the OnlineGame session and broadcast GAME_START
-    Thread.sleep(500);
+    // Wait for GAME_START for both clients
+    for (int i = 0;
+        i < 20 && (!spyObserver.localModelUpdated || !observer2.localModelUpdated);
+        i++) {
+      Thread.sleep(50);
+    }
 
-    // 3. Verification: Ensure both clients received the GAME_START command and initialized their
-    // local models
     Assertions.assertTrue(
-        spyObserver.localModelUpdated,
-        "Client 1 should have received GAME_START and updated its local model");
-    Assertions.assertTrue(
-        observer2.localModelUpdated,
-        "Client 2 should have received GAME_START and updated its local model");
+        spyObserver.localModelUpdated, "Client 1 should have received GAME_START");
+    Assertions.assertTrue(observer2.localModelUpdated, "Client 2 should have received GAME_START");
 
-    // 4. Action: Client 1 performs a "PASS" move
+    // Client 1 passes their turn
     client.sendPassMove();
 
-    // Allow time for the server to process the move and broadcast the update to all participants
-    Thread.sleep(200);
+    // Wait for the turn update on client 2's model
+    for (int i = 0; i < 20; i++) {
+      if (client2.getLocalGame() != null
+          && "Player-2".equals(client2.getLocalGame().getCurrentPlayer().getName())) {
+        break;
+      }
+      Thread.sleep(50);
+    }
 
-    // 5. Final Verification: Check if Client 2's local model successfully updated the turn order
-    // In a 2-player game, after Player-1 passes, the current player must be Player-2
     Assertions.assertEquals(
         "Player-2",
         client2.getLocalGame().getCurrentPlayer().getName(),
         "Client 2's local game should have advanced the turn to Player-2");
 
-    // Cleanup: Disconnect the second client
     client2.quit();
   }
 
@@ -161,30 +188,22 @@ class ClientServerTest {
 
   @Test
   void testObserverRemoval() {
-    // Removing an existing observer
     Assertions.assertDoesNotThrow(() -> client.removeObserver(spyObserver));
-
-    // Removing an observer not in the list should handle gracefully (prints to stderr)
     Assertions.assertDoesNotThrow(() -> client.removeObserver(spyObserver));
   }
 
   @Test
   void testDisconnectionSafety() {
     client.quit();
-
-    // Attempting to send messages after disconnection should not crash the application
     Assertions.assertDoesNotThrow(() -> client.sendPing());
-
-    // Double quit should be safe
     Assertions.assertDoesNotThrow(() -> client.quit());
   }
 
   // =================================================================================
-  // UTILITY CLASS: Spy Observer to capture asynchronous server responses
+  // UTILITY CLASS: Spy Observer
   // =================================================================================
   private static class TestObserver implements NetworkObserver {
 
-    // Volatile because they will be accessed by 2 different threads
     volatile String lastMessage = "";
     volatile Map<String, String> lastStatus = null;
     volatile List<Map<String, String>> lastPlayers = null;
