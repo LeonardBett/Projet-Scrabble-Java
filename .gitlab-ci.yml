@@ -26,6 +26,7 @@ run_tests:
   tags:
   - Docker
   - CREMI
+  - Podman
   script:
     - mvn clean test
   artifacts:
