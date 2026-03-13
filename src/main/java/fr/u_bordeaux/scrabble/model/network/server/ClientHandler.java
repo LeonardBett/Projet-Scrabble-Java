@@ -68,23 +68,20 @@ public class ClientHandler implements Runnable {
       // Infinite loop for listening to the client
       String clientMessage;
       while (isRunning && (clientMessage = in.readLine()) != null) {
-        // Check for command with parameters
-        if (clientMessage.startsWith("NEW")) {
-          handleNewGameRequest(clientMessage);
-        } else if (clientMessage.startsWith("MOVE:")) {
-          handleMoveRequest(clientMessage);
+        PacketParser packet = new PacketParser(clientMessage);
 
-        } else {
-          // Fixed command with no parameters
-          switch (clientMessage) {
-            case "PING" -> sendMessage("PONG");
-            case "PINGS" -> sendMessage("PONGS");
-            case "SERVER_STATUS" -> sendMessage(server.getStatusResponse());
-            case "PLAYERS" -> sendMessage(server.getPlayerResponse());
-            case "SCOREBOARD" -> sendMessage(server.getScoreboardResponse());
+        switch (packet.getCommand()) {
+          case "PING" -> sendMessage("PONG");
+          case "PINGS" -> sendMessage("PONGS");
+          case "SERVER_STATUS" -> sendMessage(server.getStatusResponse());
+          case "PLAYERS" -> sendMessage(server.getPlayerResponse());
+          case "SCOREBOARD" -> sendMessage(server.getScoreboardResponse());
+          case "NEW" -> handleNewGameRequest(packet);
+          case "MOVE" -> handleMoveRequest(packet);
+          case "ACCEPT" -> server.handleInvitationResponse(this, true);
+          case "DECLINE" -> server.handleInvitationResponse(this, false);
 
-            default -> sendMessage("ERROR: Unknown command");
-          }
+          default -> sendMessage("ERROR: Unknown command");
         }
       }
     } catch (SocketTimeoutException e) {
@@ -162,13 +159,8 @@ public class ClientHandler implements Runnable {
    *
    * @param message the NEW command
    */
-  private void handleNewGameRequest(String message) {
+  private void handleNewGameRequest(PacketParser packet) {
     try {
-      // We parse the message
-      PacketParser packet = new PacketParser(message);
-      if (packet.getEntries().isEmpty()) {
-        return;
-      }
       Map<String, String> data = packet.getEntries().getFirst();
 
       // We create an array for storing targets ID
@@ -195,11 +187,11 @@ public class ClientHandler implements Runnable {
     }
   }
 
-  private void handleMoveRequest(String message) {
+  private void handleMoveRequest(PacketParser packet) {
     if (onlineGame == null) {
       sendMessage("ERROR: You are not currently in a game");
     } else {
-      onlineGame.processMove(this, new PacketParser(message));
+      onlineGame.processMove(this, packet);
     }
   }
 

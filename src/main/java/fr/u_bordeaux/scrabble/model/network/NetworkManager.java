@@ -338,6 +338,23 @@ public class NetworkManager {
     gameClient.sendPassMove();
   }
 
+  public void accept() {
+    if (gameClient == null) {
+      // System.err.println("User : Client is not connected, can't accept an invitation");
+      return;
+    }
+    gameClient.sendAccept();
+  }
+
+  public void decline() {
+    if (gameClient == null) {
+      // System.err.println("User : Client is not connected, can't decline an invitation");
+      return;
+    }
+    gameClient.sendDecline();
+  }
+
+
   // -----F4O-----
 
   // TODO:

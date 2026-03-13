@@ -42,6 +42,15 @@ class NetworkManagerTest {
 
           @Override
           public void messageUpdate(String message) {}
+
+          @Override
+          public void invitationReceivedUpdate(String from) {}
+
+          @Override
+          public void invitationAcceptedUpdate(String playerAccepted) {}
+
+          @Override
+          public void invitationDeclinedUpdate(String playerDeclined) {}
         };
   }
 

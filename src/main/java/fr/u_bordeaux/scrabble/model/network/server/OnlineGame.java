@@ -54,7 +54,7 @@ public class OnlineGame {
     }
 
     // Debug: print the board server side
-    // game.printDebugState(false, false);
+    game.printDebugState(false, false);
   }
 
   /**
@@ -188,7 +188,7 @@ public class OnlineGame {
     sendRack(sender, player);
 
     // Debug: print the board server side
-    // game.printDebugState(false, false);
+     game.printDebugState(false, false);
   }
 
   /** Handles the exchange of tiles. */
@@ -216,7 +216,7 @@ public class OnlineGame {
     sendRack(sender, player);
 
     // Debug: print the board server side
-    // game.printDebugState(false, false);
+    game.printDebugState(false, false);
   }
 
   /** Handles skipping a turn. */
@@ -230,7 +230,7 @@ public class OnlineGame {
     broadcast(String.format("OPPONENT_MOVE:PLAYER=%s;TYPE=PASS", sender.getClientInfo().getName()));
 
     // Debug: print the board server side
-    // game.printDebugState(false, false);
+    game.printDebugState(false, false);
   }
 
   /**

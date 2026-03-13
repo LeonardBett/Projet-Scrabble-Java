@@ -102,6 +102,15 @@ class DiscoveryServiceTest {
 
           @Override
           public void messageUpdate(String m) {}
+
+          @Override
+          public void invitationReceivedUpdate(String from) {}
+
+          @Override
+          public void invitationAcceptedUpdate(String playerAccepted) {}
+
+          @Override
+          public void invitationDeclinedUpdate(String playerDeclined) {}
         };
 
     discoveryService.addObserver(observer);

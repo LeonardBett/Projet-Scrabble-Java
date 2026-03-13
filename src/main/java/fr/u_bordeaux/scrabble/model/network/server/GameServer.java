@@ -32,6 +32,9 @@ public class GameServer {
   // Is used to give a unique id to each player
   private int idCounter = 1;
 
+  private final List<PendingInvitation> activeInvitations =
+      Collections.synchronizedList(new ArrayList<>());
+
   /** Start the server on the default port. */
   public void start() {
     start(DEFAULT_TCP_PORT);
@@ -52,6 +55,35 @@ public class GameServer {
       // Replace because we use ";" for parsing, so a player name can't contain this character
       String serverName = "Server-" + System.getProperty("user.name").replace(";", "_");
       serverInfo = new ServerInfo(ipAddress, port, serverName);
+
+      // Thread de nettoyage des invitations expirées
+      new Thread(
+              () -> {
+                while (isRunning) {
+                  try {
+                    Thread.sleep(10000);
+                    long now = System.currentTimeMillis();
+                    synchronized (activeInvitations) {
+                      activeInvitations.removeIf(
+                          inv -> {
+                            if (inv.isExpired(now)) {
+                              inv.getHost().sendMessage("ERROR: Invitation expired.");
+                              inv.getHost().getClientInfo().setStatus(PlayerStatus.IDLE);
+                              for (ClientHandler p : inv.getPendingPlayers()) {
+                                p.getClientInfo().setStatus(PlayerStatus.IDLE);
+                                p.sendMessage("ERROR: Invitation expired.");
+                              }
+                              return true;
+                            }
+                            return false;
+                          });
+                    }
+                  } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                  }
+                }
+              })
+          .start();
 
       // Infinite loop for accepting connexion
       while (isRunning) {
@@ -200,24 +232,12 @@ public class GameServer {
     return sb.toString();
   }
 
-  /**
-   * Starts a new game between the initiator and a list of target players. Supports multiplayer
-   * sessions (2 to 4 players total).
-   *
-   * @param initiator The client who sent the "new" command
-   * @param targetIds The list of player IDs to invite to the game
-   * @return String response for the initiator indicating success or failure
-   */
   public synchronized String createNewGame(ClientHandler initiator, List<Integer> targetIds) {
-    List<ClientHandler> participants = new ArrayList<>();
-    participants.add(initiator);
-
-    // Verify if the initiator is available to play
     if (initiator.getClientInfo().getStatus() != PlayerStatus.IDLE) {
-      return "ERROR: You are already in a game";
+      return "ERROR: You are not available";
     }
 
-    // Locate and validate all invited opponents
+    List<ClientHandler> targets = new ArrayList<>();
     synchronized (clients) {
       for (int id : targetIds) {
         ClientHandler target = null;
@@ -227,34 +247,72 @@ public class GameServer {
             break;
           }
         }
-
-        // Check if the target player exists
-        if (target == null) {
-          return "ERROR: Player " + id + " not found";
-        }
-        // Check for self-invitation
-        if (target == initiator) {
-          return "ERROR: You cannot play against yourself";
-        }
-        // Verify availability
+        if (target == null) return "ERROR: Player " + id + " not found";
+        if (target == initiator) return "ERROR: You cannot play against yourself";
         if (target.getClientInfo().getStatus() != PlayerStatus.IDLE) {
           return "ERROR: Player " + target.getClientInfo().getName() + " is busy";
         }
-
-        participants.add(target);
+        targets.add(target);
       }
     }
 
-    // Create the online game session and add it to the active list
-    OnlineGame session = new OnlineGame(participants);
-    onlineGames.add(session);
+    // Création de l'invitation
+    PendingInvitation invitation = new PendingInvitation(initiator, targets);
+    activeInvitations.add(invitation);
 
-    // Update the status of all participants to prevent them from joining other games
-    for (ClientHandler p : participants) {
-      p.getClientInfo().setStatus(PlayerStatus.INGAME);
+    // Mise à jour des statuts et notifications
+    initiator.getClientInfo().setStatus(PlayerStatus.WAITGAME);
+    for (ClientHandler t : targets) {
+      t.getClientInfo().setStatus(PlayerStatus.WAITGAME);
+      t.sendMessage(
+          "INVITATION_RECEIVED:FROM=" + initiator.getClientInfo().getName());
+    }
+    return "INVITATION_SENT";
+  }
+
+  public synchronized void handleInvitationResponse(ClientHandler player, boolean accepted) {
+    PendingInvitation currentInv = null;
+    for (PendingInvitation inv : activeInvitations) {
+      if (inv.containsPendingPlayer(player)) {
+        currentInv = inv;
+        break;
+      }
     }
 
-    return "SUCCESS: Game started";
+    if (currentInv == null) {
+      player.sendMessage("ERROR: No pending invitation.");
+      return;
+    }
+
+    if (accepted) {
+      currentInv.acceptPlayer(player);
+      currentInv
+          .getHost()
+          .sendMessage("INVITATION_ACCEPTED:PLAYER=" + player.getClientInfo().getName());
+    } else {
+      currentInv.declinePlayer(player);
+      player.getClientInfo().setStatus(PlayerStatus.IDLE);
+      currentInv
+          .getHost()
+          .sendMessage("INVITATION_DECLINED:PLAYER=" + player.getClientInfo().getName());
+    }
+
+    if (currentInv.isComplete()) {
+      activeInvitations.remove(currentInv);
+
+      if (currentInv.hasEnoughPlayers()) {
+        OnlineGame session = new OnlineGame(currentInv.getAcceptedPlayers());
+        onlineGames.add(session);
+        for (ClientHandler p : currentInv.getAcceptedPlayers()) {
+          p.getClientInfo().setStatus(PlayerStatus.INGAME);
+        }
+      } else {
+        for (ClientHandler p : currentInv.getAcceptedPlayers()) {
+          p.getClientInfo().setStatus(PlayerStatus.IDLE);
+        }
+        currentInv.getHost().sendMessage("ERROR: Not enough players accepted to start the game.");
+      }
+    }
   }
 
   /**

@@ -262,6 +262,36 @@ public class GameClient {
 
             break;
 
+          case "INVITATION_RECEIVED":
+            if (packetParser.getEntries().isEmpty()) {
+              break;
+            }
+            String from = packetParser.getEntries().getFirst().get("FROM");
+            for (NetworkObserver obs : observers) {
+              obs.invitationReceivedUpdate(from);
+            }
+            break;
+
+          case "INVITATION_ACCEPTED":
+            if (packetParser.getEntries().isEmpty()) {
+              break;
+            }
+            String playerAccepted = packetParser.getEntries().getFirst().get("PLAYER");
+            for (NetworkObserver obs : observers) {
+              obs.invitationAcceptedUpdate(playerAccepted);
+            }
+            break;
+
+          case "INVITATION_DECLINED":
+            if (packetParser.getEntries().isEmpty()) {
+              break;
+            }
+            String playerDeclined = packetParser.getEntries().getFirst().get("PLAYER");
+            for (NetworkObserver obs : observers) {
+              obs.invitationDeclinedUpdate(playerDeclined);
+            }
+            break;
+
           default:
             // System.out.println("Client : Received: " + serverMessage);
             for (NetworkObserver obs : observers) {
@@ -414,6 +444,14 @@ public class GameClient {
   public void sendPassMove() {
     // Format: MOVE:TYPE=PASS
     sendMessage("MOVE:TYPE=PASS");
+  }
+
+  public void sendAccept() {
+    sendMessage("ACCEPT");
+  }
+
+  public void sendDecline() {
+    sendMessage("DECLINE");
   }
 
   // Method use in a Thread

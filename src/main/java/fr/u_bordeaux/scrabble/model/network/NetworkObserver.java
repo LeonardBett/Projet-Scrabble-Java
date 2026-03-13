@@ -56,4 +56,10 @@ public interface NetworkObserver {
    * @param message the message
    */
   void messageUpdate(String message);
+
+  void invitationReceivedUpdate(String from);
+
+  void invitationAcceptedUpdate(String playerAccepted);
+
+  void invitationDeclinedUpdate(String playerDeclined);
 }

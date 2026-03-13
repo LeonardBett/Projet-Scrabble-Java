@@ -240,5 +240,14 @@ class ClientServerTest {
 
     @Override
     public void serverListUpdate(List<ServerInfo> activeServers) {}
+
+    @Override
+    public void invitationReceivedUpdate(String from) {}
+
+    @Override
+    public void invitationAcceptedUpdate(String playerAccepted) {}
+
+    @Override
+    public void invitationDeclinedUpdate(String playerDeclined) {}
   }
 }
