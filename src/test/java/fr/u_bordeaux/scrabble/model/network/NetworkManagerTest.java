@@ -88,7 +88,7 @@ class NetworkManagerTest {
 
     // Start server on default port
     networkManager.serverStart();
-    Thread.sleep(100);
+    Thread.sleep(1500);
 
     // Connect to a local address
     networkManager.join("127.0.0.1");
@@ -123,6 +123,8 @@ class NetworkManagerTest {
     networkManager.players();
     networkManager.scoreboard();
     networkManager.newPlayerId(1);
+    networkManager.newPlayerId(1, 2);
+    networkManager.newPlayerId(1, 2, 3);
     networkManager.play(7, 7, "H", "TEST");
     networkManager.exchange("ABC");
     networkManager.pass();

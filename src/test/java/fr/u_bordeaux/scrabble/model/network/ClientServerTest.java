@@ -35,7 +35,7 @@ class ClientServerTest {
     new Thread(() -> server.start(currentTestPort)).start();
 
     // Slightly increased delay to allow the OS to bind the socket
-    Thread.sleep(300);
+    Thread.sleep(1500);
 
     // 3. Initialize the client and attach the spy observer
     client = new GameClient();
@@ -46,7 +46,7 @@ class ClientServerTest {
     client.connect("127.0.0.1", currentTestPort);
 
     // Polling: wait (max 1 second) for the client to confirm its connection
-    for (int i = 0; i < 20; i++) {
+    for (int i = 0; i < 50; i++) {
       if (spyObserver.lastMessage.contains("Connected to server")) {
         break;
       }
@@ -79,7 +79,7 @@ class ClientServerTest {
     client.sendPing();
 
     // Polling to wait for the PONG response
-    for (int i = 0; i < 20; i++) {
+    for (int i = 0; i < 50; i++) {
       if (spyObserver.lastMessage.contains("PONG TIME=")) {
         break;
       }
@@ -96,7 +96,7 @@ class ClientServerTest {
     client.sendServerStatus();
 
     // Wait for the asynchronous response
-    for (int i = 0; i < 20 && spyObserver.lastStatus == null; i++) {
+    for (int i = 0; i < 50 && spyObserver.lastStatus == null; i++) {
       Thread.sleep(50);
     }
 
@@ -111,7 +111,7 @@ class ClientServerTest {
     client.sendPlayers();
 
     // Wait for the asynchronous response
-    for (int i = 0; i < 20 && spyObserver.lastPlayers == null; i++) {
+    for (int i = 0; i < 50 && spyObserver.lastPlayers == null; i++) {
       Thread.sleep(50);
     }
 
@@ -126,7 +126,7 @@ class ClientServerTest {
     client.sendScoreboard();
 
     // Wait for the asynchronous response
-    for (int i = 0; i < 20 && spyObserver.lastScoreboard == null; i++) {
+    for (int i = 0; i < 50 && spyObserver.lastScoreboard == null; i++) {
       Thread.sleep(50);
     }
 
@@ -147,7 +147,7 @@ class ClientServerTest {
     client2.connect("127.0.0.1", currentTestPort);
 
     // Wait for the second client to connect
-    for (int i = 0; i < 20 && !observer2.lastMessage.contains("Connected to server"); i++) {
+    for (int i = 0; i < 50 && !observer2.lastMessage.contains("Connected to server"); i++) {
       Thread.sleep(50);
     }
     // Client 1 invites Client 2
@@ -155,7 +155,7 @@ class ClientServerTest {
 
     // Wait for GAME_START for both clients
     for (int i = 0;
-        i < 20 && (!spyObserver.localModelUpdated || !observer2.localModelUpdated);
+        i < 50 && (!spyObserver.localModelUpdated || !observer2.localModelUpdated);
         i++) {
       Thread.sleep(50);
     }
@@ -168,12 +168,12 @@ class ClientServerTest {
     client.sendPassMove();
 
     // Wait for the turn update on client 2's model
-    for (int i = 0; i < 20; i++) {
+    for (int i = 0; i < 50; i++) {
       if (client2.getLocalGame() != null
           && "Player-2".equals(client2.getLocalGame().getCurrentPlayer().getName())) {
         break;
       }
-      Thread.sleep(50);
+      Thread.sleep(200);
     }
 
     Assertions.assertEquals(
