@@ -10,34 +10,37 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
 /**
- * Panel containing action buttons.
- *
- * ✅ MVC: Pure display — buttons are exposed via getters so ScrabbleGUI
- * can wire them to the controller without ControlPanel knowing the controller.
+ * JavaFX panel containing all game action buttons (play, pass, exchange, undo, etc.).
  */
 public class ControlPanel extends VBox {
 
     private final Button playButton;
     private final Button passButton;
     private final Button exchangeButton;
+    private final Button cancelPlacementButton;
     private final Button undoButton;
     private final Button redoButton;
     private final Button newGameButton;
+    private final Button onlineButton;
     private final Button saveButton;
     private final Button loadButton;
     private final Button quitButton;
 
+    /**
+     * Creates the ControlPanel and initializes all buttons.
+     */
     public ControlPanel() {
-        playButton     = createButton("▶  Jouer",           "#4CAF50");
-        passButton     = createButton("⏭  Passer",          "#FF9800");
-        exchangeButton = createButton("🔄 Échanger",        "#2196F3");
-        undoButton     = createButton("↶  Annuler",         "#9E9E9E");
-        redoButton     = createButton("↷  Refaire",         "#9E9E9E");
-        newGameButton  = createButton("🎮 Nouvelle partie", "#673AB7");
-        saveButton     = createButton("💾 Sauvegarder",     "#00BCD4");
-        loadButton     = createButton("📁 Charger",         "#00BCD4");
-        quitButton     = createButton("❌ Quitter",         "#F44336");
-
+        playButton            = createButton("▶  Jouer",                "#4CAF50");
+        passButton            = createButton("⏭  Passer",               "#FF9800");
+        exchangeButton        = createButton("🔄 Échanger",             "#2196F3");
+        cancelPlacementButton = createButton("↩  Annuler placement",    "#795548");
+        undoButton            = createButton("↶  Annuler coup",         "#9E9E9E");
+        redoButton            = createButton("↷  Refaire coup",         "#9E9E9E");
+        newGameButton         = createButton("🎮 Nouvelle partie",      "#673AB7");
+        onlineButton          = createButton("🌐 Multijoueur en ligne", "#009688");
+        saveButton            = createButton("💾 Sauvegarder",          "#00BCD4");
+        loadButton            = createButton("📁 Charger",              "#00BCD4");
+        quitButton            = createButton("❌ Quitter",              "#F44336");
         initializeUI();
     }
 
@@ -53,16 +56,17 @@ public class ControlPanel extends VBox {
         title.setTextFill(Color.WHITE);
         title.setPadding(new Insets(0, 0, 8, 0));
 
-        Label sep1 = separator();
-        Label sep2 = separator();
-
         this.getChildren().addAll(
             title,
-            playButton, passButton, exchangeButton,
-            sep1,
+            playButton, passButton, exchangeButton, cancelPlacementButton,
+            separator(),
             undoButton, redoButton,
-            sep2,
-            newGameButton, saveButton, loadButton, quitButton
+            separator(),
+            newGameButton, onlineButton,
+            separator(),
+            saveButton, loadButton,
+            separator(),
+            quitButton
         );
     }
 
@@ -78,7 +82,7 @@ public class ControlPanel extends VBox {
             "-fx-cursor: hand;"
         );
         btn.setOnMouseEntered(e -> btn.setOpacity(0.8));
-        btn.setOnMouseExited(e ->  btn.setOpacity(1.0));
+        btn.setOnMouseExited(e  -> btn.setOpacity(1.0));
         return btn;
     }
 
@@ -88,15 +92,26 @@ public class ControlPanel extends VBox {
         return sep;
     }
 
-    // ─── Getters (wired by ScrabbleGUI) ──────────────────────────────────────
-
-    public Button getPlayButton()     { return playButton; }
-    public Button getPassButton()     { return passButton; }
-    public Button getExchangeButton() { return exchangeButton; }
-    public Button getUndoButton()     { return undoButton; }
-    public Button getRedoButton()     { return redoButton; }
-    public Button getNewGameButton()  { return newGameButton; }
-    public Button getSaveButton()     { return saveButton; }
-    public Button getLoadButton()     { return loadButton; }
-    public Button getQuitButton()     { return quitButton; }
+    /** @return the play button */
+    public Button getPlayButton()            { return playButton; }
+    /** @return the pass button */
+    public Button getPassButton()            { return passButton; }
+    /** @return the exchange button */
+    public Button getExchangeButton()        { return exchangeButton; }
+    /** @return the cancel placement button */
+    public Button getCancelPlacementButton() { return cancelPlacementButton; }
+    /** @return the undo button */
+    public Button getUndoButton()            { return undoButton; }
+    /** @return the redo button */
+    public Button getRedoButton()            { return redoButton; }
+    /** @return the new game button */
+    public Button getNewGameButton()         { return newGameButton; }
+    /** @return the online multiplayer button */
+    public Button getOnlineButton()          { return onlineButton; }
+    /** @return the save button */
+    public Button getSaveButton()            { return saveButton; }
+    /** @return the load button */
+    public Button getLoadButton()            { return loadButton; }
+    /** @return the quit button */
+    public Button getQuitButton()            { return quitButton; }
 }

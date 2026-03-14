@@ -183,10 +183,11 @@ public class RackPanel extends VBox {
     /**
      * Hides a tile visually (it has been placed on the board, pending validation).
      */
+   
     public void hideTile(Tile tile) {
         List<Tile> tiles = rack.getTiles();
         for (int i = 0; i < tiles.size(); i++) {
-            if (tiles.get(i).equals(tile)) {
+            if (tiles.get(i) == tile) {  // == et non .equals()
                 tileContainers[i].setVisible(false);
                 break;
             }

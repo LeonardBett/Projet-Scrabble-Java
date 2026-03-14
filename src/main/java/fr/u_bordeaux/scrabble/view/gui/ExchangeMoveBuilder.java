@@ -10,7 +10,7 @@ import fr.u_bordeaux.scrabble.model.interfaces.Player;
 /**
  * Builds an EXCHANGE Move from a string typed by the user in the dialog.
  *
- * ✅ MVC: Converts raw user input (String) → Move object.
+ * <p>MVC: Converts raw user input (String) into a Move object.
  * Belongs in the view package because it depends on user input format.
  */
 public class ExchangeMoveBuilder {
@@ -19,7 +19,10 @@ public class ExchangeMoveBuilder {
 
     /**
      * Builds an EXCHANGE Move from a letter string (e.g. "ABC").
-     * Returns null if a letter is not found in the player's rack.
+     *
+     * @param letters the letters to exchange, as a string (e.g. "ABC")
+     * @param player  the player performing the exchange
+     * @return the constructed Move, or null if a letter is not found in the rack
      */
     public static Move build(String letters, Player player) {
         List<Tile> rack       = player.getRack().getTiles();
@@ -34,7 +37,7 @@ public class ExchangeMoveBuilder {
                     break;
                 }
             }
-            if (!found) return null; // caller will show the error
+            if (!found) return null;
         }
 
         return toExchange.isEmpty() ? null : Move.createExchange(player, toExchange);

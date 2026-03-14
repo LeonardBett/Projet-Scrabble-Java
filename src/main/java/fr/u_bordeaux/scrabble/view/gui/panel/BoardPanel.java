@@ -17,40 +17,39 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
 /**
- * Panel representing the Scrabble board (15x15 grid).
- *
- * ✅ MVC: Only displays the Board from the model.
- * User interactions (drop) are forwarded via a callback to ScrabbleGUI,
- * which delegates to the controller.
+ * JavaFX panel that renders the Scrabble board as a grid of draggable cells.
  */
 public class BoardPanel extends VBox {
 
     private static final int GRID_SIZE = Board.SIZE;
     private static final int CELL_SIZE = 40;
 
-    private final GridPane gridPane;
+    private final GridPane  gridPane;
     private final Label[][] cellLabels;
-    private final Board board;
+    private Board board;
 
-    /**
-     * Callback called when a tile is dropped on a cell: (row, col) → ScrabbleGUI.
-     */
     private BiConsumer<Integer, Integer> onTileDropped;
 
+    /**
+     * Creates a BoardPanel displaying the given board.
+     *
+     * @param board the board model to display
+     */
     public BoardPanel(Board board) {
-        this.board = board;
+        this.board      = board;
         this.cellLabels = new Label[GRID_SIZE][GRID_SIZE];
-        this.gridPane = new GridPane();
+        this.gridPane   = new GridPane();
         initializeUI();
     }
 
-    // ─── Callback setter ──────────────────────────────────────────────────────
-
+    /**
+     * Sets the callback invoked when a tile is dropped on a cell.
+     *
+     * @param callback a BiConsumer receiving (row, col) of the drop target
+     */
     public void setOnTileDropped(BiConsumer<Integer, Integer> callback) {
         this.onTileDropped = callback;
     }
-
-    // ─── UI initialisation ────────────────────────────────────────────────────
 
     private void initializeUI() {
         Label title = new Label("PLATEAU DE JEU");
@@ -77,60 +76,43 @@ public class BoardPanel extends VBox {
         this.getChildren().addAll(title, gridPane);
     }
 
-    // ─── Cell creation ────────────────────────────────────────────────────────
-
     private Label createCell(int row, int col) {
         Label cell = new Label();
         cell.setPrefSize(CELL_SIZE, CELL_SIZE);
         cell.setMaxSize(CELL_SIZE, CELL_SIZE);
         cell.setMinSize(CELL_SIZE, CELL_SIZE);
         cell.setAlignment(Pos.CENTER);
-        cell.setFont(Font.font("Arial", FontWeight.BOLD, 18));
 
         Square square = board.getSquare(new Point(col, row));
         applyCellStyle(cell, square.getSquareType(), row, col);
 
-        // Hover effect
         cell.setOnMouseEntered(e -> cell.setOpacity(0.8));
-        cell.setOnMouseExited(e -> cell.setOpacity(1.0));
+        cell.setOnMouseExited(e  -> cell.setOpacity(1.0));
 
-        // ✅ Drop target: forward to ScrabbleGUI via callback
         setupDropTarget(cell, row, col);
-
         return cell;
     }
 
     private void setupDropTarget(Label cell, int row, int col) {
         cell.setOnDragOver(event -> {
-            if (event.getDragboard().hasString()) {
-                event.acceptTransferModes(TransferMode.MOVE);
-            }
+            if (event.getDragboard().hasString()) event.acceptTransferModes(TransferMode.MOVE);
             event.consume();
         });
-
         cell.setOnDragEntered(event -> {
-            if (event.getDragboard().hasString()) {
-                cell.setOpacity(0.6);
-            }
+            if (event.getDragboard().hasString()) cell.setOpacity(0.6);
             event.consume();
         });
-
         cell.setOnDragExited(event -> {
             cell.setOpacity(1.0);
             event.consume();
         });
-
         cell.setOnDragDropped(event -> {
             boolean success = event.getDragboard().hasString();
-            if (success && onTileDropped != null) {
-                onTileDropped.accept(row, col);
-            }
+            if (success && onTileDropped != null) onTileDropped.accept(row, col);
             event.setDropCompleted(success);
             event.consume();
         });
     }
-
-    // ─── Style helpers ────────────────────────────────────────────────────────
 
     private void applyCellStyle(Label cell, SquareType type, int row, int col) {
         String style = "-fx-border-color: #333333; -fx-border-width: 1;";
@@ -149,23 +131,22 @@ public class BoardPanel extends VBox {
             cell.setFont(Font.font("Arial", FontWeight.BOLD, 24));
         } else if (!text.isEmpty()) {
             cell.setFont(Font.font("Arial", FontWeight.BOLD, 10));
+        } else {
+            cell.setFont(Font.font("Arial", FontWeight.BOLD, 18));
         }
 
         cell.setText(text);
         cell.setStyle(style);
     }
 
-    // ─── Public update methods (called by ScrabbleGUI after refresh) ──────────
-
     /**
-     * Re-reads the entire Board model and redraws every cell.
+     * Refreshes all cells to reflect the current board state.
      */
     public void updateBoard() {
         for (int row = 0; row < GRID_SIZE; row++) {
             for (int col = 0; col < GRID_SIZE; col++) {
                 Square square = board.getSquare(new Point(col, row));
-                Label cell = cellLabels[row][col];
-
+                Label  cell   = cellLabels[row][col];
                 if (!square.isEmpty()) {
                     char letter = Character.toUpperCase(square.getTile().getCharacter());
                     cell.setText(String.valueOf(letter));
@@ -180,7 +161,12 @@ public class BoardPanel extends VBox {
     }
 
     /**
-     * Shows a tile temporarily (pending, not yet validated).
+     * Places a tile visually on a cell (pending placement, not yet validated).
+     *
+     * @param row    the row index
+     * @param col    the column index
+     * @param letter the letter to display
+     * @param value  the tile point value (unused visually, kept for API consistency)
      */
     public void placeTile(int row, int col, char letter, int value) {
         if (row < 0 || row >= GRID_SIZE || col < 0 || col >= GRID_SIZE) return;
@@ -192,7 +178,10 @@ public class BoardPanel extends VBox {
     }
 
     /**
-     * Restores a cell to its original appearance.
+     * Removes a pending tile from a cell, restoring its original style.
+     *
+     * @param row the row index
+     * @param col the column index
      */
     public void clearTile(int row, int col) {
         if (row < 0 || row >= GRID_SIZE || col < 0 || col >= GRID_SIZE) return;
@@ -200,19 +189,25 @@ public class BoardPanel extends VBox {
         applyCellStyle(cellLabels[row][col], square.getSquareType(), row, col);
     }
 
+    /**
+     * Clears all pending (unvalidated) tiles from the board display.
+     */
     public void clearAllPending() {
         for (int row = 0; row < GRID_SIZE; row++) {
             for (int col = 0; col < GRID_SIZE; col++) {
                 Square square = board.getSquare(new Point(col, row));
-                if (square.isEmpty()) {
-                    applyCellStyle(cellLabels[row][col], square.getSquareType(), row, col);
-                }
+                if (square.isEmpty()) applyCellStyle(cellLabels[row][col], square.getSquareType(), row, col);
             }
         }
     }
 
-      public void setBoard(Board newBoard) {
-      
+    /**
+     * Replaces the current board model and refreshes the display.
+     *
+     * @param newBoard the new board to display
+     */
+    public void setBoard(Board newBoard) {
+        this.board = newBoard;
         updateBoard();
     }
 }

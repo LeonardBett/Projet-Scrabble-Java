@@ -1,10 +1,12 @@
 package fr.u_bordeaux.scrabble.model.network;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import fr.u_bordeaux.scrabble.model.core.Game;
 import fr.u_bordeaux.scrabble.model.network.client.GameClient;
 import fr.u_bordeaux.scrabble.model.network.server.GameServer;
 import fr.u_bordeaux.scrabble.model.network.server.ServerInfo;
-import java.util.ArrayList;
-import java.util.List;
 
 /** Manages network operations and acts as a facade for the network layer. */
 public class NetworkManager {
@@ -354,6 +356,11 @@ public class NetworkManager {
     gameClient.sendDecline();
   }
 
+
+  public Game getLocalGame() {
+    if (gameClient == null) return null;
+    return gameClient.getLocalGame();
+  }
 
   // -----F4O-----
 
