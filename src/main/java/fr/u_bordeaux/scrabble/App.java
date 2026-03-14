@@ -1,9 +1,21 @@
 package fr.u_bordeaux.scrabble;
 
+
 import fr.u_bordeaux.scrabble.view.optionLancement.CLILauncher;
 import fr.u_bordeaux.scrabble.view.optionLancement.GUILauncher;
 import fr.u_bordeaux.scrabble.view.optionLancement.HelpPrinter;
 import fr.u_bordeaux.scrabble.view.optionLancement.OptionPlayer;
+import fr.u_bordeaux.scrabble.controller.GameController;
+import fr.u_bordeaux.scrabble.model.core.*;
+import fr.u_bordeaux.scrabble.model.interfaces.Player;
+import fr.u_bordeaux.scrabble.model.utils.Point;
+import fr.u_bordeaux.scrabble.model.enums.Direction;
+import fr.u_bordeaux.scrabble.view.cli.CLIView;
+import fr.u_bordeaux.scrabble.view.gui.JavaFxView;
+import fr.u_bordeaux.scrabble.view.gui.ScrabbleGUI;
+import javafx.application.Application;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * Point d'entrée de l'application.
