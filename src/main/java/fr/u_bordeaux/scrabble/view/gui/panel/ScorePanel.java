@@ -9,19 +9,16 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
-/**
- * Panel displaying player scores and bag info.
- *
- * ✅ MVC: Pure display — receives data from ScrabbleGUI (which gets it from the model).
- */
 public class ScorePanel extends VBox {
 
     private final ListView<String> playerList;
-    private final Label bagInfoLabel;
+    private final Label            bagInfoLabel;
+    private final Label            currentPlayerLabel;
 
     public ScorePanel() {
-        this.playerList   = new ListView<>();
-        this.bagInfoLabel = new Label("Lettres restantes : 102");
+        this.playerList         = new ListView<>();
+        this.bagInfoLabel       = new Label("Lettres restantes : 102");
+        this.currentPlayerLabel = new Label("Tour de : —");
         initializeUI();
     }
 
@@ -36,19 +33,21 @@ public class ScorePanel extends VBox {
         title.setFont(Font.font("Arial", FontWeight.BOLD, 16));
         title.setTextFill(Color.WHITE);
 
-        playerList.setPrefHeight(180);
+        playerList.setPrefHeight(150);
         playerList.setStyle("-fx-font-size: 13px;");
 
         bagInfoLabel.setFont(Font.font("Arial", FontWeight.NORMAL, 12));
         bagInfoLabel.setTextFill(Color.LIGHTGRAY);
-        bagInfoLabel.setPadding(new Insets(5, 0, 0, 0));
+        bagInfoLabel.setPadding(new Insets(2, 0, 0, 0));
 
-        this.getChildren().addAll(title, playerList, bagInfoLabel);
+        currentPlayerLabel.setFont(Font.font("Arial", FontWeight.BOLD, 13));
+        currentPlayerLabel.setTextFill(Color.LIGHTGREEN);
+        currentPlayerLabel.setPadding(new Insets(4, 0, 0, 0));
+        currentPlayerLabel.setWrapText(true);
+
+        this.getChildren().addAll(title, playerList, bagInfoLabel, currentPlayerLabel);
     }
 
-    /**
-     * Updates the player list with names and scores.
-     */
     public void updateScores(String[] playerNames, int[] scores) {
         playerList.getItems().clear();
         for (int i = 0; i < playerNames.length && i < scores.length; i++) {
@@ -56,19 +55,14 @@ public class ScorePanel extends VBox {
         }
     }
 
-    /**
-     * Updates the remaining tiles count.
-     */
     public void updateBagInfo(int remainingTiles) {
         bagInfoLabel.setText("Lettres restantes : " + remainingTiles);
     }
 
-    /**
-     * Highlights the current player row.
-     */
-    public void highlightCurrentPlayer(int playerIndex) {
+    public void highlightCurrentPlayer(int playerIndex, String playerName) {
         if (playerIndex >= 0 && playerIndex < playerList.getItems().size()) {
             playerList.getSelectionModel().select(playerIndex);
         }
+        currentPlayerLabel.setText("🎯 Tour de : " + playerName);
     }
 }
