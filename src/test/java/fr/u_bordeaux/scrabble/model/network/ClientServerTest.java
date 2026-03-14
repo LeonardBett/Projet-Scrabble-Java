@@ -18,7 +18,7 @@ class ClientServerTest {
 
   // Static counter to use a different TCP port for EACH test.
   // Prevents "Address already in use" (TIME_WAIT) crashes on Linux and CI environments.
-  private static int portCounter = 12350;
+  private static int portCounter = 50000;
 
   private int currentTestPort;
   private GameServer server;
