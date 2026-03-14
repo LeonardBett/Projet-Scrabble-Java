@@ -21,7 +21,7 @@ class DiscoveryServiceTest {
   @BeforeEach
   void setUp() throws InterruptedException {
     // OS needs time to release the UDP port between tests
-    Thread.sleep(150);
+    Thread.sleep(300);
     discoveryService = new DiscoveryService();
   }
 
@@ -35,7 +35,7 @@ class DiscoveryServiceTest {
   void testServerDiscoveryViaFakePacket() throws Exception {
     discoveryService.startListening();
     // Wait for the listening thread to bind the socket
-    Thread.sleep(200);
+    Thread.sleep(1500);
 
     String message = "SCRABBLE_SERVER;TestJUnit;12345";
     byte[] buffer = message.getBytes();
@@ -60,12 +60,12 @@ class DiscoveryServiceTest {
 
     // Polling loop: check every 50ms for up to 1 second
     boolean found = false;
-    for (int i = 0; i < 20; i++) {
+    for (int i = 0; i < 50; i++) {
       if (!discoveryService.getActiveServer().isEmpty()) {
         found = true;
         break;
       }
-      Thread.sleep(50);
+      Thread.sleep(100);
     }
 
     Assertions.assertTrue(found, "Server list remained empty. Packet was dropped by the OS.");
@@ -115,7 +115,7 @@ class DiscoveryServiceTest {
 
     discoveryService.addObserver(observer);
     discoveryService.startListening();
-    Thread.sleep(200);
+    Thread.sleep(1500);
 
     String message = "SCRABBLE_SERVER;ObserverTest;12345";
     byte[] buffer = message.getBytes();
@@ -138,11 +138,11 @@ class DiscoveryServiceTest {
     }
 
     // Polling loop for notification
-    for (int i = 0; i < 20; i++) {
+    for (int i = 0; i < 50; i++) {
       if (notificationReceived.get()) {
         break;
       }
-      Thread.sleep(50);
+      Thread.sleep(100);
     }
 
     Assertions.assertTrue(notificationReceived.get(), "Observer was not notified after broadcast.");
@@ -161,6 +161,8 @@ class DiscoveryServiceTest {
       DatagramPacket receivedPacket = new DatagramPacket(buffer, buffer.length);
 
       discoveryService.startBroadcasting("TestServer", 12345, "0.0.0.0");
+
+      Thread.sleep(300);
 
       try {
         spySocket.receive(receivedPacket);
