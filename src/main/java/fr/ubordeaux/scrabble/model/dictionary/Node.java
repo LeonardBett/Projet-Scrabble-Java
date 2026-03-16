@@ -31,47 +31,47 @@ public class Node implements Comparable<Node> {
   }
 
   /**
-   * Get our child nodes from our Map
-   * 
-   * @return Some collection of child nodes, or null if empty;
+   * Get our child nodes from our map.
+   *
+   * @return Some collection of child nodes, or null if empty.
    */
   public Collection<Node> getChildren() {
     return children.values();
   }
 
   /**
-   * Does this node have a child with the contents c2?
-   * 
-   * @param c2 the content to check
-   * @return true if child list contains such child
+   * Checks whether this node has a child with the contents c2.
+   *
+   * @param c2 the content to check.
+   * @return true if child list contains such child.
    */
   public boolean hasChild(char c2) {
     return children.containsKey(c2);
   }
 
   /**
-   * return the child that corresponds to the content c2
-   * 
-   * @param c the character to check against
-   * @return a Node or null
+   * Return the child that corresponds to the content c2.
+   *
+   * @param c the character to check against.
+   * @return a Node or null.
    */
   public Node getChild(char c) {
     return children.get(c);
   }
 
   /**
-   * Add a child to our Map of child nodes
-   * 
-   * @param c2 the character to add
+   * Add a child to our map of child nodes.
+   *
+   * @param c2 the character to add.
    */
   public void addChild(char c2) {
     children.put(c2, new Node(c2));
   }
 
   /**
-   * A basic toString, only returns our contents
-   * 
-   * @return the character the node holds
+   * A basic toString, only returns our contents.
+   *
+   * @return the character the node holds.
    */
   @Override
   public String toString() {

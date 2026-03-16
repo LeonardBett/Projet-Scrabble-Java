@@ -20,9 +20,8 @@ import java.util.List;
 
 /**
  * Main controller (application logic). Handles user input, updates the model and the view.
- * 
  * Responsibilities: - Orchestrate communication between the view and the model - Manage application
- * logic (turns, validations) - Notify the view of model changes
+ * logic (turns, validations) - Notify the view of model changes.
  */
 public class GameController {
   private Game game;
@@ -48,11 +47,9 @@ public class GameController {
     if (game == null || view == null) {
       throw new IllegalStateException("Game and view must be initialized before starting.");
     }
-
     if (game.getPlayers().size() < 2) {
       throw new IllegalStateException("At least 2 players must be present to start.");
     }
-
     game.startGame();
   }
 
@@ -305,8 +302,8 @@ public class GameController {
 
   /**
    * Adds a player to the game.
-   * 
-   * @param player The player to add
+   *
+   * @param player The player to add.
    */
   public void addPlayer(Player player) {
     game.addPlayer(player);
@@ -330,8 +327,8 @@ public class GameController {
 
   /**
    * Gets the game.
-   * 
-   * @return The Game model
+   *
+   * @return The Game model.
    */
   public Game getGame() {
     return game;
@@ -339,8 +336,8 @@ public class GameController {
 
   /**
    * Gets the view.
-   * 
-   * @return The user interface
+   *
+   * @return The user interface.
    */
   public UserInterface getView() {
     return view;

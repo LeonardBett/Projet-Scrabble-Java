@@ -10,11 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Builds a PLAY Move from the pending tiles map.
- *
- * MVC: This is VIEW logic (converting UI state to a Move object). It does NOT belong in the
- * controller (which should receive a ready Move) nor in the model (which knows nothing about
- * drag-and-drop).
+ * Builds a PLAY move from the pending tiles map.
  */
 public class PendingMoveBuilder {
 
@@ -25,8 +21,9 @@ public class PendingMoveBuilder {
    * view will show as an error).
    */
   public static Move build(Map<Point, Tile> pendingTiles, Player player) {
-    if (pendingTiles.isEmpty())
+    if (pendingTiles.isEmpty()) {
       return null;
+    }
 
     // Sort points: first by row (Y), then by col (X)
     List<Point> points = new ArrayList<>(pendingTiles.keySet());
@@ -34,8 +31,9 @@ public class PendingMoveBuilder {
         : Integer.compare(a.getX(), b.getX()));
 
     Direction direction = detectDirection(points);
-    if (direction == null)
+    if (direction == null) {
       return null;
+    }
 
     Point start = points.get(0);
 
@@ -49,14 +47,17 @@ public class PendingMoveBuilder {
   }
 
   private static Direction detectDirection(List<Point> points) {
-    if (points.size() == 1)
+    if (points.size() == 1) {
       return Direction.HORIZONTAL; // single tile: default
+    }
     boolean sameRow = points.stream().allMatch(p -> p.getY() == points.get(0).getY());
     boolean sameCol = points.stream().allMatch(p -> p.getX() == points.get(0).getX());
-    if (sameRow)
+    if (sameRow) {
       return Direction.HORIZONTAL;
-    if (sameCol)
+    }
+    if (sameCol) {
       return Direction.VERTICAL;
+    }
     return null;
   }
 }

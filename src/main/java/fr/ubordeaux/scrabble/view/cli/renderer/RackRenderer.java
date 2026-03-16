@@ -1,4 +1,4 @@
-package fr.ubordeaux.scrabble.view.cli.Renderer;
+package fr.ubordeaux.scrabble.view.cli.renderer;
 
 import fr.ubordeaux.scrabble.model.core.Rack;
 import fr.ubordeaux.scrabble.model.core.Tile;

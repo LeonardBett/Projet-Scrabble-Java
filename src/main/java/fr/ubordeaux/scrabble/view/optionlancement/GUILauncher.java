@@ -1,4 +1,4 @@
-package fr.ubordeaux.scrabble.view.optionLancement;
+package fr.ubordeaux.scrabble.view.optionlancement;
 
 import fr.ubordeaux.scrabble.model.core.Game;
 import fr.ubordeaux.scrabble.model.core.HumanPlayer;

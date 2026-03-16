@@ -28,8 +28,8 @@ public class Move {
   private int scoreGained;
   private List<Tile> drawnTiles; // Tiles drawn from bag to refill rack
   private List<Point> placedPositions; // positions where tiles were actually placed (for undo)
-  private List<Tile> placedTiles; // tiles that were actually placed (aligned with
-                                  // placedPositions)
+  private List<Tile> placedTiles; // tiles that were actually placed
+  // aligned with placedPositions
 
   /**
    * Private constructor. Use factory methods to create instances.

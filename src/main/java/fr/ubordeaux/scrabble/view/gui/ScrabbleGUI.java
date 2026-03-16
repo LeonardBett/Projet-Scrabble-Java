@@ -77,8 +77,9 @@ public class ScrabbleGUI extends Application {
     boardPanel = new BoardPanel(gameInstance.getBoard());
     rackPanel = new RackPanel(getCurrentRack());
 
-    if (viewInstance == null)
+    if (viewInstance == null) {
       viewInstance = new JavaFxView(gameInstance);
+    }
     viewInstance.setGUI(this);
 
     boardPanel.setOnTileDropped(this::onTileDropped);
@@ -123,12 +124,14 @@ public class ScrabbleGUI extends Application {
     controlPanel.getExchangeButton().setOnAction(e -> openExchangeDialog());
     controlPanel.getCancelPlacementButton().setOnAction(e -> cancelPendingTiles());
     controlPanel.getUndoButton().setOnAction(e -> {
-      if (!onlineMode)
+      if (!onlineMode) {
         controller.undo();
+      }
     });
     controlPanel.getRedoButton().setOnAction(e -> {
-      if (!onlineMode)
+      if (!onlineMode) {
         controller.redo();
+      }
     });
     controlPanel.getOnlineButton().setOnAction(e -> openNetworkLobby());
     controlPanel.getNewGameButton().setOnAction(e -> handleNewGame());
@@ -177,16 +180,17 @@ public class ScrabbleGUI extends Application {
 
   /**
    * Called by RackPanel when a tile drag starts.
-   * 
-   * @param tile The tile being dragged from the rack
+   *
+   * @param tile The tile being dragged from the rack.
    */
   public void onTileDragged(Tile tile) {
     this.currentlyDraggedTile = tile;
   }
 
   public void onTileDropped(int row, int col) {
-    if (currentlyDraggedTile == null)
+    if (currentlyDraggedTile == null) {
       return;
+    }
 
     Point point = new Point(col, row);
     if (!gameInstance.getBoard().getSquare(point).isEmpty() || pendingTiles.containsKey(point)) {
@@ -214,8 +218,9 @@ public class ScrabbleGUI extends Application {
         BufferedReader br = new BufferedReader(new InputStreamReader(is));
         String line;
         while ((line = br.readLine()) != null) {
-          if (!line.trim().isEmpty())
+          if (!line.trim().isEmpty()) {
             gaddag.add(line.trim());
+          }
         }
         br.close();
       }
@@ -271,8 +276,9 @@ public class ScrabbleGUI extends Application {
     Optional<String> result = dialog.showAndWait();
     result.ifPresent(input -> {
       String letters = input.trim().toUpperCase();
-      if (letters.isEmpty())
+      if (letters.isEmpty()) {
         return;
+      }
 
       if (onlineMode) {
         networkManager.exchange(letters);
@@ -288,24 +294,28 @@ public class ScrabbleGUI extends Application {
   }
 
   private void cancelPendingTiles() {
-    if (pendingTiles.isEmpty())
+    if (pendingTiles.isEmpty()) {
       return;
+    }
     pendingTiles.forEach((p, t) -> boardPanel.clearTile(p.getY(), p.getX()));
     pendingTiles.clear();
     refreshRack();
   }
 
   private void handleNewGame() {
-    if (!messagePanel.showConfirmation("Abandonner la partie en cours et recommencer ?"))
+    if (!messagePanel.showConfirmation("Abandonner la partie en cours et recommencer ?")) {
       return;
+    }
 
     gameInstance = new Game();
     Optional<List<String>> namesOpt = PlayerSetup.showDialog();
-    if (namesOpt.isEmpty())
+    if (namesOpt.isEmpty()) {
       return;
+    }
 
-    if (gaddag == null)
+    if (gaddag == null) {
       loadDictionary();
+    }
     for (String name : namesOpt.get()) {
       if (name.toUpperCase().startsWith("IA") || name.toUpperCase().startsWith("AI")) {
         gameInstance.addPlayer(new AIPlayer(name, 3, 5));
@@ -337,8 +347,9 @@ public class ScrabbleGUI extends Application {
   }
 
   private void checkAITurn() {
-    if (boardPanel.isDisable())
+    if (boardPanel.isDisable()) {
       return;
+    }
     Player current = gameInstance.getCurrentPlayer();
     if (current instanceof AIPlayer && !gameInstance.isGameOver()) {
       AIPlayer ai = (AIPlayer) current;

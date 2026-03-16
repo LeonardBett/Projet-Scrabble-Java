@@ -158,6 +158,7 @@ public class Game {
       case PLAY -> moveHandler.handlePlayMove(move);
       case EXCHANGE -> moveHandler.handleExchangeMove(move);
       case PASS -> moveHandler.handlePassMove(move);
+      default -> throw new IllegalStateException("Unsupported move type: " + move.getType());
     }
     // Mark that at least one play has occurred
     if (move.getType() == MoveType.PLAY) {
@@ -322,8 +323,8 @@ public class Game {
 
   /**
    * Determines the winner of the game.
-   * 
-   * @return The player with the highest score
+   *
+   * @return The player with the highest score.
    */
   public Player determineWinner() {
     if (players.isEmpty()) {
@@ -455,13 +456,13 @@ public class Game {
     System.out.println("-------------------------\n");
   }
 
-  /** -----NETWORKING----- **/
+  // -----NETWORKING-----
   // These methods are needed for online play, for manipulating client side model
   // with data from the server side model directly, without redoing calculation
   /**
    * Finds a player in the game by their name. Needed for networking
-   * 
-   * @param name The name of the player to find
+   *
+   * @param name The name of the player to find.
    * @return The Player object if found, null otherwise.
    */
   public Player getPlayerFromName(String name) {
@@ -503,8 +504,9 @@ public class Game {
    * @param boardData serialized board state (225 chars for 15x15).
    */
   public void syncBoard(String boardData) {
-    if (boardData == null || boardData.length() != 225)
+    if (boardData == null || boardData.length() != 225) {
       return; // Sécurité (15x15)
+    }
 
     for (int i = 0; i < boardData.length(); i++) {
       int x = i % 15;

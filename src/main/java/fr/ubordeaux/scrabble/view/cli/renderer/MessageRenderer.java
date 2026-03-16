@@ -1,4 +1,4 @@
-package fr.ubordeaux.scrabble.view.cli.Renderer;
+package fr.ubordeaux.scrabble.view.cli.renderer;
 
 
 public class MessageRenderer {

@@ -11,7 +11,7 @@ import fr.ubordeaux.scrabble.model.utils.Point;
 import fr.ubordeaux.scrabble.view.cli.CLIView;
 import fr.ubordeaux.scrabble.view.gui.JavaFxView;
 import fr.ubordeaux.scrabble.view.gui.ScrabbleGUI;
-import fr.ubordeaux.scrabble.view.optionLancement.HelpPrinter;
+import fr.ubordeaux.scrabble.view.optionlancement.HelpPrinter;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.application.Application;

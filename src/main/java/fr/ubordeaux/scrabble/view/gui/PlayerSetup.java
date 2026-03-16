@@ -21,9 +21,8 @@ import javafx.scene.text.FontWeight;
 
 /**
  * Dialog to configure players before the game starts. Equivalent to
- * CLIInputHandler.askNumberOfPlayers() / askPlayerName().
- *
- * ✅ MVC: Pure view — returns a list of names, knows nothing about Game or controller.
+ * CLIInputHandler.askNumberOfPlayers() / askPlayerName(). ✅ MVC: Pure view - returns a list of
+ * names, knows nothing about Game or controller.
  */
 public class PlayerSetup extends Dialog<List<String>> {
 
@@ -40,7 +39,7 @@ public class PlayerSetup extends Dialog<List<String>> {
     setHeaderText(null);
     setResizable(false);
 
-    // ── Spinner : number of players ──────────────────────────────────────
+    // Spinner: number of players
     playerCountSpinner.setEditable(false);
     playerCountSpinner.setPrefWidth(80);
     playerCountSpinner.valueProperty()
@@ -52,16 +51,16 @@ public class PlayerSetup extends Dialog<List<String>> {
     HBox spinnerRow = new HBox(12, spinnerLabel, playerCountSpinner);
     spinnerRow.setAlignment(Pos.CENTER_LEFT);
 
-    // ── Name fields ───────────────────────────────────────────────────────
+    // Name fields
     nameFieldsBox.setAlignment(Pos.CENTER_LEFT);
     rebuildNameFields(2); // start with 2 players
 
-    // ── Title label ───────────────────────────────────────────────────────
+    // Title label
     Label title = new Label("🎮  Nouvelle Partie");
     title.setFont(Font.font("Arial", FontWeight.BOLD, 20));
     title.setTextFill(Color.web("#115829"));
 
-    // ── Layout ────────────────────────────────────────────────────────────
+    // Layout
     VBox content = new VBox(18, title, spinnerRow, nameFieldsBox);
     content.setPadding(new Insets(20));
     content.setPrefWidth(380);
@@ -69,17 +68,17 @@ public class PlayerSetup extends Dialog<List<String>> {
     getDialogPane().setContent(content);
     getDialogPane().getStyleClass().add("setup-dialog");
 
-    // ── Buttons ───────────────────────────────────────────────────────────
+    // Buttons
     ButtonType startType = new ButtonType("Commencer !", ButtonBar.ButtonData.OK_DONE);
     ButtonType quitType = new ButtonType("Quitter", ButtonBar.ButtonData.CANCEL_CLOSE);
     getDialogPane().getButtonTypes().addAll(startType, quitType);
 
-    // ── Result converter ──────────────────────────────────────────────────
+    // Result converter
     setResultConverter(buttonType -> {
       if (buttonType == startType) {
         return collectNames();
       }
-      return null; // null → user cancelled
+      return null; // null -> user cancelled
     });
 
     // Validate before closing: all names must be non-empty
@@ -92,8 +91,6 @@ public class PlayerSetup extends Dialog<List<String>> {
       }
     });
   }
-
-  // ─── Helpers ──────────────────────────────────────────────────────────────
 
   /**
    * Rebuilds the name input fields when the player count changes.
@@ -134,12 +131,9 @@ public class PlayerSetup extends Dialog<List<String>> {
     alert.showAndWait();
   }
 
-  // ─── Static factory ───────────────────────────────────────────────────────
-
   /**
    * Shows the dialog and returns the list of player names, or empty Optional if the user cancelled.
    */
-
   public static Optional<List<String>> showDialog() {
     PlayerSetup dialog = new PlayerSetup();
     return dialog.showAndWait();

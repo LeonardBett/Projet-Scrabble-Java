@@ -27,13 +27,7 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 /**
- * Fenêtre de lobby réseau (JavaFX).
- *
- * Permet de : - Héberger une partie (démarrer un serveur) - Rejoindre une partie (via IP ou liste
- * auto-découverte) - Voir les joueurs connectés - Lancer une partie contre un joueur en ligne -
- * Consulter le scoreboard
- *
- * ✅ MVC : délègue toutes les actions réseau au NetworkManager via NetworkGameBridge.
+ * Fenetre de lobby reseau (JavaFX) pour heberger, rejoindre et suivre les parties en ligne.
  */
 public class NetworkLobbyView extends Stage {
 
@@ -105,8 +99,8 @@ public class NetworkLobbyView extends Stage {
     consoleArea = new TextArea();
     consoleArea.setEditable(false);
     consoleArea.setPrefHeight(100);
-    consoleArea.setStyle(
-        "-fx-control-inner-background: #0d1b2a; -fx-text-fill: #00ff88; -fx-font-family: monospace; -fx-font-size: 11;");
+    consoleArea.setStyle("-fx-control-inner-background: #0d1b2a; -fx-text-fill: #00ff88; "
+        + "-fx-font-family: monospace; -fx-font-size: 11;");
     consoleArea.setPromptText("Logs réseau...");
 
     VBox.setVgrow(tabPane, Priority.ALWAYS);

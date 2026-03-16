@@ -30,10 +30,12 @@ public class DAWGNode {
    */
   @Override
   public boolean equals(Object o) {
-    if (this == o)
+    if (this == o) {
       return true;
-    if (o == null || getClass() != o.getClass())
+    }
+    if (o == null || getClass() != o.getClass()) {
       return false;
+    }
     DAWGNode node = (DAWGNode) o;
     return content == node.content && finite == node.finite && children.equals(node.children);
   }

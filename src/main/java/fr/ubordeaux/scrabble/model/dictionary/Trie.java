@@ -32,107 +32,118 @@ public class Trie {
   }
 
   /**
-   * Add all the words in an array to the trie
-   * 
-   * @param words the list of words to add
+   * Add all the words in an array to the trie.
+   *
+   * @param words the list of words to add.
    */
   public void addAll(String[] words) {
-    for (String word : words)
+    for (String word : words) {
       this.add(word);
+    }
   }
 
   /**
-   * Add a word to the trie
-   * 
-   * @param word the word to add
+   * Add a word to the trie.
+   *
+   * @param word the word to add.
    */
   public void add(String word) {
-    if (word.isEmpty())
+    if (word.isEmpty()) {
       return;
+    }
     char[] characters = word.toUpperCase().toCharArray();
     Node current = this.root;
 
-    for (char character : characters)
-      if (current.hasChild(character))
+    for (char character : characters) {
+      if (current.hasChild(character)) {
         current = current.getChild(character);
-      else {
+      } else {
         current.addChild(character);
         this.nodeCount++;
         current = current.getChild(character);
       }
+    }
 
     current.setFinite(true); // set our last letter's flag to indicate word conclusion
 
-    if (characters.length > maxDepth)
+    if (characters.length > maxDepth) {
       this.maxDepth = (short) characters.length;
+    }
     this.wordCount++;
   }
 
   /**
-   * Check if the trie contains a word by traveling down
-   * 
-   * @param word the word to check for
-   * @return boolean whether we've got it or not
+   * Check if the trie contains a word by traveling down.
+   *
+   * @param word the word to check for.
+   * @return true if the word exists in the trie.
    */
   public boolean contains(String word) {
     char[] characters = word.toUpperCase().toCharArray();
     Node tmp = root;
 
-    for (char character : characters)
-      if (tmp.hasChild(character))
+    for (char character : characters) {
+      if (tmp.hasChild(character)) {
         tmp = tmp.getChild(character);
-      else
+      } else {
         return false;
+      }
+    }
 
     return tmp.getFinite();
   }
 
   /**
-   * Find the terminating node of a prefix
-   * 
-   * @param prefix A string to search from
-   * @return The ending node
+   * Find the terminating node of a prefix.
+   *
+   * @param prefix a string to search from.
+   * @return the ending node.
    */
   public Node find(String prefix) {
     char[] characters = prefix.toUpperCase().toCharArray();
 
     Node tmp = root;
-    for (char character : characters)
-      if (tmp.hasChild(character))
+    for (char character : characters) {
+      if (tmp.hasChild(character)) {
         tmp = tmp.getChild(character);
-      else
+      } else {
         return null;
+      }
+    }
 
     return tmp;
   }
 
   /**
-   * Returns valid words contained in the Trie using recursion
-   * 
-   * @return an ArrayList of Strings (the words)
+   * Returns valid words contained in the trie using recursion.
+   *
+   * @return an array list of strings (the words).
    */
   public ArrayList<String> getWords() {
-    ArrayList<String> words = new ArrayList<String>();
+    ArrayList<String> words = new ArrayList<>();
     dig("", root, words);
     return words;
   }
 
   /**
-   * A recursive diving function
-   * 
-   * @param word the word so far, based on past nodes
-   * @param cur the current occupied node
-   * @param words a list to fill with words
+   * A recursive diving function.
+   *
+   * @param word the word so far, based on past nodes.
+   * @param cur the current occupied node.
+   * @param words a list to fill with words.
    */
   private void dig(String word, Node cur, ArrayList<String> words) {
     // If we're at a word's end, we should add it to the list of words.
-    if (cur.getFinite())
+    if (cur.getFinite()) {
       words.add(word);
+    }
 
     // Otherwise, as long as we can go further down, we will
-    if (cur.getChildren() != null)
-      for (Node node : cur.getChildren())
+    if (cur.getChildren() != null) {
+      for (Node node : cur.getChildren()) {
         dig(word + node.getContent(), node, words);
+      }
+    }
   }
 
 }

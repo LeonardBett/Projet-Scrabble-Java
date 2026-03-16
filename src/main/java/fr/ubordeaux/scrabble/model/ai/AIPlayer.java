@@ -121,8 +121,8 @@ public class AIPlayer extends Player {
               + "Falling back to algorithmic search.");
         }
       } else {
-        System.out.println(
-            "[ML] Model is missing. Bypassing neural network and defaulting to algorithmic search.");
+        System.out.println("[ML] Model is missing. Bypassing neural network and defaulting "
+            + "to algorithmic search.");
       }
     }
 
@@ -140,10 +140,9 @@ public class AIPlayer extends Player {
 
       int hookIndex = bestPlay.getGaddagRepresentation().indexOf('>') - 1;
 
-      int startX =
-          bestPlay.getDirection() == fr.ubordeaux.scrabble.model.enums.Direction.HORIZONTAL
-              ? bestPlay.getHookX() - hookIndex
-              : bestPlay.getHookX();
+      int startX = bestPlay.getDirection() == fr.ubordeaux.scrabble.model.enums.Direction.HORIZONTAL
+          ? bestPlay.getHookX() - hookIndex
+          : bestPlay.getHookX();
       int startY = bestPlay.getDirection() == fr.ubordeaux.scrabble.model.enums.Direction.VERTICAL
           ? bestPlay.getHookY() - hookIndex
           : bestPlay.getHookY();
@@ -162,8 +161,7 @@ public class AIPlayer extends Player {
 
       for (int i = 0; i < word.length(); i++) {
         int currentX = startX
-            + (bestPlay.getDirection() == fr.ubordeaux.scrabble.model.enums.Direction.HORIZONTAL
-                ? i
+            + (bestPlay.getDirection() == fr.ubordeaux.scrabble.model.enums.Direction.HORIZONTAL ? i
                 : 0);
         int currentY = startY
             + (bestPlay.getDirection() == fr.ubordeaux.scrabble.model.enums.Direction.VERTICAL ? i

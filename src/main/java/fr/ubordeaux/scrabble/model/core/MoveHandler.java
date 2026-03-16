@@ -26,11 +26,11 @@ public class MoveHandler {
   /**
    * Extracts the complete word string formed by placing tiles at the given position. This includes
    * existing tiles on the board (prefix and suffix) combined with new tiles.
-   * 
-   * @param startPosition Starting position of the word
-   * @param direction Direction of the word (HORIZONTAL or VERTICAL)
-   * @param tiles Tiles to be placed
-   * @return The complete word as a String (including existing tiles from the board)
+   *
+   * @param startPosition Starting position of the word.
+   * @param direction Direction of the word (HORIZONTAL or VERTICAL).
+   * @param tiles Tiles to be placed.
+   * @return The complete word as a String (including existing tiles from the board).
    */
   public String getCompleteWord(Point startPosition, Direction direction, List<Tile> tiles) {
     List<String> formedWords = getFormedWords(startPosition, direction, tiles);
@@ -325,8 +325,9 @@ public class MoveHandler {
     while (true) {
       Point bp = new Point(bx, by);
       Square bs = game.getBoard().getSquare(bp);
-      if (bs == null || bs.isEmpty())
+      if (bs == null || bs.isEmpty()) {
         break;
+      }
       prefix.add(0, bs);
       prefixPos.add(0, bp);
       bx -= dx;
@@ -432,8 +433,9 @@ public class MoveHandler {
     while (true) {
       Point bp = new Point(bx, by);
       Square bs = game.getBoard().getSquare(bp);
-      if (bs == null || bs.isEmpty())
+      if (bs == null || bs.isEmpty()) {
         break;
+      }
       prefix.add(0, bs);
       bx -= pdx;
       by -= pdy;
@@ -441,8 +443,9 @@ public class MoveHandler {
 
     // center
     Square center = game.getBoard().getSquare(pos);
-    if (center == null)
+    if (center == null) {
       return result;
+    }
 
     // scan forward
     int fx = pos.getX() + pdx;
@@ -451,8 +454,9 @@ public class MoveHandler {
     while (true) {
       Point fp = new Point(fx, fy);
       Square fs = game.getBoard().getSquare(fp);
-      if (fs == null || fs.isEmpty())
+      if (fs == null || fs.isEmpty()) {
         break;
+      }
       suffix.add(fs);
       fx += pdx;
       fy += pdy;

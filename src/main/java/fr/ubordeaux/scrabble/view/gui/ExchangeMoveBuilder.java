@@ -7,11 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Builds an EXCHANGE Move from a string typed by the user in the dialog.
- *
- * <p>
- * MVC: Converts raw user input (String) into a Move object. Belongs in the view package because it
- * depends on user input format.
+ * Builds an exchange move from a string typed by the user in the dialog.
  */
 public class ExchangeMoveBuilder {
 
@@ -37,8 +33,9 @@ public class ExchangeMoveBuilder {
           break;
         }
       }
-      if (!found)
+      if (!found) {
         return null;
+      }
     }
 
     return toExchange.isEmpty() ? null : Move.createExchange(player, toExchange);

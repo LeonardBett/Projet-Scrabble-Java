@@ -20,9 +20,6 @@ import javafx.scene.text.FontWeight;
 
 /**
  * Panel representing the player's rack (7 tiles).
- *
- * ✅ MVC: Only displays the Rack from the model. Drag events are forwarded via a callback to
- * ScrabbleGUI, which stores the dragged tile and delegates to the controller when dropped.
  */
 public class RackPanel extends VBox {
 
