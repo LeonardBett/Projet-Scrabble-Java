@@ -12,19 +12,19 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * Comprehensive unit tests for the AIPlayer class. Verifies player configuration, delegation to the
+ * Comprehensive unit tests for the AiPlayer class. Verifies player configuration, delegation to the
  * solver, and internal rack parsing.
  */
-class AIPlayerTest {
+class AiPlayerTest {
 
-  private AIPlayer aiPlayer;
+  private AiPlayer aiPlayer;
 
   /**
-   * Initializes an AIPlayer instance before each test.
+   * Initializes an AiPlayer instance before each test.
    */
   @BeforeEach
   void setUp() {
-    aiPlayer = new AIPlayer("IA-Bot", 3, 5);
+    aiPlayer = new AiPlayer("IA-Bot", 3, 5);
   }
 
   /**
@@ -37,7 +37,7 @@ class AIPlayerTest {
   }
 
   /**
-   * Tests the Expectiminimax mode toggling through the AIPlayer wrapper.
+   * Tests the Expectiminimax mode toggling through the AiPlayer wrapper.
    */
   @Test
   void testSetExpectiminimaxMode() {
@@ -53,7 +53,7 @@ class AIPlayerTest {
    */
   @Test
   void testSetMlAgent() {
-    MLAgent dummyAgent = new MLAgent("dummy/path", new ArrayList<>());
+    MlAgent dummyAgent = new MlAgent("dummy/path", new ArrayList<>());
     aiPlayer.setMlAgent(dummyAgent);
     assertNotNull(aiPlayer);
 
@@ -82,7 +82,7 @@ class AIPlayerTest {
     aiPlayer.getRack().addTile(new Tile('C'));
     aiPlayer.getRack().addTile(new Tile('R'));
 
-    Method getRackMethod = AIPlayer.class.getDeclaredMethod("getRackAsString");
+    Method getRackMethod = AiPlayer.class.getDeclaredMethod("getRackAsString");
     getRackMethod.setAccessible(true);
 
     String rackStr = (String) getRackMethod.invoke(aiPlayer);
@@ -95,7 +95,7 @@ class AIPlayerTest {
    */
   @Test
   void testGetRackAsStringEmpty() throws Exception {
-    Method getRackMethod = AIPlayer.class.getDeclaredMethod("getRackAsString");
+    Method getRackMethod = AiPlayer.class.getDeclaredMethod("getRackAsString");
     getRackMethod.setAccessible(true);
 
     String rackStr = (String) getRackMethod.invoke(aiPlayer);

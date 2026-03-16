@@ -11,7 +11,7 @@ import fr.ubordeaux.scrabble.view.cli.renderer.RackRenderer;
 /**
  * Full CLI view implementing UserInterface.
  */
-public class CLIView implements UserInterface {
+public class CliView implements UserInterface {
 
   private final Game game;
   private final BoardRenderer boardRenderer;
@@ -23,21 +23,21 @@ public class CLIView implements UserInterface {
   private boolean showBonusSquares;
 
   /**
-   * Creates a CLIView with bonus squares shown by default.
+   * Creates a CliView with bonus squares shown by default.
    *
    * @param game the game model to display
    */
-  public CLIView(Game game) {
+  public CliView(Game game) {
     this(game, false);
   }
 
   /**
-   * Creates a CLIView with optional blitz mode.
+   * Creates a CliView with optional blitz mode.
    *
    * @param game the game model to display
    * @param isBlitzMode true to enable blitz mode (timed turns)
    */
-  public CLIView(Game game, boolean isBlitzMode) {
+  public CliView(Game game, boolean isBlitzMode) {
     this.game = game;
     this.isBlitzMode = isBlitzMode;
     this.showBonusSquares = true;

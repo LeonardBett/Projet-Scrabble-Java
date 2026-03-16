@@ -8,23 +8,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class DAWG {
-  private final DAWGNode root = new DAWGNode('~');
+public class Dawg {
+  private final DawgNode root = new DawgNode('~');
   private String lastWord = "";
 
   // List of nodes not yet minimized for the current word being processed
-  private List<DAWGNode> uncheckedNodes = new ArrayList<>();
+  private List<DawgNode> uncheckedNodes = new ArrayList<>();
 
-  // Registry of unique minimized nodes (the heart of the DAWG's memory
+  // Registry of unique minimized nodes (the heart of the Dawg's memory
   // efficiency)
-  private Map<DAWGNode, DAWGNode> minimizedNodes = new HashMap<>();
+  private Map<DawgNode, DawgNode> minimizedNodes = new HashMap<>();
 
-  public DAWG() {
+  public Dawg() {
     uncheckedNodes.add(root);
   }
 
   /**
-   * Adds a word to the DAWG. WARNING: Words must be added in alphabetical order for correct
+   * Adds a word to the Dawg. WARNING: Words must be added in alphabetical order for correct
    * minimization.
    */
   public void add(String word) {
@@ -43,9 +43,9 @@ public class DAWG {
     minimize(commonPrefix);
 
     // Add the suffix of the new word starting from the common prefix
-    DAWGNode node = uncheckedNodes.get(commonPrefix);
+    DawgNode node = uncheckedNodes.get(commonPrefix);
     for (int i = commonPrefix; i < word.length(); i++) {
-      DAWGNode nextNode = new DAWGNode(word.charAt(i));
+      DawgNode nextNode = new DawgNode(word.charAt(i));
       node.children.put(word.charAt(i), nextNode);
       uncheckedNodes.add(nextNode);
       node = nextNode;
@@ -56,7 +56,7 @@ public class DAWG {
   }
 
   /**
-   * Finalizes the DAWG. Must be called after the last word is added.
+   * Finalizes the Dawg. Must be called after the last word is added.
    */
   public void finish() {
     minimize(0);
@@ -65,8 +65,8 @@ public class DAWG {
   private void minimize(int lowerBound) {
     // Traverse backward from the end of the list to the requested bound
     for (int i = uncheckedNodes.size() - 1; i > lowerBound; i--) {
-      DAWGNode child = uncheckedNodes.remove(i);
-      DAWGNode parent = uncheckedNodes.get(i - 1);
+      DawgNode child = uncheckedNodes.remove(i);
+      DawgNode parent = uncheckedNodes.get(i - 1);
       char charToChild = child.getContent();
 
       if (minimizedNodes.containsKey(child)) {
@@ -80,7 +80,7 @@ public class DAWG {
   }
 
   public boolean contains(String word) {
-    DAWGNode node = root;
+    DawgNode node = root;
     for (char c : word.toUpperCase().toCharArray()) {
       node = node.children.get(c);
       if (node == null) {
@@ -118,7 +118,7 @@ public class DAWG {
     return allFound;
   }
 
-  private void backtrack(DAWGNode node, String currentWord, List<Character> rack,
+  private void backtrack(DawgNode node, String currentWord, List<Character> rack,
       Set<String> results) {
     if (node.getFinite()) {
       results.add(currentWord);

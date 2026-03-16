@@ -5,12 +5,12 @@ import fr.ubordeaux.scrabble.view.UserInterface;
 import javafx.application.Platform;
 
 /**
- * JavaFX view implementing UserInterface and delegating rendering to ScrabbleGUI.
+ * JavaFX view implementing UserInterface and delegating rendering to ScrabbleGui.
  */
 public class JavaFxView implements UserInterface {
 
   private final Game game;
-  private ScrabbleGUI gui;
+  private ScrabbleGui gui;
 
   /**
    * Creates a JavaFxView bound to the given game model.
@@ -22,11 +22,11 @@ public class JavaFxView implements UserInterface {
   }
 
   /**
-   * Called by ScrabbleGUI once the stage is ready.
+   * Called by ScrabbleGui once the stage is ready.
    *
-   * @param gui the ScrabbleGUI instance to delegate display to
+   * @param gui the ScrabbleGui instance to delegate display to
    */
-  public void setGUI(ScrabbleGUI gui) {
+  public void setGui(ScrabbleGui gui) {
     this.gui = gui;
   }
 

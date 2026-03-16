@@ -5,10 +5,10 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Objects;
 
-public class GADDAG extends Trie {
+public class Gaddag extends Trie {
   private static final char separator = '>';
 
-  public GADDAG() {
+  public Gaddag() {
     root = new Node(Node.root);
   }
 
@@ -60,7 +60,7 @@ public class GADDAG extends Trie {
       // Get a substring from index 0 with increasing length i.
       // Start from 1 because a hook is required.
       ch = prefix.toCharArray();
-      reverse(ch); // reverse the prefix in order to respect GADDAG spec
+      reverse(ch); // reverse the prefix in order to respect Gaddag spec
       super.add(new String(ch) + separator + word.substring(i));
     }
     ch = word.toCharArray();

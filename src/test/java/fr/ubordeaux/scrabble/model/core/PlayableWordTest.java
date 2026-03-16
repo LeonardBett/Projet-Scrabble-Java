@@ -10,7 +10,7 @@ class PlayableWordTest {
 
   /**
    * Test that the PlayableWord constructor correctly initializes all fields (position, word,
-   * direction, GADDAG representation) and allows score updates.
+   * direction, Gaddag representation) and allows score updates.
    */
   @Test
   void constructorShouldExposeAllFieldsAndAllowScoreUpdate() {

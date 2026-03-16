@@ -20,7 +20,7 @@ public class PlayableWord {
    * @param hookY hook y coordinate.
    * @param word candidate word text.
    * @param direction candidate placement direction.
-   * @param gaddagRepresentation internal GADDAG representation used to build the word.
+   * @param gaddagRepresentation internal Gaddag representation used to build the word.
    */
   public PlayableWord(int hookX, int hookY, String word, Direction direction,
       String gaddagRepresentation) {
@@ -78,9 +78,9 @@ public class PlayableWord {
   }
 
   /**
-   * Returns the internal GADDAG path representation.
+   * Returns the internal Gaddag path representation.
    *
-   * @return GADDAG path.
+   * @return Gaddag path.
    */
   public String getGaddagRepresentation() {
     return gaddagRepresentation;

@@ -12,10 +12,10 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 /**
- * Comprehensive unit tests for the MLAgent class. Focuses on mathematical data preparation and
+ * Comprehensive unit tests for the MlAgent class. Focuses on mathematical data preparation and
  * graceful failure handling.
  */
-class MLAgentTest {
+class MlAgentTest {
 
   /**
    * Tests the initialization using an invalid path. Ensures the application catches the TensorFlow
@@ -25,7 +25,7 @@ class MLAgentTest {
   void testInitializationWithInvalidPath() {
     List<String> dictionary = Arrays.asList("TEST", "WORD");
 
-    try (MLAgent agent = new MLAgent("invalid/path/to/model", dictionary)) {
+    try (MlAgent agent = new MlAgent("invalid/path/to/model", dictionary)) {
       assertNotNull(agent);
       // Predict should safely return an empty list if the model is missing
       List<String> predictions = agent.predictWords("ABCDEFG", 5);
@@ -38,7 +38,7 @@ class MLAgentTest {
    */
   @Test
   void testEmptyRackPrediction() {
-    try (MLAgent agent = new MLAgent("invalid/path", new ArrayList<>())) {
+    try (MlAgent agent = new MlAgent("invalid/path", new ArrayList<>())) {
       List<String> predictions = agent.predictWords("", 10);
       assertTrue(predictions.isEmpty());
     }
@@ -50,8 +50,8 @@ class MLAgentTest {
    */
   @Test
   void testVectorizeRackStandardLetters() throws Exception {
-    try (MLAgent agent = new MLAgent("invalid", new ArrayList<>())) {
-      Method vectorizeMethod = MLAgent.class.getDeclaredMethod("vectorizeRack", String.class);
+    try (MlAgent agent = new MlAgent("invalid", new ArrayList<>())) {
+      Method vectorizeMethod = MlAgent.class.getDeclaredMethod("vectorizeRack", String.class);
       vectorizeMethod.setAccessible(true);
 
       float[] expected = new float[26];
@@ -69,8 +69,8 @@ class MLAgentTest {
    */
   @Test
   void testVectorizeRackCaseInsensitive() throws Exception {
-    try (MLAgent agent = new MLAgent("invalid", new ArrayList<>())) {
-      Method vectorizeMethod = MLAgent.class.getDeclaredMethod("vectorizeRack", String.class);
+    try (MlAgent agent = new MlAgent("invalid", new ArrayList<>())) {
+      Method vectorizeMethod = MlAgent.class.getDeclaredMethod("vectorizeRack", String.class);
       vectorizeMethod.setAccessible(true);
 
       float[] expected = new float[26];
@@ -87,8 +87,8 @@ class MLAgentTest {
    */
   @Test
   void testVectorizeRackWithSpecialCharacters() throws Exception {
-    try (MLAgent agent = new MLAgent("invalid", new ArrayList<>())) {
-      Method vectorizeMethod = MLAgent.class.getDeclaredMethod("vectorizeRack", String.class);
+    try (MlAgent agent = new MlAgent("invalid", new ArrayList<>())) {
+      Method vectorizeMethod = MlAgent.class.getDeclaredMethod("vectorizeRack", String.class);
       vectorizeMethod.setAccessible(true);
 
       // The method should ignore numbers and special characters

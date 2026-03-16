@@ -7,10 +7,10 @@ import java.util.Objects;
  */
 public class Point {
   /** The horizontal coordinate (column). */
-  private final int xCoordinate;
+  private final int xpos;
 
   /** The vertical coordinate (row). */
-  private final int yCoordinate;
+  private final int ypos;
 
   /**
    * Creates a new immutable Point.
@@ -19,16 +19,16 @@ public class Point {
    * @param y The y coordinate.
    */
   public Point(int x, int y) {
-    this.xCoordinate = x;
-    this.yCoordinate = y;
+    this.xpos = x;
+    this.ypos = y;
   }
 
   public int getX() {
-    return xCoordinate;
+    return xpos;
   }
 
   public int getY() {
-    return yCoordinate;
+    return ypos;
   }
 
   @Override
@@ -36,16 +36,16 @@ public class Point {
     if (!(obj instanceof Point point)) {
       return false;
     }
-    return xCoordinate == point.xCoordinate && yCoordinate == point.yCoordinate;
+    return xpos == point.xpos && ypos == point.ypos;
   }
 
   @Override
   public String toString() {
-    return "(" + xCoordinate + "," + yCoordinate + ")";
+    return "(" + xpos + "," + ypos + ")";
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(xCoordinate, yCoordinate);
+    return Objects.hash(xpos, ypos);
   }
 }

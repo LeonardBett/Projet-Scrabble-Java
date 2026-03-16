@@ -17,26 +17,26 @@ import fr.ubordeaux.scrabble.model.core.HumanPlayer;
 import fr.ubordeaux.scrabble.model.core.Move;
 import fr.ubordeaux.scrabble.model.core.Tile;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
-import fr.ubordeaux.scrabble.view.cli.CLIInputHandler;
+import fr.ubordeaux.scrabble.view.cli.CliInputHandler;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.PrintStream;
 import org.junit.jupiter.api.Test;
 
-class CLIInputHandlerTest {
+class CliInputHandlerTest {
 
-  private CLIInputHandler handlerWithInput(String input) {
+  private CliInputHandler handlerWithInput(String input) {
     InputStream in = new ByteArrayInputStream(input.getBytes());
     System.setIn(in);
-    return new CLIInputHandler();
+    return new CliInputHandler();
   }
 
   @Test
   void askActionShouldReturnUserInput() {
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     System.setOut(new PrintStream(out));
-    CLIInputHandler handler = handlerWithInput("1\n");
+    CliInputHandler handler = handlerWithInput("1\n");
 
     String result = handler.askAction();
     System.setOut(System.out);
@@ -47,7 +47,7 @@ class CLIInputHandlerTest {
 
   @Test
   void askConfirmationShouldReturnTrueForO() {
-    CLIInputHandler handler = handlerWithInput("o\n");
+    CliInputHandler handler = handlerWithInput("o\n");
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     System.setOut(new PrintStream(out));
 
@@ -60,7 +60,7 @@ class CLIInputHandlerTest {
 
   @Test
   void askConfirmationShouldReturnTrueForOui() {
-    CLIInputHandler handler = handlerWithInput("oui\n");
+    CliInputHandler handler = handlerWithInput("oui\n");
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     System.setOut(new PrintStream(out));
 
@@ -73,7 +73,7 @@ class CLIInputHandlerTest {
 
   @Test
   void askConfirmationShouldReturnFalseForN() {
-    CLIInputHandler handler = handlerWithInput("n\n");
+    CliInputHandler handler = handlerWithInput("n\n");
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     System.setOut(new PrintStream(out));
 
@@ -86,7 +86,7 @@ class CLIInputHandlerTest {
 
   @Test
   void askPlayerNameShouldReturnTrimmedName() {
-    CLIInputHandler handler = handlerWithInput("  Alice  \n");
+    CliInputHandler handler = handlerWithInput("  Alice  \n");
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     System.setOut(new PrintStream(out));
 
@@ -99,7 +99,7 @@ class CLIInputHandlerTest {
 
   @Test
   void askNumberOfPlayersShouldReturnValidNumber() {
-    CLIInputHandler handler = handlerWithInput("3\n");
+    CliInputHandler handler = handlerWithInput("3\n");
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     System.setOut(new PrintStream(out));
 
@@ -113,7 +113,7 @@ class CLIInputHandlerTest {
   @Test
   void askNumberOfPlayersShouldRetryOnInvalidThenSucceed() {
     // First "abc" is invalid, then "2" is valid
-    CLIInputHandler handler = handlerWithInput("abc\n2\n");
+    CliInputHandler handler = handlerWithInput("abc\n2\n");
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     System.setOut(new PrintStream(out));
 
@@ -130,7 +130,7 @@ class CLIInputHandlerTest {
     player.getRack().addTile(new Tile('A'));
     player.getRack().addTile(new Tile('B'));
 
-    CLIInputHandler handler = handlerWithInput("AB\n");
+    CliInputHandler handler = handlerWithInput("AB\n");
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     System.setOut(new PrintStream(out));
 
@@ -146,7 +146,7 @@ class CLIInputHandlerTest {
     Player player = new HumanPlayer("Alice");
     player.getRack().addTile(new Tile('A'));
 
-    CLIInputHandler handler = handlerWithInput("Z\n");
+    CliInputHandler handler = handlerWithInput("Z\n");
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     System.setOut(new PrintStream(out));
 
@@ -164,7 +164,7 @@ class CLIInputHandlerTest {
     player.getRack().addTile(new Tile('I'));
 
     // row letter format: "h 8", direction "H", letters "HI"
-    CLIInputHandler handler = handlerWithInput("h 8\nH\nHI\n");
+    CliInputHandler handler = handlerWithInput("h 8\nH\nHI\n");
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     System.setOut(new PrintStream(out));
 
@@ -181,7 +181,7 @@ class CLIInputHandlerTest {
     player.getRack().addTile(new Tile('A'));
 
     // tries to play Z which is not in rack
-    CLIInputHandler handler = handlerWithInput("h 8\nH\nZ\n");
+    CliInputHandler handler = handlerWithInput("h 8\nH\nZ\n");
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     System.setOut(new PrintStream(out));
 

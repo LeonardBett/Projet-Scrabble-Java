@@ -21,7 +21,7 @@ import javafx.scene.text.FontWeight;
 
 /**
  * Dialog to configure players before the game starts. Equivalent to
- * CLIInputHandler.askNumberOfPlayers() / askPlayerName(). ✅ MVC: Pure view - returns a list of
+ * CliInputHandler.askNumberOfPlayers() / askPlayerName(). ✅ MVC: Pure view - returns a list of
  * names, knows nothing about Game or controller.
  */
 public class PlayerSetup extends Dialog<List<String>> {

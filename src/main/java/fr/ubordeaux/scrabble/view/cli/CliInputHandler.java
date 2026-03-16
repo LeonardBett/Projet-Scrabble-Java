@@ -13,15 +13,15 @@ import java.util.Scanner;
 /**
  * Handles user input in the CLI.
  */
-public class CLIInputHandler {
+public class CliInputHandler {
 
   private final Scanner scanner;
   private final MessageRenderer messageRenderer;
 
   /**
-   * Creates a new CLIInputHandler with a stdin scanner.
+   * Creates a new CliInputHandler with a stdin scanner.
    */
-  public CLIInputHandler() {
+  public CliInputHandler() {
     this.scanner = new Scanner(System.in);
     this.messageRenderer = new MessageRenderer();
   }
@@ -80,7 +80,7 @@ public class CLIInputHandler {
         y = Integer.parseInt(posInput[1]) - 1;
       }
 
-      Point startPoint = new Point(x, y);
+      final Point startPoint = new Point(x, y);
 
       System.out.print("Direction (H pour horizontal, V pour vertical) : ");
       String dirInput = scanner.nextLine().trim().toUpperCase();

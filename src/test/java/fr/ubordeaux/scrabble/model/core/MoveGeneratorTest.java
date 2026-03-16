@@ -3,7 +3,7 @@ package fr.ubordeaux.scrabble.model.core;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import fr.ubordeaux.scrabble.model.dictionary.GADDAG;
+import fr.ubordeaux.scrabble.model.dictionary.Gaddag;
 import fr.ubordeaux.scrabble.model.enums.Direction;
 import fr.ubordeaux.scrabble.model.utils.Point;
 import java.util.List;
@@ -13,13 +13,13 @@ import org.junit.jupiter.api.Test;
 class MoveGeneratorTest {
 
   private MoveGenerator generator;
-  private GADDAG gaddag;
+  private Gaddag gaddag;
   private Board board;
 
   @BeforeEach
   void setUp() {
     generator = new MoveGenerator();
-    gaddag = new GADDAG();
+    gaddag = new Gaddag();
     board = new Board(); // Initialize a standard 15x15 board
   }
 

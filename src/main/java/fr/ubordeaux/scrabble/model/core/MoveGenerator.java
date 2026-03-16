@@ -1,6 +1,6 @@
 package fr.ubordeaux.scrabble.model.core;
 
-import fr.ubordeaux.scrabble.model.dictionary.GADDAG;
+import fr.ubordeaux.scrabble.model.dictionary.Gaddag;
 import fr.ubordeaux.scrabble.model.enums.Direction;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
 import fr.ubordeaux.scrabble.model.utils.Point;
@@ -20,7 +20,7 @@ public class MoveGenerator {
    * @param gaddag dictionary structure used for lookups.
    * @return list of playable words for the current player.
    */
-  public List<PlayableWord> getPlayableWordsList(Game game, GADDAG gaddag) {
+  public List<PlayableWord> getPlayableWordsList(Game game, Gaddag gaddag) {
     Player player = game.getCurrentPlayer();
     if (player == null || gaddag == null) {
       return new ArrayList<>();
@@ -37,7 +37,7 @@ public class MoveGenerator {
    * @return list of playable words.
    */
   public List<PlayableWord> getPlayableWordsList(Board board, Character[] rackChars,
-      GADDAG gaddag) {
+      Gaddag gaddag) {
     List<PlayableWord> playableMoves = new ArrayList<>();
     if (rackChars == null || gaddag == null) {
       return playableMoves;
@@ -50,7 +50,7 @@ public class MoveGenerator {
         if (square != null && !square.isEmpty()) {
           char hookLetter = square.getTile().getCharacter();
 
-          for (GADDAG.GaddagResult result : gaddag.findWordsWithRackAndHook(rackChars,
+          for (Gaddag.GaddagResult result : gaddag.findWordsWithRackAndHook(rackChars,
               hookLetter)) {
             String word = result.word;
             String gaddagRep = result.gaddagPath;
@@ -75,7 +75,7 @@ public class MoveGenerator {
    * cross-words.
    */
   private boolean isPlayable(String word, String gaddagPath, int hookX, int hookY, Direction dir,
-      Board board, Character[] rackChars, GADDAG gaddag) {
+      Board board, Character[] rackChars, Gaddag gaddag) {
     int hookIndex = gaddagPath.indexOf('>') - 1;
     int startX = (dir == Direction.HORIZONTAL) ? hookX - hookIndex : hookX;
     int startY = (dir == Direction.VERTICAL) ? hookY - hookIndex : hookY;
@@ -161,7 +161,7 @@ public class MoveGenerator {
    * Verifies that placing a new letter creates a valid perpendicular word on the board.
    */
   private boolean isValidCrossWord(Board board, int x, int y, char placedLetter, Direction mainDir,
-      GADDAG gaddag) {
+      Gaddag gaddag) {
     Direction crossDir =
         (mainDir == Direction.HORIZONTAL) ? Direction.VERTICAL : Direction.HORIZONTAL;
 

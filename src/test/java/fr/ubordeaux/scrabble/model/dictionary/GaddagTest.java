@@ -11,13 +11,13 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class GADDAGTest {
+class GaddagTest {
 
-  private GADDAG gaddag;
+  private Gaddag gaddag;
 
   @BeforeEach
   void setUp() {
-    gaddag = new GADDAG();
+    gaddag = new Gaddag();
   }
 
   /**
@@ -35,12 +35,12 @@ class GADDAGTest {
   }
 
   /**
-   * Test that the GADDAG internal structure creates the necessary rotated paths for a word to allow
+   * Test that the Gaddag internal structure creates the necessary rotated paths for a word to allow
    * bidirectional search.
    */
   @Test
   void addShouldCreateInternalGaddagPaths() {
-    // For the word "HI", GADDAG logic adds: "H>I" and "IH>"
+    // For the word "HI", Gaddag logic adds: "H>I" and "IH>"
     gaddag.add("HI");
 
     assertTrue(gaddag.contains("H>I"));
@@ -60,7 +60,7 @@ class GADDAGTest {
     Character[] rack = {'A', 'T', 'R'};
     char hook = 'C';
 
-    HashSet<GADDAG.GaddagResult> results = gaddag.findWordsWithRackAndHook(rack, hook);
+    HashSet<Gaddag.GaddagResult> results = gaddag.findWordsWithRackAndHook(rack, hook);
 
     // Extract words from results for easier assertion
     Set<String> foundWords = results.stream().map(res -> res.word).collect(Collectors.toSet());
@@ -93,7 +93,7 @@ class GADDAGTest {
     gaddag.add("APPLE");
     Character[] emptyRack = {};
 
-    HashSet<GADDAG.GaddagResult> results = gaddag.findWordsWithRackAndHook(emptyRack, 'Z');
+    HashSet<Gaddag.GaddagResult> results = gaddag.findWordsWithRackAndHook(emptyRack, 'Z');
 
     assertTrue(results.isEmpty());
   }
@@ -104,9 +104,9 @@ class GADDAGTest {
    */
   @Test
   void gaddagResultEqualsShouldVerifyWordAndPath() {
-    GADDAG.GaddagResult res1 = new GADDAG.GaddagResult("CAT", "C>AT");
-    GADDAG.GaddagResult res2 = new GADDAG.GaddagResult("CAT", "C>AT");
-    GADDAG.GaddagResult res3 = new GADDAG.GaddagResult("CAT", "TC>");
+    Gaddag.GaddagResult res1 = new Gaddag.GaddagResult("CAT", "C>AT");
+    Gaddag.GaddagResult res2 = new Gaddag.GaddagResult("CAT", "C>AT");
+    Gaddag.GaddagResult res3 = new Gaddag.GaddagResult("CAT", "TC>");
 
     assertEquals(res1, res2);
     assertFalse(res1.equals(res3));

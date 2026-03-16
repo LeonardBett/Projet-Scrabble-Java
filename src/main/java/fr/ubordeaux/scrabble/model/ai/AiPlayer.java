@@ -4,20 +4,20 @@ import fr.ubordeaux.scrabble.model.core.Game;
 import fr.ubordeaux.scrabble.model.core.Move;
 import fr.ubordeaux.scrabble.model.core.PlayableWord;
 import fr.ubordeaux.scrabble.model.core.Tile;
-import fr.ubordeaux.scrabble.model.dictionary.GADDAG;
+import fr.ubordeaux.scrabble.model.dictionary.Gaddag;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
 import fr.ubordeaux.scrabble.model.utils.Point;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Represents an artificial player (AI). Can be augmented with a Machine Learning agent (MLAgent) to
+ * Represents an artificial player (AI). Can be augmented with a Machine Learning agent (MlAgent) to
  * predict words.
  */
-public class AIPlayer extends Player {
+public class AiPlayer extends Player {
 
   private final MinimaxSolver solver;
-  private MLAgent mlAgent;
+  private MlAgent mlAgent;
 
   /**
    * Constructs an AI Player with a defined difficulty and time limit.
@@ -26,7 +26,7 @@ public class AIPlayer extends Player {
    * @param difficultyLevel Defines the search depth.
    * @param timeLimitSeconds The time limit allocated for the AI to play.
    */
-  public AIPlayer(String name, int difficultyLevel, int timeLimitSeconds) {
+  public AiPlayer(String name, int difficultyLevel, int timeLimitSeconds) {
     super(name);
     this.solver = new MinimaxSolver(difficultyLevel, timeLimitSeconds);
   }
@@ -36,7 +36,7 @@ public class AIPlayer extends Player {
    *
    * @param mlAgent The initialized Machine Learning agent.
    */
-  public void setMlAgent(MLAgent mlAgent) {
+  public void setMlAgent(MlAgent mlAgent) {
     this.mlAgent = mlAgent;
   }
 
@@ -78,9 +78,9 @@ public class AIPlayer extends Player {
    * fallback mechanism if the ML agent is missing or fails.
    *
    * @param game The current game instance.
-   * @param gaddag The GADDAG dictionary used to validate moves.
+   * @param gaddag The Gaddag dictionary used to validate moves.
    */
-  public void playTurn(Game game, GADDAG gaddag) {
+  public void playTurn(Game game, Gaddag gaddag) {
     System.out.println("AI " + getName() + " is computing its move...");
 
     PlayableWord bestPlay = null;

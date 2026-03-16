@@ -17,13 +17,13 @@ import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class DAWGTest {
+class DawgTest {
 
-  private DAWG dawg;
+  private Dawg dawg;
 
   @BeforeEach
   void setUp() {
-    dawg = new DAWG();
+    dawg = new Dawg();
   }
 
   /**

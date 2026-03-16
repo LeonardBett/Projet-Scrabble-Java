@@ -3,15 +3,15 @@ package fr.ubordeaux.scrabble.view.optionlancement;
 import fr.ubordeaux.scrabble.model.core.Game;
 import fr.ubordeaux.scrabble.model.core.HumanPlayer;
 import fr.ubordeaux.scrabble.view.gui.JavaFxView;
-import fr.ubordeaux.scrabble.view.gui.ScrabbleGUI;
+import fr.ubordeaux.scrabble.view.gui.ScrabbleGui;
 import javafx.application.Application;
 
 /**
  * Lance le jeu en mode GUI JavaFX.
  */
-public class GUILauncher {
+public class GuiLauncher {
 
-  private GUILauncher() {}
+  private GuiLauncher() {}
 
   /**
    * Starts the game in GUI mode with the given number of players.
@@ -25,8 +25,8 @@ public class GUILauncher {
       game.addPlayer(new HumanPlayer("Player" + i));
     }
     JavaFxView view = new JavaFxView(game);
-    ScrabbleGUI.setGame(game);
-    ScrabbleGUI.setView(view);
-    Application.launch(ScrabbleGUI.class, args);
+    ScrabbleGui.setGame(game);
+    ScrabbleGui.setView(view);
+    Application.launch(ScrabbleGui.class, args);
   }
 }

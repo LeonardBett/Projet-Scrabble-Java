@@ -15,16 +15,16 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import fr.ubordeaux.scrabble.model.core.Game;
 import fr.ubordeaux.scrabble.model.core.HumanPlayer;
-import fr.ubordeaux.scrabble.view.cli.CLIView;
+import fr.ubordeaux.scrabble.view.cli.CliView;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class CLIViewTest {
+class CliViewTest {
 
   private Game game;
-  private CLIView view;
+  private CliView view;
   private ByteArrayOutputStream out;
 
   @BeforeEach
@@ -33,7 +33,7 @@ class CLIViewTest {
     game.addPlayer(new HumanPlayer("Alice"));
     game.addPlayer(new HumanPlayer("Bob"));
     game.startGame();
-    view = new CLIView(game);
+    view = new CliView(game);
     out = new ByteArrayOutputStream();
     System.setOut(new PrintStream(out));
   }
@@ -106,7 +106,7 @@ class CLIViewTest {
 
   @Test
   void constructorWithBlitzModeShouldNotThrow() {
-    assertDoesNotThrow(() -> new CLIView(game, true));
+    assertDoesNotThrow(() -> new CliView(game, true));
     System.setOut(System.out);
   }
 }
