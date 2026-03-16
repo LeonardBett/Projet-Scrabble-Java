@@ -1,4 +1,4 @@
-package fr.ubordeaux.scrabble.view.cli.Renderer;
+package fr.ubordeaux.scrabble.view.cli.renderer;
 
 import fr.ubordeaux.scrabble.model.core.Board;
 import fr.ubordeaux.scrabble.model.core.Square;
@@ -64,8 +64,9 @@ public class BoardRenderer {
   }
 
   private String getBonusColor(SquareType type, boolean showBonusSquares) {
-    if (!showBonusSquares)
+    if (!showBonusSquares) {
       return BG_DEFAULT;
+    }
     return switch (type) {
       case DOUBLE_LETTER -> BG_CYAN;
       case TRIPLE_LETTER -> BG_BLUE;

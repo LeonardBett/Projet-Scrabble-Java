@@ -5,15 +5,7 @@ import fr.ubordeaux.scrabble.view.UserInterface;
 import javafx.application.Platform;
 
 /**
- * JavaFX view implementing UserInterface.
- *
- * <p>
- * MVC:
- * <ul>
- * <li>Implements UserInterface (contract with the controller)</li>
- * <li>Delegates all display work to ScrabbleGUI (the JavaFX window)</li>
- * <li>The controller only knows UserInterface, never ScrabbleGUI directly</li>
- * </ul>
+ * JavaFX view implementing UserInterface and delegating rendering to ScrabbleGUI.
  */
 public class JavaFxView implements UserInterface {
 
@@ -45,8 +37,9 @@ public class JavaFxView implements UserInterface {
   @Override
   public void refresh() {
     runOnFxThread(() -> {
-      if (gui != null)
+      if (gui != null) {
         gui.refreshAll();
+      }
     });
   }
 
@@ -58,8 +51,9 @@ public class JavaFxView implements UserInterface {
   @Override
   public void displayMessage(String message) {
     runOnFxThread(() -> {
-      if (gui != null)
+      if (gui != null) {
         gui.showInfo("Information", message);
+      }
     });
   }
 
@@ -71,8 +65,9 @@ public class JavaFxView implements UserInterface {
   @Override
   public void displayError(String error) {
     runOnFxThread(() -> {
-      if (gui != null)
+      if (gui != null) {
         gui.showError(error);
+      }
     });
   }
 
@@ -84,8 +79,9 @@ public class JavaFxView implements UserInterface {
   @Override
   public void displaySuccess(String message) {
     runOnFxThread(() -> {
-      if (gui != null)
+      if (gui != null) {
         gui.showInfo("Succès", message);
+      }
     });
   }
 

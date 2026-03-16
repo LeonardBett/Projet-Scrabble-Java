@@ -23,10 +23,12 @@ public class GADDAG extends Trie {
 
     @Override
     public boolean equals(Object o) {
-      if (this == o)
+      if (this == o) {
         return true;
-      if (o == null || getClass() != o.getClass())
+      }
+      if (o == null || getClass() != o.getClass()) {
         return false;
+      }
       GaddagResult that = (GaddagResult) o;
       return word.equals(that.word) && gaddagPath.equals(that.gaddagPath);
     }
@@ -44,8 +46,9 @@ public class GADDAG extends Trie {
 
   @Override
   public void add(String word) {
-    if (word.isEmpty())
+    if (word.isEmpty()) {
       return;
+    }
 
     word = word.toUpperCase();
 
@@ -53,19 +56,17 @@ public class GADDAG extends Trie {
     char[] ch;
     int i;
     for (i = 1; i < word.length(); i++) {
-      prefix = word.substring(0, i); // get a substring from the word, from 0 and with a
-                                     // length i, so it increase
-                                     // from 1 to word length (not 0 because we need a hook)
+      prefix = word.substring(0, i);
+      // Get a substring from index 0 with increasing length i.
+      // Start from 1 because a hook is required.
       ch = prefix.toCharArray();
       reverse(ch); // reverse the prefix in order to respect GADDAG spec
       super.add(new String(ch) + separator + word.substring(i));
     }
     ch = word.toCharArray();
     reverse(ch);
-    super.add(new String(ch) + separator + word.substring(i)); // for the last letter, reverse
-                                                               // the all word
-                                                               // (optional ? "+
-                                                               // word.substring(i)")
+    // For the last letter, reverse the full word.
+    super.add(new String(ch) + separator + word.substring(i));
   }
 
   private void reverse(char[] validData) {
@@ -98,21 +99,23 @@ public class GADDAG extends Trie {
       ArrayList<Character> rack, char hook, Node cur, boolean direction) {
     Node hookNode = cur.getChild(hook);
 
-    if (hookNode == null)
+    if (hookNode == null) {
       return;
+    }
 
     String hookCh = hook == separator ? "" : String.valueOf(hook);
     word = (direction ? hookCh + word : word + hookCh);
 
     gaddagPath = gaddagPath + hook;
 
-    if (hookNode.getFinite())
+    if (hookNode.getFinite()) {
       words.add(new GaddagResult(word, gaddagPath));
+    }
 
     for (char nodeKey : hookNode.getKeys()) {
-      if (nodeKey == separator)
+      if (nodeKey == separator) {
         findWordsRecurse(words, word, gaddagPath, rack, separator, hookNode, false);
-      else if (rack.contains(nodeKey)) {
+      } else if (rack.contains(nodeKey)) {
         ArrayList<Character> newRack = (ArrayList<Character>) rack.clone();
         newRack.remove((Character) nodeKey);
         findWordsRecurse(words, word, gaddagPath, newRack, nodeKey, hookNode, direction);
@@ -121,7 +124,7 @@ public class GADDAG extends Trie {
   }
 
   /**
-   * Check if a word is in the dictionary with gaddag
+   * Check if a word is in the dictionary with gaddag.
    */
   public boolean containsWord(String word) {
     if (word == null || word.length() < 2) {

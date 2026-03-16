@@ -94,13 +94,15 @@ public class BoardPanel extends VBox {
 
   private void setupDropTarget(Label cell, int row, int col) {
     cell.setOnDragOver(event -> {
-      if (event.getDragboard().hasString())
+      if (event.getDragboard().hasString()) {
         event.acceptTransferModes(TransferMode.MOVE);
+      }
       event.consume();
     });
     cell.setOnDragEntered(event -> {
-      if (event.getDragboard().hasString())
+      if (event.getDragboard().hasString()) {
         cell.setOpacity(0.6);
+      }
       event.consume();
     });
     cell.setOnDragExited(event -> {
@@ -109,8 +111,9 @@ public class BoardPanel extends VBox {
     });
     cell.setOnDragDropped(event -> {
       boolean success = event.getDragboard().hasString();
-      if (success && onTileDropped != null)
+      if (success && onTileDropped != null) {
         onTileDropped.accept(row, col);
+      }
       event.setDropCompleted(success);
       event.consume();
     });
@@ -191,8 +194,9 @@ public class BoardPanel extends VBox {
    * @param value the tile point value (unused visually, kept for API consistency)
    */
   public void placeTile(int row, int col, char letter, int value) {
-    if (row < 0 || row >= GRID_SIZE || col < 0 || col >= GRID_SIZE)
+    if (row < 0 || row >= GRID_SIZE || col < 0 || col >= GRID_SIZE) {
       return;
+    }
     Label cell = cellLabels[row][col];
     cell.setText(String.valueOf(Character.toUpperCase(letter)));
     cell.setFont(Font.font("Arial", FontWeight.BOLD, 20));
@@ -207,8 +211,9 @@ public class BoardPanel extends VBox {
    * @param col the column index
    */
   public void clearTile(int row, int col) {
-    if (row < 0 || row >= GRID_SIZE || col < 0 || col >= GRID_SIZE)
+    if (row < 0 || row >= GRID_SIZE || col < 0 || col >= GRID_SIZE) {
       return;
+    }
     Square square = board.getSquare(new Point(col, row));
     applyCellStyle(cellLabels[row][col], square.getSquareType(), row, col);
   }
@@ -220,8 +225,9 @@ public class BoardPanel extends VBox {
     for (int row = 0; row < GRID_SIZE; row++) {
       for (int col = 0; col < GRID_SIZE; col++) {
         Square square = board.getSquare(new Point(col, row));
-        if (square.isEmpty())
+        if (square.isEmpty()) {
           applyCellStyle(cellLabels[row][col], square.getSquareType(), row, col);
+        }
       }
     }
   }

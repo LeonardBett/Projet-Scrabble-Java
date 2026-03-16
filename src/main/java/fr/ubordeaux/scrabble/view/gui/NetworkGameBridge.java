@@ -9,10 +9,7 @@ import java.util.Map;
 import javafx.application.Platform;
 
 /**
- * Bridges the network layer (NetworkObserver) to the JavaFX GUI.
- *
- * ✅ MVC: - Implements NetworkObserver (contrat avec le réseau) - Fait le lien entre les événements
- * réseau et la GUI/Lobby - Ne contient aucune logique métier
+ * Bridges network observer callbacks to the JavaFX GUI and lobby views.
  */
 public class NetworkGameBridge implements NetworkObserver {
 
@@ -50,11 +47,13 @@ public class NetworkGameBridge implements NetworkObserver {
   @Override
   public void localModelUpdate() {
     Platform.runLater(() -> {
-      if (gui == null)
+      if (gui == null) {
         return;
+      }
       Game onlineGame = networkManager.getLocalGame();
-      if (onlineGame == null)
+      if (onlineGame == null) {
         return;
+      }
 
       if (!gui.isOnlineMode()) {
         // Première fois : bascule la GUI en mode online

@@ -3,10 +3,10 @@ package fr.ubordeaux.scrabble.view.cli;
 import fr.ubordeaux.scrabble.model.core.Game;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
 import fr.ubordeaux.scrabble.view.UserInterface;
-import fr.ubordeaux.scrabble.view.cli.Renderer.BoardRenderer;
-import fr.ubordeaux.scrabble.view.cli.Renderer.MessageRenderer;
-import fr.ubordeaux.scrabble.view.cli.Renderer.PlayerRenderer;
-import fr.ubordeaux.scrabble.view.cli.Renderer.RackRenderer;
+import fr.ubordeaux.scrabble.view.cli.renderer.BoardRenderer;
+import fr.ubordeaux.scrabble.view.cli.renderer.MessageRenderer;
+import fr.ubordeaux.scrabble.view.cli.renderer.PlayerRenderer;
+import fr.ubordeaux.scrabble.view.cli.renderer.RackRenderer;
 
 /**
  * Full CLI view implementing UserInterface.

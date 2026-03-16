@@ -79,57 +79,101 @@ public class ControlPanel extends VBox {
     return sep;
   }
 
-  /** @return the play button */
+  /**
+   * Returns the play button.
+   *
+   * @return the play button.
+   */
   public Button getPlayButton() {
     return playButton;
   }
 
-  /** @return the pass button */
+  /**
+   * Returns the pass button.
+   *
+   * @return the pass button.
+   */
   public Button getPassButton() {
     return passButton;
   }
 
-  /** @return the exchange button */
+  /**
+   * Returns the exchange button.
+   *
+   * @return the exchange button.
+   */
   public Button getExchangeButton() {
     return exchangeButton;
   }
 
-  /** @return the cancel placement button */
+  /**
+   * Returns the cancel placement button.
+   *
+   * @return the cancel placement button.
+   */
   public Button getCancelPlacementButton() {
     return cancelPlacementButton;
   }
 
-  /** @return the undo button */
+  /**
+   * Returns the undo button.
+   *
+   * @return the undo button.
+   */
   public Button getUndoButton() {
     return undoButton;
   }
 
-  /** @return the redo button */
+  /**
+   * Returns the redo button.
+   *
+   * @return the redo button.
+   */
   public Button getRedoButton() {
     return redoButton;
   }
 
-  /** @return the new game button */
+  /**
+   * Returns the new game button.
+   *
+   * @return the new game button.
+   */
   public Button getNewGameButton() {
     return newGameButton;
   }
 
-  /** @return the online multiplayer button */
+  /**
+   * Returns the online multiplayer button.
+   *
+   * @return the online multiplayer button.
+   */
   public Button getOnlineButton() {
     return onlineButton;
   }
 
-  /** @return the save button */
+  /**
+   * Returns the save button.
+   *
+   * @return the save button.
+   */
   public Button getSaveButton() {
     return saveButton;
   }
 
-  /** @return the load button */
+  /**
+   * Returns the load button.
+   *
+   * @return the load button.
+   */
   public Button getLoadButton() {
     return loadButton;
   }
 
-  /** @return the quit button */
+  /**
+   * Returns the quit button.
+   *
+   * @return the quit button.
+   */
   public Button getQuitButton() {
     return quitButton;
   }

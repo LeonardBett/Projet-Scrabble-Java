@@ -1,4 +1,4 @@
-package fr.ubordeaux.scrabble.view.optionLancement;
+package fr.ubordeaux.scrabble.view.optionlancement;
 
 
 /**

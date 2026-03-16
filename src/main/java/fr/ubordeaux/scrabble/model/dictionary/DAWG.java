@@ -1,6 +1,12 @@
 package fr.ubordeaux.scrabble.model.dictionary;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class DAWG {
   private final DAWGNode root = new DAWGNode('~');
@@ -27,8 +33,9 @@ public class DAWG {
     // Find the longest common prefix with the previously added word
     int commonPrefix = 0;
     for (int i = 0; i < Math.min(word.length(), lastWord.length()); i++) {
-      if (word.charAt(i) != lastWord.charAt(i))
+      if (word.charAt(i) != lastWord.charAt(i)) {
         break;
+      }
       commonPrefix++;
     }
 
@@ -76,8 +83,9 @@ public class DAWG {
     DAWGNode node = root;
     for (char c : word.toUpperCase().toCharArray()) {
       node = node.children.get(c);
-      if (node == null)
+      if (node == null) {
         return false;
+      }
     }
     return node.getFinite();
   }
@@ -91,8 +99,9 @@ public class DAWG {
     List<Character> availableLetters = new ArrayList<>(Arrays.asList(rack));
 
     // If a hook is provided, add it to the available letters for backtracking
-    if (hook != ' ')
+    if (hook != ' ') {
       availableLetters.add(hook);
+    }
 
     Set<String> allFound = new HashSet<>();
     backtrack(root, "", availableLetters, allFound);
@@ -100,8 +109,9 @@ public class DAWG {
     // Filter results: only keep words that actually use the hook letter
     if (hook != ' ') {
       for (String word : allFound) {
-        if (word.indexOf(hook) != -1)
+        if (word.indexOf(hook) != -1) {
           results.add(word);
+        }
       }
       return results;
     }

@@ -1,11 +1,8 @@
-package fr.ubordeaux.scrabble.view.optionLancement;
-
+package fr.ubordeaux.scrabble.view.optionlancement;
 
 /**
- * Displays the help and version information of the program.
- *
- * <p>
- * SRP: Single Responsibility Principle — all help text is centralized here.
+ * Displays the help and version information of the program. SRP: Single Responsibility Principle —
+ * all help text is centralized here.
  */
 public class HelpPrinter {
 

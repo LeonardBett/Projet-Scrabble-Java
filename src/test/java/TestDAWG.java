@@ -2,7 +2,12 @@ import fr.ubordeaux.scrabble.model.dictionary.DAWG;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Scanner;
+import java.util.Set;
 
 public class TestDAWG {
 
@@ -15,8 +20,9 @@ public class TestDAWG {
     long loadStartTime = System.currentTimeMillis();
 
     try (InputStream is = TestDAWG.class.getResourceAsStream(lexiconPath)) {
-      if (is == null)
+      if (is == null) {
         throw new Exception("File not found : " + lexiconPath);
+      }
 
       BufferedReader br = new BufferedReader(new InputStreamReader(is));
       String line;
@@ -63,12 +69,14 @@ public class TestDAWG {
 
     while (true) {
       System.out.print("\n(Hook : '" + hook + "') > ");
-      if (!scan.hasNext())
+      if (!scan.hasNext()) {
         break;
+      }
       String cmd = scan.next().toLowerCase();
 
-      if (cmd.equals("q"))
+      if (cmd.equals("q")) {
         break;
+      }
 
       if (cmd.equals("h")) {
         String input = scan.next().toUpperCase();
@@ -77,8 +85,9 @@ public class TestDAWG {
         String rackStr = scan.next().toUpperCase();
 
         Character[] rack = new Character[rackStr.length()];
-        for (int i = 0; i < rackStr.length(); i++)
+        for (int i = 0; i < rackStr.length(); i++) {
           rack[i] = rackStr.charAt(i);
+        }
 
         long startTime = System.nanoTime();
         Set<String> results = dawg.findWordsWithRackAndHook(rack, hook);

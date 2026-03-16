@@ -5,7 +5,7 @@ import fr.ubordeaux.scrabble.model.core.Tile;
 import fr.ubordeaux.scrabble.model.enums.Direction;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
 import fr.ubordeaux.scrabble.model.utils.Point;
-import fr.ubordeaux.scrabble.view.cli.Renderer.MessageRenderer;
+import fr.ubordeaux.scrabble.view.cli.renderer.MessageRenderer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -70,8 +70,9 @@ public class CLIInputHandler {
             break;
           }
         }
-        if (rowIndex == -1)
+        if (rowIndex == -1) {
           throw new IllegalArgumentException("Ligne invalide: " + posInput[0]);
+        }
         y = rowIndex;
         x = Integer.parseInt(posInput[1]) - 1;
       } else {
@@ -179,8 +180,9 @@ public class CLIInputHandler {
       System.out.print("\nNombre de joueurs (2-4) : ");
       try {
         int num = Integer.parseInt(scanner.nextLine().trim());
-        if (num >= 2 && num <= 4)
+        if (num >= 2 && num <= 4) {
           return num;
+        }
         messageRenderer.warning("Le nombre de joueurs doit être entre 2 et 4.");
       } catch (NumberFormatException e) {
         messageRenderer.error("Veuillez entrer un nombre valide.");

@@ -16,8 +16,9 @@ public class TestGaddag {
     long loadStartTime = System.currentTimeMillis();
 
     try (InputStream is = TestGaddag.class.getResourceAsStream(lexiconPath)) {
-      if (is == null)
+      if (is == null) {
         throw new Exception("File not found : " + lexiconPath);
+      }
 
       BufferedReader br = new BufferedReader(new InputStreamReader(is));
       String line;
@@ -60,12 +61,14 @@ public class TestGaddag {
 
     while (true) {
       System.out.print("\n(Hook: '" + hook + "') > ");
-      if (!scan.hasNext())
+      if (!scan.hasNext()) {
         break;
+      }
       String cmd = scan.next().toLowerCase();
 
-      if (cmd.equals("q"))
+      if (cmd.equals("q")) {
         break;
+      }
 
       if (cmd.equals("h")) {
         hook = scan.next().toUpperCase().charAt(0);
@@ -73,8 +76,9 @@ public class TestGaddag {
         String rackStr = scan.next().toUpperCase();
 
         Character[] rack = new Character[rackStr.length()];
-        for (int i = 0; i < rackStr.length(); i++)
+        for (int i = 0; i < rackStr.length(); i++) {
           rack[i] = rackStr.charAt(i);
+        }
 
         long startTime = System.nanoTime();
         HashSet<GADDAG.GaddagResult> results = gaddag.findWordsWithRackAndHook(rack, hook);

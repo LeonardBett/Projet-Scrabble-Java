@@ -15,15 +15,16 @@ public class MoveGenerator {
   /**
    * Original method used by the game. It extracts the player's rack and delegates to the overloaded
    * method.
-   * 
+   *
    * @param game current game.
    * @param gaddag dictionary structure used for lookups.
    * @return list of playable words for the current player.
    */
   public List<PlayableWord> getPlayableWordsList(Game game, GADDAG gaddag) {
     Player player = game.getCurrentPlayer();
-    if (player == null || gaddag == null)
+    if (player == null || gaddag == null) {
       return new ArrayList<>();
+    }
     return getPlayableWordsList(game.getBoard(), rackToCharArray(player), gaddag);
   }
 
@@ -38,8 +39,9 @@ public class MoveGenerator {
   public List<PlayableWord> getPlayableWordsList(Board board, Character[] rackChars,
       GADDAG gaddag) {
     List<PlayableWord> playableMoves = new ArrayList<>();
-    if (rackChars == null || gaddag == null)
+    if (rackChars == null || gaddag == null) {
       return playableMoves;
+    }
 
     for (int y = 0; y < Board.SIZE; y++) {
       for (int x = 0; x < Board.SIZE; x++) {
@@ -72,19 +74,22 @@ public class MoveGenerator {
    * Checks if the word fits, if the AI has the letters, AND if it doesn't create invalid
    * cross-words.
    */
-  private boolean isPlayable(String word, String gaddagPath, int hX, int hY, Direction dir,
+  private boolean isPlayable(String word, String gaddagPath, int hookX, int hookY, Direction dir,
       Board board, Character[] rackChars, GADDAG gaddag) {
     int hookIndex = gaddagPath.indexOf('>') - 1;
-    int startX = (dir == Direction.HORIZONTAL) ? hX - hookIndex : hX;
-    int startY = (dir == Direction.VERTICAL) ? hY - hookIndex : hY;
+    int startX = (dir == Direction.HORIZONTAL) ? hookX - hookIndex : hookX;
+    int startY = (dir == Direction.VERTICAL) ? hookY - hookIndex : hookY;
 
     // 1. Check board boundaries
-    if (startX < 0 || startY < 0)
+    if (startX < 0 || startY < 0) {
       return false;
-    if (dir == Direction.HORIZONTAL && startX + word.length() > Board.SIZE)
+    }
+    if (dir == Direction.HORIZONTAL && startX + word.length() > Board.SIZE) {
       return false;
-    if (dir == Direction.VERTICAL && startY + word.length() > Board.SIZE)
+    }
+    if (dir == Direction.VERTICAL && startY + word.length() > Board.SIZE) {
       return false;
+    }
 
     // 2. Check contiguous letters (make sure we don't accidentally extend an
     // existing word)
@@ -125,8 +130,9 @@ public class MoveGenerator {
 
       if (sq != null && !sq.isEmpty()) {
         // Must match the board
-        if (sq.getTile().getCharacter() != letterNeeded)
+        if (sq.getTile().getCharacter() != letterNeeded) {
           return false;
+        }
       } else {
         // Must consume from rack
         if (rackCopy.contains(letterNeeded)) {
@@ -165,11 +171,13 @@ public class MoveGenerator {
     while (true) {
       int prevX = (crossDir == Direction.HORIZONTAL) ? startX - 1 : startX;
       int prevY = (crossDir == Direction.VERTICAL) ? startY - 1 : startY;
-      if (prevX < 0 || prevY < 0)
+      if (prevX < 0 || prevY < 0) {
         break;
+      }
       Square prevSq = board.getSquare(new Point(prevX, prevY));
-      if (prevSq == null || prevSq.isEmpty())
+      if (prevSq == null || prevSq.isEmpty()) {
         break;
+      }
       startX = prevX;
       startY = prevY;
     }
@@ -183,19 +191,22 @@ public class MoveGenerator {
         crossWord.append(placedLetter);
       } else {
         Square sq = board.getSquare(new Point(curX, curY));
-        if (sq == null || sq.isEmpty())
+        if (sq == null || sq.isEmpty()) {
           break;
+        }
         crossWord.append(sq.getTile().getCharacter());
       }
-      if (crossDir == Direction.HORIZONTAL)
+      if (crossDir == Direction.HORIZONTAL) {
         curX++;
-      else
+      } else {
         curY++;
+      }
     }
 
     // If length is 1, no cross word was formed (just the placed letter)
-    if (crossWord.length() == 1)
+    if (crossWord.length() == 1) {
       return true;
+    }
 
     // Otherwise, the perpendicular word MUST exist in the dictionary
     return gaddag.containsWord(crossWord.toString());

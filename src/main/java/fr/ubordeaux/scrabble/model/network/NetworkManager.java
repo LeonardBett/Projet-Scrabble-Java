@@ -346,8 +346,9 @@ public class NetworkManager {
   }
 
   public Game getLocalGame() {
-    if (gameClient == null)
+    if (gameClient == null) {
       return null;
+    }
     return gameClient.getLocalGame();
   }
 
