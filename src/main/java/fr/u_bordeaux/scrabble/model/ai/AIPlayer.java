@@ -7,117 +7,207 @@ import fr.u_bordeaux.scrabble.model.core.Tile;
 import fr.u_bordeaux.scrabble.model.dictionary.GADDAG;
 import fr.u_bordeaux.scrabble.model.interfaces.Player;
 import fr.u_bordeaux.scrabble.model.utils.Point;
-
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Represents an artificial player (AI).
+ * Can be augmented with a Machine Learning agent (MLAgent) to predict words.
  */
 public class AIPlayer extends Player {
-    
-    private final MinimaxSolver solver;
 
-    /**
-     * Base constructor for any player.
-     *
-     * @param name The name of the player.
-     * @param difficultyLevel Defines the search depth (e.g., 1 = basic, 2 = medium)
-     */
-    public AIPlayer(String name, int difficultyLevel) {
-        super(name);
-        this.solver = new MinimaxSolver(difficultyLevel);
+  private final MinimaxSolver solver;
+  private MLAgent mlAgent;
+
+  /**
+   * Constructs an AI Player with a defined difficulty and time limit.
+   *
+   * @param name The name of the player.
+   * @param difficultyLevel Defines the search depth.
+   * @param timeLimitSeconds The time limit allocated for the AI to play.
+   */
+  public AIPlayer(String name, int difficultyLevel, int timeLimitSeconds) {
+    super(name);
+    this.solver = new MinimaxSolver(difficultyLevel, timeLimitSeconds);
+  }
+
+  /**
+   * Injects the Machine Learning agent to enable neural network word search.
+   *
+   * @param mlAgent The initialized Machine Learning agent.
+   */
+  public void setMlAgent(MLAgent mlAgent) {
+    this.mlAgent = mlAgent;
+  }
+
+  /**
+   * Toggles the AI into Expectiminimax mode or standard Minimax mode.
+   *
+   * @param enable True to enable Expectiminimax, false for standard Minimax.
+   */
+  public void setExpectiminimaxMode(boolean enable) {
+    solver.setUseExpectiminimax(enable);
+    System.out.println(
+        "AI [" + getName() + "] mode changed to: " 
+        + (enable ? "EXPECTIMINIMAX" : "Classic MINIMAX"));
+  }
+
+  /**
+   * Checks if the AI is using the Expectiminimax strategy.
+   *
+   * @return True if Expectiminimax is active, false otherwise.
+   */
+  public boolean isExpectiminimaxMode() {
+    return solver.isUsingExpectiminimax();
+  }
+
+  /**
+   * Extracts the letters currently in the AI's rack as a string format.
+   *
+   * @return A string containing the characters from the rack.
+   */
+  private String getRackAsString() {
+    StringBuilder sb = new StringBuilder();
+    for (Tile t : getRack().getTiles()) {
+      sb.append(t.getCharacter());
     }
+    return sb.toString();
+  }
 
-    /**
-     * Allows the user to toggle the AI into Expectiminimax mode.
-     * If false, the AI uses classic Minimax (default).
-     * * @param enable true to enable Expectiminimax, false for Minimax
-     */
-    public void setExpectiminimaxMode(boolean enable) {
-        solver.setUseExpectiminimax(enable);
-        System.out.println("AI [" + getName() + "] mode changed to: " 
-            + (enable ? "EXPECTIMINIMAX" : "Classic MINIMAX"));
-    }
+  /**
+   * Analyzes the game state and executes the best action for the current turn.
+   * Integrates a fallback mechanism if the ML agent is missing or fails.
+   *
+   * @param game The current game instance.
+   * @param gaddag The GADDAG dictionary used to validate moves.
+   */
+  public void playTurn(Game game, GADDAG gaddag) {
+    System.out.println("AI " + getName() + " is computing its move...");
 
-    public boolean isExpectiminimaxMode() {
-        return solver.isUsingExpectiminimax();
-    }
+    PlayableWord bestPlay = null;
 
-    /**
-     * Makes the AI play its turn. It analyzes the game state and executes the best action.
-     * @param game The current game instance
-     * @param gaddag The GADDAG dictionary used to generate moves
-     */
-    public void playTurn(Game game, GADDAG gaddag) {
-        System.out.println("AI " + getName() + " is thinking using the " 
-            + (isExpectiminimaxMode() ? "Expectiminimax" : "Minimax") + " algorithm...");
-        
-        PlayableWord bestPlay = solver.findBestMove(game, gaddag);
-        
-        Move moveToExecute;
-        if (bestPlay != null) {
-            System.out.println("The AI decided to play: " + bestPlay.getWord() + " for " + bestPlay.getScore() + " points.");
-            
-            int hookIndex = bestPlay.getGaddagRepresentation().indexOf('>') - 1;
-            
-            int startX = bestPlay.getDirection() == fr.u_bordeaux.scrabble.model.enums.Direction.HORIZONTAL ? 
-                         bestPlay.getHookX() - hookIndex : bestPlay.getHookX();
-            int startY = bestPlay.getDirection() == fr.u_bordeaux.scrabble.model.enums.Direction.VERTICAL ? 
-                         bestPlay.getHookY() - hookIndex : bestPlay.getHookY();
-            
-            Point startPos = new Point(startX, startY);
-            
-            // 1. Copy the AI rack to identify the Joker
-            java.util.List<Character> myRack = new java.util.ArrayList<>();
-            for (Tile t : getRack().getTiles()) {
-                myRack.add(t.getCharacter());
+    // Phase 1: Machine Learning Search Step
+    if (this.mlAgent != null) {
+      if (this.mlAgent.isModelLoaded()) {
+        String rackStr = getRackAsString();
+        System.out.println("[ML] Neural Network is analyzing the current rack: [" + rackStr + "]");
+
+        // Request a larger batch of predictions because many will not fit on the active board
+        List<String> mlPredictions = mlAgent.predictWords(rackStr, 100);
+
+        // Generate all legally playable moves on the board
+        fr.u_bordeaux.scrabble.model.core.MoveGenerator moveGen =
+            new fr.u_bordeaux.scrabble.model.core.MoveGenerator();
+        List<PlayableWord> allLegalMoves = moveGen.getPlayableWordsList(game, gaddag);
+
+        // Search for the highest-probability predicted word that represents a legal board placement
+        for (String predictedWord : mlPredictions) {
+          for (PlayableWord legalMove : allLegalMoves) {
+            if (legalMove.getWord().equals(predictedWord)) {
+              bestPlay = legalMove;
+              System.out.println(
+                  "[ML] SUCCESS: Found legal board placement for predicted word: " + predictedWord);
+              break;
             }
-
-            // 2. Take the letters that are NOT already on the board
-            List<Tile> wordTiles = new ArrayList<>();
-            String word = bestPlay.getWord();
-            
-            for (int i = 0; i < word.length(); i++) {
-                int currentX = startX + (bestPlay.getDirection() == fr.u_bordeaux.scrabble.model.enums.Direction.HORIZONTAL ? i : 0);
-                int currentY = startY + (bestPlay.getDirection() == fr.u_bordeaux.scrabble.model.enums.Direction.VERTICAL ? i : 0);
-                
-                fr.u_bordeaux.scrabble.model.core.Square sq = game.getBoard().getSquare(new Point(currentX, currentY));
-                
-                // If the square is empty, the letter comes from our rack
-                if (sq != null && sq.isEmpty()) {
-                    char neededChar = word.charAt(i);
-                    
-                    if (myRack.contains(neededChar)) {
-                        // We have the actual letter
-                        myRack.remove((Character) neededChar);
-                        wordTiles.add(new Tile(neededChar)); 
-                    } else {
-                        // We DON'T have the letter, so it MUST be the Joker!
-                        myRack.remove((Character) ' ');
-                        wordTiles.add(new Tile(neededChar, true)); // Using the new Joker constructor
-                    }
-                }
-            }
-            
-            // Remove when fixed
-            System.out.println("\n=== DÉBOGAGE IA ===");
-            System.out.println("Mot trouvé par le GADDAG et validé : [" + word + "]");
-            System.out.println("Position de départ : " + startPos + " | Direction : " + bestPlay.getDirection());
-            System.out.print("Tuiles physiques extraites du chevalet de l'IA pour ce coup : [ ");
-            for (Tile t : wordTiles) {
-                System.out.print(t.getCharacter() + " ");
-            }
-            System.out.println("]");
-            System.out.println("===================\n");
-            // remove when fixed
-            
-            moveToExecute = Move.createPlay(this, wordTiles, startPos, bestPlay.getDirection());            
-        } else {
-            System.out.println("The AI could not find any word and passes its turn.");
-            moveToExecute = Move.createPass(this);
+          }
+          if (bestPlay != null) {
+            break;
+          }
         }
-        
-        game.executeMove(moveToExecute);
+
+        if (bestPlay == null) {
+          System.out.println(
+              "[ML] NOTE: None of the top predicted words fit on the board. "
+              + "Falling back to algorithmic search.");
+        }
+      } else {
+        System.out.println(
+            "[ML] Model is missing. Bypassing neural network and defaulting to algorithmic search.");
+      }
     }
+
+    // Phase 2: Algorithmic Fallback & Resolution Step
+    if (bestPlay == null) {
+      System.out.println(
+          "[AI] Proceeding with "
+          + (isExpectiminimaxMode() ? "Expectiminimax" : "Minimax")
+          + " algorithm...");
+      bestPlay = solver.findBestMove(game, gaddag);
+    }
+
+    Move moveToExecute;
+    if (bestPlay != null) {
+      System.out.println(
+          "The AI decided to play: " + bestPlay.getWord() + " for " + bestPlay.getScore() + " points.");
+
+      int hookIndex = bestPlay.getGaddagRepresentation().indexOf('>') - 1;
+
+      int startX =
+          bestPlay.getDirection() == fr.u_bordeaux.scrabble.model.enums.Direction.HORIZONTAL
+              ? bestPlay.getHookX() - hookIndex
+              : bestPlay.getHookX();
+      int startY =
+          bestPlay.getDirection() == fr.u_bordeaux.scrabble.model.enums.Direction.VERTICAL
+              ? bestPlay.getHookY() - hookIndex
+              : bestPlay.getHookY();
+
+      Point startPos = new Point(startX, startY);
+
+      // Duplicate the AI rack temporarily to identify the Joker utilization
+      List<Character> myRack = new ArrayList<>();
+      for (Tile t : getRack().getTiles()) {
+        myRack.add(t.getCharacter());
+      }
+
+      // Isolate the letters that need to be played from the rack
+      List<Tile> wordTiles = new ArrayList<>();
+      String word = bestPlay.getWord();
+
+      for (int i = 0; i < word.length(); i++) {
+        int currentX =
+            startX
+                + (bestPlay.getDirection() == fr.u_bordeaux.scrabble.model.enums.Direction.HORIZONTAL
+                    ? i
+                    : 0);
+        int currentY =
+            startY
+                + (bestPlay.getDirection() == fr.u_bordeaux.scrabble.model.enums.Direction.VERTICAL
+                    ? i
+                    : 0);
+
+        fr.u_bordeaux.scrabble.model.core.Square sq =
+            game.getBoard().getSquare(new Point(currentX, currentY));
+
+        // If the square is empty, the letter originates from the player's rack
+        if (sq != null && sq.isEmpty()) {
+          char neededChar = word.charAt(i);
+
+          if (myRack.contains(neededChar)) {
+            myRack.remove((Character) neededChar);
+            wordTiles.add(new Tile(neededChar));
+          } else {
+            // The exact letter is missing, thus the Joker must be used
+            myRack.remove((Character) ' ');
+            wordTiles.add(new Tile(neededChar, true));
+          }
+        }
+      }
+
+      moveToExecute = Move.createPlay(this, wordTiles, startPos, bestPlay.getDirection());
+    } else {
+      System.out.println("The AI could not find any playable word and passes its turn.");
+      moveToExecute = Move.createPass(this);
+    }
+
+    game.executeMove(moveToExecute);
+  }
+
+  /**
+   * Updates the maximum allowed thinking time for the AI player.
+   *
+   * @param timeLimitSeconds The requested time limit in seconds.
+   */
+  public void setTimeLimitSeconds(int timeLimitSeconds) {
+    solver.setTimeLimitSeconds(timeLimitSeconds);
+  }
 }

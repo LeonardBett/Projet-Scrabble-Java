@@ -1,5 +1,20 @@
 package fr.u_bordeaux.scrabble.controller;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.Test;
+
 import fr.u_bordeaux.scrabble.model.ai.AIPlayer;
 import fr.u_bordeaux.scrabble.model.core.Game;
 import fr.u_bordeaux.scrabble.model.core.HumanPlayer;
@@ -10,21 +25,6 @@ import fr.u_bordeaux.scrabble.model.enums.Direction;
 import fr.u_bordeaux.scrabble.model.utils.Point;
 import fr.u_bordeaux.scrabble.view.UserInterface;
 import fr.u_bordeaux.scrabble.view.cli.CLIView;
-import org.junit.jupiter.api.Test;
-
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class GameControllerTest {
 
@@ -126,8 +126,8 @@ class GameControllerTest {
         assertTrue(error.getMessage().contains("Invalid move:"));
     }
 
-        @Test
-        void handlePlayerMoveShouldLoadDictionaryWhenMissing() {
+    @Test
+    void handlePlayerMoveShouldLoadDictionaryWhenMissing() {
         Game game = new Game();
         HumanPlayer alice = new HumanPlayer("Alice");
         game.addPlayer(alice);
@@ -137,6 +137,8 @@ class GameControllerTest {
 
         RecordingView view = new RecordingView();
         GameController controller = new GameController(game, view);
+        
+        controller.setLang("en"); 
 
         Move move = Move.createPlay(alice,
             List.of(new Tile('R'), new Tile('U'), new Tile('E'), new Tile('S')),
@@ -145,7 +147,7 @@ class GameControllerTest {
 
         assertDoesNotThrow(() -> controller.handlePlayerMove(move));
         assertEquals(1, view.refreshCount);
-        }
+    }
 
     @Test
     void addPlayerUndoRedoAndGettersShouldWork() {
@@ -325,18 +327,21 @@ class GameControllerTest {
         runCliWithInput(controller, "6\nn\n6\no\n");
     }
 
-    @Test
+@Test
     void runCliShouldInitializePlayersIncludingAI() throws Exception {
         Game game = new Game();
         CLIView view = new CLIView(game);
         GameController controller = new GameController(game, view);
         setDictionary(controller, minimalDictionary("AA", "ART"));
 
-        runCliWithInput(controller, "2\nBob\nIAbot\no\n6\no\n");
+        controller.setUseExptiminimax(true);
+
+        runCliWithInput(controller, "2\nBob\nIAbot\n6\no\n");
 
         assertEquals(2, game.getPlayers().size());
         assertTrue(game.getPlayers().get(1) instanceof AIPlayer);
         AIPlayer ai = (AIPlayer) game.getPlayers().get(1);
+        
         assertTrue(ai.isExpectiminimaxMode());
     }
 
@@ -419,7 +424,7 @@ class GameControllerTest {
 
     private static final class FailingAIPlayer extends AIPlayer {
         FailingAIPlayer(String name) {
-            super(name, 1);
+            super(name, 1,5);
         }
 
         @Override
@@ -430,7 +435,7 @@ class GameControllerTest {
 
     private static final class PassingAIPlayer extends AIPlayer {
         PassingAIPlayer(String name) {
-            super(name, 1);
+            super(name, 1,5);
         }
 
         @Override

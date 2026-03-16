@@ -289,7 +289,7 @@ public class ScrabbleGUI extends Application {
         if (gaddag == null) loadDictionary();
         for (String name : namesOpt.get()) {
             if (name.toUpperCase().startsWith("IA") || name.toUpperCase().startsWith("AI")) {
-                gameInstance.addPlayer(new AIPlayer(name, 3));
+                gameInstance.addPlayer(new AIPlayer(name, 3,5));
             } else {
                 gameInstance.addPlayer(new HumanPlayer(name));
             }
