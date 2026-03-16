@@ -26,3 +26,7 @@ out/
 
 # Maven
 target/
+
+# Machine Learning generated models and labels
+src/main/resources/ai/model_*/
+src/main/resources/ai/labels_*.txt
