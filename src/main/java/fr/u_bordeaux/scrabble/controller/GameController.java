@@ -3,23 +3,21 @@ package fr.u_bordeaux.scrabble.controller;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
 
 import fr.u_bordeaux.scrabble.model.ai.AIPlayer;
+import fr.u_bordeaux.scrabble.model.ai.MLAgent;
 import fr.u_bordeaux.scrabble.model.core.Game;
 import fr.u_bordeaux.scrabble.model.core.HumanPlayer;
 import fr.u_bordeaux.scrabble.model.core.Move;
 import fr.u_bordeaux.scrabble.model.core.MoveHandler;
-import fr.u_bordeaux.scrabble.model.enums.MoveType;
 import fr.u_bordeaux.scrabble.model.dictionary.GADDAG;
+import fr.u_bordeaux.scrabble.model.enums.MoveType;
 import fr.u_bordeaux.scrabble.model.interfaces.Player;
 import fr.u_bordeaux.scrabble.view.UserInterface;
 import fr.u_bordeaux.scrabble.view.cli.CLIInputHandler;
 import fr.u_bordeaux.scrabble.view.cli.CLIView;
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import fr.u_bordeaux.scrabble.model.dictionary.GADDAG;
-import fr.u_bordeaux.scrabble.model.ai.AIPlayer;
 
 
 /**
@@ -35,7 +33,14 @@ public class GameController {
     private Game game;
     private UserInterface view;
     private GADDAG gaddag;
+    private List<String> dictionaryList;
+    private String lang = "en"; // Default 
     
+    // AI Configuration fields
+    private int aiTime = 5;
+    private boolean useExptiminimax = false;
+    private boolean useMl = false;
+
     public GameController(Game game, UserInterface view) {
         this.game = game;
         this.view = view;
@@ -49,22 +54,19 @@ public class GameController {
             throw new IllegalStateException("Game and view must be initialized before starting.");
         }
         
-        // Validate that at least 2 players are present
         if (game.getPlayers().size() < 2) {
             throw new IllegalStateException("At least 2 players must be present to start.");
         }
         
-        // Initialize the game
         game.startGame();
-    
     }
 
-        /**
+/**
      * Runs a CLI game loop if the provided view is a CLIView.
      * This will prompt for players (if missing), start the game and process
      * player actions until the game ends or the user quits.
      */
-    public void runCli() {
+public void runCli() {
         if (!(view instanceof CLIView)) {
             throw new IllegalStateException("CLI loop requires a CLIView instance as view.");
         }
@@ -74,31 +76,46 @@ public class GameController {
 
         cliView.displayWelcome();
 
-        // 1. Initialisation des joueurs (Détection de l'IA)
         if (game.getPlayers().size() < 2) {
             int num = input.askNumberOfPlayers();
             for (int i = 1; i <= num; i++) {
                 String name = input.askPlayerName(i);
                 
-                // Si le nom commence par "IA", on crée un bot (niveau 1 de profondeur par défaut)
+                // If the name starts with "IA", create a bot automatically configured by command line args
                 if (name.toUpperCase().startsWith("IA") || name.toUpperCase().startsWith("AI")) {
-                    AIPlayer bot = new AIPlayer(name, 3); 
+                    AIPlayer bot = new AIPlayer(name, 3,5); 
                     
-                    // On demande si on veut activer l'Expectiminimax
-                    if (input.askConfirmation("Activer le mode Expectiminimax (avancé) pour " + name + " ? (o/n)")) {
-                        bot.setExpectiminimaxMode(true);
+                    // Apply command-line configurations directly
+                    bot.setExpectiminimaxMode(this.useExptiminimax);
+
+                    if (this.useMl) {
+                        List<String> dictList = getOrLoadDictionaryList();
+                        String modelPath = "src/main/resources/ai/model_" + this.lang;
+                        MLAgent mlAgent = new MLAgent(modelPath, dictList);
+                        
+                        // Register a Shutdown Hook to free TensorFlow resources on exit
+                        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                            if (mlAgent != null) {
+                                mlAgent.close();
+                            }
+                        }));
+                        
+                        bot.setMlAgent(mlAgent);
+                        cliView.displayMessage("-> ML Agent activated for " + name + " (" + this.lang + ")");
                     }
+                    
                     addPlayer(bot);
                 } else {
                     addPlayer(new HumanPlayer(name));
                 }
             }
         }
-
+        
         startGame();
 
         // 2. Chargement du dictionnaire GADDAG depuis le fichier texte
-        GADDAG gaddag = getOrLoadGaddag();
+        GADDAG currentGaddag = getOrLoadGaddag();
+        
         // 3. Boucle principale du jeu
         boolean running = true;
         while (running && !game.isGameOver()) {
@@ -117,25 +134,21 @@ public class GameController {
                 AIPlayer ai = (AIPlayer) current;
                 
                 try {
-                    // L'IA calcule et joue son coup
-                    ai.playTurn(game, gaddag);
-                    
-                    // Petite pause de 2 secondes pour que l'humain ait le temps de lire l'action de l'IA
+                    ai.playTurn(game, currentGaddag);
                     Thread.sleep(2000); 
                 } catch (Exception e) {
                     view.displayError("Erreur pendant le tour de l'IA : " + e.getMessage());
                     e.printStackTrace();
-                    // En cas de crash inattendu, on force l'IA à passer pour ne pas bloquer le jeu
                     handlePlayerMove(Move.createPass(current));
                 }
                 
-                continue; // On repart au début de la boucle sans demander d'input humain
+                continue;
             }
 
             // --- GESTION DU TOUR D'UN JOUEUR HUMAIN ---
             String action = input.askAction();
             switch (action) {
-                case "1": // Play a word
+                case "1": 
                 {
                     Move move = input.askPlayMove(current);
                     if (move != null) {
@@ -148,7 +161,7 @@ public class GameController {
                     }
                     break;
                 }
-                case "2": // Exchange
+                case "2": 
                 {
                     Move move = input.askExchangeMove(current);
                     if (move != null) {
@@ -161,7 +174,7 @@ public class GameController {
                     }
                     break;
                 }
-                case "3": // Pass
+                case "3": 
                 {
                     try {
                         handlePlayerMove(Move.createPass(current));
@@ -171,17 +184,17 @@ public class GameController {
                     }
                     break;
                 }
-                case "4": // Undo
+                case "4": 
                 {
                     undo();
                     break;
                 }
-                case "5": // Redo
+                case "5": 
                 {
                     redo();
                     break;
                 }
-                case "6": // Quit
+                case "6": 
                 {
                     if (input.askConfirmation("Voulez-vous vraiment quitter ?")) {
                         running = false;
@@ -193,7 +206,6 @@ public class GameController {
             }
         }
 
-        // Fin de la partie
         Player winner = game.determineWinner();
         if (winner != null) {
             view.displaySuccess("Partie terminée. Vainqueur: " + winner.getName());
@@ -204,7 +216,8 @@ public class GameController {
     
     /**
      * Executes a player's move.
-     * @param move The move to execute
+     *
+     * @param move The move to execute.
      */
     public void handlePlayerMove(Move move) {
         try {
@@ -225,29 +238,62 @@ public class GameController {
                 }
             }
             
-            // Execute the move in the model
             game.executeMove(move);
-            
-            // Notify the view
             view.refresh();
-
             
         } catch (IllegalArgumentException | IllegalStateException e) {
             throw new RuntimeException("Invalid move: " + e.getMessage(), e);
         }
     }
 
+/**
+     * Loads the lexicon into a simple List of strings to map ML index predictions to words.
+     *
+     * @return A list of all valid words.
+     */
+    private List<String> getOrLoadDictionaryList() {
+        if (dictionaryList != null) {
+            return dictionaryList;
+        }
+        
+        dictionaryList = new ArrayList<>();
+        String dictPath = "dictionaries/lexicon_" + this.lang + ".txt";
+        
+        try (InputStream is = getClass().getClassLoader().getResourceAsStream(dictPath)) {
+            if (is != null) {
+                try (BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
+                    String line;
+                    while ((line = br.readLine()) != null) {
+                        String cleanWord = line.trim().toUpperCase();
+                        if (!cleanWord.isEmpty()) {
+                            dictionaryList.add(cleanWord);
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Warning: Failed to load dictionary list for ML: " + e.getMessage());
+        }
+        return dictionaryList;
+    }
+
+    /**
+     * Loads the GADDAG data structure for word generation.
+     *
+     * @return The populated GADDAG instance.
+     */
     private GADDAG getOrLoadGaddag() {
         if (gaddag != null) {
             return gaddag;
         }
 
         gaddag = new GADDAG();
-        System.out.println("\nChargement du dictionnaire GADDAG en cours (cela peut prendre quelques secondes)...");
+        String dictPath = "dictionaries/lexicon_" + this.lang + ".txt";
+        System.out.println("\nLoading GADDAG dictionary (" + dictPath + ") please wait...");
 
-        try (InputStream is = getClass().getClassLoader().getResourceAsStream("dictionaries/lexicon_en.txt")) {
+        try (InputStream is = getClass().getClassLoader().getResourceAsStream(dictPath)) {
             if (is == null) {
-                throw new IllegalStateException("Fichier lexicon_en.txt introuvable dans resources/dictionaries/");
+                throw new IllegalStateException("Dictionary file " + dictPath + " not found in resources.");
             }
 
             int wordCount = 0;
@@ -262,10 +308,10 @@ public class GameController {
                 }
             }
 
-            System.out.println("Dictionnaire charge avec succes ! (" + wordCount + " mots ajoutes).\n");
+            System.out.println("Dictionary successfully loaded! (" + wordCount + " words added).\n");
             return gaddag;
         } catch (Exception e) {
-            throw new IllegalStateException("Erreur lors du chargement du dictionnaire: " + e.getMessage(), e);
+            throw new IllegalStateException("Error while loading the dictionary: " + e.getMessage(), e);
         }
     }
     
@@ -307,5 +353,21 @@ public class GameController {
      */
     public UserInterface getView() {
         return view;
+    }
+
+    public void setAiTime(int aiTime) { 
+        this.aiTime = aiTime; 
+    }
+
+    public void setUseExptiminimax(boolean useExptiminimax) { 
+        this.useExptiminimax = useExptiminimax; 
+    }
+
+    public void setUseMl(boolean useMl) { 
+        this.useMl = useMl; 
+    }
+
+    public void setLang(String lang) { 
+        this.lang = lang; 
     }
 }

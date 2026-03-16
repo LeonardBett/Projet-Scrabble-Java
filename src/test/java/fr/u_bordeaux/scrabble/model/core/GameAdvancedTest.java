@@ -53,7 +53,7 @@ class GameAdvancedTest {
     @Test
     void undoRedoShouldDoNothingWhenCurrentPlayerIsNotHuman() {
         Game game = new Game();
-        AIPlayer bot = new AIPlayer("Bot",1);
+        AIPlayer bot = new AIPlayer("Bot",1,5);
         game.addPlayer(bot);
 
         assertDoesNotThrow(game::undo);
