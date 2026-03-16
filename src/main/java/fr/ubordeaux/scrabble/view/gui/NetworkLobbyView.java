@@ -72,7 +72,7 @@ public class NetworkLobbyView extends Stage {
     this.networkManager = bridge.getNetworkManager();
     bridge.setLobbyView(this);
 
-    initUI();
+    initUi();
 
     this.setTitle("🌐 Scrabble — Multijoueur en ligne");
     this.initModality(Modality.NONE); // non-bloquant : on peut jouer ET avoir le lobby ouvert
@@ -81,7 +81,7 @@ public class NetworkLobbyView extends Stage {
 
   // ─── Construction de l'UI ─────────────────────────────────────────────────
 
-  private void initUI() {
+  private void initUi() {
     VBox root = new VBox(10);
     root.setPadding(new Insets(15));
     root.setStyle("-fx-background-color: #1a2a3a;");
@@ -121,7 +121,7 @@ public class NetworkLobbyView extends Stage {
   // ─── Onglet Héberger ──────────────────────────────────────────────────────
 
   private Tab buildHostTab() {
-    Tab tab = new Tab("🖥  Héberger");
+    final Tab tab = new Tab("🖥  Héberger");
 
     VBox content = new VBox(12);
     content.setPadding(new Insets(20));
@@ -157,14 +157,15 @@ public class NetworkLobbyView extends Stage {
   // ─── Onglet Rejoindre ─────────────────────────────────────────────────────
 
   private Tab buildJoinTab() {
-    Tab tab = new Tab("🔍 Rejoindre");
+    final Tab tab = new Tab("🔍 Rejoindre");
 
     VBox content = new VBox(12);
     content.setPadding(new Insets(20));
     content.setStyle("-fx-background-color: #243447;");
 
     // Serveurs auto-découverts
-    Label autoTitle = styledLabel("Serveurs détectés automatiquement :", Color.WHITE, 13, true);
+    final Label autoTitle =
+        styledLabel("Serveurs détectés automatiquement :", Color.WHITE, 13, true);
     serverListView = new ListView<>();
     serverListView.setPrefHeight(130);
     serverListView.setStyle("-fx-control-inner-background: #1a2a3a; -fx-text-fill: white;");
@@ -176,7 +177,7 @@ public class NetworkLobbyView extends Stage {
     joinSelectedButton.setOnAction(e -> onJoinSelected());
 
     // Connexion manuelle
-    Label manualTitle = styledLabel("Ou connexion manuelle :", Color.WHITE, 13, true);
+    final Label manualTitle = styledLabel("Ou connexion manuelle :", Color.WHITE, 13, true);
 
     HBox ipRow = new HBox(10);
     ipRow.setAlignment(Pos.CENTER_LEFT);
@@ -203,14 +204,14 @@ public class NetworkLobbyView extends Stage {
   // ─── Onglet Salon ─────────────────────────────────────────────────────────
 
   private Tab buildLobbyTab() {
-    Tab tab = new Tab("🎮 Salon");
+    final Tab tab = new Tab("🎮 Salon");
 
     VBox content = new VBox(12);
     content.setPadding(new Insets(20));
     content.setStyle("-fx-background-color: #243447;");
 
     // Joueurs
-    Label playersTitle = styledLabel("Joueurs connectés :", Color.WHITE, 13, true);
+    final Label playersTitle = styledLabel("Joueurs connectés :", Color.WHITE, 13, true);
     playersListView = new ListView<>();
     playersListView.setPrefHeight(140);
     playersListView.setStyle("-fx-control-inner-background: #1a2a3a; -fx-text-fill: white;");
@@ -229,7 +230,7 @@ public class NetworkLobbyView extends Stage {
     challengeButton.setOnAction(e -> onChallenge());
 
     // Scoreboard
-    Label sbTitle = styledLabel("Classement du serveur :", Color.WHITE, 13, true);
+    final Label sbTitle = styledLabel("Classement du serveur :", Color.WHITE, 13, true);
     scoreboardListView = new ListView<>();
     scoreboardListView.setPrefHeight(120);
     scoreboardListView.setStyle("-fx-control-inner-background: #1a2a3a; -fx-text-fill: white;");

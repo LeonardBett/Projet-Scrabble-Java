@@ -8,9 +8,9 @@ import fr.ubordeaux.scrabble.model.core.Tile;
 import fr.ubordeaux.scrabble.model.enums.Direction;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
 import fr.ubordeaux.scrabble.model.utils.Point;
-import fr.ubordeaux.scrabble.view.cli.CLIView;
+import fr.ubordeaux.scrabble.view.cli.CliView;
 import fr.ubordeaux.scrabble.view.gui.JavaFxView;
-import fr.ubordeaux.scrabble.view.gui.ScrabbleGUI;
+import fr.ubordeaux.scrabble.view.gui.ScrabbleGui;
 import fr.ubordeaux.scrabble.view.optionlancement.HelpPrinter;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +22,11 @@ import javafx.application.Application;
  */
 public class App {
 
+  /**
+   * Starts the application and routes to CLI or GUI mode based on command-line options.
+   *
+   * @param args Application command-line arguments.
+   */
   public static void main(String[] args) {
     boolean guiMode = false;
     boolean blitzMode = false;
@@ -72,9 +77,9 @@ public class App {
     }
 
     if (guiMode) {
-      launchGUI(args, blitzMode, aiTime, useExptiminimax, useMl, lang);
+      launchGui(args, blitzMode, aiTime, useExptiminimax, useMl, lang);
     } else {
-      launchCLI(blitzMode, aiTime, useExptiminimax, useMl, lang);
+      launchCli(blitzMode, aiTime, useExptiminimax, useMl, lang);
     }
   }
 
@@ -87,14 +92,14 @@ public class App {
    * @param useMl True if the AI should use Machine Learning for word search.
    * @param lang The language of the dictionary to load ("en" or "fr").
    */
-  private static void launchCLI(boolean blitzMode, int aiTime, boolean useExptiminimax,
+  private static void launchCli(boolean blitzMode, int aiTime, boolean useExptiminimax,
       boolean useMl, String lang) {
     Game game = new Game();
     if (blitzMode) {
       game.enableBlitzMode();
     }
 
-    CLIView view = new CLIView(game);
+    CliView view = new CliView(game);
     view.setBlitzMode(blitzMode);
     GameController controller = new GameController(game, view);
 
@@ -109,20 +114,30 @@ public class App {
 
   /**
    * Launches the Graphical User Interface (GUI) mode.
+   *
+   * @param args Application command-line arguments passed to JavaFX.
+   * @param blitzMode True if blitz mode is enabled.
+   * @param aiTime The thinking time allocated for the AI in seconds.
+   * @param useExptiminimax True if the AI should use the Exptiminimax algorithm.
+   * @param useMl True if the AI should use Machine Learning for word search.
+   * @param lang The language of the dictionary to load ("en" or "fr").
    */
-  private static void launchGUI(String[] args, boolean blitzMode, int aiTime,
+  private static void launchGui(String[] args, boolean blitzMode, int aiTime,
       boolean useExptiminimax, boolean useMl, String lang) {
     Game game = new Game();
     JavaFxView view = new JavaFxView(game);
-    ScrabbleGUI.setGame(game);
-    ScrabbleGUI.setView(view);
+    ScrabbleGui.setGame(game);
+    ScrabbleGui.setView(view);
 
-    Application.launch(ScrabbleGUI.class, args);
+    Application.launch(ScrabbleGui.class, args);
   }
 
-  private static void launchCLI_test() {
+  /**
+   * Runs a small CLI simulation used for local manual checks.
+   */
+  private static void launchCliTest() {
     Game game = new Game();
-    CLIView view = new CLIView(game);
+    CliView view = new CliView(game);
     GameController controller = new GameController(game, view);
 
     controller.addPlayer(new HumanPlayer("Alice"));
@@ -135,6 +150,8 @@ public class App {
 
   /**
    * Test the game using the MVC controller.
+   *
+   * @param controller The game controller used to run simulated player actions.
    */
   private static void testGameWithController(GameController controller) {
     Game game = controller.getGame();

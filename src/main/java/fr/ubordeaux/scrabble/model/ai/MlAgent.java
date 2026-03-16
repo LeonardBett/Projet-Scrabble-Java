@@ -15,19 +15,19 @@ import org.tensorflow.types.TFloat32;
  * Machine learning agent for word search using TensorFlow. This class loads a pre-trained model to
  * predict valid dictionary words based on the letters available in a player's rack.
  */
-public class MLAgent implements AutoCloseable {
+public class MlAgent implements AutoCloseable {
 
   private static final int ALPHABET_SIZE = 26;
   private SavedModelBundle model;
   private List<String> dictionary;
 
   /**
-   * Constructs the MLAgent and gracefully handles missing models.
+   * Constructs the MlAgent and gracefully handles missing models.
    *
    * @param modelPath The path to the directory containing the SavedModel.
    * @param dictionary A list of all valid words, indexed to match the model's output classes.
    */
-  public MLAgent(String modelPath, List<String> dictionary) {
+  public MlAgent(String modelPath, List<String> dictionary) {
     this.dictionary = dictionary;
 
     File modelDir = new File(modelPath);
@@ -119,7 +119,7 @@ public class MLAgent implements AutoCloseable {
    * @return A list of the top K predicted words.
    */
   private List<String> getTopPredictions(TFloat32 outputTensor, int topK) {
-    List<String> results = new ArrayList<>();
+    final List<String> results = new ArrayList<>();
 
     int numClasses = (int) outputTensor.shape().size(1);
 

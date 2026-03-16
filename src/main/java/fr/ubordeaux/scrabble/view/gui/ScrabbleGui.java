@@ -1,13 +1,13 @@
 package fr.ubordeaux.scrabble.view.gui;
 
 import fr.ubordeaux.scrabble.controller.GameController;
-import fr.ubordeaux.scrabble.model.ai.AIPlayer;
+import fr.ubordeaux.scrabble.model.ai.AiPlayer;
 import fr.ubordeaux.scrabble.model.core.Game;
 import fr.ubordeaux.scrabble.model.core.HumanPlayer;
 import fr.ubordeaux.scrabble.model.core.Move;
 import fr.ubordeaux.scrabble.model.core.Rack;
 import fr.ubordeaux.scrabble.model.core.Tile;
-import fr.ubordeaux.scrabble.model.dictionary.GADDAG;
+import fr.ubordeaux.scrabble.model.dictionary.Gaddag;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
 import fr.ubordeaux.scrabble.model.network.NetworkManager;
 import fr.ubordeaux.scrabble.model.utils.Point;
@@ -33,7 +33,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
-public class ScrabbleGUI extends Application {
+public class ScrabbleGui extends Application {
 
   private static Game gameInstance;
   private static JavaFxView viewInstance;
@@ -64,7 +64,7 @@ public class ScrabbleGUI extends Application {
   @Override
   public void start(Stage stage) {
     if (gameInstance == null) {
-      throw new IllegalStateException("Appelez ScrabbleGUI.setGame() avant de lancer.");
+      throw new IllegalStateException("Appelez ScrabbleGui.setGame() avant de lancer.");
     }
 
     networkManager = new NetworkManager();
@@ -80,7 +80,7 @@ public class ScrabbleGUI extends Application {
     if (viewInstance == null) {
       viewInstance = new JavaFxView(gameInstance);
     }
-    viewInstance.setGUI(this);
+    viewInstance.setGui(this);
 
     boardPanel.setOnTileDropped(this::onTileDropped);
     rackPanel.setOnTileDragged(this::onTileDragged);
@@ -206,11 +206,11 @@ public class ScrabbleGUI extends Application {
     currentlyDraggedTile = null;
   }
 
-  private static GADDAG gaddag;
+  private static Gaddag gaddag;
 
   private void loadDictionary() {
-    gaddag = new GADDAG();
-    System.out.println("Chargement du GADDAG pour l'interface graphique...");
+    gaddag = new Gaddag();
+    System.out.println("Chargement du Gaddag pour l'interface graphique...");
     try {
       InputStream is =
           getClass().getClassLoader().getResourceAsStream("dictionaries/lexicon_en.txt");
@@ -318,14 +318,14 @@ public class ScrabbleGUI extends Application {
     }
     for (String name : namesOpt.get()) {
       if (name.toUpperCase().startsWith("IA") || name.toUpperCase().startsWith("AI")) {
-        gameInstance.addPlayer(new AIPlayer(name, 3, 5));
+        gameInstance.addPlayer(new AiPlayer(name, 3, 5));
       } else {
         gameInstance.addPlayer(new HumanPlayer(name));
       }
     }
 
     viewInstance = new JavaFxView(gameInstance);
-    viewInstance.setGUI(this);
+    viewInstance.setGui(this);
     controller = new GameController(gameInstance, viewInstance);
 
     onlineMode = false;
@@ -343,16 +343,16 @@ public class ScrabbleGUI extends Application {
     refreshBoard();
     refreshRack();
     refreshScores();
-    checkAITurn();
+    checkAiTurn();
   }
 
-  private void checkAITurn() {
+  private void checkAiTurn() {
     if (boardPanel.isDisable()) {
       return;
     }
     Player current = gameInstance.getCurrentPlayer();
-    if (current instanceof AIPlayer && !gameInstance.isGameOver()) {
-      AIPlayer ai = (AIPlayer) current;
+    if (current instanceof AiPlayer && !gameInstance.isGameOver()) {
+      final AiPlayer ai = (AiPlayer) current;
       boardPanel.setDisable(true);
       rackPanel.setDisable(true);
       controlPanel.setDisable(true);

@@ -42,7 +42,7 @@ class UndoRedoTest {
   void addMoveShouldClearRedoStack() {
     UndoRedo undoRedo = new UndoRedo();
     Move first = Move.createPass(new HumanPlayer("Alice"));
-    Move second = Move.createPass(new HumanPlayer("Bob"));
+    final Move second = Move.createPass(new HumanPlayer("Bob"));
 
     undoRedo.addMove(first);
     undoRedo.undo();

@@ -34,7 +34,7 @@ class GameTest {
     game.addPlayer(alice);
     game.addPlayer(bob);
 
-    int initialBagSize = game.getBag().size();
+    final int initialBagSize = game.getBag().size();
     game.startGame();
 
     assertEquals(Rack.MAX_SIZE, alice.getRack().getTiles().size());

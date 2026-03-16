@@ -7,16 +7,16 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import fr.ubordeaux.scrabble.model.ai.AIPlayer;
+import fr.ubordeaux.scrabble.model.ai.AiPlayer;
 import fr.ubordeaux.scrabble.model.core.Game;
 import fr.ubordeaux.scrabble.model.core.HumanPlayer;
 import fr.ubordeaux.scrabble.model.core.Move;
 import fr.ubordeaux.scrabble.model.core.Tile;
-import fr.ubordeaux.scrabble.model.dictionary.GADDAG;
+import fr.ubordeaux.scrabble.model.dictionary.Gaddag;
 import fr.ubordeaux.scrabble.model.enums.Direction;
 import fr.ubordeaux.scrabble.model.utils.Point;
 import fr.ubordeaux.scrabble.view.UserInterface;
-import fr.ubordeaux.scrabble.view.cli.CLIView;
+import fr.ubordeaux.scrabble.view.cli.CliView;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.lang.reflect.Field;
@@ -100,7 +100,7 @@ class GameControllerTest {
     alice.getRack().setTiles(new ArrayList<>(List.of(new Tile('R'))));
 
     GameController controller = new GameController(game, new RecordingView());
-    GADDAG dictionary = new GADDAG();
+    Gaddag dictionary = new Gaddag();
     dictionary.add("ART");
     setDictionary(controller, dictionary);
 
@@ -184,7 +184,7 @@ class GameControllerTest {
     game.addPlayer(new HumanPlayer("Alice"));
     game.addPlayer(new HumanPlayer("Bob"));
 
-    CLIView view = new CLIView(game);
+    CliView view = new CliView(game);
     GameController controller = new GameController(game, view);
     setDictionary(controller, minimalDictionary("AA", "ART"));
 
@@ -199,7 +199,7 @@ class GameControllerTest {
     game.addPlayer(new HumanPlayer("Alice"));
     game.addPlayer(new HumanPlayer("Bob"));
 
-    CLIView view = new CLIView(game);
+    CliView view = new CliView(game);
     GameController controller = new GameController(game, view);
     setDictionary(controller, minimalDictionary("AA", "ART"));
 
@@ -220,7 +220,7 @@ class GameControllerTest {
     bob.getRack().setTiles(new ArrayList<>(List.of(new Tile('A'), new Tile('B'), new Tile('C'),
         new Tile('D'), new Tile('E'), new Tile('F'), new Tile('G'))));
 
-    CLIView view = new CLIView(game);
+    CliView view = new CliView(game);
     GameController controller = new GameController(game, view);
     setDictionary(controller, minimalDictionary("AA", "ART"));
 
@@ -242,7 +242,7 @@ class GameControllerTest {
     bob.getRack().setTiles(new ArrayList<>(List.of(new Tile('A'), new Tile('B'), new Tile('C'),
         new Tile('D'), new Tile('E'), new Tile('F'), new Tile('G'))));
 
-    CLIView view = new CLIView(game);
+    CliView view = new CliView(game);
     GameController controller = new GameController(game, view);
     setDictionary(controller, minimalDictionary("AA", "ART"));
 
@@ -262,7 +262,7 @@ class GameControllerTest {
     bob.getRack().setTiles(new ArrayList<>(List.of(new Tile('A'), new Tile('B'), new Tile('C'),
         new Tile('D'), new Tile('E'), new Tile('F'), new Tile('G'))));
 
-    CLIView view = new CLIView(game);
+    CliView view = new CliView(game);
     GameController controller = new GameController(game, view);
     setDictionary(controller, minimalDictionary("AA", "ART"));
 
@@ -283,7 +283,7 @@ class GameControllerTest {
     bob.getRack().setTiles(new ArrayList<>(List.of(new Tile('A'), new Tile('B'), new Tile('C'),
         new Tile('D'), new Tile('E'), new Tile('F'), new Tile('G'))));
 
-    CLIView view = new CLIView(game);
+    CliView view = new CliView(game);
     GameController controller = new GameController(game, view);
     setDictionary(controller, minimalDictionary("AA", "ART"));
 
@@ -307,7 +307,7 @@ class GameControllerTest {
       game.getBag().drawTile();
     }
 
-    CLIView view = new CLIView(game);
+    CliView view = new CliView(game);
     GameController controller = new GameController(game, view);
     setDictionary(controller, minimalDictionary("AA", "ART"));
 
@@ -320,7 +320,7 @@ class GameControllerTest {
     game.addPlayer(new HumanPlayer("Alice"));
     game.addPlayer(new HumanPlayer("Bob"));
 
-    CLIView view = new CLIView(game);
+    CliView view = new CliView(game);
     GameController controller = new GameController(game, view);
     setDictionary(controller, minimalDictionary("AA", "ART"));
 
@@ -328,9 +328,9 @@ class GameControllerTest {
   }
 
   @Test
-  void runCliShouldInitializePlayersIncludingAI() throws Exception {
+  void runCliShouldInitializePlayersIncludingAi() throws Exception {
     Game game = new Game();
-    CLIView view = new CLIView(game);
+    CliView view = new CliView(game);
     GameController controller = new GameController(game, view);
     setDictionary(controller, minimalDictionary("AA", "ART"));
 
@@ -339,8 +339,8 @@ class GameControllerTest {
     runCliWithInput(controller, "2\nBob\nIAbot\n6\no\n");
 
     assertEquals(2, game.getPlayers().size());
-    assertTrue(game.getPlayers().get(1) instanceof AIPlayer);
-    AIPlayer ai = (AIPlayer) game.getPlayers().get(1);
+    assertTrue(game.getPlayers().get(1) instanceof AiPlayer);
+    AiPlayer ai = (AiPlayer) game.getPlayers().get(1);
 
     assertTrue(ai.isExpectiminimaxMode());
   }
@@ -348,45 +348,45 @@ class GameControllerTest {
   @Test
   void runCliShouldHandleAiTurnFailureAndContinue() throws Exception {
     Game game = new Game();
-    AIPlayer failing = new FailingAIPlayer("IA-crash");
+    AiPlayer failing = new FailingAiPlayer("IA-crash");
     HumanPlayer bob = new HumanPlayer("Bob");
     game.addPlayer(failing);
     game.addPlayer(bob);
 
-    CLIView view = new CLIView(game);
+    CliView view = new CliView(game);
     GameController controller = new GameController(game, view);
     setDictionary(controller, minimalDictionary("AA", "ART"));
 
     runCliWithInput(controller, "6\no\n");
     assertTrue(game.getCurrentPlayer() instanceof HumanPlayer
-        || game.getCurrentPlayer() instanceof AIPlayer);
+        || game.getCurrentPlayer() instanceof AiPlayer);
   }
 
   @Test
   void runCliShouldHandleAiTurnSuccessThenContinue() throws Exception {
     Game game = new Game();
-    AIPlayer passing = new PassingAIPlayer("IA-pass");
+    AiPlayer passing = new PassingAiPlayer("IA-pass");
     HumanPlayer bob = new HumanPlayer("Bob");
     game.addPlayer(passing);
     game.addPlayer(bob);
 
-    CLIView view = new CLIView(game);
+    CliView view = new CliView(game);
     GameController controller = new GameController(game, view);
     setDictionary(controller, minimalDictionary("AA", "ART"));
 
     runCliWithInput(controller, "6\no\n");
     assertTrue(game.getCurrentPlayer() instanceof HumanPlayer
-        || game.getCurrentPlayer() instanceof AIPlayer);
+        || game.getCurrentPlayer() instanceof AiPlayer);
   }
 
-  private static void setDictionary(GameController controller, GADDAG dictionary) throws Exception {
+  private static void setDictionary(GameController controller, Gaddag dictionary) throws Exception {
     Field field = GameController.class.getDeclaredField("gaddag");
     field.setAccessible(true);
     field.set(controller, dictionary);
   }
 
-  private static GADDAG minimalDictionary(String... words) {
-    GADDAG dictionary = new GADDAG();
+  private static Gaddag minimalDictionary(String... words) {
+    Gaddag dictionary = new Gaddag();
     for (String word : words) {
       dictionary.add(word);
     }
@@ -421,24 +421,24 @@ class GameControllerTest {
     public void displaySuccess(String message) {}
   }
 
-  private static final class FailingAIPlayer extends AIPlayer {
-    FailingAIPlayer(String name) {
+  private static final class FailingAiPlayer extends AiPlayer {
+    FailingAiPlayer(String name) {
       super(name, 1, 5);
     }
 
     @Override
-    public void playTurn(Game game, GADDAG gaddag) {
+    public void playTurn(Game game, Gaddag gaddag) {
       throw new RuntimeException("planned failure");
     }
   }
 
-  private static final class PassingAIPlayer extends AIPlayer {
-    PassingAIPlayer(String name) {
+  private static final class PassingAiPlayer extends AiPlayer {
+    PassingAiPlayer(String name) {
       super(name, 1, 5);
     }
 
     @Override
-    public void playTurn(Game game, GADDAG gaddag) {
+    public void playTurn(Game game, Gaddag gaddag) {
       game.executeMove(Move.createPass(this));
     }
   }

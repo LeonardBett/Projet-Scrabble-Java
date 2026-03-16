@@ -21,7 +21,7 @@ class MoveHandlerTest {
     Game game = new Game();
     HumanPlayer alice = new HumanPlayer("Alice");
     game.addPlayer(alice);
-    MoveHandler handler = new MoveHandler(game);
+    final MoveHandler handler = new MoveHandler(game);
 
     alice.getRack().setTiles(new ArrayList<>(List.of(new Tile('a'))));
     Move move =
@@ -35,7 +35,7 @@ class MoveHandlerTest {
     Game game = new Game();
     HumanPlayer alice = new HumanPlayer("Alice");
     game.addPlayer(alice);
-    MoveHandler handler = new MoveHandler(game);
+    final MoveHandler handler = new MoveHandler(game);
 
     game.getBoard().getSquare(new Point(7, 7)).setTile(new Tile('a'));
     game.setFirstMoveDone(true);
@@ -112,7 +112,7 @@ class MoveHandlerTest {
     Game game = new Game();
     HumanPlayer alice = new HumanPlayer("Alice");
     game.addPlayer(alice);
-    MoveHandler handler = new MoveHandler(game);
+    final MoveHandler handler = new MoveHandler(game);
 
     game.setFirstMoveDone(true);
     game.getBoard().getSquare(new Point(7, 7)).setTile(new Tile('a'));

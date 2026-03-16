@@ -41,10 +41,10 @@ public class ControlPanel extends VBox {
     saveButton = createButton("💾 Sauvegarder", "#00BCD4");
     loadButton = createButton("📁 Charger", "#00BCD4");
     quitButton = createButton("❌ Quitter", "#F44336");
-    initializeUI();
+    initializeUi();
   }
 
-  private void initializeUI() {
+  private void initializeUi() {
     this.setAlignment(Pos.TOP_CENTER);
     this.setSpacing(8);
     this.setPadding(new Insets(15, 10, 10, 10));

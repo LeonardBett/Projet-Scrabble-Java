@@ -1,4 +1,4 @@
-import fr.ubordeaux.scrabble.model.dictionary.GADDAG;
+import fr.ubordeaux.scrabble.model.dictionary.Gaddag;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -8,7 +8,7 @@ import java.util.Scanner;
 public class TestGaddag {
 
   public static void main(String[] args) {
-    GADDAG gaddag = new GADDAG();
+    Gaddag gaddag = new Gaddag();
     String lexiconPath = "/dictionaries/lexicon_en.txt";
     int wordCount = 0;
 
@@ -28,7 +28,7 @@ public class TestGaddag {
       }
 
       long loadEndTime = System.currentTimeMillis();
-      System.out.println("GADDAG loaded");
+      System.out.println("Gaddag loaded");
       System.out.println("Word count      : " + wordCount);
       System.out.println("Time to load : " + (loadEndTime - loadStartTime) + " ms");
       System.out.println("-------------------------------------------");
@@ -50,14 +50,14 @@ public class TestGaddag {
     }
 
     // --- SECTION 3 : MODE REPL AVEC TEMPS DE GÉNÉRATION ---
-    Scanner scan = new Scanner(System.in);
-    char hook = ' ';
-
-    System.out.println("\n--- TEST Word generation (GADDAG) ---");
+    System.out.println("\n--- TEST Word generation (Gaddag) ---");
     System.out.println("Commands :");
     System.out.println("  h <letter> : Define the hook (ex: h C)");
     System.out.println("  r <letters> : Find word(s) with ur rack (ex: r ATSON)");
     System.out.println("  q : Quit");
+
+    Scanner scan = new Scanner(System.in);
+    char hook = ' ';
 
     while (true) {
       System.out.print("\n(Hook: '" + hook + "') > ");
@@ -81,7 +81,7 @@ public class TestGaddag {
         }
 
         long startTime = System.nanoTime();
-        HashSet<GADDAG.GaddagResult> results = gaddag.findWordsWithRackAndHook(rack, hook);
+        HashSet<Gaddag.GaddagResult> results = gaddag.findWordsWithRackAndHook(rack, hook);
         long endTime = System.nanoTime();
 
         double durationMs = (endTime - startTime) / 1_000_000.0;
@@ -92,7 +92,7 @@ public class TestGaddag {
           System.out.println(
               results.size() + " results found in " + String.format("%.3f", durationMs) + " ms :");
 
-          for (GADDAG.GaddagResult res : results) {
+          for (Gaddag.GaddagResult res : results) {
             System.out.print(res.toString() + " ");
           }
           System.out.println();

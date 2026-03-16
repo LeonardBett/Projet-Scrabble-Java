@@ -1,4 +1,4 @@
-import fr.ubordeaux.scrabble.model.dictionary.DAWG;
+import fr.ubordeaux.scrabble.model.dictionary.Dawg;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -9,17 +9,17 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.Set;
 
-public class TestDAWG {
+public class TestDawg {
 
   public static void main(String[] args) {
-    DAWG dawg = new DAWG();
+    Dawg dawg = new Dawg();
     String lexiconPath = "/dictionaries/lexicon_en.txt";
     List<String> words = new ArrayList<>();
 
     System.out.println("--- Start loading ---");
     long loadStartTime = System.currentTimeMillis();
 
-    try (InputStream is = TestDAWG.class.getResourceAsStream(lexiconPath)) {
+    try (InputStream is = TestDawg.class.getResourceAsStream(lexiconPath)) {
       if (is == null) {
         throw new Exception("File not found : " + lexiconPath);
       }
@@ -38,7 +38,7 @@ public class TestDAWG {
       dawg.finish();
 
       long loadEndTime = System.currentTimeMillis();
-      System.out.println("GADDAG loaded");
+      System.out.println("Gaddag loaded");
       System.out.println("Word count      : " + words.size());
       System.out.println("Time to load : " + (loadEndTime - loadStartTime) + " ms");
       System.out.println("-------------------------------------------");
@@ -59,13 +59,13 @@ public class TestDAWG {
       System.out.printf("Word : %-10s | Real : %-5b | Time : %.2f µs%n", word, exists, duration);
     }
 
-    Scanner scan = new Scanner(System.in);
-    char hook = ' ';
-
     System.out.println("Commands :");
     System.out.println("  h <letter> : Define the hook (ex: h C)");
     System.out.println("  r <letters> : Find word(s) with ur rack (ex: r ATSON)");
     System.out.println("  q : Quit");
+
+    Scanner scan = new Scanner(System.in);
+    char hook = ' ';
 
     while (true) {
       System.out.print("\n(Hook : '" + hook + "') > ");

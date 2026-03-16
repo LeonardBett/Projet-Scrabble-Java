@@ -31,7 +31,7 @@ public class RackPanel extends VBox {
   private Rack rack;
 
   /**
-   * Callback called when the user starts dragging a tile: (tile) → ScrabbleGUI.
+   * Callback called when the user starts dragging a tile: (tile) → ScrabbleGui.
    */
   private Consumer<Tile> onTileDragged;
 
@@ -39,7 +39,7 @@ public class RackPanel extends VBox {
     this.rack = rack;
     this.tileContainers = new StackPane[MAX_TILES];
     this.tilesBox = new HBox(10);
-    initializeUI();
+    initializeUi();
     updateDisplay();
   }
 
@@ -57,7 +57,7 @@ public class RackPanel extends VBox {
 
   // ─── UI initialisation ────────────────────────────────────────────────────
 
-  private void initializeUI() {
+  private void initializeUi() {
     Label title = new Label("CHEVALET DU JOUEUR");
     title.setFont(Font.font("Arial", FontWeight.BOLD, 14));
     title.setTextFill(Color.WHITE);
@@ -140,7 +140,7 @@ public class RackPanel extends VBox {
     slot.setOnMouseEntered(e -> slot.setStyle(slot.getStyle() + "-fx-cursor: hand;"));
     slot.setOnMouseExited(e -> slot.setStyle(slot.getStyle().replace("-fx-cursor: hand;", "")));
 
-    // ✅ Drag source: notify ScrabbleGUI which tile is being dragged
+    // ✅ Drag source: notify ScrabbleGui which tile is being dragged
     setupDragSource(slot, tile);
   }
 
@@ -149,7 +149,7 @@ public class RackPanel extends VBox {
    */
   private void setupDragSource(StackPane slot, Tile tile) {
     slot.setOnDragDetected(event -> {
-      // Notify the ScrabbleGUI of the tile being dragged
+      // Notify the ScrabbleGui of the tile being dragged
       if (onTileDragged != null) {
         onTileDragged.accept(tile);
       }

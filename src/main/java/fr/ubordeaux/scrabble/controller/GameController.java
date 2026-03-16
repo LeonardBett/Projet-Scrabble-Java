@@ -1,17 +1,17 @@
 package fr.ubordeaux.scrabble.controller;
 
-import fr.ubordeaux.scrabble.model.ai.AIPlayer;
-import fr.ubordeaux.scrabble.model.ai.MLAgent;
+import fr.ubordeaux.scrabble.model.ai.AiPlayer;
+import fr.ubordeaux.scrabble.model.ai.MlAgent;
 import fr.ubordeaux.scrabble.model.core.Game;
 import fr.ubordeaux.scrabble.model.core.HumanPlayer;
 import fr.ubordeaux.scrabble.model.core.Move;
 import fr.ubordeaux.scrabble.model.core.MoveHandler;
-import fr.ubordeaux.scrabble.model.dictionary.GADDAG;
+import fr.ubordeaux.scrabble.model.dictionary.Gaddag;
 import fr.ubordeaux.scrabble.model.enums.MoveType;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
 import fr.ubordeaux.scrabble.view.UserInterface;
-import fr.ubordeaux.scrabble.view.cli.CLIInputHandler;
-import fr.ubordeaux.scrabble.view.cli.CLIView;
+import fr.ubordeaux.scrabble.view.cli.CliInputHandler;
+import fr.ubordeaux.scrabble.view.cli.CliView;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -26,7 +26,7 @@ import java.util.List;
 public class GameController {
   private Game game;
   private UserInterface view;
-  private GADDAG gaddag;
+  private Gaddag gaddag;
   private List<String> dictionaryList;
   private String lang = "en"; // Default
 
@@ -54,16 +54,16 @@ public class GameController {
   }
 
   /**
-   * Runs a CLI game loop if the provided view is a CLIView. This will prompt for players (if
+   * Runs a CLI game loop if the provided view is a CliView. This will prompt for players (if
    * missing), start the game and process player actions until the game ends or the user quits.
    */
   public void runCli() {
-    if (!(view instanceof CLIView)) {
-      throw new IllegalStateException("CLI loop requires a CLIView instance as view.");
+    if (!(view instanceof CliView)) {
+      throw new IllegalStateException("CLI loop requires a CliView instance as view.");
     }
 
-    CLIInputHandler input = new CLIInputHandler();
-    CLIView cliView = (CLIView) view;
+    CliInputHandler input = new CliInputHandler();
+    CliView cliView = (CliView) view;
 
     cliView.displayWelcome();
 
@@ -75,7 +75,7 @@ public class GameController {
         // If the name starts with "IA", create a bot automatically configured by
         // command line args
         if (name.toUpperCase().startsWith("IA") || name.toUpperCase().startsWith("AI")) {
-          AIPlayer bot = new AIPlayer(name, 3, 5);
+          AiPlayer bot = new AiPlayer(name, 3, 5);
 
           // Apply command-line configurations directly
           bot.setExpectiminimaxMode(this.useExptiminimax);
@@ -83,7 +83,7 @@ public class GameController {
           if (this.useMl) {
             List<String> dictList = getOrLoadDictionaryList();
             String modelPath = "src/main/resources/ai/model_" + this.lang;
-            MLAgent mlAgent = new MLAgent(modelPath, dictList);
+            MlAgent mlAgent = new MlAgent(modelPath, dictList);
 
             // Register a Shutdown Hook to free TensorFlow resources on exit
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
@@ -105,8 +105,8 @@ public class GameController {
 
     startGame();
 
-    // 2. Chargement du dictionnaire GADDAG depuis le fichier texte
-    GADDAG currentGaddag = getOrLoadGaddag();
+    // 2. Chargement du dictionnaire Gaddag depuis le fichier texte
+    Gaddag currentGaddag = getOrLoadGaddag();
 
     // 3. Boucle principale du jeu
     boolean running = true;
@@ -121,9 +121,9 @@ public class GameController {
       }
 
       // --- GESTION DU TOUR DE L'IA ---
-      if (current instanceof AIPlayer) {
+      if (current instanceof AiPlayer) {
         view.displayMessage("\n--- C'est au tour de l'IA (" + current.getName() + ") ---");
-        AIPlayer ai = (AIPlayer) current;
+        AiPlayer ai = (AiPlayer) current;
 
         try {
           ai.playTurn(game, currentGaddag);
@@ -212,7 +212,7 @@ public class GameController {
       }
 
       if (move.getType() == MoveType.PLAY) {
-        GADDAG dictionary = getOrLoadGaddag();
+        Gaddag dictionary = getOrLoadGaddag();
         MoveHandler moveHandler = new MoveHandler(game);
         for (String formedWord : moveHandler.getFormedWords(move.getStartPosition(),
             move.getDirection(), move.getTiles())) {
@@ -263,18 +263,18 @@ public class GameController {
   }
 
   /**
-   * Loads the GADDAG data structure for word generation.
+   * Loads the Gaddag data structure for word generation.
    *
-   * @return The populated GADDAG instance.
+   * @return The populated Gaddag instance.
    */
-  private GADDAG getOrLoadGaddag() {
+  private Gaddag getOrLoadGaddag() {
     if (gaddag != null) {
       return gaddag;
     }
 
-    gaddag = new GADDAG();
+    gaddag = new Gaddag();
     String dictPath = "dictionaries/lexicon_" + this.lang + ".txt";
-    System.out.println("\nLoading GADDAG dictionary (" + dictPath + ") please wait...");
+    System.out.println("\nLoading Gaddag dictionary (" + dictPath + ") please wait...");
 
     try (InputStream is = getClass().getClassLoader().getResourceAsStream(dictPath)) {
       if (is == null) {

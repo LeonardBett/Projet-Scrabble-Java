@@ -7,7 +7,7 @@ import fr.ubordeaux.scrabble.model.core.PlayableWord;
 import fr.ubordeaux.scrabble.model.core.Scoring;
 import fr.ubordeaux.scrabble.model.core.Square;
 import fr.ubordeaux.scrabble.model.core.Tile;
-import fr.ubordeaux.scrabble.model.dictionary.GADDAG;
+import fr.ubordeaux.scrabble.model.dictionary.Gaddag;
 import fr.ubordeaux.scrabble.model.enums.Direction;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
 import fr.ubordeaux.scrabble.model.utils.Point;
@@ -69,10 +69,10 @@ public class MinimaxSolver {
    * Finds the best possible move for the AI within the allocated time limit.
    *
    * @param game The current game state.
-   * @param gaddag The GADDAG dictionary used to evaluate valid moves.
+   * @param gaddag The Gaddag dictionary used to evaluate valid moves.
    * @return The best PlayableWord found, or null if no moves are possible.
    */
-  public PlayableWord findBestMove(Game game, GADDAG gaddag) {
+  public PlayableWord findBestMove(Game game, Gaddag gaddag) {
     long startTime = System.currentTimeMillis();
 
     List<PlayableWord> possibleMoves = moveGenerator.getPlayableWordsList(game, gaddag);
@@ -133,11 +133,11 @@ public class MinimaxSolver {
    *
    * @param board The current board state.
    * @param unseen The list of letters not currently on the board or in the AI's rack.
-   * @param gaddag The GADDAG dictionary.
+   * @param gaddag The Gaddag dictionary.
    * @param startTime The timestamp when the move search began.
    * @return The average expected opponent score.
    */
-  private double expectiminimax(Board board, List<Character> unseen, GADDAG gaddag,
+  private double expectiminimax(Board board, List<Character> unseen, Gaddag gaddag,
       long startTime) {
     double totalExpectedOpponentScore = 0.0;
     int samplesEvaluated = 0;
@@ -165,11 +165,11 @@ public class MinimaxSolver {
    *
    * @param board The current board state.
    * @param unseen The list of letters not currently on the board or in the AI's rack.
-   * @param gaddag The GADDAG dictionary.
+   * @param gaddag The Gaddag dictionary.
    * @param startTime The timestamp when the move search began.
    * @return The highest possible opponent score from the simulated samples.
    */
-  private double minimax(Board board, List<Character> unseen, GADDAG gaddag, long startTime) {
+  private double minimax(Board board, List<Character> unseen, Gaddag gaddag, long startTime) {
     double maxDamage = 0.0;
 
     for (int i = 0; i < SAMPLES_COUNT; i++) {
@@ -191,10 +191,10 @@ public class MinimaxSolver {
    *
    * @param board The current board state.
    * @param rack The simulated opponent rack.
-   * @param gaddag The GADDAG dictionary.
+   * @param gaddag The Gaddag dictionary.
    * @return The maximum score achieved by the best move.
    */
-  private double getBestOpponentScore(Board board, Character[] rack, GADDAG gaddag) {
+  private double getBestOpponentScore(Board board, Character[] rack, Gaddag gaddag) {
     List<PlayableWord> oppMoves = moveGenerator.getPlayableWordsList(board, rack, gaddag);
     double maxScore = 0;
 

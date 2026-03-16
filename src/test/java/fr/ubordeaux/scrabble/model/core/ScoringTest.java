@@ -49,7 +49,7 @@ class ScoringTest {
   @Test
   void calculateWordScoreShouldValidateInputs() {
     Square filled = squareWithTile(0, 0, SquareType.NORMAL, 'A');
-    Square empty = new Square(new Point(1, 0), SquareType.NORMAL);
+    final Square empty = new Square(new Point(1, 0), SquareType.NORMAL);
 
     assertThrows(NullPointerException.class, () -> Scoring.calculateWordScore(null, List.of()));
     assertThrows(NullPointerException.class,

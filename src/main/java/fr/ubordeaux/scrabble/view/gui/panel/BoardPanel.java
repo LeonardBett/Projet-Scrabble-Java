@@ -38,7 +38,7 @@ public class BoardPanel extends VBox {
     this.board = board;
     this.cellLabels = new Label[GRID_SIZE][GRID_SIZE];
     this.gridPane = new GridPane();
-    initializeUI();
+    initializeUi();
   }
 
   /**
@@ -50,7 +50,7 @@ public class BoardPanel extends VBox {
     this.onTileDropped = callback;
   }
 
-  private void initializeUI() {
+  private void initializeUi() {
     Label title = new Label("PLATEAU DE JEU");
     title.setFont(Font.font("Arial", FontWeight.BOLD, 16));
     title.setPadding(new Insets(0, 0, 10, 0));

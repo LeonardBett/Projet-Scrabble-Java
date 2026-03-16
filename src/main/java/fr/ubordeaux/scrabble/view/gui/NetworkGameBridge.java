@@ -14,7 +14,7 @@ import javafx.application.Platform;
 public class NetworkGameBridge implements NetworkObserver {
 
   private final NetworkManager networkManager;
-  private ScrabbleGUI gui;
+  private ScrabbleGui gui;
   private NetworkLobbyView lobbyView;
 
   // Le modèle local synchronisé par le serveur
@@ -25,7 +25,7 @@ public class NetworkGameBridge implements NetworkObserver {
     this.networkManager.addObserver(this);
   }
 
-  public void setGui(ScrabbleGUI gui) {
+  public void setGui(ScrabbleGui gui) {
     this.gui = gui;
   }
 

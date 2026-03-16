@@ -19,10 +19,10 @@ public class ScorePanel extends VBox {
     this.playerList = new ListView<>();
     this.bagInfoLabel = new Label("Lettres restantes : 102");
     this.currentPlayerLabel = new Label("Tour de : —");
-    initializeUI();
+    initializeUi();
   }
 
-  private void initializeUI() {
+  private void initializeUi() {
     this.setAlignment(Pos.TOP_CENTER);
     this.setSpacing(10);
     this.setPadding(new Insets(10));

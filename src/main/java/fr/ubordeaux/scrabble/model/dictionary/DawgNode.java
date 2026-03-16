@@ -3,12 +3,12 @@ package fr.ubordeaux.scrabble.model.dictionary;
 import java.util.Objects;
 import java.util.TreeMap;
 
-public class DAWGNode {
+public class DawgNode {
   private final char content;
   private boolean finite = false;
-  public TreeMap<Character, DAWGNode> children = new TreeMap<>();
+  public TreeMap<Character, DawgNode> children = new TreeMap<>();
 
-  public DAWGNode(char c) {
+  public DawgNode(char c) {
     this.content = c;
   }
 
@@ -36,7 +36,7 @@ public class DAWGNode {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    DAWGNode node = (DAWGNode) o;
+    DawgNode node = (DawgNode) o;
     return content == node.content && finite == node.finite && children.equals(node.children);
   }
 
