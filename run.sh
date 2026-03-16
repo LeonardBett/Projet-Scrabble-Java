@@ -39,9 +39,9 @@ done
 
 # Run the application
 if [ "$VERBOSE" = true ]; then
-    mvn exec:java -Dexec.mainClass="fr.u_bordeaux.scrabble.App" -Dexec.args="${APP_ARGS[*]}"
+    mvn exec:java -Dexec.mainClass="fr.ubordeaux.scrabble.App" -Dexec.args="${APP_ARGS[*]}"
 else
-    mvn exec:java -Dexec.mainClass="fr.u_bordeaux.scrabble.App" -Dexec.args="${APP_ARGS[*]}" -q
+    mvn exec:java -Dexec.mainClass="fr.ubordeaux.scrabble.App" -Dexec.args="${APP_ARGS[*]}" -q
 fi
 
 exit $?
