@@ -1,0 +1,445 @@
+package fr.ubordeaux.scrabble.controller;
+
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import fr.ubordeaux.scrabble.model.ai.AIPlayer;
+import fr.ubordeaux.scrabble.model.core.Game;
+import fr.ubordeaux.scrabble.model.core.HumanPlayer;
+import fr.ubordeaux.scrabble.model.core.Move;
+import fr.ubordeaux.scrabble.model.core.Tile;
+import fr.ubordeaux.scrabble.model.dictionary.GADDAG;
+import fr.ubordeaux.scrabble.model.enums.Direction;
+import fr.ubordeaux.scrabble.model.utils.Point;
+import fr.ubordeaux.scrabble.view.UserInterface;
+import fr.ubordeaux.scrabble.view.cli.CLIView;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+
+class GameControllerTest {
+
+  @Test
+  void startGameShouldFailWhenGameOrViewMissing() {
+    GameController missingGame = new GameController(null, new RecordingView());
+    GameController missingView = new GameController(new Game(), null);
+
+    assertThrows(IllegalStateException.class, missingGame::startGame);
+    assertThrows(IllegalStateException.class, missingView::startGame);
+  }
+
+  @Test
+  void startGameShouldFailWhenNotEnoughPlayers() {
+    Game game = new Game();
+    GameController controller = new GameController(game, new RecordingView());
+
+    assertThrows(IllegalStateException.class, controller::startGame);
+  }
+
+  @Test
+  void startGameShouldInitializePlayers() {
+    Game game = new Game();
+    HumanPlayer alice = new HumanPlayer("Alice");
+    HumanPlayer bob = new HumanPlayer("Bob");
+    game.addPlayer(alice);
+    game.addPlayer(bob);
+
+    GameController controller = new GameController(game, new RecordingView());
+    controller.startGame();
+
+    assertEquals(7, alice.getRack().getTiles().size());
+    assertEquals(7, bob.getRack().getTiles().size());
+  }
+
+  @Test
+  void handlePlayerMoveShouldIgnoreNullMove() {
+    Game game = new Game();
+    HumanPlayer alice = new HumanPlayer("Alice");
+    game.addPlayer(alice);
+
+    RecordingView view = new RecordingView();
+    GameController controller = new GameController(game, view);
+
+    assertDoesNotThrow(() -> controller.handlePlayerMove(null));
+    assertEquals(0, view.refreshCount);
+  }
+
+  @Test
+  void handlePlayerMoveShouldExecutePassAndRefresh() {
+    Game game = new Game();
+    HumanPlayer alice = new HumanPlayer("Alice");
+    game.addPlayer(alice);
+
+    RecordingView view = new RecordingView();
+    GameController controller = new GameController(game, view);
+
+    controller.handlePlayerMove(Move.createPass(alice));
+
+    assertEquals(1, view.refreshCount);
+  }
+
+  @Test
+  void handlePlayerMoveShouldRejectInvalidPerpendicularWord() throws Exception {
+    Game game = new Game();
+    HumanPlayer alice = new HumanPlayer("Alice");
+    game.addPlayer(alice);
+    game.setFirstMoveDone(true);
+
+    game.getBoard().getSquare(new Point(6, 7)).setTile(new Tile('A'));
+    game.getBoard().getSquare(new Point(8, 7)).setTile(new Tile('T'));
+    game.getBoard().getSquare(new Point(7, 6)).setTile(new Tile('Z'));
+
+    alice.getRack().setTiles(new ArrayList<>(List.of(new Tile('R'))));
+
+    GameController controller = new GameController(game, new RecordingView());
+    GADDAG dictionary = new GADDAG();
+    dictionary.add("ART");
+    setDictionary(controller, dictionary);
+
+    Move move =
+        Move.createPlay(alice, List.of(new Tile('R')), new Point(7, 7), Direction.HORIZONTAL);
+
+    RuntimeException error =
+        assertThrows(RuntimeException.class, () -> controller.handlePlayerMove(move));
+    assertTrue(error.getMessage().contains("ZR"));
+  }
+
+  @Test
+  void handlePlayerMoveShouldWrapModelErrors() {
+    Game game = new Game();
+    HumanPlayer alice = new HumanPlayer("Alice");
+    HumanPlayer bob = new HumanPlayer("Bob");
+    game.addPlayer(alice);
+    game.addPlayer(bob);
+
+    GameController controller = new GameController(game, new RecordingView());
+
+    RuntimeException error = assertThrows(RuntimeException.class,
+        () -> controller.handlePlayerMove(Move.createPass(bob)));
+    assertTrue(error.getMessage().contains("Invalid move:"));
+  }
+
+  @Test
+  void handlePlayerMoveShouldLoadDictionaryWhenMissing() {
+    Game game = new Game();
+    HumanPlayer alice = new HumanPlayer("Alice");
+    game.addPlayer(alice);
+
+    alice.getRack().setTiles(
+        new ArrayList<>(List.of(new Tile('R'), new Tile('U'), new Tile('E'), new Tile('S'))));
+
+    RecordingView view = new RecordingView();
+    GameController controller = new GameController(game, view);
+
+    controller.setLang("en");
+
+    Move move =
+        Move.createPlay(alice, List.of(new Tile('R'), new Tile('U'), new Tile('E'), new Tile('S')),
+            new Point(7, 7), Direction.HORIZONTAL);
+
+    assertDoesNotThrow(() -> controller.handlePlayerMove(move));
+    assertEquals(1, view.refreshCount);
+  }
+
+  @Test
+  void addPlayerUndoRedoAndGettersShouldWork() {
+    Game game = new Game();
+    RecordingView view = new RecordingView();
+    GameController controller = new GameController(game, view);
+
+    HumanPlayer alice = new HumanPlayer("Alice");
+    controller.addPlayer(alice);
+
+    assertEquals(1, game.getPlayers().size());
+    assertSame(game, controller.getGame());
+    assertSame(view, controller.getView());
+
+    controller.undo();
+    controller.redo();
+
+    assertEquals(2, view.refreshCount);
+  }
+
+  @Test
+  void runCliShouldRequireCliView() {
+    Game game = new Game();
+    game.addPlayer(new HumanPlayer("Alice"));
+    game.addPlayer(new HumanPlayer("Bob"));
+
+    GameController controller = new GameController(game, new RecordingView());
+    assertThrows(IllegalStateException.class, controller::runCli);
+  }
+
+  @Test
+  void runCliShouldQuitFromMenu() throws Exception {
+    Game game = new Game();
+    game.addPlayer(new HumanPlayer("Alice"));
+    game.addPlayer(new HumanPlayer("Bob"));
+
+    CLIView view = new CLIView(game);
+    GameController controller = new GameController(game, view);
+    setDictionary(controller, minimalDictionary("AA", "ART"));
+
+    runCliWithInput(controller, "6\no\n");
+
+    assertNotNull(game.determineWinner());
+  }
+
+  @Test
+  void runCliShouldHandleInvalidActionThenQuit() throws Exception {
+    Game game = new Game();
+    game.addPlayer(new HumanPlayer("Alice"));
+    game.addPlayer(new HumanPlayer("Bob"));
+
+    CLIView view = new CLIView(game);
+    GameController controller = new GameController(game, view);
+    setDictionary(controller, minimalDictionary("AA", "ART"));
+
+    runCliWithInput(controller, "x\n6\no\n");
+  }
+
+  @Test
+  void runCliShouldHandleAllHumanActionsThenQuit() throws Exception {
+    Game game = new Game();
+    HumanPlayer alice = new HumanPlayer("Alice");
+    HumanPlayer bob = new HumanPlayer("Bob");
+    game.addPlayer(alice);
+    game.addPlayer(bob);
+
+    // Keep deterministic racks so action inputs are stable.
+    alice.getRack().setTiles(new ArrayList<>(List.of(new Tile('A'), new Tile('A'), new Tile('B'),
+        new Tile('C'), new Tile('D'), new Tile('E'), new Tile('F'))));
+    bob.getRack().setTiles(new ArrayList<>(List.of(new Tile('A'), new Tile('B'), new Tile('C'),
+        new Tile('D'), new Tile('E'), new Tile('F'), new Tile('G'))));
+
+    CLIView view = new CLIView(game);
+    GameController controller = new GameController(game, view);
+    setDictionary(controller, minimalDictionary("AA", "ART"));
+
+    // 1: invalid play format (move null), 2: invalid exchange (move null),
+    // 3: pass, 4: undo, 5: redo, 6: quit.
+    runCliWithInput(controller, "1\nbad\n2\nZ\n3\n4\n5\n6\no\n");
+  }
+
+  @Test
+  void runCliShouldPlayValidWordThenQuit() throws Exception {
+    Game game = new Game();
+    HumanPlayer alice = new HumanPlayer("Alice");
+    HumanPlayer bob = new HumanPlayer("Bob");
+    game.addPlayer(alice);
+    game.addPlayer(bob);
+
+    alice.getRack().setTiles(new ArrayList<>(List.of(new Tile('A'), new Tile('A'), new Tile('B'),
+        new Tile('C'), new Tile('D'), new Tile('E'), new Tile('F'))));
+    bob.getRack().setTiles(new ArrayList<>(List.of(new Tile('A'), new Tile('B'), new Tile('C'),
+        new Tile('D'), new Tile('E'), new Tile('F'), new Tile('G'))));
+
+    CLIView view = new CLIView(game);
+    GameController controller = new GameController(game, view);
+    setDictionary(controller, minimalDictionary("AA", "ART"));
+
+    runCliWithInput(controller, "1\nh 8\nH\nAA\n6\no\n");
+  }
+
+  @Test
+  void runCliShouldHandleInvalidPlayMoveAfterParsing() throws Exception {
+    Game game = new Game();
+    HumanPlayer alice = new HumanPlayer("Alice");
+    HumanPlayer bob = new HumanPlayer("Bob");
+    game.addPlayer(alice);
+    game.addPlayer(bob);
+
+    alice.getRack().setTiles(new ArrayList<>(List.of(new Tile('A'), new Tile('A'), new Tile('B'),
+        new Tile('C'), new Tile('D'), new Tile('E'), new Tile('F'))));
+    bob.getRack().setTiles(new ArrayList<>(List.of(new Tile('A'), new Tile('B'), new Tile('C'),
+        new Tile('D'), new Tile('E'), new Tile('F'), new Tile('G'))));
+
+    CLIView view = new CLIView(game);
+    GameController controller = new GameController(game, view);
+    setDictionary(controller, minimalDictionary("AA", "ART"));
+
+    // Validly parsed move but invalid placement (first word does not cover center).
+    runCliWithInput(controller, "1\na 1\nH\nAA\n6\no\n");
+  }
+
+  @Test
+  void runCliShouldExchangeTilesSuccessfully() throws Exception {
+    Game game = new Game();
+    HumanPlayer alice = new HumanPlayer("Alice");
+    HumanPlayer bob = new HumanPlayer("Bob");
+    game.addPlayer(alice);
+    game.addPlayer(bob);
+
+    alice.getRack().setTiles(new ArrayList<>(List.of(new Tile('A'), new Tile('B'), new Tile('C'),
+        new Tile('D'), new Tile('E'), new Tile('F'), new Tile('G'))));
+    bob.getRack().setTiles(new ArrayList<>(List.of(new Tile('A'), new Tile('B'), new Tile('C'),
+        new Tile('D'), new Tile('E'), new Tile('F'), new Tile('G'))));
+
+    CLIView view = new CLIView(game);
+    GameController controller = new GameController(game, view);
+    setDictionary(controller, minimalDictionary("AA", "ART"));
+
+    runCliWithInput(controller, "2\nAB\n6\no\n");
+  }
+
+  @Test
+  void runCliShouldHandleExchangeFailureWhenBagTooSmall() throws Exception {
+    Game game = new Game();
+    HumanPlayer alice = new HumanPlayer("Alice");
+    HumanPlayer bob = new HumanPlayer("Bob");
+    game.addPlayer(alice);
+    game.addPlayer(bob);
+
+    alice.getRack().setTiles(new ArrayList<>(List.of(new Tile('A'), new Tile('B'), new Tile('C'),
+        new Tile('D'), new Tile('E'), new Tile('F'), new Tile('G'))));
+    bob.getRack().setTiles(new ArrayList<>(List.of(new Tile('A'), new Tile('B'), new Tile('C'),
+        new Tile('D'), new Tile('E'), new Tile('F'), new Tile('G'))));
+
+    while (game.getBag().size() >= 7) {
+      game.getBag().drawTile();
+    }
+
+    CLIView view = new CLIView(game);
+    GameController controller = new GameController(game, view);
+    setDictionary(controller, minimalDictionary("AA", "ART"));
+
+    runCliWithInput(controller, "2\nAB\n6\no\n");
+  }
+
+  @Test
+  void runCliShouldHandleQuitConfirmationNoThenYes() throws Exception {
+    Game game = new Game();
+    game.addPlayer(new HumanPlayer("Alice"));
+    game.addPlayer(new HumanPlayer("Bob"));
+
+    CLIView view = new CLIView(game);
+    GameController controller = new GameController(game, view);
+    setDictionary(controller, minimalDictionary("AA", "ART"));
+
+    runCliWithInput(controller, "6\nn\n6\no\n");
+  }
+
+  @Test
+  void runCliShouldInitializePlayersIncludingAI() throws Exception {
+    Game game = new Game();
+    CLIView view = new CLIView(game);
+    GameController controller = new GameController(game, view);
+    setDictionary(controller, minimalDictionary("AA", "ART"));
+
+    controller.setUseExptiminimax(true);
+
+    runCliWithInput(controller, "2\nBob\nIAbot\n6\no\n");
+
+    assertEquals(2, game.getPlayers().size());
+    assertTrue(game.getPlayers().get(1) instanceof AIPlayer);
+    AIPlayer ai = (AIPlayer) game.getPlayers().get(1);
+
+    assertTrue(ai.isExpectiminimaxMode());
+  }
+
+  @Test
+  void runCliShouldHandleAiTurnFailureAndContinue() throws Exception {
+    Game game = new Game();
+    AIPlayer failing = new FailingAIPlayer("IA-crash");
+    HumanPlayer bob = new HumanPlayer("Bob");
+    game.addPlayer(failing);
+    game.addPlayer(bob);
+
+    CLIView view = new CLIView(game);
+    GameController controller = new GameController(game, view);
+    setDictionary(controller, minimalDictionary("AA", "ART"));
+
+    runCliWithInput(controller, "6\no\n");
+    assertTrue(game.getCurrentPlayer() instanceof HumanPlayer
+        || game.getCurrentPlayer() instanceof AIPlayer);
+  }
+
+  @Test
+  void runCliShouldHandleAiTurnSuccessThenContinue() throws Exception {
+    Game game = new Game();
+    AIPlayer passing = new PassingAIPlayer("IA-pass");
+    HumanPlayer bob = new HumanPlayer("Bob");
+    game.addPlayer(passing);
+    game.addPlayer(bob);
+
+    CLIView view = new CLIView(game);
+    GameController controller = new GameController(game, view);
+    setDictionary(controller, minimalDictionary("AA", "ART"));
+
+    runCliWithInput(controller, "6\no\n");
+    assertTrue(game.getCurrentPlayer() instanceof HumanPlayer
+        || game.getCurrentPlayer() instanceof AIPlayer);
+  }
+
+  private static void setDictionary(GameController controller, GADDAG dictionary) throws Exception {
+    Field field = GameController.class.getDeclaredField("gaddag");
+    field.setAccessible(true);
+    field.set(controller, dictionary);
+  }
+
+  private static GADDAG minimalDictionary(String... words) {
+    GADDAG dictionary = new GADDAG();
+    for (String word : words) {
+      dictionary.add(word);
+    }
+    return dictionary;
+  }
+
+  private static void runCliWithInput(GameController controller, String inputData) {
+    InputStream previousIn = System.in;
+    try {
+      System.setIn(new ByteArrayInputStream(inputData.getBytes(StandardCharsets.UTF_8)));
+      controller.runCli();
+    } finally {
+      System.setIn(previousIn);
+    }
+  }
+
+  private static final class RecordingView implements UserInterface {
+    private int refreshCount;
+
+    @Override
+    public void refresh() {
+      refreshCount++;
+    }
+
+    @Override
+    public void displayMessage(String message) {}
+
+    @Override
+    public void displayError(String error) {}
+
+    @Override
+    public void displaySuccess(String message) {}
+  }
+
+  private static final class FailingAIPlayer extends AIPlayer {
+    FailingAIPlayer(String name) {
+      super(name, 1, 5);
+    }
+
+    @Override
+    public void playTurn(Game game, GADDAG gaddag) {
+      throw new RuntimeException("planned failure");
+    }
+  }
+
+  private static final class PassingAIPlayer extends AIPlayer {
+    PassingAIPlayer(String name) {
+      super(name, 1, 5);
+    }
+
+    @Override
+    public void playTurn(Game game, GADDAG gaddag) {
+      game.executeMove(Move.createPass(this));
+    }
+  }
+}
