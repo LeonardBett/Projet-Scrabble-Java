@@ -56,8 +56,8 @@
                 <configuration>
                     <configLocation>google_checks.xml</configLocation>
                     <consoleOutput>true</consoleOutput>
-                    <failsOnError>false</failsOnError>
-                    <failOnViolation>false</failOnViolation>
+                    <failsOnError>true</failsOnError>
+                    <failOnViolation>true</failOnViolation>
                     <violationSeverity>warning</violationSeverity>
                     <includeTestSourceDirectory>true</includeTestSourceDirectory>
                 </configuration>

@@ -15,7 +15,7 @@ import fr.ubordeaux.scrabble.view.optionlancement.HelpPrinter;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.application.Application;
-
+ 
 /**
  * Main entry point of the application. Parses command-line arguments and launches the appropriate
  * interface.

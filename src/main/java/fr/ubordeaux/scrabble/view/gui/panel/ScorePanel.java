@@ -9,12 +9,19 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
+/**
+ * Panneau latéral affichant les scores des joueurs, le nombre de lettres restantes dans le sac
+ * et le nom du joueur dont c'est le tour.
+ */
 public class ScorePanel extends VBox {
 
   private final ListView<String> playerList;
   private final Label bagInfoLabel;
   private final Label currentPlayerLabel;
 
+  /**
+   * Construit et initialise le panneau des scores.
+   */
   public ScorePanel() {
     this.playerList = new ListView<>();
     this.bagInfoLabel = new Label("Lettres restantes : 102");
@@ -48,6 +55,12 @@ public class ScorePanel extends VBox {
     this.getChildren().addAll(title, playerList, bagInfoLabel, currentPlayerLabel);
   }
 
+  /**
+   * Met à jour la liste des scores affichés.
+   *
+   * @param playerNames noms des joueurs
+   * @param scores      scores correspondants
+   */
   public void updateScores(String[] playerNames, int[] scores) {
     playerList.getItems().clear();
     for (int i = 0; i < playerNames.length && i < scores.length; i++) {
@@ -55,14 +68,25 @@ public class ScorePanel extends VBox {
     }
   }
 
+  /**
+   * Met à jour l'affichage du nombre de lettres restantes dans le sac.
+   *
+   * @param remainingTiles nombre de tuiles encore disponibles dans le sac
+   */
   public void updateBagInfo(int remainingTiles) {
     bagInfoLabel.setText("Lettres restantes : " + remainingTiles);
   }
-
+ 
+  /**
+   * Met en évidence le joueur dont c'est actuellement le tour. 
+   *
+   * @param playerIndex index du joueur dans la liste
+   * @param playerName  nom du joueur courant
+   */
   public void highlightCurrentPlayer(int playerIndex, String playerName) {
     if (playerIndex >= 0 && playerIndex < playerList.getItems().size()) {
       playerList.getSelectionModel().select(playerIndex);
     }
-    currentPlayerLabel.setText("🎯 Tour de : " + playerName);
+    currentPlayerLabel.setText("Tour de : " + playerName);
   }
 }

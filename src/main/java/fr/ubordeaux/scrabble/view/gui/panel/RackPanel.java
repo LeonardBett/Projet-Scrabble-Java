@@ -31,10 +31,15 @@ public class RackPanel extends VBox {
   private Rack rack;
 
   /**
-   * Callback called when the user starts dragging a tile: (tile) → ScrabbleGui.
+   * Callback called when the user starts dragging a tile.
    */
   private Consumer<Tile> onTileDragged;
 
+  /**
+   * Construit un RackPanel affichant le chevalet donné.
+   *
+   * @param rack le chevalet du joueur à afficher
+   */
   public RackPanel(Rack rack) {
     this.rack = rack;
     this.tileContainers = new StackPane[MAX_TILES];
@@ -43,19 +48,22 @@ public class RackPanel extends VBox {
     updateDisplay();
   }
 
+  /**
+   * Construit un RackPanel avec un chevalet vide par défaut.
+   */
   public RackPanel() {
     this(new Rack());
   }
 
-  // ─── Callback setter ──────────────────────────────────────────────────────
-
+  /**
+   * Définit le callback appelé lorsqu'une tuile commence à être glissée depuis le chevalet.
+   *
+   * @param callback le consommateur recevant la tuile glissée
+   */
   public void setOnTileDragged(Consumer<Tile> callback) {
     this.onTileDragged = callback;
-    // Re-apply so existing containers use the new callback
     updateDisplay();
   }
-
-  // ─── UI initialisation ────────────────────────────────────────────────────
 
   private void initializeUi() {
     Label title = new Label("CHEVALET DU JOUEUR");
@@ -89,8 +97,6 @@ public class RackPanel extends VBox {
     return slot;
   }
 
-  // ─── Display update ───────────────────────────────────────────────────────
-
   /**
    * Re-reads the Rack model and redraws every slot.
    */
@@ -103,10 +109,8 @@ public class RackPanel extends VBox {
       slot.setVisible(true);
 
       if (i < tiles.size()) {
-        Tile tile = tiles.get(i);
-        fillSlot(slot, tile);
+        fillSlot(slot, tiles.get(i));
       } else {
-        // Empty slot
         slot.setStyle("-fx-background-color: #8B6914; " + "-fx-border-color: #333333; "
             + "-fx-border-width: 2; " + "-fx-background-radius: 5; " + "-fx-border-radius: 5;");
       }
@@ -117,17 +121,14 @@ public class RackPanel extends VBox {
    * Fills a slot with the tile's letter and value, and activates drag.
    */
   private void fillSlot(StackPane slot, Tile tile) {
-    // Style
     slot.setStyle("-fx-background-color: #FFE4B5; " + "-fx-border-color: #333333; "
         + "-fx-border-width: 2; " + "-fx-background-radius: 5; " + "-fx-border-radius: 5;");
 
-    // Letter label
     Label letterLabel = new Label(String.valueOf(tile.getCharacter()));
     letterLabel.setFont(Font.font("Arial", FontWeight.BOLD, 28));
     letterLabel.setTextFill(Color.BLACK);
     StackPane.setAlignment(letterLabel, Pos.CENTER);
 
-    // Value label (bottom-right)
     Label valueLabel = new Label(String.valueOf(tile.getValue()));
     valueLabel.setFont(Font.font("Arial", FontWeight.NORMAL, 10));
     valueLabel.setTextFill(Color.DARKGRAY);
@@ -136,11 +137,9 @@ public class RackPanel extends VBox {
 
     slot.getChildren().addAll(letterLabel, valueLabel);
 
-    // Hover
     slot.setOnMouseEntered(e -> slot.setStyle(slot.getStyle() + "-fx-cursor: hand;"));
     slot.setOnMouseExited(e -> slot.setStyle(slot.getStyle().replace("-fx-cursor: hand;", "")));
 
-    // ✅ Drag source: notify ScrabbleGui which tile is being dragged
     setupDragSource(slot, tile);
   }
 
@@ -149,39 +148,33 @@ public class RackPanel extends VBox {
    */
   private void setupDragSource(StackPane slot, Tile tile) {
     slot.setOnDragDetected(event -> {
-      // Notify the ScrabbleGui of the tile being dragged
       if (onTileDragged != null) {
         onTileDragged.accept(tile);
       }
-
       Dragboard db = slot.startDragAndDrop(TransferMode.MOVE);
       ClipboardContent content = new ClipboardContent();
-      // We put a non-empty string so the board cell can accept the drop
       content.putString(tile.getCharacter() + ":" + tile.getValue());
       db.setContent(content);
-
       event.consume();
     });
   }
 
-  // ─── Public helpers ───────────────────────────────────────────────────────
-
   /**
    * Hides a tile visually (it has been placed on the board, pending validation).
    */
-
   public void hideTile(Tile tile) {
     List<Tile> tiles = rack.getTiles();
     for (int i = 0; i < tiles.size(); i++) {
-      if (tiles.get(i) == tile) { // == et non .equals()
+      if (tiles.get(i) == tile) {
         tileContainers[i].setVisible(false);
-        break;
+        break; 
       }
     }
   }
 
   /**
    * Changes the displayed rack (e.g. when the turn changes).
+   * 
    */
   public void setRack(Rack newRack) {
     this.rack = newRack;

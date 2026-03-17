@@ -21,7 +21,7 @@ import javafx.scene.text.FontWeight;
 
 /**
  * Dialog to configure players before the game starts. Equivalent to
- * CliInputHandler.askNumberOfPlayers() / askPlayerName(). ✅ MVC: Pure view - returns a list of
+ * CliInputHandler.askNumberOfPlayers() / askPlayerName(). MVC: Pure view - returns a list of
  * names, knows nothing about Game or controller.
  */
 public class PlayerSetup extends Dialog<List<String>> {
@@ -29,17 +29,18 @@ public class PlayerSetup extends Dialog<List<String>> {
   private static final int MIN_PLAYERS = 2;
   private static final int MAX_PLAYERS = 4;
 
-  // Name fields, one per possible player
   private final List<TextField> nameFields = new ArrayList<>();
   private final VBox nameFieldsBox = new VBox(10);
   private final Spinner<Integer> playerCountSpinner = new Spinner<>(MIN_PLAYERS, MAX_PLAYERS, 2);
 
+  /**
+   * Construit et initialise le dialogue de configuration des joueurs.
+   */
   public PlayerSetup() {
     setTitle("Scrabble U-Bordeaux");
     setHeaderText(null);
     setResizable(false);
 
-    // Spinner: number of players
     playerCountSpinner.setEditable(false);
     playerCountSpinner.setPrefWidth(80);
     playerCountSpinner.valueProperty()
@@ -51,16 +52,13 @@ public class PlayerSetup extends Dialog<List<String>> {
     HBox spinnerRow = new HBox(12, spinnerLabel, playerCountSpinner);
     spinnerRow.setAlignment(Pos.CENTER_LEFT);
 
-    // Name fields
     nameFieldsBox.setAlignment(Pos.CENTER_LEFT);
-    rebuildNameFields(2); // start with 2 players
+    rebuildNameFields(2);
 
-    // Title label
-    Label title = new Label("🎮  Nouvelle Partie");
+    Label title = new Label("Nouvelle Partie");
     title.setFont(Font.font("Arial", FontWeight.BOLD, 20));
     title.setTextFill(Color.web("#115829"));
 
-    // Layout
     VBox content = new VBox(18, title, spinnerRow, nameFieldsBox);
     content.setPadding(new Insets(20));
     content.setPrefWidth(380);
@@ -68,26 +66,23 @@ public class PlayerSetup extends Dialog<List<String>> {
     getDialogPane().setContent(content);
     getDialogPane().getStyleClass().add("setup-dialog");
 
-    // Buttons
     ButtonType startType = new ButtonType("Commencer !", ButtonBar.ButtonData.OK_DONE);
     ButtonType quitType = new ButtonType("Quitter", ButtonBar.ButtonData.CANCEL_CLOSE);
     getDialogPane().getButtonTypes().addAll(startType, quitType);
 
-    // Result converter
     setResultConverter(buttonType -> {
       if (buttonType == startType) {
         return collectNames();
       }
-      return null; // null -> user cancelled
+      return null;
     });
 
-    // Validate before closing: all names must be non-empty
     final Button startButton = (Button) getDialogPane().lookupButton(startType);
     startButton.addEventFilter(javafx.event.ActionEvent.ACTION, event -> {
       List<String> names = collectNames();
       if (names.contains("")) {
         showValidationError("Veuillez entrer un nom pour chaque joueur.");
-        event.consume(); // prevent dialog from closing
+        event.consume();
       }
     });
   }
@@ -132,10 +127,10 @@ public class PlayerSetup extends Dialog<List<String>> {
   }
 
   /**
-   * Shows the dialog and returns the list of player names, or empty Optional if the user cancelled.
+   * Shows the dialog and returns the list of player names, or empty Optional if cancelled.
    */
   public static Optional<List<String>> showDialog() {
     PlayerSetup dialog = new PlayerSetup();
     return dialog.showAndWait();
   }
-}
+} 
