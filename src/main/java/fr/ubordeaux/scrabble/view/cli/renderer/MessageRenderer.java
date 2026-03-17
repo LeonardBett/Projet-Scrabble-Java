@@ -1,6 +1,5 @@
 package fr.ubordeaux.scrabble.view.cli.renderer;
 
-
 public class MessageRenderer {
   public void error(String message) {
     System.out.println("❌ " + message);
@@ -29,5 +28,4 @@ public class MessageRenderer {
   public void warning(String message) {
     System.out.println("⚠️ " + message);
   }
-
 }

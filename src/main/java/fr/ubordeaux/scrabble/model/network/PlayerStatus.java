@@ -1,6 +1,5 @@
 package fr.ubordeaux.scrabble.model.network;
 
-
 /** Different status for an online player. */
 public enum PlayerStatus {
   /** Idle player status. */

@@ -14,11 +14,10 @@ public class HelpPrinter {
 
   private HelpPrinter() {}
 
-  /**
-   * Prints the help message to standard output.
-   */
+  /** Prints the help message to standard output. */
   public static void printHelp() {
-    System.out.println("""
+    System.out.println(
+        """
         Usage : scrabble [OPTION]
 
         Options :
@@ -42,9 +41,7 @@ public class HelpPrinter {
         """);
   }
 
-  /**
-   * Prints the version string to standard output.
-   */
+  /** Prints the version string to standard output. */
   public static void printVersion() {
     System.out.println(APP_NAME + " v" + VERSION);
   }

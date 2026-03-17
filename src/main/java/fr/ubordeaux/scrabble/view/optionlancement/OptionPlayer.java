@@ -1,9 +1,6 @@
 package fr.ubordeaux.scrabble.view.optionlancement;
 
-
-/**
- * Parse et valide l'argument du nombre de joueurs (-p N).
- */
+/** Parse et valide l'argument du nombre de joueurs (-p N). */
 public class OptionPlayer {
 
   public static final int MIN = 2;
@@ -16,8 +13,14 @@ public class OptionPlayer {
     try {
       int n = Integer.parseInt(value);
       if (n < MIN || n > MAX) {
-        System.err.println("Nombre de joueurs invalide : " + n + " (valeurs acceptées : " + MIN
-            + " à " + MAX + ").");
+        System.err.println(
+            "Nombre de joueurs invalide : "
+                + n
+                + " (valeurs acceptées : "
+                + MIN
+                + " à "
+                + MAX
+                + ").");
         System.exit(1);
       }
       return n;

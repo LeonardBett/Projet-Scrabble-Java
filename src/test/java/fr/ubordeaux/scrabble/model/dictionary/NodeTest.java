@@ -1,55 +1,42 @@
 package fr.ubordeaux.scrabble.model.dictionary;
 
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 
 import org.junit.jupiter.api.Test;
 
 class NodeTest {
 
-  /**
-   * Test that a node is correctly initialized with a character and is not finite by default.
-   */
+  /** Test that a node is correctly initialized with a character and is not finite by default. */
   @Test
   void nodeShouldInitializeCorrectly() {
     Node node = new Node('A');
-    assertEquals('A', node.getContent()); //
-    assertFalse(node.getFinite()); //
+    assertEquals('A', node.getContent());
+    assertFalse(node.getFinite());
   }
 
-  /**
-   * Test that adding and retrieving children works correctly.
-   */
+  /** Test that adding and retrieving children works correctly. */
   @Test
   void nodeShouldManageChildrenCorrectly() {
     Node parent = new Node('P');
-    parent.addChild('C'); //
+    parent.addChild('C');
 
-    assertTrue(parent.hasChild('C')); //
-    assertNotNull(parent.getChild('C')); //
+    assertTrue(parent.hasChild('C'));
+    assertNotNull(parent.getChild('C'));
     assertEquals('C', parent.getChild('C').getContent());
   }
 
-  /**
-   * Test equality between nodes based on their content.
-   */
+  /** Test equality between nodes based on their content. */
   @Test
   void nodesWithSameContentShouldBeEqual() {
     Node n1 = new Node('X');
     Node n2 = new Node('X');
     Node n3 = new Node('Y');
 
-    assertEquals(n1, n2); //
-    assertNotEquals(n1, n3); //
+    assertEquals(n1, n2);
+    assertNotEquals(n1, n3);
   }
 }
