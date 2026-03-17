@@ -1,9 +1,6 @@
 package fr.ubordeaux.scrabble.model.network.server;
 
-
-/**
- * Store data of server, use for the Map of active server of DiscoveryService.
- */
+/** Store data of server, use for the Map of active server of DiscoveryService. */
 public class ServerInfo {
   private final String ip;
   private final int port;

@@ -345,6 +345,7 @@ public class NetworkManager {
     gameClient.sendPassMove();
   }
 
+  /** Get the local game client side. */
   public Game getLocalGame() {
     if (gameClient == null) {
       return null;

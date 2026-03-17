@@ -40,9 +40,7 @@ public class GameController {
     this.view = view;
   }
 
-  /**
-   * Starts the game.
-   */
+  /** Starts the game. */
   public void startGame() {
     if (game == null || view == null) {
       throw new IllegalStateException("Game and view must be initialized before starting.");
@@ -86,11 +84,14 @@ public class GameController {
             MlAgent mlAgent = new MlAgent(modelPath, dictList);
 
             // Register a Shutdown Hook to free TensorFlow resources on exit
-            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-              if (mlAgent != null) {
-                mlAgent.close();
-              }
-            }));
+            Runtime.getRuntime()
+                .addShutdownHook(
+                    new Thread(
+                        () -> {
+                          if (mlAgent != null) {
+                            mlAgent.close();
+                          }
+                        }));
 
             bot.setMlAgent(mlAgent);
             cliView.displayMessage("-> ML Agent activated for " + name + " (" + this.lang + ")");
@@ -140,53 +141,59 @@ public class GameController {
       // --- GESTION DU TOUR D'UN JOUEUR HUMAIN ---
       String action = input.askAction();
       switch (action) {
-        case "1": {
-          Move move = input.askPlayMove(current);
-          if (move != null) {
+        case "1":
+          {
+            Move move = input.askPlayMove(current);
+            if (move != null) {
+              try {
+                handlePlayerMove(move);
+                view.displaySuccess("Coup joué.");
+              } catch (RuntimeException e) {
+                view.displayError(e.getMessage());
+              }
+            }
+            break;
+          }
+        case "2":
+          {
+            Move move = input.askExchangeMove(current);
+            if (move != null) {
+              try {
+                handlePlayerMove(move);
+                view.displaySuccess("Lettres échangées.");
+              } catch (RuntimeException e) {
+                view.displayError(e.getMessage());
+              }
+            }
+            break;
+          }
+        case "3":
+          {
             try {
-              handlePlayerMove(move);
-              view.displaySuccess("Coup joué.");
+              handlePlayerMove(Move.createPass(current));
+              view.displayMessage(current.getName() + " a passé son tour.");
             } catch (RuntimeException e) {
               view.displayError(e.getMessage());
             }
+            break;
           }
-          break;
-        }
-        case "2": {
-          Move move = input.askExchangeMove(current);
-          if (move != null) {
-            try {
-              handlePlayerMove(move);
-              view.displaySuccess("Lettres échangées.");
-            } catch (RuntimeException e) {
-              view.displayError(e.getMessage());
+        case "4":
+          {
+            undo();
+            break;
+          }
+        case "5":
+          {
+            redo();
+            break;
+          }
+        case "6":
+          {
+            if (input.askConfirmation("Voulez-vous vraiment quitter ?")) {
+              running = false;
             }
+            break;
           }
-          break;
-        }
-        case "3": {
-          try {
-            handlePlayerMove(Move.createPass(current));
-            view.displayMessage(current.getName() + " a passé son tour.");
-          } catch (RuntimeException e) {
-            view.displayError(e.getMessage());
-          }
-          break;
-        }
-        case "4": {
-          undo();
-          break;
-        }
-        case "5": {
-          redo();
-          break;
-        }
-        case "6": {
-          if (input.askConfirmation("Voulez-vous vraiment quitter ?")) {
-            running = false;
-          }
-          break;
-        }
         default:
           view.displayError("Choix invalide.");
       }
@@ -214,9 +221,11 @@ public class GameController {
       if (move.getType() == MoveType.PLAY) {
         Gaddag dictionary = getOrLoadGaddag();
         MoveHandler moveHandler = new MoveHandler(game);
-        for (String formedWord : moveHandler.getFormedWords(move.getStartPosition(),
-            move.getDirection(), move.getTiles())) {
-          if (formedWord == null || formedWord.isBlank()
+        for (String formedWord :
+            moveHandler.getFormedWords(
+                move.getStartPosition(), move.getDirection(), move.getTiles())) {
+          if (formedWord == null
+              || formedWord.isBlank()
               || !dictionary.containsWord(formedWord.toUpperCase())) {
             throw new IllegalArgumentException("Word not found in dictionary: " + formedWord);
           }
@@ -309,17 +318,13 @@ public class GameController {
     game.addPlayer(player);
   }
 
-  /**
-   * Undoes the last move.
-   */
+  /** Undoes the last move. */
   public void undo() {
     game.undo();
     view.refresh();
   }
 
-  /**
-   * Redoes the undone move.
-   */
+  /** Redoes the undone move. */
   public void redo() {
     game.redo();
     view.refresh();
