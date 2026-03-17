@@ -2,28 +2,45 @@ package fr.ubordeaux.scrabble.model.dictionary;
 
 import java.util.ArrayList;
 
+/**
+ * Implementation of a prefix tree (Trie) for efficient word storage and prefix searching.
+ */
 public class Trie {
-  protected Node root; // The root node
+  protected Node root;
   protected long nodeCount;
   protected int wordCount;
   protected short maxDepth;
 
+  /**
+   * Retrieves the root node of the trie.
+   *
+   * @return the root Node instance.
+   */
   public Node getRoot() {
     return root;
   }
 
-  public long getNodeCount() {
-    return nodeCount;
-  }
-
+  /**
+   * Returns the total number of words stored in the trie.
+   *
+   * @return total word count as an integer.
+   */
   public int getWordCount() {
     return wordCount;
   }
 
+  /**
+   * Returns the length of the longest word stored in the trie.
+   *
+   * @return maximum word depth as a short.
+   */
   public short getMaxDepth() {
     return maxDepth;
   }
 
+  /**
+   * Initializes an empty trie with a root node.
+   */
   public Trie() {
     this.root = new Node(Node.root);
     this.nodeCount = 1;
@@ -32,9 +49,9 @@ public class Trie {
   }
 
   /**
-   * Add all the words in an array to the trie.
+   * Adds multiple words to the trie from a provided array.
    *
-   * @param words the list of words to add.
+   * @param words an array of strings to be added.
    */
   public void addAll(String[] words) {
     for (String word : words) {
@@ -43,9 +60,9 @@ public class Trie {
   }
 
   /**
-   * Add a word to the trie.
+   * Adds a single word to the trie, creating new nodes as necessary.
    *
-   * @param word the word to add.
+   * @param word the string to insert into the trie.
    */
   public void add(String word) {
     if (word.isEmpty()) {
@@ -64,7 +81,7 @@ public class Trie {
       }
     }
 
-    current.setFinite(true); // set our last letter's flag to indicate word conclusion
+    current.setFinite(true);
 
     if (characters.length > maxDepth) {
       this.maxDepth = (short) characters.length;
@@ -73,10 +90,10 @@ public class Trie {
   }
 
   /**
-   * Check if the trie contains a word by traveling down.
+   * Verifies if a complete word exists in the trie.
    *
-   * @param word the word to check for.
-   * @return true if the word exists in the trie.
+   * @param word the string to check for.
+   * @return true if the full word exists, false otherwise.
    */
   public boolean contains(String word) {
     char[] characters = word.toUpperCase().toCharArray();
@@ -94,10 +111,10 @@ public class Trie {
   }
 
   /**
-   * Find the terminating node of a prefix.
+   * Locates the terminal node corresponding to a specific prefix.
    *
-   * @param prefix a string to search from.
-   * @return the ending node.
+   * @param prefix the string prefix to search for.
+   * @return the ending Node of the prefix, or null if not found.
    */
   public Node find(String prefix) {
     char[] characters = prefix.toUpperCase().toCharArray();
@@ -115,9 +132,9 @@ public class Trie {
   }
 
   /**
-   * Returns valid words contained in the trie using recursion.
+   * Retrieves all valid words stored in the trie.
    *
-   * @return an array list of strings (the words).
+   * @return an ArrayList of all complete words.
    */
   public ArrayList<String> getWords() {
     ArrayList<String> words = new ArrayList<>();
@@ -126,24 +143,21 @@ public class Trie {
   }
 
   /**
-   * A recursive diving function.
+   * Recursively traverses the trie nodes to collect all finite words.
    *
-   * @param word the word so far, based on past nodes.
-   * @param cur the current occupied node.
-   * @param words a list to fill with words.
+   * @param word the accumulated string from previous nodes.
+   * @param cur the current node being explored.
+   * @param words the collection being populated with found words.
    */
   private void dig(String word, Node cur, ArrayList<String> words) {
-    // If we're at a word's end, we should add it to the list of words.
     if (cur.getFinite()) {
       words.add(word);
     }
 
-    // Otherwise, as long as we can go further down, we will
     if (cur.getChildren() != null) {
       for (Node node : cur.getChildren()) {
         dig(word + node.getContent(), node, words);
       }
     }
   }
-
 }
