@@ -141,59 +141,53 @@ public class GameController {
       // --- GESTION DU TOUR D'UN JOUEUR HUMAIN ---
       String action = input.askAction();
       switch (action) {
-        case "1":
-          {
-            Move move = input.askPlayMove(current);
-            if (move != null) {
-              try {
-                handlePlayerMove(move);
-                view.displaySuccess("Coup joué.");
-              } catch (RuntimeException e) {
-                view.displayError(e.getMessage());
-              }
-            }
-            break;
-          }
-        case "2":
-          {
-            Move move = input.askExchangeMove(current);
-            if (move != null) {
-              try {
-                handlePlayerMove(move);
-                view.displaySuccess("Lettres échangées.");
-              } catch (RuntimeException e) {
-                view.displayError(e.getMessage());
-              }
-            }
-            break;
-          }
-        case "3":
-          {
+        case "1": {
+          Move move = input.askPlayMove(current);
+          if (move != null) {
             try {
-              handlePlayerMove(Move.createPass(current));
-              view.displayMessage(current.getName() + " a passé son tour.");
+              handlePlayerMove(move);
+              view.displaySuccess("Coup joué.");
             } catch (RuntimeException e) {
               view.displayError(e.getMessage());
             }
-            break;
           }
-        case "4":
-          {
-            undo();
-            break;
-          }
-        case "5":
-          {
-            redo();
-            break;
-          }
-        case "6":
-          {
-            if (input.askConfirmation("Voulez-vous vraiment quitter ?")) {
-              running = false;
+          break;
+        }
+        case "2": {
+          Move move = input.askExchangeMove(current);
+          if (move != null) {
+            try {
+              handlePlayerMove(move);
+              view.displaySuccess("Lettres échangées.");
+            } catch (RuntimeException e) {
+              view.displayError(e.getMessage());
             }
-            break;
           }
+          break;
+        }
+        case "3": {
+          try {
+            handlePlayerMove(Move.createPass(current));
+            view.displayMessage(current.getName() + " a passé son tour.");
+          } catch (RuntimeException e) {
+            view.displayError(e.getMessage());
+          }
+          break;
+        }
+        case "4": {
+          undo();
+          break;
+        }
+        case "5": {
+          redo();
+          break;
+        }
+        case "6": {
+          if (input.askConfirmation("Voulez-vous vraiment quitter ?")) {
+            running = false;
+          }
+          break;
+        }
         default:
           view.displayError("Choix invalide.");
       }
