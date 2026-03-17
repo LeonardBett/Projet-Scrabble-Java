@@ -8,6 +8,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Directed Acyclic Word Graph (DAWG) implementation for space-efficient dictionary storage.
+ * It optimizes memory by merging nodes with identical suffixes.
+ * An alternative of GADDAG.
+ */
 public class Dawg {
   private final DawgNode root = new DawgNode('~');
   private String lastWord = "";
@@ -24,8 +29,10 @@ public class Dawg {
   }
 
   /**
-   * Adds a word to the Dawg. WARNING: Words must be added in alphabetical order for correct
-   * minimization.
+   * Adds a word to the Dawg. Words must be added in alphabetical order
+   * to ensure proper minimization.
+   *
+   * @param word The word to insert into the graph.
    */
   public void add(String word) {
     word = word.toUpperCase();
@@ -62,6 +69,11 @@ public class Dawg {
     minimize(0);
   }
 
+  /**
+   * Reduces memory usage by merging redundant nodes with identical transitions.
+   *
+   * @param lowerBound The depth index to traverse back to for minimization.
+   */
   private void minimize(int lowerBound) {
     // Traverse backward from the end of the list to the requested bound
     for (int i = uncheckedNodes.size() - 1; i > lowerBound; i--) {
@@ -79,6 +91,12 @@ public class Dawg {
     }
   }
 
+  /**
+   * Verifies if a specific word exists in the dictionary by traversing the graph.
+   *
+   * @param word The word to search for.
+   * @return True if the word is valid and finite, false otherwise.
+   */
   public boolean contains(String word) {
     DawgNode node = root;
     for (char c : word.toUpperCase().toCharArray()) {
@@ -91,8 +109,11 @@ public class Dawg {
   }
 
   /**
-   * Searches for all words constructible with a given rack. If a hook is specified, it is added to
-   * the rack and the word MUST contain it.
+   * Finds all valid words formable from a set of letters and a required anchor letter.
+   *
+   * @param rack The player's available letters.
+   * @param hook The mandatory letter already present on the board.
+   * @return A set of all constructible words containing the hook.
    */
   public Set<String> findWordsWithRackAndHook(Character[] rack, char hook) {
     Set<String> results = new HashSet<>();
@@ -118,8 +139,16 @@ public class Dawg {
     return allFound;
   }
 
+  /**
+   * Recursively explores the graph using backtracking to find constructible words.
+   *
+   * @param node The current graph node.
+   * @param currentWord The prefix built so far.
+   * @param rack The remaining letters available in the rack.
+   * @param results The collection of valid words found.
+   */
   private void backtrack(DawgNode node, String currentWord, List<Character> rack,
-      Set<String> results) {
+                         Set<String> results) {
     if (node.getFinite()) {
       results.add(currentWord);
     }
