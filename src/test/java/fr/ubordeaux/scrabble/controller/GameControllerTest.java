@@ -19,6 +19,8 @@ import fr.ubordeaux.scrabble.view.UserInterface;
 import fr.ubordeaux.scrabble.view.cli.CliView;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -357,7 +359,7 @@ class GameControllerTest {
     GameController controller = new GameController(game, view);
     setDictionary(controller, minimalDictionary("AA", "ART"));
 
-    runCliWithInput(controller, "6\no\n");
+    runCliWithInputSilencingErr(controller, "6\no\n");
     assertTrue(game.getCurrentPlayer() instanceof HumanPlayer
         || game.getCurrentPlayer() instanceof AiPlayer);
   }
@@ -400,6 +402,19 @@ class GameControllerTest {
       controller.runCli();
     } finally {
       System.setIn(previousIn);
+    }
+  }
+
+  private static void runCliWithInputSilencingErr(GameController controller, String inputData) {
+    InputStream previousIn = System.in;
+    PrintStream previousErr = System.err;
+    try {
+      System.setIn(new ByteArrayInputStream(inputData.getBytes(StandardCharsets.UTF_8)));
+      System.setErr(new PrintStream(OutputStream.nullOutputStream()));
+      controller.runCli();
+    } finally {
+      System.setIn(previousIn);
+      System.setErr(previousErr);
     }
   }
 
