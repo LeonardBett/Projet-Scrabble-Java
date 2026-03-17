@@ -19,7 +19,7 @@ import fr.ubordeaux.scrabble.view.gui.panel.ScorePanel;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.HashMap;
+import java.util.HashMap; 
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -33,6 +33,10 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
+/**
+ * Point d'entrée de l'interface graphique JavaFX du jeu de Scrabble. Gère l'affichage principal,
+ * les interactions utilisateur et le mode multijoueur en ligne.
+ */
 public class ScrabbleGui extends Application {
 
   private static Game gameInstance;
@@ -157,6 +161,11 @@ public class ScrabbleGui extends Application {
     lobbyView.toFront();
   }
 
+  /**
+   * Bascule l'interface vers une partie en ligne déjà initialisée.
+   *
+   * @param onlineGame la partie réseau à afficher
+   */
   public void switchToOnlineGame(Game onlineGame) {
     gameInstance = onlineGame;
     onlineMode = true;
@@ -165,9 +174,12 @@ public class ScrabbleGui extends Application {
     boardPanel.setBoard(gameInstance.getBoard());
     pendingTiles.clear();
     refreshAll();
-    showInfo("Partie en ligne", "La partie a commencé ! Bonne chance 🎮");
+    showInfo("Partie en ligne", "La partie a commencé !");
   }
 
+  /**
+   * Quitte le mode en ligne et réactive les boutons undo/redo.
+   */
   public void exitOnlineMode() {
     onlineMode = false;
     controlPanel.getUndoButton().setDisable(false);
@@ -187,6 +199,12 @@ public class ScrabbleGui extends Application {
     this.currentlyDraggedTile = tile;
   }
 
+  /**
+   * Appelé par le BoardPanel lorsqu'une tuile est déposée sur une case.
+   *
+   * @param row ligne de la case cible (0-indexé)
+   * @param col colonne de la case cible (0-indexé)
+   */
   public void onTileDropped(int row, int col) {
     if (currentlyDraggedTile == null) {
       return;
@@ -243,15 +261,13 @@ public class ScrabbleGui extends Application {
     }
 
     if (onlineMode) {
-      // En mode online : on envoie directement au serveur, c'est lui qui valide
       Point origin = move.getStartPosition();
       String dir = move.getDirection().name().substring(0, 1);
-      String word = move.getTiles().stream().map(t -> String.valueOf(t.getCharacter())).reduce("",
-          String::concat);
+      String word = move.getTiles().stream()
+          .map(t -> String.valueOf(t.getCharacter())).reduce("", String::concat);
       networkManager.play(origin.getX(), origin.getY(), dir, word);
       pendingTiles.clear();
     } else {
-      // En mode local : on valide via le controller
       try {
         controller.handlePlayerMove(move);
         pendingTiles.clear();
@@ -264,13 +280,13 @@ public class ScrabbleGui extends Application {
 
   private void openExchangeDialog() {
     if (!pendingTiles.isEmpty()) {
-      showError("Annulez d'abord les tuiles placées (bouton ↩).");
+      showError("Annulez d'abord les tuiles placées (bouton annuler).");
       return;
     }
 
     TextInputDialog dialog = new TextInputDialog();
-    dialog.setTitle("Échanger des lettres");
-    dialog.setHeaderText("Lettres de votre chevalet à échanger");
+    dialog.setTitle("Echanger des lettres");
+    dialog.setHeaderText("Lettres de votre chevalet a echanger");
     dialog.setContentText("Lettres (ex: ABC) :");
 
     Optional<String> result = dialog.showAndWait();
@@ -279,7 +295,6 @@ public class ScrabbleGui extends Application {
       if (letters.isEmpty()) {
         return;
       }
-
       if (onlineMode) {
         networkManager.exchange(letters);
       } else {
@@ -339,6 +354,9 @@ public class ScrabbleGui extends Application {
     controller.startGame();
   }
 
+  /**
+   * Rafraîchit l'ensemble des composants de l'interface (plateau, chevalet, scores).
+   */
   public void refreshAll() {
     refreshBoard();
     refreshRack();
@@ -376,15 +394,24 @@ public class ScrabbleGui extends Application {
     }
   }
 
+  /**
+   * Rafraîchit uniquement l'affichage du plateau de jeu.
+   */
   public void refreshBoard() {
     boardPanel.updateBoard();
   }
 
+  /**
+   * Rafraîchit l'affichage du chevalet du joueur courant.
+   */
   public void refreshRack() {
     rackPanel.setRack(getCurrentRack());
     rackPanel.setOnTileDragged(this::onTileDragged);
   }
 
+  /**
+   * Rafraîchit l'affichage des scores et met en évidence le joueur courant.
+   */
   public void refreshScores() {
     List<Player> players = gameInstance.getPlayers();
     String[] names = players.stream().map(Player::getName).toArray(String[]::new);

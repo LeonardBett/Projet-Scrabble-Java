@@ -23,6 +23,7 @@ out/
 
 #vscode
 **.json
+**.vscode/
 
 # Maven
 target/

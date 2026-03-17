@@ -14,7 +14,8 @@ fi
 # Build the project
 if [ "$VERBOSE" = true ]; then
     echo "Building project..." >&2
-    mvn clean install -Djacoco.skip=true
+    mvn clean compile -Djacoco.skip=true
+    # mvn clean install -Djacoco.skip=true
     if [ $? -ne 0 ]; then
         echo "Error: Build failed." >&2
         exit 1
@@ -22,7 +23,8 @@ if [ "$VERBOSE" = true ]; then
 else
     echo "Building project..." >&2
     echo "Use -v to see maven logs." >&2
-    mvn clean install -Djacoco.skip=true >/dev/null 2>&1
+     mvn clean compile -Djacoco.skip=true
+    # mvn clean install -Djacoco.skip=true >/dev/null 2>&1
     if [ $? -ne 0 ]; then
         echo "Error: Build failed. Run 'mvn clean install' manually to see errors." >&2
         exit 1

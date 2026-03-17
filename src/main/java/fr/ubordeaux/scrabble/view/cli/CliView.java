@@ -6,7 +6,7 @@ import fr.ubordeaux.scrabble.view.UserInterface;
 import fr.ubordeaux.scrabble.view.cli.renderer.BoardRenderer;
 import fr.ubordeaux.scrabble.view.cli.renderer.MessageRenderer;
 import fr.ubordeaux.scrabble.view.cli.renderer.PlayerRenderer;
-import fr.ubordeaux.scrabble.view.cli.renderer.RackRenderer;
+import fr.ubordeaux.scrabble.view.cli.renderer.RackRenderer; 
 
 /**
  * Full CLI view implementing UserInterface.
