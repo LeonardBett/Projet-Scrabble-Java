@@ -1,5 +1,36 @@
 # scrabble-java
 
+## Bash autocompletion for launch options
+
+You can enable tab-completion for CLI options such as `--help`, `--players`, `--lang`, `--ai-time`, and `--ai-ml`.
+
+At first launch (`./scrabble` or `./run.sh`), the script now detects whether completion is installed and asks for confirmation to add it automatically to `~/.bashrc`.
+
+Note: a launched script cannot restart your parent terminal process by itself. After installation, completion is immediately available in new terminals. In the current terminal, run `source ~/.bashrc` once.
+
+1. Load completion in your current shell:
+
+```bash
+source scripts/scrabble-completion.bash
+```
+
+2. Then type and complete options with `TAB`:
+
+```bash
+./run.sh --<TAB>
+./scrabble --<TAB>
+./run.sh -p <TAB>     # suggests: 2 3 4
+./scrabble -p <TAB>   # suggests: 2 3 4
+./run.sh -l <TAB>     # suggests: en fr
+./run.sh -ai-time <TAB>
+```
+
+3. To keep it after restart, add this to your `~/.bashrc`:
+
+```bash
+source /home/eraze/scrabble-java/scripts/scrabble-completion.bash
+```
+
 
 
 ## Getting started
