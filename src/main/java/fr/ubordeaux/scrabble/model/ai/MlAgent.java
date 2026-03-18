@@ -24,7 +24,7 @@ public class MlAgent implements AutoCloseable {
   /**
    * Constructs the MlAgent and gracefully handles missing models.
    *
-   * @param modelPath The path to the directory containing the SavedModel.
+   * @param modelPath  The path to the directory containing the SavedModel.
    * @param dictionary A list of all valid words, indexed to match the model's output classes.
    */
   public MlAgent(String modelPath, List<String> dictionary) {
@@ -81,8 +81,8 @@ public class MlAgent implements AutoCloseable {
     // Try-with-resources ensures Tensors and Result are safely closed to avoid
     // memory leaks
     try (TFloat32 inputTensor = TFloat32.tensorOf(ndArray);
-        Result output = this.model.session().runner().feed("serving_default_input:0", inputTensor)
-            .fetch("StatefulPartitionedCall:0").run()) {
+         Result output = this.model.session().runner().feed("serving_default_input:0", inputTensor)
+             .fetch("StatefulPartitionedCall:0").run()) {
 
       // Safely extract the output tensor and cast it
       try (TFloat32 outputTensor = (TFloat32) output.get(0)) {
@@ -115,7 +115,7 @@ public class MlAgent implements AutoCloseable {
    * Extracts the top K words based on the probability distribution output by the model.
    *
    * @param outputTensor The tensor output containing probabilities.
-   * @param topK The number of words to extract.
+   * @param topK         The number of words to extract.
    * @return A list of the top K predicted words.
    */
   private List<String> getTopPredictions(TFloat32 outputTensor, int topK) {

@@ -8,6 +8,7 @@ import fr.ubordeaux.scrabble.model.core.Move;
 import fr.ubordeaux.scrabble.model.core.MoveHandler;
 import fr.ubordeaux.scrabble.model.dictionary.Gaddag;
 import fr.ubordeaux.scrabble.model.enums.MoveType;
+import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
 import fr.ubordeaux.scrabble.view.UserInterface;
 import fr.ubordeaux.scrabble.view.cli.CliInputHandler;
@@ -40,7 +41,9 @@ public class GameController {
     this.view = view;
   }
 
-  /** Starts the game. */
+  /**
+   * Starts the game.
+   */
   public void startGame() {
     if (game == null || view == null) {
       throw new IllegalStateException("Game and view must be initialized before starting.");
@@ -69,11 +72,12 @@ public class GameController {
       int num = input.askNumberOfPlayers();
       for (int i = 1; i <= num; i++) {
         String name = input.askPlayerName(i);
+        PlayerColor assignedColor = PlayerColor.fromIndex(i - 1);
 
         // If the name starts with "IA", create a bot automatically configured by
         // command line args
         if (name.toUpperCase().startsWith("IA") || name.toUpperCase().startsWith("AI")) {
-          AiPlayer bot = new AiPlayer(name, 3, 5);
+          AiPlayer bot = new AiPlayer(name, 3, 5, assignedColor);
 
           // Apply command-line configurations directly
           bot.setExpectiminimaxMode(this.useExptiminimax);
@@ -99,17 +103,17 @@ public class GameController {
 
           addPlayer(bot);
         } else {
-          addPlayer(new HumanPlayer(name));
+          addPlayer(new HumanPlayer(name, assignedColor));
         }
       }
     }
 
     startGame();
 
-    // 2. Chargement du dictionnaire Gaddag depuis le fichier texte
+    // Loading Gaddag dictionnary from the resources folder
     Gaddag currentGaddag = getOrLoadGaddag();
 
-    // 3. Boucle principale du jeu
+    // Main loop of the game
     boolean running = true;
     while (running && !game.isGameOver()) {
       view.refresh();
@@ -121,7 +125,7 @@ public class GameController {
         break;
       }
 
-      // --- GESTION DU TOUR DE L'IA ---
+      // AI Turn Handler
       if (current instanceof AiPlayer) {
         view.displayMessage("\n--- C'est au tour de l'IA (" + current.getName() + ") ---");
         AiPlayer ai = (AiPlayer) current;
@@ -138,7 +142,7 @@ public class GameController {
         continue;
       }
 
-      // --- GESTION DU TOUR D'UN JOUEUR HUMAIN ---
+      // Human Player turn handler
       String action = input.askAction();
       switch (action) {
         case "1": {
@@ -312,13 +316,17 @@ public class GameController {
     game.addPlayer(player);
   }
 
-  /** Undoes the last move. */
+  /**
+   * Undoes the last move.
+   */
   public void undo() {
     game.undo();
     view.refresh();
   }
 
-  /** Redoes the undone move. */
+  /**
+   * Redoes the undone move.
+   */
   public void redo() {
     game.redo();
     view.refresh();

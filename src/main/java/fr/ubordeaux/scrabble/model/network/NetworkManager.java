@@ -7,7 +7,9 @@ import fr.ubordeaux.scrabble.model.network.server.ServerInfo;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Manages network operations and acts as a facade for the network layer. */
+/**
+ * Manages network operations and acts as a facade for the network layer.
+ */
 public class NetworkManager {
 
   // List of observers for the network manager
@@ -15,14 +17,20 @@ public class NetworkManager {
   // we have to keep here the real list of Observer (CLI/GUI)
   private final List<NetworkObserver> observers = new ArrayList<>();
 
-  /** The constant DEFAULT_TCP_PORT. */
+  /**
+   * The constant DEFAULT_TCP_PORT.
+   */
   // Default values use in the package
   public static final int DEFAULT_TCP_PORT = 12345;
 
-  /** The constant DEFAULT_UDP_PORT. */
+  /**
+   * The constant DEFAULT_UDP_PORT.
+   */
   public static final int DEFAULT_UDP_PORT = 12346;
 
-  /** The constant DEFAULT_ADDRESS. */
+  /**
+   * The constant DEFAULT_ADDRESS.
+   */
   public static final String DEFAULT_ADDRESS = "localhost";
 
   // Reference to server/client instances
@@ -35,17 +43,23 @@ public class NetworkManager {
   // Reference to the discovery service, no need to be reuse so no null check
   private final DiscoveryService discoveryService;
 
-  /** Instantiates a new Network manager. */
+  /**
+   * Instantiates a new Network manager.
+   */
   public NetworkManager() {
     discoveryService = new DiscoveryService();
   }
 
-  /** Start online play. */
+  /**
+   * Start online play.
+   */
   public void startOnlinePlay() {
     discoveryService.startListening();
   }
 
-  /** Stop online play. */
+  /**
+   * Stop online play.
+   */
   public void stopOnlinePlay() {
     discoveryService.stopListening();
     discoveryService.stopBroadcasting();
@@ -142,7 +156,9 @@ public class NetworkManager {
     discoveryService.startBroadcasting(defaultName, port, gameServer.getLocalNetworkIp());
   }
 
-  /** COMMAND server start : start with default port. */
+  /**
+   * COMMAND server start : start with default port.
+   */
   public void serverStart() {
     serverStart(DEFAULT_TCP_PORT);
   }
@@ -169,7 +185,7 @@ public class NetworkManager {
    * display an explicit error message.
    *
    * @param address the address
-   * @param port the port
+   * @param port    the port
    */
   public void join(String address, int port) {
     // We check if the client isn't already connected
@@ -197,7 +213,9 @@ public class NetworkManager {
     this.join(address, DEFAULT_TCP_PORT);
   }
 
-  /** COMMAND quit: Leaves the server and returns to local mode. */
+  /**
+   * COMMAND quit: Leaves the server and returns to local mode.
+   */
   public void quit() {
     // We check if the client is connected before trying to disconnect it
     if (gameClient == null) {
@@ -310,10 +328,10 @@ public class NetworkManager {
   /**
    * COMMAND move PLAY: Plays a word on the board at the specified coordinates and direction.
    *
-   * @param x the x coordinate (column)
-   * @param y the y coordinate (row)
+   * @param x         the x coordinate (column)
+   * @param y         the y coordinate (row)
    * @param direction the direction (H for horizontal, V for vertical)
-   * @param tile the word to place on the board
+   * @param tile      the word to place on the board
    */
   public void play(int x, int y, String direction, String tile) {
     if (gameClient == null) {
@@ -336,7 +354,9 @@ public class NetworkManager {
     gameClient.sendExchangeMove(tiles);
   }
 
-  /** COMMAND move PASS: Skips the current player's turn. */
+  /**
+   * COMMAND move PASS: Skips the current player's turn.
+   */
   public void pass() {
     if (gameClient == null) {
       // System.err.println("User : Client is not connected, can't skip a turn");
@@ -345,7 +365,9 @@ public class NetworkManager {
     gameClient.sendPassMove();
   }
 
-  /** Get the local game client side. */
+  /**
+   * Get the local game client side.
+   */
   public Game getLocalGame() {
     if (gameClient == null) {
       return null;

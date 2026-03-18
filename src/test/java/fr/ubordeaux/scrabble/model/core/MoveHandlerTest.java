@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import fr.ubordeaux.scrabble.model.enums.Direction;
+import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.model.utils.Point;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -19,7 +20,7 @@ class MoveHandlerTest {
   @Test
   void handlePlayMoveShouldRejectFirstMoveNotCoveringCenter() {
     Game game = new Game();
-    HumanPlayer alice = new HumanPlayer("Alice");
+    HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
     game.addPlayer(alice);
     final MoveHandler handler = new MoveHandler(game);
 
@@ -33,7 +34,7 @@ class MoveHandlerTest {
   @Test
   void handlePlayMoveShouldAcceptMoveTouchingExistingTileByAdjacency() {
     Game game = new Game();
-    HumanPlayer alice = new HumanPlayer("Alice");
+    HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
     game.addPlayer(alice);
     final MoveHandler handler = new MoveHandler(game);
 
@@ -76,7 +77,7 @@ class MoveHandlerTest {
   @Test
   void handlePlayMoveShouldPlaceTilesScoreAndRefill() {
     Game game = new Game();
-    HumanPlayer alice = new HumanPlayer("Alice");
+    HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
     game.addPlayer(alice);
     MoveHandler handler = new MoveHandler(game);
 
@@ -96,7 +97,7 @@ class MoveHandlerTest {
   @Test
   void handlePlayMoveShouldRejectTileNotInRack() {
     Game game = new Game();
-    HumanPlayer alice = new HumanPlayer("Alice");
+    HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
     game.addPlayer(alice);
     MoveHandler handler = new MoveHandler(game);
 
@@ -110,7 +111,7 @@ class MoveHandlerTest {
   @Test
   void handlePlayMoveShouldRejectDisconnectedWordAfterFirstMove() {
     Game game = new Game();
-    HumanPlayer alice = new HumanPlayer("Alice");
+    HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
     game.addPlayer(alice);
     final MoveHandler handler = new MoveHandler(game);
 
@@ -127,7 +128,7 @@ class MoveHandlerTest {
   @Test
   void handlePlayMoveShouldRejectOutOfBoundsWord() {
     Game game = new Game();
-    HumanPlayer alice = new HumanPlayer("Alice");
+    HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
     game.addPlayer(alice);
     MoveHandler handler = new MoveHandler(game);
 
@@ -141,7 +142,7 @@ class MoveHandlerTest {
   @Test
   void exchangeMoveShouldValidateBagAndRackAndSucceed() {
     Game game = new Game();
-    HumanPlayer alice = new HumanPlayer("Alice");
+    HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
     game.addPlayer(alice);
     MoveHandler handler = new MoveHandler(game);
 
@@ -166,7 +167,7 @@ class MoveHandlerTest {
   @Test
   void revertMoveShouldHandlePassAndRestorePlayState() {
     Game game = new Game();
-    HumanPlayer alice = new HumanPlayer("Alice");
+    HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
     game.addPlayer(alice);
     MoveHandler handler = new MoveHandler(game);
 

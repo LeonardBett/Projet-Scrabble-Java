@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import fr.ubordeaux.scrabble.model.enums.Direction;
 import fr.ubordeaux.scrabble.model.enums.MoveType;
+import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.model.utils.Point;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +20,7 @@ class MoveTest {
    */
   @Test
   void createPassShouldBuildPassMove() {
-    HumanPlayer player = new HumanPlayer("Alice");
+    HumanPlayer player = new HumanPlayer("Alice", PlayerColor.BLUE);
     Move move = Move.createPass(player);
 
     assertEquals(player, move.getPlayer());
@@ -33,7 +34,7 @@ class MoveTest {
    */
   @Test
   void createExchangeShouldRejectEmptyTiles() {
-    HumanPlayer player = new HumanPlayer("Bob");
+    HumanPlayer player = new HumanPlayer("Bob", PlayerColor.BLUE);
 
     assertThrows(IllegalArgumentException.class, () -> Move.createExchange(player, List.of()));
     assertThrows(IllegalArgumentException.class, () -> Move.createExchange(player, null));
@@ -45,7 +46,7 @@ class MoveTest {
    */
   @Test
   void createPlayShouldValidateRequiredFields() {
-    HumanPlayer player = new HumanPlayer("Carol");
+    HumanPlayer player = new HumanPlayer("Carol", PlayerColor.BLUE);
     List<Tile> word = List.of(new Tile('C'));
 
     assertThrows(IllegalArgumentException.class,
@@ -62,7 +63,7 @@ class MoveTest {
    */
   @Test
   void moveShouldExposeUnmodifiableTilesAndDefensiveCopiesForPlacedData() {
-    HumanPlayer player = new HumanPlayer("Dan");
+    HumanPlayer player = new HumanPlayer("Dan", PlayerColor.BLUE);
     Move move =
         Move.createPlay(player, List.of(new Tile('D')), new Point(7, 7), Direction.HORIZONTAL);
 
@@ -86,7 +87,7 @@ class MoveTest {
    */
   @Test
   void scoreGainedShouldBeMutable() {
-    HumanPlayer player = new HumanPlayer("Eve");
+    HumanPlayer player = new HumanPlayer("Eve", PlayerColor.BLUE);
     Move move = Move.createPass(player);
 
     move.setScoreGained(42);

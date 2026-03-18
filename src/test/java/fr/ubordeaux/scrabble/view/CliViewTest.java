@@ -1,20 +1,12 @@
 package fr.ubordeaux.scrabble.view;
 
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 
 import fr.ubordeaux.scrabble.model.core.Game;
 import fr.ubordeaux.scrabble.model.core.HumanPlayer;
+import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.view.cli.CliView;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
@@ -30,8 +22,8 @@ class CliViewTest {
   @BeforeEach
   void setUp() {
     game = new Game();
-    game.addPlayer(new HumanPlayer("Alice"));
-    game.addPlayer(new HumanPlayer("Bob"));
+    game.addPlayer(new HumanPlayer("Alice", PlayerColor.BLUE));
+    game.addPlayer(new HumanPlayer("Bob", PlayerColor.RED));
     game.startGame();
     view = new CliView(game);
     out = new ByteArrayOutputStream();

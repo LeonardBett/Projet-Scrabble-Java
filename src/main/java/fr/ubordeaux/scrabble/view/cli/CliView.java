@@ -6,7 +6,7 @@ import fr.ubordeaux.scrabble.view.UserInterface;
 import fr.ubordeaux.scrabble.view.cli.renderer.BoardRenderer;
 import fr.ubordeaux.scrabble.view.cli.renderer.MessageRenderer;
 import fr.ubordeaux.scrabble.view.cli.renderer.PlayerRenderer;
-import fr.ubordeaux.scrabble.view.cli.renderer.RackRenderer; 
+import fr.ubordeaux.scrabble.view.cli.renderer.RackRenderer;
 
 /**
  * Full CLI view implementing UserInterface.
@@ -34,7 +34,7 @@ public class CliView implements UserInterface {
   /**
    * Creates a CliView with optional blitz mode.
    *
-   * @param game the game model to display
+   * @param game        the game model to display
    * @param isBlitzMode true to enable blitz mode (timed turns)
    */
   public CliView(Game game, boolean isBlitzMode) {

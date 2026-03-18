@@ -19,7 +19,7 @@ import java.util.Map;
 import java.util.Random;
 
 /**
- * Implements realistic Minimax and Expectiminimax algorithms for AI decision making. Performs deep
+ * Implements realistic Minimax and Expectiminimax algorithms for AI decision-making. Performs deep
  * simulation by generating opponent moves from sampled remaining tiles.
  */
 public class MinimaxSolver {
@@ -36,7 +36,7 @@ public class MinimaxSolver {
   /**
    * Constructs the solver with a specified depth and time limit.
    *
-   * @param maxDepth The depth of the search tree.
+   * @param maxDepth         The depth of the search tree.
    * @param timeLimitSeconds The thinking time limit allocated in seconds.
    */
   public MinimaxSolver(int maxDepth, int timeLimitSeconds) {
@@ -68,7 +68,7 @@ public class MinimaxSolver {
   /**
    * Finds the best possible move for the AI within the allocated time limit.
    *
-   * @param game The current game state.
+   * @param game   The current game state.
    * @param gaddag The Gaddag dictionary used to evaluate valid moves.
    * @return The best PlayableWord found, or null if no moves are possible.
    */
@@ -131,14 +131,14 @@ public class MinimaxSolver {
    * Executes the Expectiminimax algorithm through realistic Monte-Carlo simulation. Generates
    * probable racks and averages the best response.
    *
-   * @param board The current board state.
-   * @param unseen The list of letters not currently on the board or in the AI's rack.
-   * @param gaddag The Gaddag dictionary.
+   * @param board     The current board state.
+   * @param unseen    The list of letters not currently on the board or in the AI's rack.
+   * @param gaddag    The Gaddag dictionary.
    * @param startTime The timestamp when the move search began.
    * @return The average expected opponent score.
    */
   private double expectiminimax(Board board, List<Character> unseen, Gaddag gaddag,
-      long startTime) {
+                                long startTime) {
     double totalExpectedOpponentScore = 0.0;
     int samplesEvaluated = 0;
 
@@ -163,9 +163,9 @@ public class MinimaxSolver {
    * Executes the Minimax algorithm by evaluating the worst-case scenario. Among the drawn racks,
    * keeps the one that deals the highest damage.
    *
-   * @param board The current board state.
-   * @param unseen The list of letters not currently on the board or in the AI's rack.
-   * @param gaddag The Gaddag dictionary.
+   * @param board     The current board state.
+   * @param unseen    The list of letters not currently on the board or in the AI's rack.
+   * @param gaddag    The Gaddag dictionary.
    * @param startTime The timestamp when the move search began.
    * @return The highest possible opponent score from the simulated samples.
    */
@@ -189,8 +189,8 @@ public class MinimaxSolver {
   /**
    * Finds the maximum possible score for a simulated rack on the current board.
    *
-   * @param board The current board state.
-   * @param rack The simulated opponent rack.
+   * @param board  The current board state.
+   * @param rack   The simulated opponent rack.
    * @param gaddag The Gaddag dictionary.
    * @return The maximum score achieved by the best move.
    */
@@ -254,7 +254,7 @@ public class MinimaxSolver {
    * Draws a specified number of random letters from the unseen list.
    *
    * @param unseen The list of available unseen characters.
-   * @param size The number of characters to draw.
+   * @param size   The number of characters to draw.
    * @return An array of drawn characters representing a simulated rack.
    */
   private Character[] drawRandomRack(List<Character> unseen, int size) {
@@ -273,7 +273,7 @@ public class MinimaxSolver {
    * Simulates a move on the board and calculates its point value.
    *
    * @param board The current board.
-   * @param move The word to be played.
+   * @param move  The word to be played.
    * @return The score calculated for the simulated move.
    */
   private int simulateAndScoreWord(Board board, PlayableWord move) {
@@ -306,7 +306,7 @@ public class MinimaxSolver {
    * Temporarily places a word on the board for simulation purposes.
    *
    * @param board The current board.
-   * @param move The word to place.
+   * @param move  The word to place.
    * @return A list of the squares that were newly modified.
    */
   private List<Square> placeWordTemporarily(Board board, PlayableWord move) {
@@ -345,7 +345,7 @@ public class MinimaxSolver {
    * Retrieves the starting X coordinate for a PlayableWord.
    *
    * @param board The current board.
-   * @param move The move to process.
+   * @param move  The move to process.
    * @return The starting X index.
    */
   private int getStartX(Board board, PlayableWord move) {
@@ -358,7 +358,7 @@ public class MinimaxSolver {
    * Retrieves the starting Y coordinate for a PlayableWord.
    *
    * @param board The current board.
-   * @param move The move to process.
+   * @param move  The move to process.
    * @return The starting Y index.
    */
   private int getStartY(Board board, PlayableWord move) {

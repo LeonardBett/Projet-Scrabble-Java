@@ -13,7 +13,8 @@ public class StandardBoardFactory {
   /**
    * Private constructor to prevent instantiation of this utility class.
    */
-  private StandardBoardFactory() {}
+  private StandardBoardFactory() {
+  }
 
   /**
    * Creates a fully initialized Board with the standard Scrabble layout.

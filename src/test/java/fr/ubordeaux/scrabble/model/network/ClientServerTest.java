@@ -234,9 +234,11 @@ class ClientServerTest {
     }
 
     @Override
-    public void gameEndedUpdate(String reason) {}
+    public void gameEndedUpdate(String reason) {
+    }
 
     @Override
-    public void serverListUpdate(List<ServerInfo> activeServers) {}
+    public void serverListUpdate(List<ServerInfo> activeServers) {
+    }
   }
 }

@@ -188,10 +188,10 @@ public class BoardPanel extends VBox {
   /**
    * Places a tile visually on a cell (pending placement, not yet validated).
    *
-   * @param row the row index
-   * @param col the column index
+   * @param row    the row index
+   * @param col    the column index
    * @param letter the letter to display
-   * @param value the tile point value (unused visually, kept for API consistency)
+   * @param value  the tile point value (unused visually, kept for API consistency)
    */
   public void placeTile(int row, int col, char letter, int value) {
     if (row < 0 || row >= GRID_SIZE || col < 0 || col >= GRID_SIZE) {

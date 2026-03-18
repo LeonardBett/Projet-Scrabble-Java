@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import fr.ubordeaux.scrabble.model.core.HumanPlayer;
 import fr.ubordeaux.scrabble.model.core.Move;
 import fr.ubordeaux.scrabble.model.core.Tile;
+import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
 import fr.ubordeaux.scrabble.view.cli.CliInputHandler;
 import java.io.ByteArrayInputStream;
@@ -119,7 +120,7 @@ class CliInputHandlerTest {
 
   @Test
   void askExchangeMoveWithValidLettersShouldReturnMove() {
-    Player player = new HumanPlayer("Alice");
+    Player player = new HumanPlayer("Alice", PlayerColor.BLUE);
     player.getRack().addTile(new Tile('A'));
     player.getRack().addTile(new Tile('B'));
 
@@ -136,7 +137,7 @@ class CliInputHandlerTest {
 
   @Test
   void askExchangeMoveWithInvalidLetterShouldReturnNull() {
-    Player player = new HumanPlayer("Alice");
+    Player player = new HumanPlayer("Alice", PlayerColor.BLUE);
     player.getRack().addTile(new Tile('A'));
 
     CliInputHandler handler = handlerWithInput("Z\n");
@@ -152,7 +153,7 @@ class CliInputHandlerTest {
 
   @Test
   void askPlayMoveWithValidInputShouldReturnMove() {
-    Player player = new HumanPlayer("Alice");
+    Player player = new HumanPlayer("Alice", PlayerColor.BLUE);
     player.getRack().addTile(new Tile('H'));
     player.getRack().addTile(new Tile('I'));
 
@@ -170,7 +171,7 @@ class CliInputHandlerTest {
 
   @Test
   void askPlayMoveWithMissingLetterInRackShouldReturnNull() {
-    Player player = new HumanPlayer("Alice");
+    Player player = new HumanPlayer("Alice", PlayerColor.BLUE);
     player.getRack().addTile(new Tile('A'));
 
     // tries to play Z which is not in rack

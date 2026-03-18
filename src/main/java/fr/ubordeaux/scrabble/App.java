@@ -4,6 +4,8 @@ import fr.ubordeaux.scrabble.view.optionlancement.CliLauncher;
 import fr.ubordeaux.scrabble.view.optionlancement.GuiLauncher;
 import fr.ubordeaux.scrabble.view.optionlancement.HelpPrinter;
 import fr.ubordeaux.scrabble.view.optionlancement.OptionPlayer;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Main entry point of the application. Parses command-line arguments and launches the appropriate
@@ -25,6 +27,9 @@ public class App {
     boolean useMl = false;
     String lang = "en";
 
+    // List to store the colors of players that should be controlled by AI
+    List<String> aiColors = new ArrayList<>();
+
     for (int i = 0; i < args.length; i++) {
       switch (args[i]) {
         case "-h", "--help" -> HelpPrinter.printHelp();
@@ -33,6 +38,13 @@ public class App {
         case "-b", "--blitz" -> blitzMode = true;
         case "-ai-exptiminimax", "--ai-exptiminimax" -> useExptiminimax = true;
         case "--ai-ml" -> useMl = true;
+        case "-a", "--ai" -> {
+          if (i + 1 >= args.length) {
+            System.err.println("'-a' attend une couleur (ex: -a BLUE).");
+            System.exit(1);
+          }
+          aiColors.add(args[++i].toUpperCase());
+        }
         case "-p", "--players" -> {
           if (i + 1 >= args.length) {
             System.err.println("'-p' attend un nombre (ex: -p 3).");
@@ -73,7 +85,7 @@ public class App {
     if (guiMode) {
       GuiLauncher.launch(args, players);
     } else {
-      CliLauncher.launch(players);
+      CliLauncher.launch(players, aiColors);
     }
   }
 }

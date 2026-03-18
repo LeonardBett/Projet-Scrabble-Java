@@ -76,9 +76,9 @@ public class ScorePanel extends VBox {
   public void updateBagInfo(int remainingTiles) {
     bagInfoLabel.setText("Lettres restantes : " + remainingTiles);
   }
- 
+
   /**
-   * Met en évidence le joueur dont c'est actuellement le tour. 
+   * Met en évidence le joueur dont c'est actuellement le tour.
    *
    * @param playerIndex index du joueur dans la liste
    * @param playerName  nom du joueur courant

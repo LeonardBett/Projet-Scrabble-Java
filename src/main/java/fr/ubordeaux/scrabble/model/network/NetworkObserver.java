@@ -10,7 +10,10 @@ import java.util.Map;
 public interface NetworkObserver {
 
   // -----Local model update-----
-  /** Call when the local model of the client is modified. */
+
+  /**
+   * Call when the local model of the client is modified.
+   */
   void localModelUpdate();
 
   /**
@@ -21,6 +24,7 @@ public interface NetworkObserver {
   void gameEndedUpdate(String reason);
 
   // -----Server commands update-----
+
   /**
    * Call when the server status command response is received.
    *
@@ -52,6 +56,7 @@ public interface NetworkObserver {
   void serverListUpdate(List<ServerInfo> activeServers);
 
   // -----Other update-----
+
   /**
    * Call when we receive a generic message from the server.
    *

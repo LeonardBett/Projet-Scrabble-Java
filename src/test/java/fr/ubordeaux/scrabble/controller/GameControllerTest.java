@@ -14,6 +14,7 @@ import fr.ubordeaux.scrabble.model.core.Move;
 import fr.ubordeaux.scrabble.model.core.Tile;
 import fr.ubordeaux.scrabble.model.dictionary.Gaddag;
 import fr.ubordeaux.scrabble.model.enums.Direction;
+import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.model.utils.Point;
 import fr.ubordeaux.scrabble.view.UserInterface;
 import fr.ubordeaux.scrabble.view.cli.CliView;
@@ -49,8 +50,8 @@ class GameControllerTest {
   @Test
   void startGameShouldInitializePlayers() {
     Game game = new Game();
-    HumanPlayer alice = new HumanPlayer("Alice");
-    HumanPlayer bob = new HumanPlayer("Bob");
+    HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
+    HumanPlayer bob = new HumanPlayer("Bob", PlayerColor.RED);
     game.addPlayer(alice);
     game.addPlayer(bob);
 
@@ -64,7 +65,7 @@ class GameControllerTest {
   @Test
   void handlePlayerMoveShouldIgnoreNullMove() {
     Game game = new Game();
-    HumanPlayer alice = new HumanPlayer("Alice");
+    HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
     game.addPlayer(alice);
 
     RecordingView view = new RecordingView();
@@ -77,7 +78,7 @@ class GameControllerTest {
   @Test
   void handlePlayerMoveShouldExecutePassAndRefresh() {
     Game game = new Game();
-    HumanPlayer alice = new HumanPlayer("Alice");
+    HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
     game.addPlayer(alice);
 
     RecordingView view = new RecordingView();
@@ -91,7 +92,7 @@ class GameControllerTest {
   @Test
   void handlePlayerMoveShouldRejectInvalidPerpendicularWord() throws Exception {
     Game game = new Game();
-    HumanPlayer alice = new HumanPlayer("Alice");
+    HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
     game.addPlayer(alice);
     game.setFirstMoveDone(true);
 
@@ -117,8 +118,8 @@ class GameControllerTest {
   @Test
   void handlePlayerMoveShouldWrapModelErrors() {
     Game game = new Game();
-    HumanPlayer alice = new HumanPlayer("Alice");
-    HumanPlayer bob = new HumanPlayer("Bob");
+    HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
+    HumanPlayer bob = new HumanPlayer("Bob", PlayerColor.RED);
     game.addPlayer(alice);
     game.addPlayer(bob);
 
@@ -132,7 +133,7 @@ class GameControllerTest {
   @Test
   void handlePlayerMoveShouldLoadDictionaryWhenMissing() {
     Game game = new Game();
-    HumanPlayer alice = new HumanPlayer("Alice");
+    HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
     game.addPlayer(alice);
 
     alice.getRack().setTiles(
@@ -157,7 +158,7 @@ class GameControllerTest {
     RecordingView view = new RecordingView();
     GameController controller = new GameController(game, view);
 
-    HumanPlayer alice = new HumanPlayer("Alice");
+    HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
     controller.addPlayer(alice);
 
     assertEquals(1, game.getPlayers().size());
@@ -173,8 +174,8 @@ class GameControllerTest {
   @Test
   void runCliShouldRequireCliView() {
     Game game = new Game();
-    game.addPlayer(new HumanPlayer("Alice"));
-    game.addPlayer(new HumanPlayer("Bob"));
+    game.addPlayer(new HumanPlayer("Alice", PlayerColor.BLUE));
+    game.addPlayer(new HumanPlayer("Bob", PlayerColor.RED));
 
     GameController controller = new GameController(game, new RecordingView());
     assertThrows(IllegalStateException.class, controller::runCli);
@@ -183,8 +184,8 @@ class GameControllerTest {
   @Test
   void runCliShouldQuitFromMenu() throws Exception {
     Game game = new Game();
-    game.addPlayer(new HumanPlayer("Alice"));
-    game.addPlayer(new HumanPlayer("Bob"));
+    game.addPlayer(new HumanPlayer("Alice", PlayerColor.BLUE));
+    game.addPlayer(new HumanPlayer("Bob", PlayerColor.RED));
 
     CliView view = new CliView(game);
     GameController controller = new GameController(game, view);
@@ -198,8 +199,8 @@ class GameControllerTest {
   @Test
   void runCliShouldHandleInvalidActionThenQuit() throws Exception {
     Game game = new Game();
-    game.addPlayer(new HumanPlayer("Alice"));
-    game.addPlayer(new HumanPlayer("Bob"));
+    game.addPlayer(new HumanPlayer("Alice", PlayerColor.BLUE));
+    game.addPlayer(new HumanPlayer("Bob", PlayerColor.RED));
 
     CliView view = new CliView(game);
     GameController controller = new GameController(game, view);
@@ -211,8 +212,8 @@ class GameControllerTest {
   @Test
   void runCliShouldHandleAllHumanActionsThenQuit() throws Exception {
     Game game = new Game();
-    HumanPlayer alice = new HumanPlayer("Alice");
-    HumanPlayer bob = new HumanPlayer("Bob");
+    HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
+    HumanPlayer bob = new HumanPlayer("Bob", PlayerColor.RED);
     game.addPlayer(alice);
     game.addPlayer(bob);
 
@@ -234,8 +235,8 @@ class GameControllerTest {
   @Test
   void runCliShouldPlayValidWordThenQuit() throws Exception {
     Game game = new Game();
-    HumanPlayer alice = new HumanPlayer("Alice");
-    HumanPlayer bob = new HumanPlayer("Bob");
+    HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
+    HumanPlayer bob = new HumanPlayer("Bob", PlayerColor.RED);
     game.addPlayer(alice);
     game.addPlayer(bob);
 
@@ -254,8 +255,8 @@ class GameControllerTest {
   @Test
   void runCliShouldHandleInvalidPlayMoveAfterParsing() throws Exception {
     Game game = new Game();
-    HumanPlayer alice = new HumanPlayer("Alice");
-    HumanPlayer bob = new HumanPlayer("Bob");
+    HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
+    HumanPlayer bob = new HumanPlayer("Bob", PlayerColor.RED);
     game.addPlayer(alice);
     game.addPlayer(bob);
 
@@ -275,8 +276,8 @@ class GameControllerTest {
   @Test
   void runCliShouldExchangeTilesSuccessfully() throws Exception {
     Game game = new Game();
-    HumanPlayer alice = new HumanPlayer("Alice");
-    HumanPlayer bob = new HumanPlayer("Bob");
+    HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
+    HumanPlayer bob = new HumanPlayer("Bob", PlayerColor.RED);
     game.addPlayer(alice);
     game.addPlayer(bob);
 
@@ -295,8 +296,8 @@ class GameControllerTest {
   @Test
   void runCliShouldHandleExchangeFailureWhenBagTooSmall() throws Exception {
     Game game = new Game();
-    HumanPlayer alice = new HumanPlayer("Alice");
-    HumanPlayer bob = new HumanPlayer("Bob");
+    HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
+    HumanPlayer bob = new HumanPlayer("Bob", PlayerColor.RED);
     game.addPlayer(alice);
     game.addPlayer(bob);
 
@@ -319,8 +320,8 @@ class GameControllerTest {
   @Test
   void runCliShouldHandleQuitConfirmationNoThenYes() throws Exception {
     Game game = new Game();
-    game.addPlayer(new HumanPlayer("Alice"));
-    game.addPlayer(new HumanPlayer("Bob"));
+    game.addPlayer(new HumanPlayer("Alice", PlayerColor.BLUE));
+    game.addPlayer(new HumanPlayer("Bob", PlayerColor.RED));
 
     CliView view = new CliView(game);
     GameController controller = new GameController(game, view);
@@ -351,7 +352,7 @@ class GameControllerTest {
   void runCliShouldHandleAiTurnFailureAndContinue() throws Exception {
     Game game = new Game();
     AiPlayer failing = new FailingAiPlayer("IA-crash");
-    HumanPlayer bob = new HumanPlayer("Bob");
+    HumanPlayer bob = new HumanPlayer("Bob", PlayerColor.BLUE);
     game.addPlayer(failing);
     game.addPlayer(bob);
 
@@ -368,7 +369,7 @@ class GameControllerTest {
   void runCliShouldHandleAiTurnSuccessThenContinue() throws Exception {
     Game game = new Game();
     AiPlayer passing = new PassingAiPlayer("IA-pass");
-    HumanPlayer bob = new HumanPlayer("Bob");
+    HumanPlayer bob = new HumanPlayer("Bob", PlayerColor.BLUE);
     game.addPlayer(passing);
     game.addPlayer(bob);
 
@@ -427,18 +428,21 @@ class GameControllerTest {
     }
 
     @Override
-    public void displayMessage(String message) {}
+    public void displayMessage(String message) {
+    }
 
     @Override
-    public void displayError(String error) {}
+    public void displayError(String error) {
+    }
 
     @Override
-    public void displaySuccess(String message) {}
+    public void displaySuccess(String message) {
+    }
   }
 
   private static final class FailingAiPlayer extends AiPlayer {
     FailingAiPlayer(String name) {
-      super(name, 1, 5);
+      super(name, 1, 5, PlayerColor.BLUE);
     }
 
     @Override
@@ -449,7 +453,7 @@ class GameControllerTest {
 
   private static final class PassingAiPlayer extends AiPlayer {
     PassingAiPlayer(String name) {
-      super(name, 1, 5);
+      super(name, 1, 5, PlayerColor.RED);
     }
 
     @Override

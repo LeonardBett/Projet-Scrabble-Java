@@ -1,12 +1,16 @@
 package fr.ubordeaux.scrabble.model.network.server;
 
-/** Store data of server, use for the Map of active server of DiscoveryService. */
+/**
+ * Store data of server, use for the Map of active server of DiscoveryService.
+ */
 public class ServerInfo {
   private final String ip;
   private final int port;
   private final String name;
 
-  /** The constant SERVER_TIMEOUT. */
+  /**
+   * The constant SERVER_TIMEOUT.
+   */
   // The timeout of this server in ms
   public static final int SERVER_TIMEOUT = 30000;
 
@@ -16,7 +20,7 @@ public class ServerInfo {
   /**
    * Instantiates a new Server info.
    *
-   * @param ip the ip
+   * @param ip   the ip
    * @param port the port
    * @param name the name
    */
@@ -27,7 +31,9 @@ public class ServerInfo {
     this.lastSeen = System.currentTimeMillis();
   }
 
-  /** Update last seen of this server. */
+  /**
+   * Update last seen of this server.
+   */
   public void updateLastSeen() {
     this.lastSeen = System.currentTimeMillis();
   }

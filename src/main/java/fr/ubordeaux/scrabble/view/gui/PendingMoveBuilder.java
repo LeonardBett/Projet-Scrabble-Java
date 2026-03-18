@@ -14,7 +14,8 @@ import java.util.Map;
  */
 public class PendingMoveBuilder {
 
-  private PendingMoveBuilder() {}
+  private PendingMoveBuilder() {
+  }
 
   /**
    * Builds a Move from the pending tiles, or returns null if the tiles are not aligned (which the

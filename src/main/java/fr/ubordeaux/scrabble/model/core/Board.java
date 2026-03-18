@@ -8,7 +8,9 @@ import fr.ubordeaux.scrabble.model.utils.Point;
  * (bonuses).
  */
 public class Board {
-  /** Official board side length (15x15). */
+  /**
+   * Official board side length (15x15).
+   */
   public static final int SIZE = 15;
   private Square[][] board;
 

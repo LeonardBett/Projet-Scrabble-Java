@@ -1,7 +1,7 @@
 package fr.ubordeaux.scrabble.view.cli.renderer;
 
 import fr.ubordeaux.scrabble.model.interfaces.Player;
-import java.util.List;  
+import java.util.List;
 
 /**
  * Responsible for rendering player information.
@@ -31,7 +31,7 @@ public class PlayerRenderer {
   }
 
   /**
-   * Affiche le nom du joueur dont c'est le tour, avec son temps si le mode blitz est actif. 
+   * Affiche le nom du joueur dont c'est le tour, avec son temps si le mode blitz est actif.
    *
    * @param player le joueur courant
    */

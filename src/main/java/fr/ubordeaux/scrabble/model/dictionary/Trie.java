@@ -145,8 +145,8 @@ public class Trie {
   /**
    * Recursively traverses the trie nodes to collect all finite words.
    *
-   * @param word the accumulated string from previous nodes.
-   * @param cur the current node being explored.
+   * @param word  the accumulated string from previous nodes.
+   * @param cur   the current node being explored.
    * @param words the collection being populated with found words.
    */
   private void dig(String word, Node cur, ArrayList<String> words) {

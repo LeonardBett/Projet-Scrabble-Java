@@ -1,6 +1,8 @@
 package fr.ubordeaux.scrabble.model.enums;
 
-/** Enum representing the different types of squares on the board (multipliers). */
+/**
+ * Enum representing the different types of squares on the board (multipliers).
+ */
 public enum SquareType {
   NORMAL(1, 1),
   DOUBLE_LETTER(2, 1),

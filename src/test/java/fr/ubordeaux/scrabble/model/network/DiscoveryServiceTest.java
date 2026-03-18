@@ -80,22 +80,28 @@ class DiscoveryServiceTest {
       }
 
       @Override
-      public void localModelUpdate() {}
+      public void localModelUpdate() {
+      }
 
       @Override
-      public void gameEndedUpdate(String r) {}
+      public void gameEndedUpdate(String r) {
+      }
 
       @Override
-      public void serverStatusUpdate(java.util.Map<String, String> i) {}
+      public void serverStatusUpdate(java.util.Map<String, String> i) {
+      }
 
       @Override
-      public void playersUpdate(java.util.List<java.util.Map<String, String>> p) {}
+      public void playersUpdate(java.util.List<java.util.Map<String, String>> p) {
+      }
 
       @Override
-      public void scoreboardUpdate(java.util.List<java.util.Map<String, String>> s) {}
+      public void scoreboardUpdate(java.util.List<java.util.Map<String, String>> s) {
+      }
 
       @Override
-      public void messageUpdate(String m) {}
+      public void messageUpdate(String m) {
+      }
     };
 
     discoveryService.addObserver(observer);

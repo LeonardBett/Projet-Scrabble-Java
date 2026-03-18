@@ -28,8 +28,8 @@ public class MoveHandler {
    * existing tiles on the board (prefix and suffix) combined with new tiles.
    *
    * @param startPosition Starting position of the word.
-   * @param direction Direction of the word (HORIZONTAL or VERTICAL).
-   * @param tiles Tiles to be placed.
+   * @param direction     Direction of the word (HORIZONTAL or VERTICAL).
+   * @param tiles         Tiles to be placed.
    * @return The complete word as a String (including existing tiles from the board).
    */
   public String getCompleteWord(Point startPosition, Direction direction, List<Tile> tiles) {
@@ -42,8 +42,8 @@ public class MoveHandler {
    * first, followed by any perpendicular words created.
    *
    * @param startPosition starting position of the move.
-   * @param direction direction of the move.
-   * @param tiles tiles to be placed.
+   * @param direction     direction of the move.
+   * @param tiles         tiles to be placed.
    * @return ordered list of formed words.
    */
   public List<String> getFormedWords(Point startPosition, Direction direction, List<Tile> tiles) {
@@ -71,7 +71,7 @@ public class MoveHandler {
   }
 
   private String buildWord(List<Square> wordSquares, List<Square> newlyPlacedSquares,
-      List<Tile> newlyPlacedTiles) {
+                           List<Tile> newlyPlacedTiles) {
     StringBuilder word = new StringBuilder();
     for (Square square : wordSquares) {
       if (!square.isEmpty()) {
@@ -309,8 +309,9 @@ public class MoveHandler {
    * invalid placements.
    */
   private void buildWordForMove(Point startPosition, Direction direction, List<Tile> tiles,
-      List<Square> wordSquares, List<Point> wordPositions, List<Square> newlyPlacedSquares,
-      List<Point> newlyPlacedPositions, List<Tile> newlyPlacedTiles) {
+                                List<Square> wordSquares, List<Point> wordPositions,
+                                List<Square> newlyPlacedSquares,
+                                List<Point> newlyPlacedPositions, List<Tile> newlyPlacedTiles) {
 
     int x = startPosition.getX();
     int y = startPosition.getY();

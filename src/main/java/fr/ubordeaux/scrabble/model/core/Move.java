@@ -35,7 +35,7 @@ public class Move {
    * Private constructor. Use factory methods to create instances.
    */
   private Move(Player player, MoveType type, List<Tile> tiles, Point startPosition,
-      Direction direction) {
+               Direction direction) {
     this.player = Objects.requireNonNull(player, "Player cannot be null");
     this.type = Objects.requireNonNull(type, "MoveType cannot be null");
     this.tiles = tiles != null ? new ArrayList<>(tiles) : Collections.emptyList();
@@ -60,7 +60,7 @@ public class Move {
    * Creates an EXCHANGE move.
    *
    * @param player player performing the exchange.
-   * @param tiles tiles to return to the bag.
+   * @param tiles  tiles to return to the bag.
    * @return immutable exchange move.
    */
   public static Move createExchange(Player player, List<Tile> tiles) {
@@ -73,15 +73,15 @@ public class Move {
   /**
    * Creates a PLAY move (placing a word).
    *
-   * @param player player performing the play.
-   * @param word The list of tiles forming the word (including existing ones or just new ones,
-   *        depending on engine logic).
+   * @param player        player performing the play.
+   * @param word          The list of tiles forming the word (including existing ones,
+   *                      or just new ones, depending on engine logic).
    * @param startPosition first target square for the play.
-   * @param direction play direction.
+   * @param direction     play direction.
    * @return immutable play move.
    */
   public static Move createPlay(Player player, List<Tile> word, Point startPosition,
-      Direction direction) {
+                                Direction direction) {
     if (word == null || word.isEmpty()) {
       throw new IllegalArgumentException("Word cannot be empty");
     }
