@@ -19,6 +19,7 @@ public class GuiLauncher {
   private GuiLauncher() {}
 
   /**
+<<<<<<< HEAD
    * Starts the game in GUI mode with the given configuration.
    * 
    * <p>Uses {@code players} if provided via {@code -p}, otherwise defaults to 2. 
@@ -40,6 +41,19 @@ public class GuiLauncher {
     Game game = new Game();
     if (blitzMode) {
       game.enableBlitzMode(Duration.ofMinutes(blitzMinutes));
+=======
+   * Starts the game in GUI mode. Uses {@code players} if provided via {@code -p}, otherwise
+   * defaults to 2 players.
+   *
+   * @param args the command-line arguments passed to JavaFX
+   * @param players the number of players (0 = use default of 2)
+   */
+  public static void launch(String[] args, int players) {
+    int count = players > 0 ? players : OptionPlayer.DEFAULT;
+    Game game = new Game();
+    for (int i = 1; i <= count; i++) {
+      game.addPlayer(new HumanPlayer("Joueur" + i));
+>>>>>>> 615b204 (fix bug)
     }
     int humanCount = 1;
     for (int i = 1; i <= count; i++) {
@@ -63,6 +77,7 @@ public class GuiLauncher {
     ScrabbleGui.setView(view);
     Application.launch(ScrabbleGui.class, args);
   }
+<<<<<<< HEAD
 
   /**
    * Starts the game in GUI mode without blitz mode.
@@ -74,3 +89,6 @@ public class GuiLauncher {
     launch(args, players, List.of(), false, 30, 5, false, false, "en");
   }
 }
+=======
+}
+>>>>>>> 615b204 (fix bug)

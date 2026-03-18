@@ -23,7 +23,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashMap;
+<<<<<<< HEAD
 import java.util.HashMap;
+=======
+>>>>>>> 615b204 (fix bug)
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -410,15 +413,24 @@ public class ScrabbleGui extends Application {
       loadDictionary();
     }
     for (int i = 1; i <= count; i++) {
+<<<<<<< HEAD
       PlayerColor color = PlayerColor.fromIndex(i - 1);
       gameInstance.addPlayer(new HumanPlayer("Joueur" + i, color));
+=======
+      gameInstance.addPlayer(new HumanPlayer("Joueur" + i));
+>>>>>>> 615b204 (fix bug)
     }
 
     viewInstance = new JavaFxView(gameInstance);
     viewInstance.setGui(this);
     controller = new GameController(gameInstance, viewInstance);
 
+<<<<<<< HEAD
     setGameplayControlsDisabled(false);
+=======
+    controlPanel.getUndoButton().setDisable(false);
+    controlPanel.getRedoButton().setDisable(false);
+>>>>>>> 615b204 (fix bug)
 
     boardPanel.clearAllPending();
     pendingTiles.clear();
@@ -426,15 +438,19 @@ public class ScrabbleGui extends Application {
 
     // Démarrer la partie AVANT de rafraîchir l'affichage
     controller.startGame();
+<<<<<<< HEAD
     if (gameInstance.isBlitzModeEnabled()) {
       scorePanel.startBlitzTimers(gameInstance.getPlayers(), this::onBlitzTimeExpired);
     } else {
       scorePanel.stopBlitzTimers();
     }
+=======
+>>>>>>> 615b204 (fix bug)
     refreshAll();
   }
 
   /**
+<<<<<<< HEAD
    * Called when a player's blitz time has expired.
    * Ends the game and notifies the players.
    */
@@ -451,6 +467,8 @@ public class ScrabbleGui extends Application {
   }
 
   /**
+=======
+>>>>>>> 615b204 (fix bug)
    * Refreshes all GUI panels: board, rack, scores, and checks if it is the AI's turn.
    */
   public void refreshAll() {

@@ -29,8 +29,13 @@ import javafx.stage.Stage;
 /**
  * Fenetre de lobby reseau (JavaFX) pour heberger et rejoindre des parties en ligne.
  *
+<<<<<<< HEAD
  * <p>Les serveurs sont decouverts automatiquement via UDP. Le bouton "Lancer la partie" est visible
  * uniquement pour l'hote et s'active quand au moins 2 joueurs sont connectes.
+=======
+ * <p>Les serveurs sont decouverts automatiquement via UDP. Le bouton "Lancer la partie"
+ * est visible uniquement pour l'hote et s'active quand au moins 2 joueurs sont connectes.
+>>>>>>> 615b204 (fix bug)
  */
 public class NetworkLobbyView extends Stage {
 
@@ -133,10 +138,16 @@ public class NetworkLobbyView extends Stage {
     content.setPadding(new Insets(20));
     content.setStyle("-fx-background-color: #243447;");
 
+<<<<<<< HEAD
     Label desc =
         styledLabel(
             "Démarrez un serveur. Les joueurs sur le réseau local vous verront automatiquement.",
             Color.LIGHTGRAY);
+=======
+    Label desc = styledLabel(
+        "Démarrez un serveur. Les joueurs sur le réseau local vous verront automatiquement.",
+        Color.LIGHTGRAY);
+>>>>>>> 615b204 (fix bug)
     desc.setWrapText(true);
 
     HBox portRow = new HBox(10);
@@ -160,11 +171,17 @@ public class NetworkLobbyView extends Stage {
     startGameButton.setOnAction(e -> onStartGame());
 
     // Liste des joueurs dans le lobby (mis à jour auto)
+<<<<<<< HEAD
     final Label playersTitle = styledLabel("Joueurs connectés au salon :", Color.WHITE, 13, true);
+=======
+    final Label playersTitle =
+        styledLabel("Joueurs connectés au salon :", Color.WHITE, 13, true);
+>>>>>>> 615b204 (fix bug)
     lobbyPlayerListView = new ListView<>();
     lobbyPlayerListView.setPrefHeight(130);
     lobbyPlayerListView.setStyle("-fx-control-inner-background: #1a2a3a; -fx-text-fill: white;");
 
+<<<<<<< HEAD
     content
         .getChildren()
         .addAll(
@@ -178,6 +195,12 @@ public class NetworkLobbyView extends Stage {
             playersTitle,
             lobbyPlayerListView,
             startGameButton);
+=======
+    content.getChildren().addAll(
+        styledLabel("Héberger une partie", Color.WHITE, 15, true),
+        desc, portRow, startServerButton, stopServerButton, serverStatusLabel,
+        new Separator(), playersTitle, lobbyPlayerListView, startGameButton);
+>>>>>>> 615b204 (fix bug)
 
     tab.setContent(content);
     return tab;
@@ -221,6 +244,7 @@ public class NetworkLobbyView extends Stage {
         styledLabel("Serveurs détectés automatiquement :", Color.WHITE, 13, true);
     final Label manualTitle = styledLabel("Ou connexion manuelle :", Color.WHITE, 13, true);
 
+<<<<<<< HEAD
     content
         .getChildren()
         .addAll(
@@ -232,6 +256,11 @@ public class NetworkLobbyView extends Stage {
             ipRow,
             connectButton,
             disconnectButton);
+=======
+    content.getChildren().addAll(
+        autoTitle, serverListView, joinSelectedButton,
+        new Separator(), manualTitle, ipRow, connectButton, disconnectButton);
+>>>>>>> 615b204 (fix bug)
 
     tab.setContent(content);
     return tab;
@@ -250,7 +279,12 @@ public class NetworkLobbyView extends Stage {
     playersListView.setPrefHeight(150);
     playersListView.setStyle("-fx-control-inner-background: #1a2a3a; -fx-text-fill: white;");
 
+<<<<<<< HEAD
     Label waitLabel = styledLabel("En attente que l'hôte lance la partie...", Color.LIGHTGRAY);
+=======
+    Label waitLabel = styledLabel(
+        "En attente que l'hôte lance la partie...", Color.LIGHTGRAY);
+>>>>>>> 615b204 (fix bug)
     waitLabel.setWrapText(true);
 
     scoreboardListView = new ListView<>();
@@ -263,6 +297,7 @@ public class NetworkLobbyView extends Stage {
     final Label playersTitle = styledLabel("Joueurs connectés :", Color.WHITE, 13, true);
     final Label sbTitle = styledLabel("Classement du serveur :", Color.WHITE, 13, true);
 
+<<<<<<< HEAD
     content
         .getChildren()
         .addAll(
@@ -273,6 +308,11 @@ public class NetworkLobbyView extends Stage {
             sbTitle,
             scoreboardListView,
             refreshScoreboardButton);
+=======
+    content.getChildren().addAll(
+        playersTitle, playersListView, waitLabel,
+        new Separator(), sbTitle, scoreboardListView, refreshScoreboardButton);
+>>>>>>> 615b204 (fix bug)
 
     tab.setContent(content);
     return tab;
@@ -289,8 +329,11 @@ public class NetworkLobbyView extends Stage {
       serverStatusLabel.setText("● Serveur en écoute sur le port " + port);
       serverStatusLabel.setTextFill(Color.LIMEGREEN);
       log("Serveur démarré sur le port " + port);
+<<<<<<< HEAD
       doConnect("127.0.0.1", port);
 
+=======
+>>>>>>> 615b204 (fix bug)
       updateButtonStates();
     } catch (NumberFormatException ex) {
       log("❌ Port invalide : " + portField.getText());
@@ -309,8 +352,13 @@ public class NetworkLobbyView extends Stage {
   }
 
   /**
+<<<<<<< HEAD
    * Called by the host to start the game with all currently connected players. Sends NEW commands
    * targeting each connected player ID.
+=======
+   * Called by the host to start the game with all currently connected players.
+   * Sends NEW commands targeting each connected player ID.
+>>>>>>> 615b204 (fix bug)
    */
   private void onStartGame() {
     bridge.requestGameStart();
@@ -382,9 +430,15 @@ public class NetworkLobbyView extends Stage {
   }
 
   /**
+<<<<<<< HEAD
    * Called when the player list is received from the server. Updates both the host lobby list and
    * the client salon list. If the host has >= 2 players, activates the start button and
    * auto-launches.
+=======
+   * Called when the player list is received from the server.
+   * Updates both the host lobby list and the client salon list.
+   * If the host has >= 2 players, activates the start button and auto-launches.
+>>>>>>> 615b204 (fix bug)
    *
    * @param players the list of player info maps
    */
@@ -441,6 +495,7 @@ public class NetworkLobbyView extends Stage {
    * @param info the status info map
    */
   public void onServerStatusReceived(Map<String, String> info) {
+<<<<<<< HEAD
     log(
         "📊 Serveur — Port: "
             + info.get("PORT")
@@ -448,6 +503,11 @@ public class NetworkLobbyView extends Stage {
             + info.get("CLIENTS")
             + " | Parties: "
             + info.get("GAMES"));
+=======
+    log("📊 Serveur — Port: " + info.get("PORT")
+        + " | Clients: " + info.get("CLIENTS")
+        + " | Parties: " + info.get("GAMES"));
+>>>>>>> 615b204 (fix bug)
   }
 
   /**
@@ -509,6 +569,7 @@ public class NetworkLobbyView extends Stage {
     btn.setPrefWidth(280);
     btn.setPrefHeight(36);
     btn.setFont(Font.font("Arial", FontWeight.BOLD, 12));
+<<<<<<< HEAD
     btn.setStyle(
         "-fx-background-color: "
             + color
@@ -516,6 +577,12 @@ public class NetworkLobbyView extends Stage {
             + "-fx-text-fill: white;"
             + "-fx-background-radius: 5;"
             + "-fx-cursor: hand;");
+=======
+    btn.setStyle("-fx-background-color: " + color + ";"
+        + "-fx-text-fill: white;"
+        + "-fx-background-radius: 5;"
+        + "-fx-cursor: hand;");
+>>>>>>> 615b204 (fix bug)
     btn.setOnMouseEntered(e -> btn.setOpacity(0.8));
     btn.setOnMouseExited(e -> btn.setOpacity(1.0));
     return btn;
