@@ -6,7 +6,7 @@ import fr.ubordeaux.scrabble.model.network.NetworkObserver;
 import fr.ubordeaux.scrabble.model.network.server.ServerInfo;
 import java.util.List;
 import java.util.Map;
-import javafx.application.Platform; 
+import javafx.application.Platform;
 
 /**
  * Bridges network observer callbacks to the JavaFX GUI and lobby views.
@@ -93,14 +93,50 @@ public class NetworkGameBridge implements NetworkObserver {
     });
   }
 
+  // Flag activé uniquement quand l'hôte clique "Lancer la partie"
+  private boolean pendingGameStart = false;
+
   /**
-   * Appelé en réponse à la commande PLAYERS.
+   * Appelé par le lobby quand l'hôte clique sur "Lancer la partie".
+   * Déclenche la récupération de la liste des joueurs puis envoie NEW.
+   */
+  public void requestGameStart() {
+    pendingGameStart = true;
+    networkManager.players();
+  }
+
+  /**
+   * Appelé en réponse à la commande PLAYERS. Met à jour le lobby et, si l'hôte
+   * a explicitement demandé le lancement, envoie la commande NEW.
    */
   @Override
   public void playersUpdate(List<Map<String, String>> players) {
     Platform.runLater(() -> {
       if (lobbyView != null) {
         lobbyView.onPlayersReceived(players);
+      }
+
+      if (pendingGameStart && players.size() >= 2) {
+        pendingGameStart = false;
+
+        int[] ids = players.stream()
+            .mapToInt(p -> {
+              try {
+                return Integer.parseInt(p.getOrDefault("ID", "0"));
+              } catch (NumberFormatException ex) {
+                return 0;
+              }
+            })
+            .filter(id -> id > 0)
+            .toArray();
+
+        if (ids.length == 2) {
+          networkManager.newPlayerId(ids[1]);
+        } else if (ids.length == 3) {
+          networkManager.newPlayerId(ids[1], ids[2]);
+        } else if (ids.length >= 4) {
+          networkManager.newPlayerId(ids[1], ids[2], ids[3]);
+        }
       }
     });
   }

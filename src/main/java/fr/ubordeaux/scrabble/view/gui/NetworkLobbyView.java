@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.geometry.Insets; 
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -27,7 +27,10 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 /**
- * Fenetre de lobby reseau (JavaFX) pour heberger, rejoindre et suivre les parties en ligne.
+ * Fenetre de lobby reseau (JavaFX) pour heberger et rejoindre des parties en ligne.
+ *
+ * <p>Les serveurs sont decouverts automatiquement via UDP. Le bouton "Lancer la partie"
+ * est visible uniquement pour l'hote et s'active quand au moins 2 joueurs sont connectes.
  */
 public class NetworkLobbyView extends Stage {
 
@@ -35,48 +38,61 @@ public class NetworkLobbyView extends Stage {
   private final NetworkManager networkManager;
 
   private TabPane tabPane;
+
+  // Onglet Héberger
   private TextField portField;
   private Button startServerButton;
   private Button stopServerButton;
   private Label serverStatusLabel;
+  private ListView<String> lobbyPlayerListView;
+  private Button startGameButton;
+
+  // Onglet Rejoindre
   private TextField ipField;
   private TextField joinPortField;
   private Button connectButton;
   private Button disconnectButton;
   private ListView<String> serverListView;
   private final ObservableList<ServerInfo> discoveredServers = FXCollections.observableArrayList();
-  private Button refreshServersButton;
+
+  // Onglet Salon (client)
   private ListView<String> playersListView;
-  private Button refreshPlayersButton;
-  private Button challengeButton;
-  private TextField playerIdField;
   private ListView<String> scoreboardListView;
   private Button refreshScoreboardButton;
+
   private TextArea consoleArea;
+
   private boolean serverRunning = false;
   private boolean clientConnected = false;
 
+  /** Number of players currently in the host lobby (updated via onPlayersReceived). */
+  private int lobbyPlayerCount = 0;
+
   /**
-   * Construit la fenêtre de lobby réseau et initialise l'interface.
+   * Creates the network lobby view.
    *
-   * @param bridge le pont entre la vue réseau et le gestionnaire de réseau
+   * @param bridge the network game bridge
    */
   public NetworkLobbyView(NetworkGameBridge bridge) {
     this.bridge = bridge;
     this.networkManager = bridge.getNetworkManager();
     bridge.setLobbyView(this);
+
     initUi();
-    this.setTitle("Scrabble — Multijoueur en ligne");
+
+    this.setTitle("🌐 Scrabble — Multijoueur en ligne");
     this.initModality(Modality.NONE);
     this.setResizable(false);
   }
+
+  // ─── Construction de l'UI ────────────────────────────────────────────────
 
   private void initUi() {
     VBox root = new VBox(10);
     root.setPadding(new Insets(15));
     root.setStyle("-fx-background-color: #1a2a3a;");
 
-    Label title = new Label("Multijoueur en ligne");
+    Label title = new Label("🌐 Multijoueur en ligne");
     title.setFont(Font.font("Arial", FontWeight.BOLD, 20));
     title.setTextFill(Color.WHITE);
 
@@ -88,9 +104,10 @@ public class NetworkLobbyView extends Stage {
     consoleArea = new TextArea();
     consoleArea.setEditable(false);
     consoleArea.setPrefHeight(100);
-    consoleArea.setStyle("-fx-control-inner-background: #0d1b2a; -fx-text-fill: #00ff88; "
-        + "-fx-font-family: monospace; -fx-font-size: 11;");
-    consoleArea.setPromptText("Logs reseau...");
+    consoleArea.setStyle(
+        "-fx-control-inner-background: #0d1b2a; -fx-text-fill: #00ff88; "
+            + "-fx-font-family: monospace; -fx-font-size: 11;");
+    consoleArea.setPromptText("Logs réseau...");
 
     VBox.setVgrow(tabPane, Priority.ALWAYS);
 
@@ -100,20 +117,22 @@ public class NetworkLobbyView extends Stage {
 
     root.getChildren().addAll(title, tabPane, consoleLabel, consoleArea);
 
-    Scene scene = new Scene(root, 520, 620);
+    Scene scene = new Scene(root, 520, 640);
     this.setScene(scene);
     updateButtonStates();
   }
 
+  // ─── Onglet Héberger ─────────────────────────────────────────────────────
+
   private Tab buildHostTab() {
-    final Tab tab = new Tab("Heberger");
+    final Tab tab = new Tab("🖥  Héberger");
 
     VBox content = new VBox(12);
     content.setPadding(new Insets(20));
     content.setStyle("-fx-background-color: #243447;");
 
     Label desc = styledLabel(
-        "Demarrez un serveur pour que d'autres joueurs vous rejoignent sur le reseau local.",
+        "Démarrez un serveur. Les joueurs sur le réseau local vous verront automatiquement.",
         Color.LIGHTGRAY);
     desc.setWrapText(true);
 
@@ -123,43 +142,51 @@ public class NetworkLobbyView extends Stage {
     portField.setPrefWidth(100);
     portRow.getChildren().addAll(styledLabel("Port TCP :", Color.WHITE), portField);
 
-    startServerButton = createBtn("Demarrer le serveur", "#4CAF50");
-    stopServerButton = createBtn("Arreter le serveur", "#F44336");
+    startServerButton = createBtn("▶  Démarrer le serveur", "#4CAF50");
+    stopServerButton = createBtn("■  Arrêter le serveur", "#F44336");
 
-    serverStatusLabel = styledLabel("Serveur arrete", Color.GRAY);
+    serverStatusLabel = styledLabel("● Serveur arrêté", Color.GRAY);
     serverStatusLabel.setFont(Font.font("Arial", FontWeight.BOLD, 13));
 
     startServerButton.setOnAction(e -> onStartServer());
     stopServerButton.setOnAction(e -> onStopServer());
 
+    // Bouton lancer la partie — actif quand >= 2 joueurs
+    startGameButton = createBtn("🎮 Lancer la partie", "#FF9800");
+    startGameButton.setDisable(true);
+    startGameButton.setOnAction(e -> onStartGame());
+
+    // Liste des joueurs dans le lobby (mis à jour auto)
+    final Label playersTitle =
+        styledLabel("Joueurs connectés au salon :", Color.WHITE, 13, true);
+    lobbyPlayerListView = new ListView<>();
+    lobbyPlayerListView.setPrefHeight(130);
+    lobbyPlayerListView.setStyle("-fx-control-inner-background: #1a2a3a; -fx-text-fill: white;");
+
     content.getChildren().addAll(
-        styledLabel("Heberger une partie", Color.WHITE, 15, true),
-        desc, portRow, startServerButton, stopServerButton, serverStatusLabel);
+        styledLabel("Héberger une partie", Color.WHITE, 15, true),
+        desc, portRow, startServerButton, stopServerButton, serverStatusLabel,
+        new Separator(), playersTitle, lobbyPlayerListView, startGameButton);
 
     tab.setContent(content);
     return tab;
   }
 
+  // ─── Onglet Rejoindre ────────────────────────────────────────────────────
+
   private Tab buildJoinTab() {
-    final Tab tab = new Tab("Rejoindre");
+    final Tab tab = new Tab("🔍 Rejoindre");
 
     VBox content = new VBox(12);
     content.setPadding(new Insets(20));
     content.setStyle("-fx-background-color: #243447;");
 
-    final Label autoTitle =
-        styledLabel("Serveurs detectes automatiquement :", Color.WHITE, 13, true);
     serverListView = new ListView<>();
-    serverListView.setPrefHeight(130);
+    serverListView.setPrefHeight(140);
     serverListView.setStyle("-fx-control-inner-background: #1a2a3a; -fx-text-fill: white;");
 
-    refreshServersButton = createBtn("Actualiser la liste", "#2196F3");
-    refreshServersButton.setOnAction(e -> onRefreshServers());
-
-    Button joinSelectedButton = createBtn("Rejoindre le serveur selectionne", "#4CAF50");
+    Button joinSelectedButton = createBtn("🎮 Rejoindre le serveur sélectionné", "#4CAF50");
     joinSelectedButton.setOnAction(e -> onJoinSelected());
-
-    final Label manualTitle = styledLabel("Ou connexion manuelle :", Color.WHITE, 13, true);
 
     HBox ipRow = new HBox(10);
     ipRow.setAlignment(Pos.CENTER_LEFT);
@@ -171,58 +198,60 @@ public class NetworkLobbyView extends Stage {
         styledLabel("IP :", Color.WHITE), ipField,
         styledLabel("Port :", Color.WHITE), joinPortField);
 
-    connectButton = createBtn("Se connecter", "#4CAF50");
-    disconnectButton = createBtn("Se deconnecter", "#F44336");
+    connectButton = createBtn("🔗 Se connecter", "#4CAF50");
+    disconnectButton = createBtn("✖  Se déconnecter", "#F44336");
 
     connectButton.setOnAction(e -> onConnect());
     disconnectButton.setOnAction(e -> onDisconnect());
 
-    content.getChildren().addAll(autoTitle, serverListView, refreshServersButton,
-        joinSelectedButton, new Separator(), manualTitle, ipRow, connectButton, disconnectButton);
+    final Label autoTitle =
+        styledLabel("Serveurs détectés automatiquement :", Color.WHITE, 13, true);
+    final Label manualTitle = styledLabel("Ou connexion manuelle :", Color.WHITE, 13, true);
+
+    content.getChildren().addAll(
+        autoTitle, serverListView, joinSelectedButton,
+        new Separator(), manualTitle, ipRow, connectButton, disconnectButton);
 
     tab.setContent(content);
     return tab;
   }
 
+  // ─── Onglet Salon (client) ────────────────────────────────────────────────
+
   private Tab buildLobbyTab() {
-    final Tab tab = new Tab("Salon");
+    final Tab tab = new Tab("🎮 Salon");
 
     VBox content = new VBox(12);
     content.setPadding(new Insets(20));
     content.setStyle("-fx-background-color: #243447;");
 
-    final Label playersTitle = styledLabel("Joueurs connectes :", Color.WHITE, 13, true);
     playersListView = new ListView<>();
-    playersListView.setPrefHeight(140);
+    playersListView.setPrefHeight(150);
     playersListView.setStyle("-fx-control-inner-background: #1a2a3a; -fx-text-fill: white;");
 
-    refreshPlayersButton = createBtn("Actualiser les joueurs", "#2196F3");
-    refreshPlayersButton.setOnAction(e -> onRefreshPlayers());
+    Label waitLabel = styledLabel(
+        "En attente que l'hôte lance la partie...", Color.LIGHTGRAY);
+    waitLabel.setWrapText(true);
 
-    HBox challengeRow = new HBox(10);
-    challengeRow.setAlignment(Pos.CENTER_LEFT);
-    playerIdField = new TextField();
-    playerIdField.setPromptText("ID du joueur");
-    playerIdField.setPrefWidth(100);
-    challengeButton = createBtn("Defier ce joueur", "#FF9800");
-    challengeRow.getChildren().addAll(
-        styledLabel("ID :", Color.WHITE), playerIdField, challengeButton);
-    challengeButton.setOnAction(e -> onChallenge());
-
-    final Label sbTitle = styledLabel("Classement du serveur :", Color.WHITE, 13, true);
     scoreboardListView = new ListView<>();
     scoreboardListView.setPrefHeight(120);
     scoreboardListView.setStyle("-fx-control-inner-background: #1a2a3a; -fx-text-fill: white;");
 
-    refreshScoreboardButton = createBtn("Voir le classement", "#9C27B0");
+    refreshScoreboardButton = createBtn("🏆 Voir le classement", "#9C27B0");
     refreshScoreboardButton.setOnAction(e -> onRefreshScoreboard());
 
-    content.getChildren().addAll(playersTitle, playersListView, refreshPlayersButton,
-        challengeRow, new Separator(), sbTitle, scoreboardListView, refreshScoreboardButton);
+    final Label playersTitle = styledLabel("Joueurs connectés :", Color.WHITE, 13, true);
+    final Label sbTitle = styledLabel("Classement du serveur :", Color.WHITE, 13, true);
+
+    content.getChildren().addAll(
+        playersTitle, playersListView, waitLabel,
+        new Separator(), sbTitle, scoreboardListView, refreshScoreboardButton);
 
     tab.setContent(content);
     return tab;
   }
+
+  // ─── Actions ─────────────────────────────────────────────────────────────
 
   private void onStartServer() {
     try {
@@ -230,40 +259,39 @@ public class NetworkLobbyView extends Stage {
       networkManager.startOnlinePlay();
       networkManager.serverStart(port);
       serverRunning = true;
-      serverStatusLabel.setText("Serveur en ecoute sur le port " + port);
+      serverStatusLabel.setText("● Serveur en écoute sur le port " + port);
       serverStatusLabel.setTextFill(Color.LIMEGREEN);
-      log("Serveur demarre sur le port " + port);
+      log("Serveur démarré sur le port " + port);
       updateButtonStates();
     } catch (NumberFormatException ex) {
-      log("Port invalide : " + portField.getText());
+      log("❌ Port invalide : " + portField.getText());
     }
   }
 
   private void onStopServer() {
     networkManager.serverStop();
     serverRunning = false;
-    serverStatusLabel.setText("Serveur arrete");
+    lobbyPlayerCount = 0;
+    serverStatusLabel.setText("● Serveur arrêté");
     serverStatusLabel.setTextFill(Color.GRAY);
-    log("Serveur arrete.");
+    lobbyPlayerListView.getItems().clear();
+    log("Serveur arrêté.");
     updateButtonStates();
   }
 
-  private void onRefreshServers() {
-    networkManager.startOnlinePlay();
-    List<ServerInfo> servers = networkManager.serverList();
-    discoveredServers.setAll(servers);
-    ObservableList<String> items = FXCollections.observableArrayList();
-    for (ServerInfo s : servers) {
-      items.add(String.format("%-20s  %s:%d", s.getName(), s.getIp(), s.getPort()));
-    }
-    serverListView.setItems(items);
-    log(servers.size() + " serveur(s) trouve(s).");
+  /**
+   * Called by the host to start the game with all currently connected players.
+   * Sends NEW commands targeting each connected player ID.
+   */
+  private void onStartGame() {
+    bridge.requestGameStart();
+    log("🎮 Lancement de la partie...");
   }
 
   private void onJoinSelected() {
     int idx = serverListView.getSelectionModel().getSelectedIndex();
     if (idx < 0 || idx >= discoveredServers.size()) {
-      log("Selectionnez un serveur dans la liste.");
+      log("❌ Sélectionnez un serveur dans la liste.");
       return;
     }
     ServerInfo selected = discoveredServers.get(idx);
@@ -276,7 +304,7 @@ public class NetworkLobbyView extends Stage {
     try {
       port = Integer.parseInt(joinPortField.getText().trim());
     } catch (NumberFormatException e) {
-      log("Port invalide.");
+      log("❌ Port invalide.");
       return;
     }
     doConnect(ip, port);
@@ -286,56 +314,34 @@ public class NetworkLobbyView extends Stage {
     networkManager.startOnlinePlay();
     networkManager.join(ip, port);
     clientConnected = true;
-    log("Connexion a " + ip + ":" + port + "...");
+    log("🔗 Connexion à " + ip + ":" + port + "...");
     updateButtonStates();
     tabPane.getSelectionModel().select(2);
-    onRefreshPlayers();
+    // Demande la liste des joueurs pour afficher le salon
+    networkManager.players();
   }
 
   private void onDisconnect() {
     networkManager.quit();
     clientConnected = false;
-    log("Deconnecte du serveur.");
+    log("✖ Déconnecté du serveur.");
     updateButtonStates();
-  }
-
-  private void onRefreshPlayers() {
-    if (!clientConnected) {
-      log("Non connecte.");
-      return;
-    }
-    networkManager.players();
-    log("Actualisation des joueurs...");
-  }
-
-  private void onChallenge() {
-    if (!clientConnected) {
-      log("Non connecte.");
-      return;
-    }
-    String idStr = playerIdField.getText().trim();
-    try {
-      int targetId = Integer.parseInt(idStr);
-      networkManager.newPlayerId(targetId);
-      log("Defi envoye au joueur #" + targetId);
-    } catch (NumberFormatException e) {
-      log("ID invalide : " + idStr);
-    }
   }
 
   private void onRefreshScoreboard() {
     if (!clientConnected) {
-      log("Non connecte.");
+      log("❌ Non connecté.");
       return;
     }
     networkManager.scoreboard();
-    log("Chargement du classement...");
   }
 
+  // ─── Callbacks depuis NetworkGameBridge ──────────────────────────────────
+
   /**
-   * Met à jour la liste des serveurs découverts automatiquement sur le réseau local.
+   * Called when the server list is updated via UDP discovery.
    *
-   * @param servers liste des serveurs détectés
+   * @param servers the discovered servers
    */
   public void onServerListUpdated(List<ServerInfo> servers) {
     discoveredServers.setAll(servers);
@@ -347,11 +353,15 @@ public class NetworkLobbyView extends Stage {
   }
 
   /**
-   * Affiche la liste des joueurs connectés au serveur dans l'onglet Salon.
+   * Called when the player list is received from the server.
+   * Updates both the host lobby list and the client salon list.
+   * If the host has >= 2 players, activates the start button and auto-launches.
    *
-   * @param players liste de maps contenant les informations de chaque joueur (ID, NAME, STATUS)
+   * @param players the list of player info maps
    */
   public void onPlayersReceived(List<Map<String, String>> players) {
+    lobbyPlayerCount = players.size();
+
     ObservableList<String> items = FXCollections.observableArrayList();
     for (Map<String, String> p : players) {
       String id = p.getOrDefault("ID", "?");
@@ -359,13 +369,29 @@ public class NetworkLobbyView extends Stage {
       String status = p.getOrDefault("STATUS", "?");
       items.add(String.format("#%-4s %-16s [%s]", id, name, status));
     }
-    playersListView.setItems(items);
+
+    // Update both views
+    lobbyPlayerListView.setItems(FXCollections.observableArrayList(items));
+    playersListView.setItems(FXCollections.observableArrayList(items));
+
+    // Enable start button for host if >= 2 players
+    if (serverRunning) {
+      startGameButton.setDisable(lobbyPlayerCount < 2);
+
+      // Auto-launch when exactly 2 players are ready (host + 1 client)
+      if (lobbyPlayerCount >= 2) {
+        log("✅ " + lobbyPlayerCount + " joueur(s) connecté(s) — vous pouvez lancer la partie.");
+      }
+    }
+
+    // If this was triggered by onStartGame, now send the NEW command with all IDs
+    // This is handled via the playersUpdate callback from bridge
   }
 
   /**
-   * Affiche le classement du serveur dans l'onglet Salon.
+   * Called when the scoreboard is received.
    *
-   * @param scoreboard liste de maps contenant les données de classement
+   * @param scoreboard the scoreboard entries
    */
   public void onScoreboardReceived(List<Map<String, String>> scoreboard) {
     ObservableList<String> items = FXCollections.observableArrayList();
@@ -375,41 +401,61 @@ public class NetworkLobbyView extends Stage {
       String wins = entry.getOrDefault("WINS", "0");
       String losses = entry.getOrDefault("LOSSES", "0");
       String total = entry.getOrDefault("TOTAL", "0");
-      items.add(String.format("%d. %-14s  V:%s  D:%s  T:%s",
-          rank++, name, wins, losses, total));
+      items.add(String.format("%d. %-14s  V:%s  D:%s  T:%s", rank++, name, wins, losses, total));
     }
     scoreboardListView.setItems(items);
   }
 
   /**
-   * Affiche les informations de statut du serveur dans la console.
+   * Called when server status info is received.
    *
-   * @param info map contenant les données du serveur (PORT, CLIENTS, GAMES)
+   * @param info the status info map
    */
   public void onServerStatusReceived(Map<String, String> info) {
-    log("Serveur — Port: " + info.get("PORT")
+    log("📊 Serveur — Port: " + info.get("PORT")
         + " | Clients: " + info.get("CLIENTS")
         + " | Parties: " + info.get("GAMES"));
   }
 
   /**
-   * Affiche un message reçu du serveur dans la console.
+   * Called for generic messages from the server.
    *
-   * @param message le message à afficher
+   * @param message the message text
    */
   public void onMessageReceived(String message) {
     log(message);
   }
 
   /**
-   * Notifie la vue que la partie en ligne est terminée et met à jour l'état des boutons.
+   * Called when the game ends.
    *
-   * @param reason message décrivant la raison de la fin de partie
+   * @param reason the end reason
    */
   public void onGameEnded(String reason) {
-    log("Partie terminee : " + reason);
+    log("🏁 Partie terminée : " + reason);
     clientConnected = false;
+    lobbyPlayerCount = 0;
     updateButtonStates();
+  }
+
+  // ─── Helpers ─────────────────────────────────────────────────────────────
+
+  /**
+   * Returns true if this lobby is in host (server) mode.
+   *
+   * @return true when the server is running
+   */
+  public boolean isHostMode() {
+    return serverRunning;
+  }
+
+  /**
+   * Returns the IDs of connected players for use by the host to start a game.
+   *
+   * @return the current player count in the lobby
+   */
+  public int getLobbyPlayerCount() {
+    return lobbyPlayerCount;
   }
 
   private void updateButtonStates() {
@@ -417,9 +463,8 @@ public class NetworkLobbyView extends Stage {
     stopServerButton.setDisable(!serverRunning);
     connectButton.setDisable(clientConnected);
     disconnectButton.setDisable(!clientConnected);
-    refreshPlayersButton.setDisable(!clientConnected);
-    challengeButton.setDisable(!clientConnected);
     refreshScoreboardButton.setDisable(!clientConnected);
+    startGameButton.setDisable(!serverRunning || lobbyPlayerCount < 2);
   }
 
   private void log(String message) {
@@ -431,8 +476,10 @@ public class NetworkLobbyView extends Stage {
     btn.setPrefWidth(280);
     btn.setPrefHeight(36);
     btn.setFont(Font.font("Arial", FontWeight.BOLD, 12));
-    btn.setStyle("-fx-background-color: " + color + "; -fx-text-fill: white;"
-        + " -fx-background-radius: 5; -fx-cursor: hand;");
+    btn.setStyle("-fx-background-color: " + color + ";"
+        + "-fx-text-fill: white;"
+        + "-fx-background-radius: 5;"
+        + "-fx-cursor: hand;");
     btn.setOnMouseEntered(e -> btn.setOpacity(0.8));
     btn.setOnMouseExited(e -> btn.setOpacity(1.0));
     return btn;
