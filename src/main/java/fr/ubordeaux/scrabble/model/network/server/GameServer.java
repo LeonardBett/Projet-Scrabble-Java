@@ -124,8 +124,17 @@ public class GameServer {
 
   private void addClient(ClientHandler client) {
     clients.add(client);
-    // System.out.println("Server : There is now " + clients.size() + " client(s)
-    // connected");
+    // Notify all connected clients that the player list has changed
+    broadcastPlayerList();
+  }
+
+  private void broadcastPlayerList() {
+    String playerResponse = getPlayerResponse();
+    synchronized (clients) {
+      for (ClientHandler client : clients) {
+        client.sendMessage(playerResponse);
+      }
+    }
   }
 
   /**
@@ -135,8 +144,8 @@ public class GameServer {
    */
   public void removeClient(ClientHandler client) {
     clients.remove(client);
-    // System.out.println("Server : There is now " + clients.size() + " client(s)
-    // connected");
+    // Notify remaining clients that the player list has changed
+    broadcastPlayerList();
   }
 
   /**
