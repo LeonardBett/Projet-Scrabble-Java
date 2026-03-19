@@ -16,7 +16,7 @@
 # This specific template is located at:
 # https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/ci/templates/Getting-Started.gitlab-ci.yml
 
-image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/library/maven:3.9-eclipse-temurin-21
+image: public.ecr.aws/docker/library/maven:3.9-eclipse-temurin-21
 
 stages:
   - test
