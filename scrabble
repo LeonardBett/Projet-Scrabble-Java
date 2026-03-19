@@ -7,7 +7,8 @@ cd "$SCRIPT_DIR" || exit 1
 
 COMPLETION_FILE="$SCRIPT_DIR/scripts/scrabble-completion.bash"
 BASHRC_FILE="$HOME/.bashrc"
-COMPLETION_LINE="source $COMPLETION_FILE"
+SETUP_COMPLETION_SCRIPT="$SCRIPT_DIR/scripts/setup-completion.sh"
+COMPLETION_LINE="source \"$COMPLETION_FILE\""
 
 install_completion_if_needed() {
     # Only propose auto-install for interactive Bash sessions with a completion script present.
@@ -31,7 +32,8 @@ install_completion_if_needed() {
         ""|"y"|"Y"|"yes"|"YES")
             printf '\n%s\n' "$COMPLETION_LINE" >> "$BASHRC_FILE"
             echo "Completion installed."
-            echo "To activate it now in this terminal, run: source ~/.bashrc"
+            echo "To activate it now in this terminal, run:"
+            echo "source \"$SETUP_COMPLETION_SCRIPT\""
             echo "It will be active automatically in new terminals."
             ;;
         *)

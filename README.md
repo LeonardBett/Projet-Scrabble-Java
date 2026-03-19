@@ -4,14 +4,30 @@
 
 You can enable tab-completion for CLI options such as `--help`, `--players`, `--lang`, `--ai-time`, and `--ai-ml`.
 
-At first launch (`./scrabble` or `./run.sh`), the script now detects whether completion is installed and asks for confirmation to add it automatically to `~/.bashrc`.
+### Recommended workflow
 
-Note: a launched script cannot restart your parent terminal process by itself. After installation, completion is immediately available in new terminals. In the current terminal, run `source ~/.bashrc` once.
-
-1. Load completion in your current shell:
+After each new clone (on any machine), run this once from the repository root:
 
 ```bash
-source scripts/scrabble-completion.bash
+source scripts/setup-completion.sh
+```
+
+This command:
+- activates completion immediately in the current terminal;
+- installs persistence in `~/.bashrc` for future terminals.
+
+After `git pull`, run the same command only if completion behavior changed or if your current shell was not reloaded.
+
+At first launch (`./scrabble` or `./run.sh`), the launcher can still auto-install persistence and points to the same setup command for immediate activation.
+
+Note: a script started with `./scrabble` cannot directly modify the parent shell state. For immediate activation in the current terminal, use `source scripts/setup-completion.sh`.
+
+### Quick check
+
+1. Ensure completion is installed and loaded:
+
+```bash
+source scripts/setup-completion.sh
 ```
 
 2. Then type and complete options with `TAB`:
@@ -23,12 +39,6 @@ source scripts/scrabble-completion.bash
 ./scrabble -p <TAB>   # suggests: 2 3 4
 ./run.sh -l <TAB>     # suggests: en fr
 ./run.sh -ai-time <TAB>
-```
-
-3. To keep it after restart, add this to your `~/.bashrc`:
-
-```bash
-source /home/eraze/scrabble-java/scripts/scrabble-completion.bash
 ```
 
 
