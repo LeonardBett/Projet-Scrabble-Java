@@ -26,8 +26,7 @@ public class NetworkManager {
   public static final String DEFAULT_ADDRESS = "localhost";
 
   // Reference to server/client instances
-  // Reinstantiated on each start/join to ensure a clean state (fresh sockets and
-  // new threads, no
+  // Reinstantiated on each start/join to ensure a clean state (fresh sockets and new threads, no
   // reuse that cause bug)
   private GameServer gameServer;
   private GameClient gameClient;
@@ -83,8 +82,7 @@ public class NetworkManager {
    */
   public void removeObserver(NetworkObserver observer) {
     if (!observers.remove(observer)) {
-      // System.err.println("User : Observer not found, can't remove it from the
-      // list");
+      // System.err.println("User : Observer not found, can't remove it from the list");
       return;
     } else {
       discoveryService.removeObserver(observer);
@@ -95,8 +93,7 @@ public class NetworkManager {
   }
 
   // =========================================================================
-  // COMMANDS METHODS (these will be called when the user click on a button (GUI)
-  // / run a command
+  // COMMANDS METHODS (these will be called when the user click on a button (GUI) / run a command
   // (CLI))
   // =========================================================================
 
@@ -130,12 +127,10 @@ public class NetworkManager {
     }
     gameServer = new GameServer();
 
-    // We start the server in a Thread for not blocking this function with the
-    // while(true)
+    // We start the server in a Thread for not blocking this function with the while(true)
     new Thread(gameServer::start).start();
 
-    // Since servers need to have a name but the command don't tell about it, I use
-    // for now the
+    // Since servers need to have a name but the command don't tell about it, I use for now the
     // System user's name
     // I will ask teachers about this next session
     String defaultName = "Server-" + System.getProperty("user.name");
@@ -229,8 +224,7 @@ public class NetworkManager {
    */
   public void serverStatus() {
     if (gameClient == null) {
-      // System.err.println("User : Client is not connected, can't show server
-      // status");
+      // System.err.println("User : Client is not connected, can't show server status");
       return;
     }
     gameClient.sendServerStatus();
@@ -362,29 +356,13 @@ public class NetworkManager {
   }
 
 
+  /** Get the local game client side. */
   public Game getLocalGame() {
     if (gameClient == null) {
       return null;
     }
     return gameClient.getLocalGame();
   }
-
-  public void accept() {
-    if (gameClient == null) {
-      // System.err.println("User : Client is not connected, can't accept an invitation");
-      return;
-    }
-    gameClient.sendAccept();
-  }
-
-  public void decline() {
-    if (gameClient == null) {
-      // System.err.println("User : Client is not connected, can't decline an invitation");
-      return;
-    }
-    gameClient.sendDecline();
-  }
-
 
   // -----F4O-----
 

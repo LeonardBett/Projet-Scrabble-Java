@@ -1,6 +1,6 @@
 package fr.ubordeaux.scrabble.model.network.server;
 
-import static fr.u_bordeaux.scrabble.model.network.NetworkManager.DEFAULT_TCP_PORT;
+import static fr.ubordeaux.scrabble.model.network.NetworkManager.DEFAULT_TCP_PORT;
 
 import fr.ubordeaux.scrabble.model.network.PlayerStatus;
 import java.io.IOException;
@@ -11,10 +11,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-/** Game server for multiplayer mode. Manages client connections and network games. */
+/**
+ * Game server for multiplayer mode. Manages client connections and network games.
+ */
 public class GameServer {
 
-  // Volatile flag used to maintain the loop active and allow a graceful shutdown of the thread.
+  // Volatile flag used to maintain the loop active and allow a graceful shutdown
+  // of the thread.
   private volatile boolean isRunning = false;
 
   // Thread-safe list of running clients
@@ -23,7 +26,8 @@ public class GameServer {
   // Thread-safe list of outgoing online games
   private final List<OnlineGame> onlineGames = Collections.synchronizedList(new ArrayList<>());
 
-  // Server socket use to accept connexion, need to store it to be able to close it
+  // Server socket use to accept connexion, need to store it to be able to close
+  // it
   private ServerSocket serverSocket;
 
   // Server info, created when starting the server and needed for commands
@@ -52,7 +56,8 @@ public class GameServer {
       serverSocket = new ServerSocket(port);
 
       String ipAddress = getLocalNetworkIp();
-      // Replace because we use ";" for parsing, so a player name can't contain this character
+      // Replace because we use ";" for parsing, so a player name can't contain this
+      // character
       String serverName = "Server-" + System.getProperty("user.name").replace(";", "_");
       serverInfo = new ServerInfo(ipAddress, port, serverName);
 
@@ -88,7 +93,8 @@ public class GameServer {
       // Infinite loop for accepting connexion
       while (isRunning) {
         Socket clientSocket = serverSocket.accept();
-        // System.out.println("Server : Client connected: " + clientSocket.getInetAddress());
+        // System.out.println("Server : Client connected: " +
+        // clientSocket.getInetAddress());
 
         // We are going to give this socket to a thread
         ClientHandler handler = new ClientHandler(clientSocket, this, idCounter++);

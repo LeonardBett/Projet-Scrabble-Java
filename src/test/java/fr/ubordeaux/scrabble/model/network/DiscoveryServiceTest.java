@@ -1,6 +1,6 @@
-package fr.u_bordeaux.scrabble.model.network;
+package fr.ubordeaux.scrabble.model.network;
 
-import fr.u_bordeaux.scrabble.model.network.server.ServerInfo;
+import fr.ubordeaux.scrabble.model.network.server.ServerInfo;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -13,7 +13,9 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-/** Tests for DiscoveryService, adapted for Windows/Linux/Mac cross-compatibility. */
+/**
+ * Tests for DiscoveryService, adapted for Windows/Linux/Mac cross-compatibility.
+ */
 class DiscoveryServiceTest {
 
   private DiscoveryService discoveryService;
@@ -42,20 +44,13 @@ class DiscoveryServiceTest {
 
     try (DatagramSocket socket = new DatagramSocket()) {
       socket.setBroadcast(true);
-      // UDP Shotgun strategy: Send to both broadcast (Windows) and loopback (Linux) to ensure
+      // UDP Shotgun strategy: Send to both broadcast (Windows) and loopback (Linux)
+      // to ensure
       // delivery
-      socket.send(
-          new DatagramPacket(
-              buffer,
-              buffer.length,
-              InetAddress.getByName("255.255.255.255"),
-              NetworkManager.DEFAULT_UDP_PORT));
-      socket.send(
-          new DatagramPacket(
-              buffer,
-              buffer.length,
-              InetAddress.getByName("127.0.0.1"),
-              NetworkManager.DEFAULT_UDP_PORT));
+      socket.send(new DatagramPacket(buffer, buffer.length,
+          InetAddress.getByName("255.255.255.255"), NetworkManager.DEFAULT_UDP_PORT));
+      socket.send(new DatagramPacket(buffer, buffer.length, InetAddress.getByName("127.0.0.1"),
+          NetworkManager.DEFAULT_UDP_PORT));
     }
 
     // Polling loop: check every 50ms for up to 1 second
@@ -76,17 +71,16 @@ class DiscoveryServiceTest {
   void testObserverNotification() throws Exception {
     AtomicBoolean notificationReceived = new AtomicBoolean(false);
 
-    NetworkObserver observer =
-        new NetworkObserver() {
-          @Override
-          public void serverListUpdate(List<ServerInfo> activeServers) {
-            if (!activeServers.isEmpty()) {
-              notificationReceived.set(true);
-            }
-          }
+    NetworkObserver observer = new NetworkObserver() {
+      @Override
+      public void serverListUpdate(List<ServerInfo> activeServers) {
+        if (!activeServers.isEmpty()) {
+          notificationReceived.set(true);
+        }
+      }
 
-          @Override
-          public void localModelUpdate() {}
+      @Override
+      public void localModelUpdate() {}
 
           @Override
           public void gameEndedUpdate(String r) {}
@@ -123,18 +117,10 @@ class DiscoveryServiceTest {
     try (DatagramSocket socket = new DatagramSocket()) {
       socket.setBroadcast(true);
       // UDP Shotgun strategy
-      socket.send(
-          new DatagramPacket(
-              buffer,
-              buffer.length,
-              InetAddress.getByName("255.255.255.255"),
-              NetworkManager.DEFAULT_UDP_PORT));
-      socket.send(
-          new DatagramPacket(
-              buffer,
-              buffer.length,
-              InetAddress.getByName("127.0.0.1"),
-              NetworkManager.DEFAULT_UDP_PORT));
+      socket.send(new DatagramPacket(buffer, buffer.length,
+          InetAddress.getByName("255.255.255.255"), NetworkManager.DEFAULT_UDP_PORT));
+      socket.send(new DatagramPacket(buffer, buffer.length, InetAddress.getByName("127.0.0.1"),
+          NetworkManager.DEFAULT_UDP_PORT));
     }
 
     // Polling loop for notification

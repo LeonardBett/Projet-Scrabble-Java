@@ -1,8 +1,8 @@
 package fr.ubordeaux.scrabble.model.network;
 
 import fr.ubordeaux.scrabble.model.network.client.GameClient;
-import fr.ubordeaux.scrabble.model.network.server.ServerInfo;
 import fr.ubordeaux.scrabble.model.network.server.GameServer;
+import fr.ubordeaux.scrabble.model.network.server.ServerInfo;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
@@ -17,9 +17,8 @@ import org.junit.jupiter.api.Test;
 class ClientServerTest {
 
   // Static counter to use a different TCP port for EACH test.
-  // Prevents "Address already in use" (TIME_WAIT) crashes on Linux and CI
-  // environments.
-  private static int portCounter = 50000;
+  // Prevents "Address already in use" (TIME_WAIT) crashes on Linux and CI environments.
+  private static int portCounter = 12350;
 
   private int currentTestPort;
   private GameServer server;

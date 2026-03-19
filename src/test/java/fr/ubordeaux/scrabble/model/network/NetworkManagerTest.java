@@ -1,6 +1,6 @@
-package fr.u_bordeaux.scrabble.model.network;
+package fr.ubordeaux.scrabble.model.network;
 
-import fr.u_bordeaux.scrabble.model.network.server.ServerInfo;
+import fr.ubordeaux.scrabble.model.network.server.ServerInfo;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -20,10 +20,9 @@ class NetworkManagerTest {
   @BeforeEach
   void setUp() {
     networkManager = new NetworkManager();
-    mockObserver =
-        new NetworkObserver() {
-          @Override
-          public void localModelUpdate() {}
+    mockObserver = new NetworkObserver() {
+      @Override
+      public void localModelUpdate() {}
 
           @Override
           public void gameEndedUpdate(String reason) {}
