@@ -2,7 +2,7 @@
 
 ## Bash autocompletion for launch options
 
-You can enable tab-completion for CLI options such as `--help`, `--players`, `--lang`, `--ai-time`, and `--ai-ml`.
+You can enable tab-completion for CLI options such as `--help`, `--super`, `--players`, `--lang`, `--ai-time`, and `--ai-ml`.
 
 ### Recommended workflow
 
@@ -39,6 +39,15 @@ source scripts/setup-completion.sh
 ./scrabble -p <TAB>   # suggests: 2 3 4
 ./run.sh -l <TAB>     # suggests: en fr
 ./run.sh -ai-time <TAB>
+```
+
+### Super Scrabble mode
+
+Use `-s` or `--super` to start a game on a `21x21` board. The standard mode remains `15x15`.
+
+```bash
+./scrabble --super
+./run.sh -s
 ```
 
 

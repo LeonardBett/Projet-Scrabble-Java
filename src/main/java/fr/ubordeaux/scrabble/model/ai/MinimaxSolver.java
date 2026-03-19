@@ -223,8 +223,9 @@ public class MinimaxSolver {
     }
 
     // Subtract tiles already present on the board
-    for (int x = 0; x < Board.SIZE; x++) {
-      for (int y = 0; y < Board.SIZE; y++) {
+    int boardSize = game.getBoard().getSize();
+    for (int x = 0; x < boardSize; x++) {
+      for (int y = 0; y < boardSize; y++) {
         Square sq = game.getBoard().getSquare(new Point(x, y));
         if (sq != null && !sq.isEmpty()) {
           char c = sq.getTile().getCharacter();

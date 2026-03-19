@@ -40,7 +40,7 @@ _scrabble_run_completion() {
   esac
 
   local all_opts
-  all_opts="-h --help -V --version -g --gui -p --players -b --blitz -l --lang -ai-time --ai-time -ai-exptiminimax --ai-exptiminimax --ai-ml"
+  all_opts="-h --help -V --version -g --gui -s --super -p --players -b --blitz -l --lang -ai-time --ai-time -ai-exptiminimax --ai-exptiminimax --ai-ml"
 
   # If current word looks like an option, offer matching options.
   if [[ "$cur" == -* ]]; then

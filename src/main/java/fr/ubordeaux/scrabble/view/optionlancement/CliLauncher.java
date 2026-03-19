@@ -5,6 +5,7 @@ import fr.ubordeaux.scrabble.model.ai.AiPlayer;
 import fr.ubordeaux.scrabble.model.core.Game;
 import fr.ubordeaux.scrabble.model.core.HumanPlayer;
 import fr.ubordeaux.scrabble.model.enums.PlayerColor;
+import fr.ubordeaux.scrabble.model.enums.GameMode;
 import fr.ubordeaux.scrabble.view.cli.CliView;
 import java.time.Duration;
 import java.util.List;
@@ -14,14 +15,14 @@ import java.util.List;
  */
 public class CliLauncher {
 
-  private CliLauncher() {
-  }
+  private CliLauncher() {}
 
   /**
    * Starts the game in CLI mode with the given configuration.
    *
-   * <p>If {@code players} is 0, the number of players is asked interactively.
-   * If {@code blitzMode} is true, enables blitz mode with {@code blitzMinutes} per player.
+   * <p>
+   * If {@code players} is 0, the number of players is asked interactively. If {@code blitzMode} is
+   * true, enables blitz mode with {@code blitzMinutes} per player.
    *
    * @param players the total number of players (0 = ask, 2-4 = use directly)
    * @param aiColors the list of colors that should be controlled by AI
@@ -32,9 +33,8 @@ public class CliLauncher {
    * @param useMl true to enable the Machine Learning agent
    * @param lang the dictionary language ("en" or "fr")
    */
-  public static void launch(int players, List<String> aiColors, boolean blitzMode,
-      int blitzMinutes, int aiTime,
-      boolean useExptiminimax, boolean useMl, String lang) {
+  public static void launch(int players, List<String> aiColors, boolean blitzMode, int blitzMinutes,
+      int aiTime, boolean useExptiminimax, boolean useMl, String lang) {
     Game game = new Game();
     if (blitzMode) {
       game.enableBlitzMode(Duration.ofMinutes(blitzMinutes));

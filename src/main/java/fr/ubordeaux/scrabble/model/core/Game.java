@@ -1,5 +1,6 @@
 package fr.ubordeaux.scrabble.model.core;
 
+import fr.ubordeaux.scrabble.model.enums.GameMode;
 import fr.ubordeaux.scrabble.model.enums.MoveType;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
 import fr.ubordeaux.scrabble.model.utils.Point;
@@ -32,7 +33,16 @@ public class Game {
    * Builds a new game with an empty player list and initialized board/bag.
    */
   public Game() {
-    this.board = new Board();
+    this(GameMode.STANDARD);
+  }
+
+  /**
+   * Builds a new game with an empty player list using a specific board preset.
+   *
+   * @param mode selected game mode.
+   */
+  public Game(GameMode mode) {
+    this.board = mode == GameMode.SUPER ? new Board(21) : new Board();
     this.bag = new Bag();
     this.players = new ArrayList<>();
     this.currentPlayerIndex = 0;
@@ -231,8 +241,9 @@ public class Game {
 
   // Returns true if there is at least one tile on the board
   private boolean boardHasAnyTile() {
-    for (int x = 0; x < Board.SIZE; x++) {
-      for (int y = 0; y < Board.SIZE; y++) {
+    int boardSize = board.getSize();
+    for (int x = 0; x < boardSize; x++) {
+      for (int y = 0; y < boardSize; y++) {
         Square sq = board.getSquare(new fr.ubordeaux.scrabble.model.utils.Point(x, y));
         if (sq != null && !sq.isEmpty()) {
           return true;
@@ -410,14 +421,15 @@ public class Game {
 
     // 1. Print Board
     System.out.print("   ");
-    for (int x = 0; x < Board.SIZE; x++) {
+    int boardSize = board.getSize();
+    for (int x = 0; x < boardSize; x++) {
       System.out.printf("%2d ", x);
     }
     System.out.println();
 
-    for (int y = 0; y < Board.SIZE; y++) {
+    for (int y = 0; y < boardSize; y++) {
       System.out.printf("%2d ", y);
-      for (int x = 0; x < Board.SIZE; x++) {
+      for (int x = 0; x < boardSize; x++) {
         Square square = board.getSquare(new Point(x, y));
         if (!square.isEmpty()) {
           System.out.print(" " + square.getTile().getCharacter() + " ");

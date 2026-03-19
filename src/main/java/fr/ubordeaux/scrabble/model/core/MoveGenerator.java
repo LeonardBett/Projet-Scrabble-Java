@@ -17,7 +17,7 @@ public class MoveGenerator {
    * Original method used by the game. It extracts the player's rack and delegates to the overloaded
    * method.
    *
-   * @param game   current game.
+   * @param game current game.
    * @param gaddag dictionary structure used for lookups.
    * @return list of playable words for the current player.
    */
@@ -32,17 +32,19 @@ public class MoveGenerator {
   /**
    * Overloaded method used by the AI to simulate moves.
    *
-   * @param board     board snapshot to evaluate.
+   * @param board board snapshot to evaluate.
    * @param rackChars rack letters available for placement.
-   * @param gaddag    dictionary structure used for lookups.
+   * @param gaddag dictionary structure used for lookups.
    * @return list of playable words.
    */
   public List<PlayableWord> getPlayableWordsList(Board board, Character[] rackChars,
-                                                 Gaddag gaddag) {
+      Gaddag gaddag) {
     List<PlayableWord> playableMoves = new ArrayList<>();
     if (rackChars == null || gaddag == null) {
       return playableMoves;
     }
+
+    int boardSize = board.getSize();
 
     // Automatically detect first turn: the center square is empty
     Square centerSquare = board.getSquare(new Point(7, 7));
@@ -66,8 +68,8 @@ public class MoveGenerator {
     }
 
     // Normal logic for subsequent turns
-    for (int y = 0; y < Board.SIZE; y++) {
-      for (int x = 0; x < Board.SIZE; x++) {
+    for (int y = 0; y < boardSize; y++) {
+      for (int x = 0; x < boardSize; x++) {
         Square square = board.getSquare(new Point(x, y));
 
         if (square != null && !square.isEmpty()) {
@@ -98,7 +100,7 @@ public class MoveGenerator {
    * cross-words.
    */
   private boolean isPlayable(String word, String gaddagPath, int hookX, int hookY, Direction dir,
-                             Board board, Character[] rackChars, Gaddag gaddag) {
+      Board board, Character[] rackChars, Gaddag gaddag) {
     int hookIndex = gaddagPath.indexOf('>') - 1;
     int startX = (dir == Direction.HORIZONTAL) ? hookX - hookIndex : hookX;
     int startY = (dir == Direction.VERTICAL) ? hookY - hookIndex : hookY;
@@ -107,10 +109,11 @@ public class MoveGenerator {
     if (startX < 0 || startY < 0) {
       return false;
     }
-    if (dir == Direction.HORIZONTAL && startX + word.length() > Board.SIZE) {
+    int boardSize = board.getSize();
+    if (dir == Direction.HORIZONTAL && startX + word.length() > boardSize) {
       return false;
     }
-    if (dir == Direction.VERTICAL && startY + word.length() > Board.SIZE) {
+    if (dir == Direction.VERTICAL && startY + word.length() > boardSize) {
       return false;
     }
 
@@ -127,7 +130,7 @@ public class MoveGenerator {
 
     int afterX = (dir == Direction.HORIZONTAL) ? startX + word.length() : startX;
     int afterY = (dir == Direction.VERTICAL) ? startY + word.length() : startY;
-    if (afterX < Board.SIZE && afterY < Board.SIZE) {
+    if (afterX < boardSize && afterY < boardSize) {
       Square afterSq = board.getSquare(new Point(afterX, afterY));
       if (afterSq != null && !afterSq.isEmpty()) {
         return false;
@@ -176,7 +179,7 @@ public class MoveGenerator {
    * Verifies that placing a new letter creates a valid perpendicular word on the board.
    */
   private boolean isValidCrossWord(Board board, int x, int y, char placedLetter, Direction mainDir,
-                                   Gaddag gaddag) {
+      Gaddag gaddag) {
     Direction crossDir =
         (mainDir == Direction.HORIZONTAL) ? Direction.VERTICAL : Direction.HORIZONTAL;
 
@@ -201,7 +204,8 @@ public class MoveGenerator {
     StringBuilder crossWord = new StringBuilder();
     int curX = startX;
     int curY = startY;
-    while (curX < Board.SIZE && curY < Board.SIZE) {
+    int boardSize = board.getSize();
+    while (curX < boardSize && curY < boardSize) {
       if (curX == x && curY == y) {
         crossWord.append(placedLetter);
       } else {

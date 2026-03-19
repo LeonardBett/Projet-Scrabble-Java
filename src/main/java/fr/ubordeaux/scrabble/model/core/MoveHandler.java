@@ -379,7 +379,8 @@ public class MoveHandler {
 
     // Validation: center for first move
     if (!game.isFirstMoveDone()) {
-      Point center = new Point(Board.SIZE / 2, Board.SIZE / 2);
+      int boardSize = game.getBoard().getSize();
+      Point center = new Point(boardSize / 2, boardSize / 2);
       boolean coversCenter = wordPositions.stream().anyMatch(center::equals);
       if (!coversCenter) {
         throw new IllegalArgumentException("First word must cover the center square.");
@@ -476,7 +477,8 @@ public class MoveHandler {
     // board)
     boolean boardEmpty = !game.isFirstMoveDone();
     if (boardEmpty) {
-      Point center = new Point(Board.SIZE / 2, Board.SIZE / 2);
+      int boardSize = game.getBoard().getSize();
+      Point center = new Point(boardSize / 2, boardSize / 2);
       boolean coversCenter = positions.stream().anyMatch(center::equals);
       if (!coversCenter) {
         throw new IllegalArgumentException("First word must cover the center square.");

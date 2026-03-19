@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import fr.ubordeaux.scrabble.model.enums.PlayerColor;
+import fr.ubordeaux.scrabble.model.enums.GameMode;
 import java.time.Duration;
 import org.junit.jupiter.api.Test;
 
@@ -20,6 +21,12 @@ class GameTest {
     Game game = new Game();
 
     assertThrows(IllegalStateException.class, game::startGame);
+  }
+
+  @Test
+  void constructorShouldCreateSuperBoardWhenModeIsSuper() {
+    Game game = new Game(GameMode.SUPER);
+    assertEquals(21, game.getBoard().getSize());
   }
 
   /**

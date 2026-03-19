@@ -31,24 +31,25 @@ public class BoardRenderer {
    * @param showBonusSquares true to highlight bonus squares
    */
   public void render(Board board, boolean showBonusSquares) {
-    renderColumnHeaders();
-    renderRows(board, showBonusSquares);
+    int boardSize = board.getSize();
+    renderColumnHeaders(boardSize);
+    renderRows(board, showBonusSquares, boardSize);
     System.out.println();
   }
 
-  private void renderColumnHeaders() {
+  private void renderColumnHeaders(int boardSize) {
     System.out.print("  ");
-    for (int col = 1; col <= Board.SIZE; col++) {
+    for (int col = 1; col <= boardSize; col++) {
       System.out.printf("%2d ", col);
     }
     System.out.println();
   }
 
-  private void renderRows(Board board, boolean showBonusSquares) {
-    for (int row = 0; row < Board.SIZE; row++) {
+  private void renderRows(Board board, boolean showBonusSquares, int boardSize) {
+    for (int row = 0; row < boardSize; row++) {
       char rowLabel = (char) ('a' + row);
       System.out.print(rowLabel + " ");
-      for (int col = 0; col < Board.SIZE; col++) {
+      for (int col = 0; col < boardSize; col++) {
         Square square = board.getSquare(new Point(col, row));
         renderSquare(square, showBonusSquares);
       }
