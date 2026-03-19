@@ -1,8 +1,8 @@
 package fr.ubordeaux.scrabble.model.network;
 
 import fr.ubordeaux.scrabble.model.network.client.GameClient;
-import fr.ubordeaux.scrabble.model.network.server.GameServer;
 import fr.ubordeaux.scrabble.model.network.server.ServerInfo;
+import fr.ubordeaux.scrabble.model.network.server.GameServer;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.AfterEach;

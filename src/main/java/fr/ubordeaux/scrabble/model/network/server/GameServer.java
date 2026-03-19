@@ -1,8 +1,8 @@
-package fr.u_bordeaux.scrabble.model.network.server;
+package fr.ubordeaux.scrabble.model.network.server;
 
 import static fr.u_bordeaux.scrabble.model.network.NetworkManager.DEFAULT_TCP_PORT;
 
-import fr.u_bordeaux.scrabble.model.network.PlayerStatus;
+import fr.ubordeaux.scrabble.model.network.PlayerStatus;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
