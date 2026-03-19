@@ -16,7 +16,7 @@
 # This specific template is located at:
 # https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/ci/templates/Getting-Started.gitlab-ci.yml
 
-image: maven:3.9-eclipse-temurin-25
+image: maven:3.9-eclipse-temurin-21
 
 stages:
   - test
@@ -28,7 +28,9 @@ run_tests:
   - CREMI
   - Podman
   script:
-    - mvn clean test
+    - mvn clean checkstyle:check javadoc:javadoc verify
+  rules:
+      - if: $CI_COMMIT_BRANCH == "main"
   artifacts:
     when: always
     reports:
