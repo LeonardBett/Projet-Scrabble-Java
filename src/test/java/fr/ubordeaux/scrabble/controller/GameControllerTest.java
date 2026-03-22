@@ -2,6 +2,7 @@ package fr.ubordeaux.scrabble.controller;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -19,6 +20,7 @@ import fr.ubordeaux.scrabble.model.utils.Point;
 import fr.ubordeaux.scrabble.view.UserInterface;
 import fr.ubordeaux.scrabble.view.cli.CliView;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -342,7 +344,7 @@ class GameControllerTest {
     runCliWithInput(controller, "2\nBob\nIAbot\n6\no\n");
 
     assertEquals(2, game.getPlayers().size());
-    assertTrue(game.getPlayers().get(1) instanceof AiPlayer);
+    assertInstanceOf(AiPlayer.class, game.getPlayers().get(1));
     AiPlayer ai = (AiPlayer) game.getPlayers().get(1);
 
     assertTrue(ai.isExpectiminimaxMode());
@@ -380,6 +382,95 @@ class GameControllerTest {
     runCliWithInput(controller, "6\no\n");
     assertTrue(game.getCurrentPlayer() instanceof HumanPlayer
         || game.getCurrentPlayer() instanceof AiPlayer);
+  }
+
+  @Test
+  void runCliShouldProvideHintWhenWordIsPossible() throws Exception {
+    Game game = new Game();
+    HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
+    HumanPlayer bob = new HumanPlayer("Bob", PlayerColor.RED);
+    game.addPlayer(alice);
+    game.addPlayer(bob);
+
+    // Forces a specific rack to control the outcome of the hint
+    alice.getRack().setTiles(
+        new ArrayList<>(
+            List.of(
+                new Tile('B'),
+                new Tile('A'),
+                new Tile('R'),
+                new Tile('X'),
+                new Tile('Y'),
+                new Tile('Z'),
+                new Tile('W'))));
+    bob.getRack().setTiles(new ArrayList<>(List.of(new Tile('A'))));
+
+    CliView view = new CliView(game);
+    GameController controller = new GameController(game, view);
+
+    // Injects a minimal dictionary containing a valid 3-letter word
+    setDictionary(controller, minimalDictionary("BAR", "ART"));
+
+    // Intercepts the standard output to read what the CLI displays
+    PrintStream originalOut = System.out;
+    ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+    System.setOut(new PrintStream(outContent));
+
+    try {
+      // Simulates the user inputs: '7' (Hint), '6' (Quit), 'o' (Confirm)
+      runCliWithInput(controller, "7\n6\no\n");
+
+      String consoleOutput = outContent.toString();
+
+      // Asserts that the hint was successfully calculated and displayed
+      assertTrue(consoleOutput.contains("Indice"));
+      assertTrue(consoleOutput.contains("B, A, R"));
+    } finally {
+      // Restores the original standard output to avoid breaking other tests
+      System.setOut(originalOut);
+    }
+  }
+
+  @Test
+  void runCliShouldNotProvideHintForSevenLetterWords() throws Exception {
+    Game game = new Game();
+    HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
+    HumanPlayer bob = new HumanPlayer("Bob", PlayerColor.RED);
+    game.addPlayer(alice);
+    game.addPlayer(bob);
+
+    // Forces a rack capable of forming a 7-letter word (a scrabble)
+    alice.getRack().setTiles(
+        new ArrayList<>(
+            List.of(
+                new Tile('P'),
+                new Tile('A'),
+                new Tile('R'),
+                new Tile('K'),
+                new Tile('I'),
+                new Tile('N'),
+                new Tile('G'))));
+
+    CliView view = new CliView(game);
+    GameController controller = new GameController(game, view);
+
+    // Injects a dictionary containing ONLY the 7-letter word
+    setDictionary(controller, minimalDictionary("PARKING"));
+
+    PrintStream originalOut = System.out;
+    ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+    System.setOut(new PrintStream(outContent));
+
+    try {
+      runCliWithInput(controller, "7\n6\no\n");
+
+      String consoleOutput = outContent.toString();
+
+      // Asserts that the hint algorithm correctly filtered out the 7-letter word
+      assertTrue(consoleOutput.contains("Aucun mot valide de moins de 7 lettres"));
+    } finally {
+      System.setOut(originalOut);
+    }
   }
 
   private static void setDictionary(GameController controller, Gaddag dictionary) throws Exception {
