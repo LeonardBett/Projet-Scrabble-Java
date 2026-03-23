@@ -2,6 +2,8 @@ package fr.ubordeaux.scrabble.model.network;
 
 import fr.ubordeaux.scrabble.model.network.server.ServerInfo;
 import java.util.List;
+import java.util.Map;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -50,7 +52,17 @@ class NetworkManagerTest {
 
           @Override
           public void invitationDeclinedUpdate(String playerDeclined) {}
-        };
+
+        @Override
+        public void playersPlayerIdUpdate(Map<String, String> playerInfo) {
+
+        }
+
+        @Override
+        public void playerStatusUpdate(String status) {
+
+        }
+    };
   }
 
   @AfterEach

@@ -141,6 +141,31 @@ public class NetworkGameBridge implements NetworkObserver {
     });
   }
 
+  @Override
+  public void invitationReceivedUpdate(String from) {
+
+  }
+
+  @Override
+  public void invitationAcceptedUpdate(String playerAccepted) {
+
+  }
+
+  @Override
+  public void invitationDeclinedUpdate(String playerDeclined) {
+
+  }
+
+  @Override
+  public void playersPlayerIdUpdate(Map<String, String> playerInfo) {
+
+  }
+
+  @Override
+  public void playerStatusUpdate(String status) {
+
+  }
+
   // ─── Nettoyage ────────────────────────────────────────────────────────────
 
   /**

@@ -1,4 +1,4 @@
-package fr.u_bordeaux.scrabble.model.network.server;
+package fr.ubordeaux.scrabble.model.network.server;
 
 import java.util.ArrayList;
 import java.util.List;

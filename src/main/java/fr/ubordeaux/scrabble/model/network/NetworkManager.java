@@ -339,6 +339,8 @@ public class NetworkManager {
     gameClient.sendPassMove();
   }
 
+  // -----F4O-----
+
   public void accept() {
     if (gameClient == null) {
       // System.err.println("User : Client is not connected, can't accept an invitation");
@@ -355,6 +357,48 @@ public class NetworkManager {
     gameClient.sendDecline();
   }
 
+  /**
+   * COMMAND players [PLAYER_ID]: If an ID is provided, displays detailed information for the player
+   * (status, score, statistics). The possible statuses are now: idle, away, waitgame (waiting for
+   * an invitation response), and ingame.
+   */
+  public void playersPlayerId(int playerId) {
+    if (gameClient == null) {
+      // System.err.println("User : Client is not connected, can't show player informations");
+      return;
+    }
+    gameClient.sendPlayersPlayerId(playerId);
+  }
+
+  /**
+   * COMMAND away: Change the player statue to away.
+   */
+  public void away() {
+    if (gameClient == null) {
+      return;
+    }
+    gameClient.sendAway();
+  }
+
+  /**
+   * COMMAND away: Change the player statue to idle.
+   */
+  public void back() {
+    if (gameClient == null) {
+      return;
+    }
+    gameClient.sendBack();
+  }
+
+  /**
+   * COMMAND cancel: Cancel current invitation sent).
+   */
+  public void cancel() {
+    if (gameClient == null) {
+      return;
+    }
+    gameClient.sendCancel();
+  }
 
   /** Get the local game client side. */
   public Game getLocalGame() {
@@ -363,9 +407,4 @@ public class NetworkManager {
     }
     return gameClient.getLocalGame();
   }
-
-  // -----F4O-----
-
-  // TODO:
-
 }

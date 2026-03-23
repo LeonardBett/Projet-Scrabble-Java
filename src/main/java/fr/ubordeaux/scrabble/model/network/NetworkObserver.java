@@ -4,9 +4,7 @@ import fr.ubordeaux.scrabble.model.network.server.ServerInfo;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Observer interface that is use in CLI/GUI. We use a different methods for each type of event
- */
+/** Observer interface that is use in CLI/GUI. We use a different methods for each type of event */
 public interface NetworkObserver {
 
   // -----Local model update-----
@@ -64,4 +62,18 @@ public interface NetworkObserver {
   void invitationAcceptedUpdate(String playerAccepted);
 
   void invitationDeclinedUpdate(String playerDeclined);
+
+  /**
+   * Call when the players playerId command response is received.
+   *
+   * @param playerInfo map containing this player information
+   */
+  void playersPlayerIdUpdate(Map<String, String> playerInfo);
+
+  /**
+   * Call when the server confirms a status change for this client.
+   *
+   * @param status the new status
+   */
+  void playerStatusUpdate(String status);
 }

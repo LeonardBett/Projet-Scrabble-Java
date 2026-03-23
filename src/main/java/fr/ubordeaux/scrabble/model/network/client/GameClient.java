@@ -153,8 +153,13 @@ public class GameClient {
             // + player.get("STATUS"));
             // }
 
+            List<Map<String, String>> playersEntries = packetParser.getEntries();
+            if (playersEntries.isEmpty()) {
+              break;
+            }
+
             for (NetworkObserver obs : observers) {
-              obs.playersUpdate(packetParser.getEntries());
+              obs.playersUpdate(playersEntries);
             }
             break;
 
@@ -298,6 +303,29 @@ public class GameClient {
             }
             break;
 
+          case "PLAYERS_PLAYER_ID":
+            List<Map<String, String>> playerEntries = packetParser.getEntries();
+            if (playerEntries.isEmpty()) {
+              break;
+            }
+
+            if (playerEntries.size() == 1 && playerEntries.getFirst().containsKey("WINS")) {
+              Map<String, String> playerDetails = playerEntries.getFirst();
+              for (NetworkObserver obs : observers) {
+                obs.playersPlayerIdUpdate(playerDetails);
+              }
+            }
+            break;
+
+          case "STATUS_UPDATE":
+            if (!packetParser.getEntries().isEmpty()) {
+              String newStatus = packetParser.getEntries().getFirst().get("STATUS");
+              for (NetworkObserver obs : observers) {
+                obs.playerStatusUpdate(newStatus);
+              }
+            }
+            break;
+
           default:
             // System.out.println("Client : Received: " + serverMessage);
             for (NetworkObserver obs : observers) {
@@ -309,8 +337,8 @@ public class GameClient {
     } catch (SocketException e) {
       // Socket closed, normal behavior if raised when called close()
       if (isRunning) {
-        System.err
-            .println("Client Error: Socket error while listening to server " + e.getMessage());
+        System.err.println(
+            "Client Error: Socket error while listening to server " + e.getMessage());
       }
     } catch (IOException e) {
       System.err.println("Client Error: IO Error while listening to server " + e.getMessage());
@@ -459,6 +487,22 @@ public class GameClient {
 
   public void sendDecline() {
     sendMessage("DECLINE");
+  }
+
+  public void sendPlayersPlayerId(int playerId) {
+    sendMessage("PLAYERS_PLAYER_ID:PLAYER=" + playerId);
+  }
+
+  public void sendAway() {
+    sendMessage("AWAY");
+  }
+
+  public void sendBack() {
+    sendMessage("BACK");
+  }
+
+  public void sendCancel() {
+    sendMessage("CANCEL");
   }
 
   // Method use in a Thread

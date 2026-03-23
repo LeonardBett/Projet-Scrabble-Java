@@ -1,8 +1,9 @@
-package fr.u_bordeaux.scrabble.model.network;
+package fr.ubordeaux.scrabble.model.network;
 
-import fr.u_bordeaux.scrabble.model.network.client.GameClient;
-import fr.u_bordeaux.scrabble.model.network.server.GameServer;
-import fr.u_bordeaux.scrabble.model.network.server.ServerInfo;
+import fr.ubordeaux.scrabble.model.network.client.GameClient;
+import fr.ubordeaux.scrabble.model.network.server.GameServer;
+import fr.ubordeaux.scrabble.model.network.server.ServerInfo;
+import java.util.Map;
 import java.util.Scanner;
 
 /** The type Networking main. */
@@ -214,6 +215,16 @@ public class NetworkingMain {
                 "\n[OBSERVER] -> Le joueur " + playerDeclined + " a REFUSÉ l'invitation.");
             System.out.print("> ");
           }
+
+          @Override
+          public void playersPlayerIdUpdate(Map<String, String> playerInfo) {
+            System.out.println("\n[OBSERVER] -> Détails du joueur : " + playerInfo);
+          }
+
+          @Override
+          public void playerStatusUpdate(String status) {
+            System.out.println("\n[OBSERVER] -> Nouveau statut confirmé : " + status);
+          }
         };
 
     nm.addObserver(consoleObserver);
@@ -229,7 +240,9 @@ public class NetworkingMain {
 
     System.out.println("\n--- Mode Réseau Actif ---");
     System.out.println("Commandes réseau : list | join <IP> | quit");
-    System.out.println("Partie : players | status | new <ID1> [ID2] [ID3] | accept | decline");
+    // NOUVEAU : Mise à jour de l'aide pour afficher les nouvelles commandes
+    System.out.println(
+        "Partie : players [ID] | status | new <ID1> [ID2] [ID3] | accept | decline | cancel | away | back");
     System.out.println("Jeu : play <x> <y> <H|V> <tiles> | exchange <tiles> | pass");
 
     Scanner scanner = new Scanner(System.in);
@@ -255,7 +268,18 @@ public class NetworkingMain {
             System.out.println("Usage: join <IP>");
           }
         }
-        case "players" -> nm.players();
+        // NOUVEAU : Gestion de l'argument optionnel pour players
+        case "players" -> {
+          if (parts.length > 1) {
+            try {
+              nm.playersPlayerId(Integer.parseInt(parts[1]));
+            } catch (NumberFormatException e) {
+              System.out.println("L'ID doit être un nombre entier.");
+            }
+          } else {
+            nm.players();
+          }
+        }
         case "status" -> nm.serverStatus();
         case "scoreboard" -> nm.scoreboard();
         case "new" -> {
@@ -272,6 +296,9 @@ public class NetworkingMain {
         }
         case "accept" -> nm.accept();
         case "decline" -> nm.decline();
+        // NOUVEAU : Ajout des commandes away et back
+        case "away" -> nm.away();
+        case "back" -> nm.back();
         case "play" -> {
           if (parts.length == 5) {
             nm.play(Integer.parseInt(parts[1]), Integer.parseInt(parts[2]), parts[3], parts[4]);
@@ -289,6 +316,7 @@ public class NetworkingMain {
           nm.stopOnlinePlay();
           System.exit(0);
         }
+        case "cancel" -> nm.cancel();
         default -> System.out.println("Commande inconnue.");
       }
     }

@@ -11,10 +11,20 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * Game server for multiplayer mode. Manages client connections and network games.
- */
+/** Game server for multiplayer mode. Manages client connections and network games. */
 public class GameServer {
+
+  /*
+   * THREAD-SAFETY NOTE:
+   * Collections.synchronizedList only provides thread-safety for individual
+   * atomic operations like add(), remove(), or get().
+   * It's just an extension that use synchronize on these operations
+   *
+   * It does NOT protect compound operations such as iterations (for-loops, removeIf).
+   * To prevent ConcurrentModificationException, we must explicitly synchronize
+   * on the list instance during iteration. This ensures the list's structure
+   * isn't modified by another thread while we are traversing it.
+   */
 
   // Volatile flag used to maintain the loop active and allow a graceful shutdown
   // of the thread.
@@ -72,10 +82,15 @@ public class GameServer {
                       activeInvitations.removeIf(
                           inv -> {
                             if (inv.isExpired(now)) {
-                              inv.getHost().sendMessage("ERROR: Invitation expired.");
-                              inv.getHost().getClientInfo().setStatus(PlayerStatus.IDLE);
+                              for (ClientHandler p : inv.getAcceptedPlayers()) {
+                                p.getClientInfo().setStatus(PlayerStatus.IDLE);
+                                p.sendMessage("STATUS_UPDATE:STATUS=IDLE");
+                                p.sendMessage("ERROR: Invitation expired.");
+                              }
+
                               for (ClientHandler p : inv.getPendingPlayers()) {
                                 p.getClientInfo().setStatus(PlayerStatus.IDLE);
+                                p.sendMessage("STATUS_UPDATE:STATUS=IDLE");
                                 p.sendMessage("ERROR: Invitation expired.");
                               }
                               return true;
@@ -213,7 +228,7 @@ public class GameServer {
    *
    * @return the string with PLAYERS command response infos
    */
-  public String getPlayerResponse() {
+  public String getPlayersResponse() {
     StringBuilder sb = new StringBuilder("PLAYERS:");
     synchronized (clients) {
       for (ClientHandler client : clients) {
@@ -268,20 +283,24 @@ public class GameServer {
 
     // Mise à jour des statuts et notifications
     initiator.getClientInfo().setStatus(PlayerStatus.WAITGAME);
+    initiator.sendMessage("STATUS_UPDATE:STATUS=WAITGAME");
     for (ClientHandler t : targets) {
       t.getClientInfo().setStatus(PlayerStatus.WAITGAME);
-      t.sendMessage(
-          "INVITATION_RECEIVED:FROM=" + initiator.getClientInfo().getName());
+      t.sendMessage("STATUS_UPDATE:STATUS=WAITGAME");
+      t.sendMessage("INVITATION_RECEIVED:FROM=" + initiator.getClientInfo().getName());
     }
     return "INVITATION_SENT";
   }
 
-  public synchronized void handleInvitationResponse(ClientHandler player, boolean accepted) {
+  public synchronized void processInvitationResponse(ClientHandler player, boolean accepted) {
     PendingInvitation currentInv = null;
-    for (PendingInvitation inv : activeInvitations) {
-      if (inv.containsPendingPlayer(player)) {
-        currentInv = inv;
-        break;
+
+    synchronized (activeInvitations) {
+      for (PendingInvitation inv : activeInvitations) {
+        if (inv.containsPendingPlayer(player)) {
+          currentInv = inv;
+          break;
+        }
       }
     }
 
@@ -298,6 +317,7 @@ public class GameServer {
     } else {
       currentInv.declinePlayer(player);
       player.getClientInfo().setStatus(PlayerStatus.IDLE);
+      player.sendMessage("STATUS_UPDATE:STATUS=IDLE");
       currentInv
           .getHost()
           .sendMessage("INVITATION_DECLINED:PLAYER=" + player.getClientInfo().getName());
@@ -311,14 +331,149 @@ public class GameServer {
         onlineGames.add(session);
         for (ClientHandler p : currentInv.getAcceptedPlayers()) {
           p.getClientInfo().setStatus(PlayerStatus.INGAME);
+          p.sendMessage("STATUS_UPDATE:STATUS=INGAME");
         }
       } else {
         for (ClientHandler p : currentInv.getAcceptedPlayers()) {
           p.getClientInfo().setStatus(PlayerStatus.IDLE);
+          p.sendMessage("STATUS_UPDATE:STATUS=IDLE");
         }
         currentInv.getHost().sendMessage("ERROR: Not enough players accepted to start the game.");
       }
     }
+  }
+
+  /**
+   * Handles the AWAY command.
+   *
+   * @param player the client requesting to go away
+   */
+  public synchronized void processAway(ClientHandler player) {
+    PlayerStatus currentStatus = player.getClientInfo().getStatus();
+
+    if (currentStatus == PlayerStatus.WAITGAME) {
+      player.sendMessage("ERROR: You cannot go away while having a pending invitation.");
+      return;
+    }
+    if (currentStatus == PlayerStatus.INGAME) {
+      player.sendMessage("ERROR: You cannot go away while in a game.");
+      return;
+    }
+
+    player.getClientInfo().setStatus(PlayerStatus.AWAY);
+    player.sendMessage("STATUS_UPDATE:STATUS=AWAY");
+  }
+
+  /**
+   * Handles the BACK command.
+   *
+   * @param player the client requesting to go back to idle
+   */
+  public void processBack(ClientHandler player) {
+    if (player.getClientInfo().getStatus() == PlayerStatus.AWAY) {
+      player.getClientInfo().setStatus(PlayerStatus.IDLE);
+      player.sendMessage("STATUS_UPDATE:STATUS=IDLE");
+    } else {
+      player.sendMessage("ERROR: You are not currently away.");
+    }
+  }
+
+  /**
+   * Processes the CANCEL command.
+   *
+   * @param player the client requesting to cancel their own invitation
+   */
+  public void processCancel(ClientHandler player) {
+    PendingInvitation currentInv = null;
+
+    // On cherche l'invitation dont ce joueur est le créateur
+    synchronized (activeInvitations) {
+      for (PendingInvitation inv : activeInvitations) {
+        if (inv.getHost() == player) {
+          currentInv = inv;
+          break;
+        }
+      }
+    }
+
+    if (currentInv == null) {
+      player.sendMessage("ERROR: You have no pending invitation to cancel.");
+      return;
+    }
+
+    // On la supprime de la liste active
+    synchronized (activeInvitations) {
+      activeInvitations.remove(currentInv);
+    }
+
+    // On libère les joueurs qui avaient déjà accepté (ce qui inclut le Host lui-même)
+    for (ClientHandler p : currentInv.getAcceptedPlayers()) {
+      p.getClientInfo().setStatus(PlayerStatus.IDLE);
+      p.sendMessage("STATUS_UPDATE:STATUS=IDLE");
+
+      if (p == player) {
+        p.sendMessage("Invitation successfully cancelled."); // Confirmation pour le Host
+      } else {
+        p.sendMessage("ERROR: The host cancelled the game invitation."); // Info pour les autres
+      }
+    }
+
+    // On libère les joueurs qui étaient encore en train de réfléchir (pending)
+    for (ClientHandler p : currentInv.getPendingPlayers()) {
+      p.getClientInfo().setStatus(PlayerStatus.IDLE);
+      p.sendMessage("STATUS_UPDATE:STATUS=IDLE");
+      p.sendMessage("ERROR: The host cancelled the game invitation.");
+    }
+  }
+
+  /** Cleans up any pending invitations involving a disconnecting player. */
+  public synchronized void removePlayerFromInvitations(ClientHandler player) {
+    synchronized (activeInvitations) {
+      activeInvitations.removeIf(
+          inv -> {
+            if (inv.getHost() == player
+                || inv.containsPendingPlayer(player)
+                || inv.getAcceptedPlayers().contains(player)) {
+
+              // We update all player from this invitation
+              for (ClientHandler p : inv.getAcceptedPlayers()) {
+                if (p != player) {
+                  p.getClientInfo().setStatus(PlayerStatus.IDLE);
+                  p.sendMessage("STATUS_UPDATE:STATUS=IDLE");
+                  p.sendMessage("ERROR: Invitation cancelled because a player disconnected.");
+                }
+              }
+              for (ClientHandler p : inv.getPendingPlayers()) {
+                if (p != player) {
+                  p.getClientInfo().setStatus(PlayerStatus.IDLE);
+                  p.sendMessage("STATUS_UPDATE:STATUS=IDLE");
+                  p.sendMessage("ERROR: Invitation cancelled because a player disconnected.");
+                }
+              }
+              return true;
+            }
+            return false;
+          });
+    }
+  }
+
+  /**
+   * Generates a detailed response for a specific player ID (Requirement F40). Ensures every
+   * attribute follows the KEY=VALUE format for the PacketParser.
+   *
+   * @param targetId the ID of the player to look for.
+   * @return a formatted string compatible with PacketParser, or an error message.
+   */
+  public String getSpecificPlayerResponse(int targetId) {
+    synchronized (clients) {
+      for (ClientHandler client : clients) {
+        if (client.getClientInfo().getId() == targetId) {
+          ClientInfo info = client.getClientInfo();
+          return "PLAYERS_PLAYER_ID:" + info.getPlayerInfo() + ";" + info.getScoreboardLine();
+        }
+      }
+    }
+    return "ERROR: Player " + targetId + " not found";
   }
 
   /**

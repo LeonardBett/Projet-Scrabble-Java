@@ -7,6 +7,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketTimeoutException;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -105,7 +106,17 @@ class DiscoveryServiceTest {
 
           @Override
           public void invitationDeclinedUpdate(String playerDeclined) {}
-        };
+
+      @Override
+      public void playersPlayerIdUpdate(Map<String, String> playerInfo) {
+
+      }
+
+      @Override
+      public void playerStatusUpdate(String status) {
+
+      }
+    };
 
     discoveryService.addObserver(observer);
     discoveryService.startListening();

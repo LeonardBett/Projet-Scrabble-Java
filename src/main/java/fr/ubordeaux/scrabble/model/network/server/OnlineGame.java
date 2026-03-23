@@ -254,14 +254,15 @@ public class OnlineGame {
    * @param reason The reason why the game is ending (e.g., "A player disconnected")
    */
   public void terminateGame(String reason) {
-    // Notify all remaining connected players
-    broadcast("ERROR: Game terminated - " + reason);
-
     // Reset player status so they can play again
     for (ClientHandler handler : handlers) {
       handler.getClientInfo().setStatus(PlayerStatus.IDLE);
+      handler.sendMessage("STATUS_UPDATE:STATUS=IDLE");
       handler.setOnlineGame(null);
     }
+
+    // Notify all remaining connected players
+    broadcast("ERROR: Game terminated - " + reason);
 
     // Remove this game from the server's list
     handlers.getFirst().getServer().removeOnlineGame(this);

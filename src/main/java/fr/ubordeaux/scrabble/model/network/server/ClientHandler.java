@@ -1,6 +1,8 @@
 package fr.ubordeaux.scrabble.model.network.server;
 
 import fr.ubordeaux.scrabble.model.network.PacketParser;
+import fr.ubordeaux.scrabble.model.network.PlayerStatus;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -12,9 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Handles communication with a single connected client. Runs in its own thread.
- */
+/** Handles communication with a single connected client. Runs in its own thread. */
 public class ClientHandler implements Runnable {
 
   // Volatile flag used to maintain the loop active and allow a graceful shutdown
@@ -77,12 +77,16 @@ public class ClientHandler implements Runnable {
           case "PING" -> sendMessage("PONG");
           case "PINGS" -> sendMessage("PONGS");
           case "SERVER_STATUS" -> sendMessage(server.getStatusResponse());
-          case "PLAYERS" -> sendMessage(server.getPlayerResponse());
+          case "PLAYERS" -> sendMessage(server.getPlayersResponse());
           case "SCOREBOARD" -> sendMessage(server.getScoreboardResponse());
           case "NEW" -> handleNewGameRequest(packet);
           case "MOVE" -> handleMoveRequest(packet);
-          case "ACCEPT" -> server.handleInvitationResponse(this, true);
-          case "DECLINE" -> server.handleInvitationResponse(this, false);
+          case "ACCEPT" -> handleInvitationResponse(true);
+          case "DECLINE" -> handleInvitationResponse(false);
+          case "PLAYERS_PLAYER_ID" -> handlePlayersRequest(packet);
+          case "AWAY" -> handleAwayRequest();
+          case "BACK" -> handleBackRequest();
+          case "CANCEL" -> handleCancelRequest();
 
           default -> sendMessage("ERROR: Unknown command");
         }
@@ -94,10 +98,11 @@ public class ClientHandler implements Runnable {
       // If isRunning is false, it means we called stop(), so we just exit the loop
       if (isRunning) {
         // We filter standard disconnection messages to keep the console clean
-        if (!e.getMessage().contains("reset") && !e.getMessage().contains("abandonnée")
+        if (!e.getMessage().contains("reset")
+            && !e.getMessage().contains("abandonnée")
             && !e.getMessage().contains("closed")) {
-          System.err
-              .println("ClientHandler run() : Unintended socket Exception: " + e.getMessage());
+          System.err.println(
+              "ClientHandler run() : Unintended socket Exception: " + e.getMessage());
         }
       }
     } catch (IOException e) {
@@ -135,6 +140,9 @@ public class ClientHandler implements Runnable {
       onlineGame.terminateGame(clientInfo.getName() + " disconnected");
     }
 
+    // We cancel invitation with this player in it
+    server.removePlayerFromInvitations(this);
+
     // We need to remove this ClientHandler from the list of clients
     server.removeClient(this);
 
@@ -159,7 +167,7 @@ public class ClientHandler implements Runnable {
   /**
    * Parses the 'new' command and requests game creation from the server.
    *
-   * @param message the NEW command
+   * @param packet the NEW command
    */
   private void handleNewGameRequest(PacketParser packet) {
     try {
@@ -195,6 +203,35 @@ public class ClientHandler implements Runnable {
     } else {
       onlineGame.processMove(this, packet);
     }
+  }
+
+  private void handlePlayersRequest(PacketParser packet) {
+    Map<String, String> data = packet.getEntries().getFirst();
+    if (data != null && data.containsKey("PLAYER")) {
+      try {
+        int targetId = Integer.parseInt(data.get("PLAYER"));
+        String detailResponse = server.getSpecificPlayerResponse(targetId);
+        sendMessage(detailResponse);
+      } catch (NumberFormatException e) {
+        sendMessage("ERROR: Invalid Player ID format");
+      }
+    }
+  }
+
+  private void handleInvitationResponse(boolean accepted) {
+    server.processInvitationResponse(this, accepted);
+  }
+
+  private void handleAwayRequest() {
+    server.processAway(this);
+  }
+
+  private void handleBackRequest() {
+    server.processBack(this);
+  }
+
+  private void handleCancelRequest() {
+    server.processCancel(this);
   }
 
   /**
