@@ -14,14 +14,15 @@ public class Scoring {
   /**
    * Private constructor to prevent instantiation.
    */
-  private Scoring() {}
+  private Scoring() {
+  }
 
   /**
    * Calculates the score for a specific word formed on the board.
    *
-   * @param wordSquares The list of squares that make up the word.
+   * @param wordSquares        The list of squares that make up the word.
    * @param newlyPlacedSquares The list of squares where tiles were placed during this turn. Bonuses
-   *        (DL, TL, DW, TW) are only applied to these squares.
+   *                           (DL, TL, DW, TW) are only applied to these squares.
    * @return The total score for the word.
    */
   public static int calculateWordScore(List<Square> wordSquares, List<Square> newlyPlacedSquares) {

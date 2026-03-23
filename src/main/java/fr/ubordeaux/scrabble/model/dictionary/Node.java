@@ -8,13 +8,17 @@ import java.util.TreeMap;
  * Each node stores a character and maintains a sorted map of its children.
  */
 public class Node implements Comparable<Node> {
-  /** The default character representation for the root node. */
+  /**
+   * The default character representation for the root node.
+   */
   public static char root = '~';
 
   private char content;
   private boolean finite = false;
 
-  /** Map of child nodes indexed by their character content. */
+  /**
+   * Map of child nodes indexed by their character content.
+   */
   public TreeMap<Character, Node> children = new TreeMap<Character, Node>();
 
   /**

@@ -1,13 +1,23 @@
 package fr.ubordeaux.scrabble.model.network;
 
-/** Different status for an online player. */
+/**
+ * Different status for an online player.
+ */
 public enum PlayerStatus {
-  /** Idle player status. */
+  /**
+   * Idle player status.
+   */
   IDLE,
-  /** Ingame player status. */
+  /**
+   * Ingame player status.
+   */
   INGAME,
-  /** Away player status. */
+  /**
+   * Away player status.
+   */
   AWAY,
-  /** Waitgame player status. */
+  /**
+   * Waitgame player status.
+   */
   WAITGAME;
 }

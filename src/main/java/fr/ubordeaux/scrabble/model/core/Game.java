@@ -21,7 +21,9 @@ public class Game {
   private boolean isGameOver;
   private final MoveHandler moveHandler;
   private final UndoRedo undoRedo;
-  /** True once the first PLAY move has been successfully executed. */
+  /**
+   * True once the first PLAY move has been successfully executed.
+   */
   private boolean firstMoveDone;
   private boolean blitzModeEnabled;
   private Duration blitzTimePerPlayer;
@@ -401,7 +403,7 @@ public class Game {
    * Debug function to display the board and player stats in the terminal. Will be removed
    *
    * @param showBonusSquare whether bonus square codes should be displayed.
-   * @param clientMode whether to display online synchronized bag size.
+   * @param clientMode      whether to display online synchronized bag size.
    */
   public void printDebugState(boolean showBonusSquare, boolean clientMode) {
     System.out.println("\n--- DEBUG: GAME STATE ---");
@@ -459,6 +461,7 @@ public class Game {
   // -----NETWORKING-----
   // These methods are needed for online play, for manipulating client side model
   // with data from the server side model directly, without redoing calculation
+
   /**
    * Finds a player in the game by their name. Needed for networking
    *
@@ -479,7 +482,7 @@ public class Game {
    * network play.
    *
    * @param playerName target player name.
-   * @param tiles rack content to force.
+   * @param tiles      rack content to force.
    */
   public void forceTilesToPlayer(String playerName, List<Tile> tiles) {
     Player p = getPlayerFromName(playerName);

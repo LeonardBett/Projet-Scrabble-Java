@@ -9,13 +9,16 @@ import javafx.scene.control.ButtonType;
  */
 public class MessagePanel {
 
-  /** Default constructor. */
-  public MessagePanel() {}
+  /**
+   * Default constructor.
+   */
+  public MessagePanel() {
+  }
 
   /**
    * Displays an information dialog.
    *
-   * @param title the dialog title
+   * @param title   the dialog title
    * @param message the message to display
    */
   public void showInfo(String title, String message) {
@@ -42,7 +45,7 @@ public class MessagePanel {
   /**
    * Displays a warning dialog.
    *
-   * @param title the dialog title
+   * @param title   the dialog title
    * @param message the warning message to display
    */
   public void showWarning(String title, String message) {

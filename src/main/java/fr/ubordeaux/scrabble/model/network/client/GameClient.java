@@ -6,6 +6,7 @@ import static fr.ubordeaux.scrabble.model.network.NetworkManager.DEFAULT_TCP_POR
 import fr.ubordeaux.scrabble.model.core.Game;
 import fr.ubordeaux.scrabble.model.core.HumanPlayer;
 import fr.ubordeaux.scrabble.model.core.Tile;
+import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
 import fr.ubordeaux.scrabble.model.network.NetworkObserver;
 import fr.ubordeaux.scrabble.model.network.PacketParser;
@@ -19,7 +20,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-/** Network client to connect to a game server. */
+/**
+ * Network client to connect to a game server.
+ */
 public class GameClient {
 
   // List of observers
@@ -58,7 +61,7 @@ public class GameClient {
    * Connect to a server on a specific address and port.
    *
    * @param address the address
-   * @param port the port
+   * @param port    the port
    */
   public void connect(String address, int port) {
     try {
@@ -88,7 +91,9 @@ public class GameClient {
     }
   }
 
-  /** Connect to a server on the default address and port. */
+  /**
+   * Connect to a server on the default address and port.
+   */
   public void connect() {
     connect(DEFAULT_ADDRESS, DEFAULT_TCP_PORT);
   }
@@ -186,10 +191,13 @@ public class GameClient {
             localGame.getBag().setOnlineSize(bagSize);
 
             // Extracting player info and adding them to the local model
+            int playerIndex = 0;
             for (Map<String, String> playerData : packetParser.getEntries()) {
               String name = playerData.get("NAME");
               if (name != null) {
-                this.localGame.addPlayer(new HumanPlayer(name));
+                this.localGame.addPlayer(
+                    new HumanPlayer(name, PlayerColor.fromIndex(playerIndex)));
+                playerIndex++;
               }
             }
 
@@ -292,7 +300,9 @@ public class GameClient {
     }
   }
 
-  /** Close the connexion with the server. */
+  /**
+   * Close the connexion with the server.
+   */
   public void quit() {
     if (!isRunning) {
       // System.err.println("Client : This client is already disconnected");
@@ -331,28 +341,38 @@ public class GameClient {
     }
   }
 
-  /** Send ping command to the server. */
+  /**
+   * Send ping command to the server.
+   */
   public void sendPing() {
     pingStartTime = System.currentTimeMillis();
     sendMessage("PING");
   }
 
-  /** Send ping command to the server only for timeout management. */
+  /**
+   * Send ping command to the server only for timeout management.
+   */
   public void sendPingSilent() {
     sendMessage("PINGS");
   }
 
-  /** Send server status command to the server. */
+  /**
+   * Send server status command to the server.
+   */
   public void sendServerStatus() {
     sendMessage("SERVER_STATUS");
   }
 
-  /** Send players command to the server. */
+  /**
+   * Send players command to the server.
+   */
   public void sendPlayers() {
     sendMessage("PLAYERS");
   }
 
-  /** Send scoreboard command to the server. */
+  /**
+   * Send scoreboard command to the server.
+   */
   public void sendScoreboard() {
     sendMessage("SCOREBOARD");
   }
@@ -394,10 +414,10 @@ public class GameClient {
   /**
    * Send PLAY move command to the server.
    *
-   * @param x the x coordinate on the board
-   * @param y the y coordinate on the board
+   * @param x         the x coordinate on the board
+   * @param y         the y coordinate on the board
    * @param direction the direction of the move
-   * @param tile the word to play
+   * @param tile      the word to play
    */
   public void sendPlayMove(int x, int y, String direction, String tile) {
     // Format: MOVE:TYPE=PLAY;X=7;Y=7;DIR=H;WORD=CHAT
@@ -417,7 +437,9 @@ public class GameClient {
     sendMessage(message);
   }
 
-  /** Send PASS move command to the server. */
+  /**
+   * Send PASS move command to the server.
+   */
   public void sendPassMove() {
     // Format: MOVE:TYPE=PASS
     sendMessage("MOVE:TYPE=PASS");

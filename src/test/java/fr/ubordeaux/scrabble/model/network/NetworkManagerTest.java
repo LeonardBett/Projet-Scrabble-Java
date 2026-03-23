@@ -22,25 +22,32 @@ class NetworkManagerTest {
     networkManager = new NetworkManager();
     mockObserver = new NetworkObserver() {
       @Override
-      public void localModelUpdate() {}
+      public void localModelUpdate() {
+      }
 
       @Override
-      public void gameEndedUpdate(String reason) {}
+      public void gameEndedUpdate(String reason) {
+      }
 
       @Override
-      public void serverStatusUpdate(java.util.Map<String, String> info) {}
+      public void serverStatusUpdate(java.util.Map<String, String> info) {
+      }
 
       @Override
-      public void playersUpdate(java.util.List<java.util.Map<String, String>> players) {}
+      public void playersUpdate(java.util.List<java.util.Map<String, String>> players) {
+      }
 
       @Override
-      public void scoreboardUpdate(java.util.List<java.util.Map<String, String>> scoreboard) {}
+      public void scoreboardUpdate(java.util.List<java.util.Map<String, String>> scoreboard) {
+      }
 
       @Override
-      public void serverListUpdate(List<ServerInfo> activeServers) {}
+      public void serverListUpdate(List<ServerInfo> activeServers) {
+      }
 
       @Override
-      public void messageUpdate(String message) {}
+      public void messageUpdate(String message) {
+      }
     };
   }
 

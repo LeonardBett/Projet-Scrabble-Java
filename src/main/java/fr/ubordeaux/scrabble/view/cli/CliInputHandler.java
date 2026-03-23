@@ -39,7 +39,8 @@ public class CliInputHandler {
     System.out.println("4. Annuler le coup précédent");
     System.out.println("5. Refaire le coup annulé");
     System.out.println("6. Quitter");
-    System.out.print("\nVotre choix (1-6) : ");
+    System.out.println("7. Demander un indice");
+    System.out.print("\nVotre choix (1-7) : ");
     return scanner.nextLine().trim();
   }
 

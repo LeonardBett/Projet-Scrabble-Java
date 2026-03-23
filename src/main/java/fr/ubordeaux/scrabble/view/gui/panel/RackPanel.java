@@ -167,14 +167,14 @@ public class RackPanel extends VBox {
     for (int i = 0; i < tiles.size(); i++) {
       if (tiles.get(i) == tile) {
         tileContainers[i].setVisible(false);
-        break; 
+        break;
       }
     }
   }
 
   /**
    * Changes the displayed rack (e.g. when the turn changes).
-   * 
+   *
    */
   public void setRack(Rack newRack) {
     this.rack = newRack;

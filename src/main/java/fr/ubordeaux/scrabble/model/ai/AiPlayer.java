@@ -5,6 +5,7 @@ import fr.ubordeaux.scrabble.model.core.Move;
 import fr.ubordeaux.scrabble.model.core.PlayableWord;
 import fr.ubordeaux.scrabble.model.core.Tile;
 import fr.ubordeaux.scrabble.model.dictionary.Gaddag;
+import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
 import fr.ubordeaux.scrabble.model.utils.Point;
 import java.util.ArrayList;
@@ -18,6 +19,7 @@ public class AiPlayer extends Player {
 
   private final MinimaxSolver solver;
   private MlAgent mlAgent;
+  private PlayerColor color;
 
   /**
    * Constructs an AI Player with a defined difficulty and time limit.
@@ -25,9 +27,10 @@ public class AiPlayer extends Player {
    * @param name The name of the player.
    * @param difficultyLevel Defines the search depth.
    * @param timeLimitSeconds The time limit allocated for the AI to play.
+   * @param color The color assigned to the player.
    */
-  public AiPlayer(String name, int difficultyLevel, int timeLimitSeconds) {
-    super(name);
+  public AiPlayer(String name, int difficultyLevel, int timeLimitSeconds, PlayerColor color) {
+    super(name, color);
     this.solver = new MinimaxSolver(difficultyLevel, timeLimitSeconds);
   }
 
@@ -162,10 +165,10 @@ public class AiPlayer extends Player {
       for (int i = 0; i < word.length(); i++) {
         int currentX = startX
             + (bestPlay.getDirection() == fr.ubordeaux.scrabble.model.enums.Direction.HORIZONTAL ? i
-                : 0);
+            : 0);
         int currentY = startY
             + (bestPlay.getDirection() == fr.ubordeaux.scrabble.model.enums.Direction.VERTICAL ? i
-                : 0);
+            : 0);
 
         fr.ubordeaux.scrabble.model.core.Square sq =
             game.getBoard().getSquare(new Point(currentX, currentY));

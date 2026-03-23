@@ -1,6 +1,7 @@
 package fr.ubordeaux.scrabble.model.interfaces;
 
 import fr.ubordeaux.scrabble.model.core.Rack;
+import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import java.time.Duration;
 
 /**
@@ -14,13 +15,15 @@ public abstract class Player {
   private long remainingTimeNanos;
   private long activeSinceNanos;
   private boolean turnTimerRunning;
+  private final PlayerColor color;
 
   /**
    * Base constructor for any player.
    *
-   * @param name The name of the player.
+   * @param name  The name of the player.
+   * @param color The color assigned to the player.
    */
-  public Player(String name) {
+  public Player(String name, PlayerColor color) {
     this.name = name;
     this.score = 0;
     this.rack = new Rack();
@@ -28,6 +31,7 @@ public abstract class Player {
     this.remainingTimeNanos = 0L;
     this.activeSinceNanos = 0L;
     this.turnTimerRunning = false;
+    this.color = color;
   }
 
   /**
@@ -183,5 +187,14 @@ public abstract class Player {
   @Override
   public String toString() {
     return name;
+  }
+
+  /**
+   * Retrieves the color assigned to the player.
+   *
+   * @return The PlayerColor instance.
+   */
+  public PlayerColor getColor() {
+    return color;
   }
 }

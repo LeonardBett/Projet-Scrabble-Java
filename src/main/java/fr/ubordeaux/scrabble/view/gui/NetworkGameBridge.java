@@ -6,7 +6,7 @@ import fr.ubordeaux.scrabble.model.network.NetworkObserver;
 import fr.ubordeaux.scrabble.model.network.server.ServerInfo;
 import java.util.List;
 import java.util.Map;
-import javafx.application.Platform; 
+import javafx.application.Platform;
 
 /**
  * Bridges network observer callbacks to the JavaFX GUI and lobby views.

@@ -11,7 +11,9 @@ public class DawgNode {
   private final char content;
   private boolean finite = false;
 
-  /** Map of child nodes indexed by their character content. */
+  /**
+   * Map of child nodes indexed by their character content.
+   */
   public TreeMap<Character, DawgNode> children = new TreeMap<>();
 
   /**

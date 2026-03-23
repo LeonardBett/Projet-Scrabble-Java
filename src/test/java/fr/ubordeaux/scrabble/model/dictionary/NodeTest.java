@@ -10,7 +10,9 @@ import org.junit.jupiter.api.Test;
 
 class NodeTest {
 
-  /** Test that a node is correctly initialized with a character and is not finite by default. */
+  /**
+   * Test that a node is correctly initialized with a character and is not finite by default.
+   */
   @Test
   void nodeShouldInitializeCorrectly() {
     Node node = new Node('A');
@@ -18,7 +20,9 @@ class NodeTest {
     assertFalse(node.getFinite());
   }
 
-  /** Test that adding and retrieving children works correctly. */
+  /**
+   * Test that adding and retrieving children works correctly.
+   */
   @Test
   void nodeShouldManageChildrenCorrectly() {
     Node parent = new Node('P');
@@ -29,7 +33,9 @@ class NodeTest {
     assertEquals('C', parent.getChild('C').getContent());
   }
 
-  /** Test equality between nodes based on their content. */
+  /**
+   * Test equality between nodes based on their content.
+   */
   @Test
   void nodesWithSameContentShouldBeEqual() {
     Node n1 = new Node('X');

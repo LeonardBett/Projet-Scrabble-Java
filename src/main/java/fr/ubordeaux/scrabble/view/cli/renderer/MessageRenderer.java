@@ -3,7 +3,7 @@ package fr.ubordeaux.scrabble.view.cli.renderer;
 /**
  * Responsable de l'affichage des messages système dans la console CLI
  * (erreurs, succès, informations, avertissements, séparateurs).
- */ 
+ */
 public class MessageRenderer {
 
   public void error(String message) {
@@ -23,7 +23,7 @@ public class MessageRenderer {
   }
 
   public void separator() {
-    System.out.println("----------------------------------------------"); 
+    System.out.println("----------------------------------------------");
   }
 
   public void sectionTitle(String title) {

@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import java.time.Duration;
 import org.junit.jupiter.api.Test;
 
@@ -28,8 +29,8 @@ class GameTest {
   @Test
   void startGameShouldFillPlayerRacks() {
     Game game = new Game();
-    HumanPlayer alice = new HumanPlayer("Alice");
-    HumanPlayer bob = new HumanPlayer("Bob");
+    HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
+    HumanPlayer bob = new HumanPlayer("Bob", PlayerColor.RED);
 
     game.addPlayer(alice);
     game.addPlayer(bob);
@@ -49,8 +50,8 @@ class GameTest {
   @Test
   void executeMoveShouldRejectWrongPlayerTurn() {
     Game game = new Game();
-    HumanPlayer alice = new HumanPlayer("Alice");
-    HumanPlayer bob = new HumanPlayer("Bob");
+    HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
+    HumanPlayer bob = new HumanPlayer("Bob", PlayerColor.RED);
     game.addPlayer(alice);
     game.addPlayer(bob);
 
@@ -66,8 +67,8 @@ class GameTest {
   @Test
   void executePassMoveShouldAdvanceTurnAndTrackHistory() {
     Game game = new Game();
-    HumanPlayer alice = new HumanPlayer("Alice");
-    HumanPlayer bob = new HumanPlayer("Bob");
+    HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
+    HumanPlayer bob = new HumanPlayer("Bob", PlayerColor.RED);
     game.addPlayer(alice);
     game.addPlayer(bob);
 
@@ -87,8 +88,8 @@ class GameTest {
     assertNull(emptyGame.determineWinner());
 
     Game game = new Game();
-    HumanPlayer alice = new HumanPlayer("Alice");
-    HumanPlayer bob = new HumanPlayer("Bob");
+    HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
+    HumanPlayer bob = new HumanPlayer("Bob", PlayerColor.RED);
     alice.addScore(10);
     bob.addScore(15);
     game.addPlayer(alice);
@@ -104,7 +105,7 @@ class GameTest {
   @Test
   void refillRackShouldAddTilesUntilFullOrBagEmpty() {
     Game game = new Game();
-    HumanPlayer player = new HumanPlayer("Alice");
+    HumanPlayer player = new HumanPlayer("Alice", PlayerColor.BLUE);
 
     var drawn = game.refillRack(player);
 
@@ -116,8 +117,8 @@ class GameTest {
   @Test
   void blitzModeShouldStartOnlyCurrentPlayerTimer() {
     Game game = new Game();
-    HumanPlayer alice = new HumanPlayer("Alice");
-    HumanPlayer bob = new HumanPlayer("Bob");
+    HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
+    HumanPlayer bob = new HumanPlayer("Bob", PlayerColor.RED);
     game.addPlayer(alice);
     game.addPlayer(bob);
 
@@ -134,8 +135,8 @@ class GameTest {
   @Test
   void blitzModeShouldPauseAndResumeOnTurnChange() throws InterruptedException {
     Game game = new Game();
-    HumanPlayer alice = new HumanPlayer("Alice");
-    HumanPlayer bob = new HumanPlayer("Bob");
+    HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
+    HumanPlayer bob = new HumanPlayer("Bob", PlayerColor.RED);
     game.addPlayer(alice);
     game.addPlayer(bob);
 
@@ -154,8 +155,8 @@ class GameTest {
   @Test
   void blitzModeShouldEndGameWhenCurrentPlayerTimesOut() throws InterruptedException {
     Game game = new Game();
-    HumanPlayer alice = new HumanPlayer("Alice");
-    HumanPlayer bob = new HumanPlayer("Bob");
+    HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
+    HumanPlayer bob = new HumanPlayer("Bob", PlayerColor.RED);
     game.addPlayer(alice);
     game.addPlayer(bob);
 

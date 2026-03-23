@@ -5,7 +5,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/** Represents a parsed network packet for command and data extraction. */
+/**
+ * Represents a parsed network packet for command and data extraction.
+ */
 public class PacketParser {
 
   // The command name (ex: PLAYERS, PING, ...)

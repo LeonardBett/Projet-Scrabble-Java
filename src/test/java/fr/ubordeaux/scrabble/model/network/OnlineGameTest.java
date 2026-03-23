@@ -147,7 +147,8 @@ class OnlineGameTest {
     public GameServer getServer() {
       return new GameServer() {
         @Override
-        public void removeOnlineGame(OnlineGame g) {}
+        public void removeOnlineGame(OnlineGame g) {
+        }
       };
     }
   }

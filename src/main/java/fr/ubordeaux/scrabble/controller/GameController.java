@@ -2,13 +2,22 @@ package fr.ubordeaux.scrabble.controller;
 
 import fr.ubordeaux.scrabble.model.ai.AiPlayer;
 import fr.ubordeaux.scrabble.model.ai.MlAgent;
+import fr.ubordeaux.scrabble.model.core.Board;
 import fr.ubordeaux.scrabble.model.core.Game;
 import fr.ubordeaux.scrabble.model.core.HumanPlayer;
 import fr.ubordeaux.scrabble.model.core.Move;
+import fr.ubordeaux.scrabble.model.core.MoveGenerator;
 import fr.ubordeaux.scrabble.model.core.MoveHandler;
+import fr.ubordeaux.scrabble.model.core.PlayableWord;
+import fr.ubordeaux.scrabble.model.core.Scoring;
+import fr.ubordeaux.scrabble.model.core.Square;
+import fr.ubordeaux.scrabble.model.core.Tile;
 import fr.ubordeaux.scrabble.model.dictionary.Gaddag;
+import fr.ubordeaux.scrabble.model.enums.Direction;
 import fr.ubordeaux.scrabble.model.enums.MoveType;
+import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
+import fr.ubordeaux.scrabble.model.utils.Point;
 import fr.ubordeaux.scrabble.view.UserInterface;
 import fr.ubordeaux.scrabble.view.cli.CliInputHandler;
 import fr.ubordeaux.scrabble.view.cli.CliView;
@@ -40,7 +49,9 @@ public class GameController {
     this.view = view;
   }
 
-  /** Starts the game. */
+  /**
+   * Starts the game.
+   */
   public void startGame() {
     if (game == null || view == null) {
       throw new IllegalStateException("Game and view must be initialized before starting.");
@@ -69,11 +80,12 @@ public class GameController {
       int num = input.askNumberOfPlayers();
       for (int i = 1; i <= num; i++) {
         String name = input.askPlayerName(i);
+        PlayerColor assignedColor = PlayerColor.fromIndex(i - 1);
 
         // If the name starts with "IA", create a bot automatically configured by
         // command line args
         if (name.toUpperCase().startsWith("IA") || name.toUpperCase().startsWith("AI")) {
-          AiPlayer bot = new AiPlayer(name, 3, 5);
+          AiPlayer bot = new AiPlayer(name, 3, 5, assignedColor);
 
           // Apply command-line configurations directly
           bot.setExpectiminimaxMode(this.useExptiminimax);
@@ -99,17 +111,17 @@ public class GameController {
 
           addPlayer(bot);
         } else {
-          addPlayer(new HumanPlayer(name));
+          addPlayer(new HumanPlayer(name, assignedColor));
         }
       }
     }
 
     startGame();
 
-    // 2. Chargement du dictionnaire Gaddag depuis le fichier texte
+    // Loading Gaddag dictionnary from the resources folder
     Gaddag currentGaddag = getOrLoadGaddag();
 
-    // 3. Boucle principale du jeu
+    // Main loop of the game
     boolean running = true;
     while (running && !game.isGameOver()) {
       view.refresh();
@@ -121,7 +133,7 @@ public class GameController {
         break;
       }
 
-      // --- GESTION DU TOUR DE L'IA ---
+      // AI Turn Handler
       if (current instanceof AiPlayer) {
         view.displayMessage("\n--- C'est au tour de l'IA (" + current.getName() + ") ---");
         AiPlayer ai = (AiPlayer) current;
@@ -138,7 +150,7 @@ public class GameController {
         continue;
       }
 
-      // --- GESTION DU TOUR D'UN JOUEUR HUMAIN ---
+      // Human Player turn handler
       String action = input.askAction();
       switch (action) {
         case "1": {
@@ -186,6 +198,10 @@ public class GameController {
           if (input.askConfirmation("Voulez-vous vraiment quitter ?")) {
             running = false;
           }
+          break;
+        }
+        case "7": {
+          provideHint();
           break;
         }
         default:
@@ -312,13 +328,17 @@ public class GameController {
     game.addPlayer(player);
   }
 
-  /** Undoes the last move. */
+  /**
+   * Undoes the last move.
+   */
   public void undo() {
     game.undo();
     view.refresh();
   }
 
-  /** Redoes the undone move. */
+  /**
+   * Redoes the undone move.
+   */
   public void redo() {
     game.redo();
     view.refresh();
@@ -356,5 +376,124 @@ public class GameController {
 
   public void setLang(String lang) {
     this.lang = lang;
+  }
+
+  /**
+   * Generates and displays a hint for the current human player without ending their turn.
+   * Searches for the highest-scoring move that specifically uses fewer than 7 letters
+   * from the rack to avoid giving away a bingo/scrabble.
+   */
+  private void provideHint() {
+    MoveGenerator moveGen = new MoveGenerator();
+    List<PlayableWord> possibleMoves = moveGen.getPlayableWordsList(game, getOrLoadGaddag());
+
+    PlayableWord bestHintMove = null;
+    int bestScore = -1;
+    List<Character> bestLettersToUse = new ArrayList<>();
+
+    for (PlayableWord move : possibleMoves) {
+      List<Character> lettersFromRack = getLettersFromRack(game.getBoard(), move);
+
+      // Strict constraint: The hint must never give away a 7-letter play
+      if (!lettersFromRack.isEmpty() && lettersFromRack.size() < 7) {
+        int score = simulateScoreForHint(game.getBoard(), move);
+        if (score > bestScore) {
+          bestScore = score;
+          bestHintMove = move;
+          bestLettersToUse = lettersFromRack;
+        }
+      }
+    }
+
+    if (bestHintMove != null) {
+      view.displayMessage("\n Indice : Vous pouvez utiliser les lettres "
+          + bestLettersToUse.toString()
+          + " pour faire un mot de " + bestScore + " points.\n");
+    } else {
+      view.displayMessage("\n Indice : Aucun mot valide de moins de 7 "
+          +
+          "lettres n'a été trouvé avec votre chevalet.\n");
+    }
+  }
+
+  /**
+   * Extracts the exact letters that the player needs to place from their rack
+   * to form the simulated word.
+   *
+   * @param board The current game board.
+   * @param move The move being evaluated.
+   * @return A list of characters required from the rack.
+   */
+  private List<Character> getLettersFromRack(Board board, PlayableWord move) {
+    List<Character> rackLettersUsed = new ArrayList<>();
+    String word = move.getWord();
+    int hookIndex = move.getGaddagRepresentation().indexOf('>') - 1;
+
+    int startX = move.getDirection() == Direction.HORIZONTAL
+        ? move.getHookX() - hookIndex : move.getHookX();
+    int startY = move.getDirection() == Direction.VERTICAL
+        ? move.getHookY() - hookIndex : move.getHookY();
+
+    for (int i = 0; i < word.length(); i++) {
+      int x = startX + (move.getDirection() == Direction.HORIZONTAL ? i : 0);
+      int y = startY + (move.getDirection() == Direction.VERTICAL ? i : 0);
+
+      Square sq = board.getSquare(new Point(x, y));
+
+      if (sq != null && sq.isEmpty()) {
+        rackLettersUsed.add(word.charAt(i));
+      }
+    }
+    return rackLettersUsed;
+  }
+
+  /**
+   * Temporarily places a word on the board to calculate its exact point value,
+   * then removes it to maintain the board's original state.
+   *
+   * @param board The current game board.
+   * @param move The move to evaluate.
+   * @return The calculated score for the move.
+   */
+  private int simulateScoreForHint(Board board, PlayableWord move) {
+    List<Square> newlyPlaced = new ArrayList<>();
+    List<Square> wordSquares = new ArrayList<>();
+
+    String word = move.getWord();
+    int hookIndex = move.getGaddagRepresentation().indexOf('>') - 1;
+
+    int startX = move.getDirection() == Direction.HORIZONTAL
+        ? move.getHookX() - hookIndex : move.getHookX();
+    int startY = move.getDirection() == Direction.VERTICAL
+        ? move.getHookY() - hookIndex : move.getHookY();
+
+    for (int i = 0; i < word.length(); i++) {
+      int x = startX + (move.getDirection() == Direction.HORIZONTAL ? i : 0);
+      int y = startY + (move.getDirection() == Direction.VERTICAL ? i : 0);
+
+      Square sq = board.getSquare(new Point(x, y));
+      wordSquares.add(sq);
+
+      if (sq != null && sq.isEmpty()) {
+        sq.setTile(new Tile(word.charAt(i)));
+        newlyPlaced.add(sq);
+      }
+    }
+
+    int score = 0;
+    try {
+      if (!wordSquares.isEmpty()) {
+        score = Scoring.calculateWordScore(wordSquares, newlyPlaced);
+      }
+    } catch (Exception e) {
+      // Exceptions are safely ignored during background simulation
+    }
+
+    // Crucial cleanup step: remove temporary tiles
+    for (Square sq : newlyPlaced) {
+      sq.setTile(null);
+    }
+
+    return score;
   }
 }

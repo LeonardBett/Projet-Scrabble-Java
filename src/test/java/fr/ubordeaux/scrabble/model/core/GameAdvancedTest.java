@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import fr.ubordeaux.scrabble.model.ai.AiPlayer;
 import fr.ubordeaux.scrabble.model.enums.Direction;
+import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.model.utils.Point;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +20,7 @@ class GameAdvancedTest {
   @Test
   void executeMoveShouldFailWhenGameIsOver() {
     Game game = new Game();
-    HumanPlayer alice = new HumanPlayer("Alice");
+    HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
     game.addPlayer(alice);
     game.setGameOver(true);
 
@@ -29,7 +30,7 @@ class GameAdvancedTest {
   @Test
   void undoRedoShouldWorkForHumanPlayAndResetFirstMoveFlag() {
     Game game = new Game();
-    HumanPlayer alice = new HumanPlayer("Alice");
+    HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
     game.addPlayer(alice);
 
     alice.getRack().setTiles(new ArrayList<>(List.of(new Tile('a'))));
@@ -53,7 +54,7 @@ class GameAdvancedTest {
   @Test
   void undoRedoShouldDoNothingWhenCurrentPlayerIsNotHuman() {
     Game game = new Game();
-    AiPlayer bot = new AiPlayer("Bot", 1, 5);
+    AiPlayer bot = new AiPlayer("Bot", 1, 5, PlayerColor.BLUE);
     game.addPlayer(bot);
 
     assertDoesNotThrow(game::undo);
@@ -64,8 +65,8 @@ class GameAdvancedTest {
   @Test
   void networkHelpersShouldFindPlayerForceTilesAndSyncBoard() {
     Game game = new Game();
-    HumanPlayer alice = new HumanPlayer("Alice");
-    HumanPlayer bob = new HumanPlayer("Bob");
+    HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
+    HumanPlayer bob = new HumanPlayer("Bob", PlayerColor.RED);
     game.addPlayer(alice);
     game.addPlayer(bob);
 
@@ -89,7 +90,7 @@ class GameAdvancedTest {
   @Test
   void printDebugStateShouldRunInBothModes() {
     Game game = new Game();
-    HumanPlayer alice = new HumanPlayer("Alice");
+    HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
     game.addPlayer(alice);
 
     assertDoesNotThrow(() -> game.printDebugState(true, false));

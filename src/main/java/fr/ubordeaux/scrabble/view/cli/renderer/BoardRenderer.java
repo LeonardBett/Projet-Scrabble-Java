@@ -10,8 +10,11 @@ import fr.ubordeaux.scrabble.model.utils.Point;
  */
 public class BoardRenderer {
 
-  /** Default constructor. */
-  public BoardRenderer() {}
+  /**
+   * Default constructor.
+   */
+  public BoardRenderer() {
+  }
 
   private static final String RESET = "\u001B[0m";
   private static final String BG_CYAN = "\u001B[46m";
@@ -24,7 +27,7 @@ public class BoardRenderer {
   /**
    * Renders the game board with color highlights.
    *
-   * @param board the board to render
+   * @param board            the board to render
    * @param showBonusSquares true to highlight bonus squares
    */
   public void render(Board board, boolean showBonusSquares) {

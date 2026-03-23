@@ -8,6 +8,7 @@ import fr.ubordeaux.scrabble.model.core.Move;
 import fr.ubordeaux.scrabble.model.core.Rack;
 import fr.ubordeaux.scrabble.model.core.Tile;
 import fr.ubordeaux.scrabble.model.dictionary.Gaddag;
+import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
 import fr.ubordeaux.scrabble.model.network.NetworkManager;
 import fr.ubordeaux.scrabble.model.utils.Point;
@@ -19,7 +20,7 @@ import fr.ubordeaux.scrabble.view.gui.panel.ScorePanel;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.HashMap; 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -331,12 +332,15 @@ public class ScrabbleGui extends Application {
     if (gaddag == null) {
       loadDictionary();
     }
+    int playerIndex = 0;
     for (String name : namesOpt.get()) {
+      PlayerColor assignedColor = PlayerColor.fromIndex(playerIndex);
       if (name.toUpperCase().startsWith("IA") || name.toUpperCase().startsWith("AI")) {
-        gameInstance.addPlayer(new AiPlayer(name, 3, 5));
+        gameInstance.addPlayer(new AiPlayer(name, 3, 5, assignedColor));
       } else {
-        gameInstance.addPlayer(new HumanPlayer(name));
+        gameInstance.addPlayer(new HumanPlayer(name, assignedColor));
       }
+      playerIndex++;
     }
 
     viewInstance = new JavaFxView(gameInstance);

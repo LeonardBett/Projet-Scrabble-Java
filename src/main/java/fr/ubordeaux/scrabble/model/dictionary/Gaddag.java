@@ -179,7 +179,7 @@ public class Gaddag extends Trie {
     char firstLetter = upperWord.charAt(0);
 
     String gaddagPath =
-            String.valueOf(firstLetter) + separator + upperWord.substring(1);
+        String.valueOf(firstLetter) + separator + upperWord.substring(1);
 
     return this.contains(gaddagPath);
   }

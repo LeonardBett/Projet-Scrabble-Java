@@ -5,6 +5,7 @@ import fr.ubordeaux.scrabble.model.enums.Direction;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
 import fr.ubordeaux.scrabble.model.utils.Point;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -16,7 +17,7 @@ public class MoveGenerator {
    * Original method used by the game. It extracts the player's rack and delegates to the overloaded
    * method.
    *
-   * @param game current game.
+   * @param game   current game.
    * @param gaddag dictionary structure used for lookups.
    * @return list of playable words for the current player.
    */
@@ -31,18 +32,40 @@ public class MoveGenerator {
   /**
    * Overloaded method used by the AI to simulate moves.
    *
-   * @param board board snapshot to evaluate.
+   * @param board     board snapshot to evaluate.
    * @param rackChars rack letters available for placement.
-   * @param gaddag dictionary structure used for lookups.
+   * @param gaddag    dictionary structure used for lookups.
    * @return list of playable words.
    */
   public List<PlayableWord> getPlayableWordsList(Board board, Character[] rackChars,
-      Gaddag gaddag) {
+                                                 Gaddag gaddag) {
     List<PlayableWord> playableMoves = new ArrayList<>();
     if (rackChars == null || gaddag == null) {
       return playableMoves;
     }
 
+    // Automatically detect first turn: the center square is empty
+    Square centerSquare = board.getSquare(new Point(7, 7));
+    boolean isFirstMove = (centerSquare == null || centerSquare.isEmpty());
+
+    // Specific logic for the opening move
+    if (isFirstMove) {
+      for (Gaddag.GaddagResult result : gaddag.findWordsWithRackAndHook(rackChars, ' ')) {
+        String word = result.word;
+        String gaddagRep = result.gaddagPath;
+
+        // Force evaluation on the center square (7, 7)
+        if (isPlayable(word, gaddagRep, 7, 7, Direction.HORIZONTAL, board, rackChars, gaddag)) {
+          playableMoves.add(new PlayableWord(7, 7, word, Direction.HORIZONTAL, gaddagRep));
+        }
+        if (isPlayable(word, gaddagRep, 7, 7, Direction.VERTICAL, board, rackChars, gaddag)) {
+          playableMoves.add(new PlayableWord(7, 7, word, Direction.VERTICAL, gaddagRep));
+        }
+      }
+      return playableMoves; // Return early, no need to scan the empty board
+    }
+
+    // Normal logic for subsequent turns
     for (int y = 0; y < Board.SIZE; y++) {
       for (int x = 0; x < Board.SIZE; x++) {
         Square square = board.getSquare(new Point(x, y));
@@ -75,7 +98,7 @@ public class MoveGenerator {
    * cross-words.
    */
   private boolean isPlayable(String word, String gaddagPath, int hookX, int hookY, Direction dir,
-      Board board, Character[] rackChars, Gaddag gaddag) {
+                             Board board, Character[] rackChars, Gaddag gaddag) {
     int hookIndex = gaddagPath.indexOf('>') - 1;
     int startX = (dir == Direction.HORIZONTAL) ? hookX - hookIndex : hookX;
     int startY = (dir == Direction.VERTICAL) ? hookY - hookIndex : hookY;
@@ -93,32 +116,26 @@ public class MoveGenerator {
 
     // 2. Check contiguous letters (make sure we don't accidentally extend an
     // existing word)
-    // If the square exactly before the word is NOT empty, we reject the move
     int beforeX = (dir == Direction.HORIZONTAL) ? startX - 1 : startX;
     int beforeY = (dir == Direction.VERTICAL) ? startY - 1 : startY;
     if (beforeX >= 0 && beforeY >= 0) {
       Square beforeSq = board.getSquare(new Point(beforeX, beforeY));
       if (beforeSq != null && !beforeSq.isEmpty()) {
-        // System.out.println("Debug: Word " + word + " rejected because of contiguous
-        // letter before.");
         return false;
       }
     }
 
-    // If the square exactly after the word is NOT empty, we reject the move
     int afterX = (dir == Direction.HORIZONTAL) ? startX + word.length() : startX;
     int afterY = (dir == Direction.VERTICAL) ? startY + word.length() : startY;
     if (afterX < Board.SIZE && afterY < Board.SIZE) {
       Square afterSq = board.getSquare(new Point(afterX, afterY));
       if (afterSq != null && !afterSq.isEmpty()) {
-        // System.out.println("Debug: Word " + word + " rejected because of contiguous
-        // letter after.");
         return false;
       }
     }
 
     // 3. Rack check & Cross-word check
-    List<Character> rackCopy = new ArrayList<>(java.util.Arrays.asList(rackChars));
+    List<Character> rackCopy = new ArrayList<>(Arrays.asList(rackChars));
     int lettersFromRack = 0;
 
     for (int i = 0; i < word.length(); i++) {
@@ -147,8 +164,6 @@ public class MoveGenerator {
 
         // Check cross words formed by this new tile
         if (!isValidCrossWord(board, currentX, currentY, letterNeeded, dir, gaddag)) {
-          // System.out.println("Debug: Word " + word + " rejected due to invalid cross
-          // word.");
           return false;
         }
       }
@@ -161,7 +176,7 @@ public class MoveGenerator {
    * Verifies that placing a new letter creates a valid perpendicular word on the board.
    */
   private boolean isValidCrossWord(Board board, int x, int y, char placedLetter, Direction mainDir,
-      Gaddag gaddag) {
+                                   Gaddag gaddag) {
     Direction crossDir =
         (mainDir == Direction.HORIZONTAL) ? Direction.VERTICAL : Direction.HORIZONTAL;
 

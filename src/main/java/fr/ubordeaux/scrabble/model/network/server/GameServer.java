@@ -36,7 +36,9 @@ public class GameServer {
   // Is used to give a unique id to each player
   private int idCounter = 1;
 
-  /** Start the server on the default port. */
+  /**
+   * Start the server on the default port.
+   */
   public void start() {
     start(DEFAULT_TCP_PORT);
   }
@@ -87,7 +89,9 @@ public class GameServer {
     }
   }
 
-  /** Stop the server. */
+  /**
+   * Stop the server.
+   */
   public void stop() {
     if (!isRunning) {
       // System.err.println("Server : Server is not running, can't stop it");
