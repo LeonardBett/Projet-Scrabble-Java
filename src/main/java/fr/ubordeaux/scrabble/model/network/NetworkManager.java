@@ -341,6 +341,7 @@ public class NetworkManager {
 
   // -----F4O-----
 
+  /** COMMAND accept : Accept the current invitation. */
   public void accept() {
     if (gameClient == null) {
       // System.err.println("User : Client is not connected, can't accept an invitation");
@@ -349,6 +350,7 @@ public class NetworkManager {
     gameClient.sendAccept();
   }
 
+  /** COMMAND accept : Decline the current invitation. */
   public void decline() {
     if (gameClient == null) {
       // System.err.println("User : Client is not connected, can't decline an invitation");
@@ -370,9 +372,7 @@ public class NetworkManager {
     gameClient.sendPlayersPlayerId(playerId);
   }
 
-  /**
-   * COMMAND away: Change the player statue to away.
-   */
+  /** COMMAND away: Change the player statue to away. */
   public void away() {
     if (gameClient == null) {
       return;
@@ -380,9 +380,7 @@ public class NetworkManager {
     gameClient.sendAway();
   }
 
-  /**
-   * COMMAND away: Change the player statue to idle.
-   */
+  /** COMMAND away: Change the player statue to idle. */
   public void back() {
     if (gameClient == null) {
       return;
@@ -390,9 +388,7 @@ public class NetworkManager {
     gameClient.sendBack();
   }
 
-  /**
-   * COMMAND cancel: Cancel current invitation sent).
-   */
+  /** COMMAND cancel: Cancel current invitation sent). */
   public void cancel() {
     if (gameClient == null) {
       return;

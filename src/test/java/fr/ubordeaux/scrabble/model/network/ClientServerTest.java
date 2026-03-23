@@ -251,6 +251,11 @@ class ClientServerTest {
     public void invitationDeclinedUpdate(String playerDeclined) {}
 
     @Override
+    public void invitationCancelledUpdate(String reason) {
+
+    }
+
+    @Override
     public void playersPlayerIdUpdate(Map<String, String> playerInfo) {}
 
     @Override

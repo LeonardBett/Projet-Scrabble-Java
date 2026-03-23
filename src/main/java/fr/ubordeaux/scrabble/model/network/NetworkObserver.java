@@ -57,11 +57,33 @@ public interface NetworkObserver {
    */
   void messageUpdate(String message);
 
+  /**
+   * Call when a game invitation is received from another player.
+   *
+   * @param from the name of the player who sent the invitation
+   */
   void invitationReceivedUpdate(String from);
 
+  /**
+   * Call when a player accepts an invitation sent by this client.
+   *
+   * @param playerAccepted the name of the player who accepted
+   */
   void invitationAcceptedUpdate(String playerAccepted);
 
+  /**
+   * Call when a player declines an invitation sent by this client.
+   *
+   * @param playerDeclined the name of the player who declined
+   */
   void invitationDeclinedUpdate(String playerDeclined);
+
+  /**
+   * Call when a pending invitation is cancelled (by host, timeout, or disconnect).
+   *
+   * @param reason the reason of the cancellation
+   */
+  void invitationCancelledUpdate(String reason);
 
   /**
    * Call when the players playerId command response is received.

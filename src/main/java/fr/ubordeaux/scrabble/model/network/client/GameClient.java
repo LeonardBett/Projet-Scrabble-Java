@@ -19,7 +19,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-/** Network client to connect to a game server. */
+/**
+ * Network client to connect to a game server. Manages the TCP connection, message parsing, and
+ * updating the local game state. Implements the Observer pattern to notify the UI/CLI of network
+ * events.
+ */
 public class GameClient {
 
   // List of observers
@@ -55,10 +59,11 @@ public class GameClient {
   private int myId;
 
   /**
-   * Connect to a server on a specific address and port.
+   * Connects to a game server at the specified IP address and TCP port. Initializes the socket, I/O
+   * streams, and starts the listening and heartbeat threads.
    *
-   * @param address the address
-   * @param port the port
+   * @param address the IP address or hostname of the server
+   * @param port the TCP port of the server
    */
   public void connect(String address, int port) {
     try {
@@ -88,7 +93,7 @@ public class GameClient {
     }
   }
 
-  /** Connect to a server on the default address and port. */
+  /** Connects to a server using the default address (localhost) and port (12345). */
   public void connect() {
     connect(DEFAULT_ADDRESS, DEFAULT_TCP_PORT);
   }
@@ -326,6 +331,15 @@ public class GameClient {
             }
             break;
 
+          case "INVITATION_CANCELLED":
+            if (!packetParser.getEntries().isEmpty()) {
+              String reason = packetParser.getEntries().getFirst().get("REASON");
+              for (NetworkObserver obs : observers) {
+                obs.invitationCancelledUpdate(reason);
+              }
+            }
+            break;
+
           default:
             // System.out.println("Client : Received: " + serverMessage);
             for (NetworkObserver obs : observers) {
@@ -350,7 +364,10 @@ public class GameClient {
     }
   }
 
-  /** Close the connexion with the server. */
+  /**
+   * Closes the connection with the server and stops all background threads. If the client is
+   * already disconnected, this method does nothing.
+   */
   public void quit() {
     if (!isRunning) {
       // System.err.println("Client : This client is already disconnected");
@@ -376,9 +393,10 @@ public class GameClient {
   }
 
   /**
-   * Send a message to the server. Use for all command
+   * Sends a raw string message to the server. Use specific methods like sendPing() or
+   * sendPlayMove() instead when possible.
    *
-   * @param message the message
+   * @param message the raw string message to send
    */
   public void sendMessage(String message) {
     if (isRunning && out != null) {
@@ -389,36 +407,42 @@ public class GameClient {
     }
   }
 
-  /** Send ping command to the server. */
+  /**
+   * Sends a PING command to the server to test latency. The response time will be calculated when
+   * the PONG is received.
+   */
   public void sendPing() {
     pingStartTime = System.currentTimeMillis();
     sendMessage("PING");
   }
 
-  /** Send ping command to the server only for timeout management. */
+  /**
+   * Sends a silent PING command (PINGS) to the server. Used internally by the heartbeat thread to
+   * prevent connection timeouts.
+   */
   public void sendPingSilent() {
     sendMessage("PINGS");
   }
 
-  /** Send server status command to the server. */
+  /** Requests the server status (port, connected clients, games in progress). */
   public void sendServerStatus() {
     sendMessage("SERVER_STATUS");
   }
 
-  /** Send players command to the server. */
+  /** Requests the list of connected players and their statuses. */
   public void sendPlayers() {
     sendMessage("PLAYERS");
   }
 
-  /** Send scoreboard command to the server. */
+  /** Requests the global scoreboard from the server. */
   public void sendScoreboard() {
     sendMessage("SCOREBOARD");
   }
 
   /**
-   * Send new PLAYER_ID command to the server.
+   * Sends an invitation to start a new game with a specific player.
    *
-   * @param playerId the target id
+   * @param playerId the ID of the target player to invite
    */
   public void sendNew(int playerId) {
     String message = String.format("NEW:PLAYER1=%d", playerId);
@@ -426,10 +450,10 @@ public class GameClient {
   }
 
   /**
-   * Send new PLAYER_ID command to the server.
+   * Sends an invitation to start a new game with two specific players.
    *
-   * @param playerId1 the target id of the player 1
-   * @param playerId2 the target id of the player 2
+   * @param playerId1 the ID of the first target player
+   * @param playerId2 the ID of the second target player
    */
   public void sendNew(int playerId1, int playerId2) {
     String message = String.format("NEW:PLAYER1=%d;PLAYER2=%d", playerId1, playerId2);
@@ -437,11 +461,11 @@ public class GameClient {
   }
 
   /**
-   * Send new PLAYER_ID command to the server.
+   * Sends an invitation to start a new game with three specific players.
    *
-   * @param playerId1 the target id of the player 1
-   * @param playerId2 the target id of the player 2
-   * @param playerId3 the target id of the player 3
+   * @param playerId1 the ID of the first target player
+   * @param playerId2 the ID of the second target player
+   * @param playerId3 the ID of the third target player
    */
   public void sendNew(int playerId1, int playerId2, int playerId3) {
     String message =
@@ -450,12 +474,12 @@ public class GameClient {
   }
 
   /**
-   * Send PLAY move command to the server.
+   * Sends a PLAY move to the server.
    *
-   * @param x the x coordinate on the board
-   * @param y the y coordinate on the board
-   * @param direction the direction of the move
-   * @param tile the word to play
+   * @param x the X coordinate on the board
+   * @param y the Y coordinate on the board
+   * @param direction the direction of the word (e.g., "H" or "V")
+   * @param tile the letters forming the word being played
    */
   public void sendPlayMove(int x, int y, String direction, String tile) {
     // Format: MOVE:TYPE=PLAY;X=7;Y=7;DIR=H;WORD=CHAT
@@ -465,9 +489,9 @@ public class GameClient {
   }
 
   /**
-   * Send EXCHANGE move command to the server.
+   * Sends an EXCHANGE move to the server.
    *
-   * @param tiles the tiles to exchange (ex: "A,B,C")
+   * @param tiles a comma-separated string of tiles to exchange (e.g., "A,B,C")
    */
   public void sendExchangeMove(String tiles) {
     // Format: MOVE:TYPE=EXCHANGE;TILES=A,B,C
@@ -475,32 +499,45 @@ public class GameClient {
     sendMessage(message);
   }
 
-  /** Send PASS move command to the server. */
+  /** Sends a PASS move to the server. */
   public void sendPassMove() {
     // Format: MOVE:TYPE=PASS
     sendMessage("MOVE:TYPE=PASS");
   }
 
+  /** Accepts a pending game invitation. */
   public void sendAccept() {
     sendMessage("ACCEPT");
   }
 
+  /** Declines a pending game invitation. */
   public void sendDecline() {
     sendMessage("DECLINE");
   }
 
+  /**
+   * Requests detailed information and statistics for a specific player.
+   *
+   * @param playerId the ID of the player to inspect
+   */
   public void sendPlayersPlayerId(int playerId) {
     sendMessage("PLAYERS_PLAYER_ID:PLAYER=" + playerId);
   }
 
+  /**
+   * Changes the player's status on the server to AWAY. Players who are AWAY cannot receive game
+   * invitations.
+   */
   public void sendAway() {
     sendMessage("AWAY");
   }
 
+  /** Changes the player's status on the server back to IDLE. */
   public void sendBack() {
     sendMessage("BACK");
   }
 
+  /** Cancels an invitation that was previously sent by this client. */
   public void sendCancel() {
     sendMessage("CANCEL");
   }
@@ -523,18 +560,18 @@ public class GameClient {
   }
 
   /**
-   * Add an observer to the list.
+   * Adds an observer to listen for network events.
    *
-   * @param observer the new observer to add
+   * @param observer the observer to add
    */
   public void addObserver(NetworkObserver observer) {
     observers.add(observer);
   }
 
   /**
-   * Remove an observer to the list.
+   * Removes an observer from the list of listeners.
    *
-   * @param observer the new observer to remove
+   * @param observer the observer to remove
    */
   public void removeObserver(NetworkObserver observer) {
     if (!observers.remove(observer)) {
@@ -545,9 +582,10 @@ public class GameClient {
   }
 
   /**
-   * Gets local game.
+   * Gets the local representation of the game model. This model is synchronized with the server
+   * state.
    *
-   * @return the local game
+   * @return the local Game instance
    */
   public Game getLocalGame() {
     return localGame;

@@ -85,13 +85,13 @@ public class GameServer {
                               for (ClientHandler p : inv.getAcceptedPlayers()) {
                                 p.getClientInfo().setStatus(PlayerStatus.IDLE);
                                 p.sendMessage("STATUS_UPDATE:STATUS=IDLE");
-                                p.sendMessage("ERROR: Invitation expired.");
+                                p.sendMessage("INVITATION_CANCELLED:REASON=Timeout (5 minutes)");
                               }
 
                               for (ClientHandler p : inv.getPendingPlayers()) {
                                 p.getClientInfo().setStatus(PlayerStatus.IDLE);
                                 p.sendMessage("STATUS_UPDATE:STATUS=IDLE");
-                                p.sendMessage("ERROR: Invitation expired.");
+                                p.sendMessage("INVITATION_CANCELLED:REASON=Timeout (5 minutes)");
                               }
                               return true;
                             }
@@ -253,6 +253,14 @@ public class GameServer {
     return sb.toString();
   }
 
+  /**
+   * Starts a new game invitation process between the requester and target players. Checks if the
+   * initiator and all targets are available before creating a pending invitation.
+   *
+   * @param initiator The client who sent the "new" command
+   * @param targetIds The list of IDs of the players to invite
+   * @return A status message for the initiator (e.g., "INVITATION_SENT" or an error message)
+   */
   public synchronized String createNewGame(ClientHandler initiator, List<Integer> targetIds) {
     if (initiator.getClientInfo().getStatus() != PlayerStatus.IDLE) {
       return "ERROR: You are not available";
@@ -268,8 +276,12 @@ public class GameServer {
             break;
           }
         }
-        if (target == null) return "ERROR: Player " + id + " not found";
-        if (target == initiator) return "ERROR: You cannot play against yourself";
+        if (target == null) {
+          return "ERROR: Player " + id + " not found";
+        }
+        if (target == initiator) {
+          return "ERROR: You cannot play against yourself";
+        }
         if (target.getClientInfo().getStatus() != PlayerStatus.IDLE) {
           return "ERROR: Player " + target.getClientInfo().getName() + " is busy";
         }
@@ -292,6 +304,13 @@ public class GameServer {
     return "INVITATION_SENT";
   }
 
+  /**
+   * Processes a player's response (accept or decline) to a pending game invitation. If all invited
+   * players have responded and enough have accepted, the game starts.
+   *
+   * @param player The client handler representing the player responding.
+   * @param accepted true if the player accepted the invitation, false if they declined.
+   */
   public synchronized void processInvitationResponse(ClientHandler player, boolean accepted) {
     PendingInvitation currentInv = null;
 
@@ -344,7 +363,7 @@ public class GameServer {
   }
 
   /**
-   * Handles the AWAY command.
+   * Handles the AWAY command by changing the player's status, if allowed.
    *
    * @param player the client requesting to go away
    */
@@ -365,7 +384,7 @@ public class GameServer {
   }
 
   /**
-   * Handles the BACK command.
+   * Handles the BACK command by returning an AWAY player to the IDLE state.
    *
    * @param player the client requesting to go back to idle
    */
@@ -379,7 +398,7 @@ public class GameServer {
   }
 
   /**
-   * Processes the CANCEL command.
+   * Processes the CANCEL command. Cancels a pending invitation initiated by the requesting player.
    *
    * @param player the client requesting to cancel their own invitation
    */
@@ -414,7 +433,7 @@ public class GameServer {
       if (p == player) {
         p.sendMessage("Invitation successfully cancelled."); // Confirmation pour le Host
       } else {
-        p.sendMessage("ERROR: The host cancelled the game invitation."); // Info pour les autres
+        p.sendMessage("INVITATION_CANCELLED:REASON=Host cancelled");
       }
     }
 
@@ -422,11 +441,15 @@ public class GameServer {
     for (ClientHandler p : currentInv.getPendingPlayers()) {
       p.getClientInfo().setStatus(PlayerStatus.IDLE);
       p.sendMessage("STATUS_UPDATE:STATUS=IDLE");
-      p.sendMessage("ERROR: The host cancelled the game invitation.");
+      p.sendMessage("INVITATION_CANCELLED:REASON=Host cancelled");
     }
   }
 
-  /** Cleans up any pending invitations involving a disconnecting player. */
+  /**
+   * Cleans up any pending invitations involving a disconnecting player.
+   *
+   * @param player the client that is disconnecting.
+   */
   public synchronized void removePlayerFromInvitations(ClientHandler player) {
     synchronized (activeInvitations) {
       activeInvitations.removeIf(
@@ -440,14 +463,14 @@ public class GameServer {
                 if (p != player) {
                   p.getClientInfo().setStatus(PlayerStatus.IDLE);
                   p.sendMessage("STATUS_UPDATE:STATUS=IDLE");
-                  p.sendMessage("ERROR: Invitation cancelled because a player disconnected.");
+                  p.sendMessage("INVITATION_CANCELLED:REASON=Host disconnected");
                 }
               }
               for (ClientHandler p : inv.getPendingPlayers()) {
                 if (p != player) {
                   p.getClientInfo().setStatus(PlayerStatus.IDLE);
                   p.sendMessage("STATUS_UPDATE:STATUS=IDLE");
-                  p.sendMessage("ERROR: Invitation cancelled because a player disconnected.");
+                  p.sendMessage("INVITATION_CANCELLED:REASON=Host disconnected");
                 }
               }
               return true;

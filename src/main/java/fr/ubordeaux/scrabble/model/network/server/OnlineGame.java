@@ -177,15 +177,19 @@ public class OnlineGame {
     // + y);
 
     // We notify and update players with new board/score/bag
-    broadcast(String.format("OPPONENT_MOVE:PLAYER=%s;TYPE=PLAY;BOARD=%s;SCORE=%d;BAG=%s",
-        sender.getClientInfo().getName(), getSerializedBoard(), player.getScore(),
-        game.getBag().size()));
+    broadcast(
+        String.format(
+            "OPPONENT_MOVE:PLAYER=%s;TYPE=PLAY;BOARD=%s;SCORE=%d;BAG=%s",
+            sender.getClientInfo().getName(),
+            getSerializedBoard(),
+            player.getScore(),
+            game.getBag().size()));
 
     // We send the new rack to the player who played
     sendRack(sender, player);
 
     // Debug: print the board server side
-     game.printDebugState(false, false);
+    game.printDebugState(false, false);
   }
 
   /** Handles the exchange of tiles. */

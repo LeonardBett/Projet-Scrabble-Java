@@ -3,7 +3,6 @@ package fr.ubordeaux.scrabble.model.network;
 import fr.ubordeaux.scrabble.model.network.server.ServerInfo;
 import java.util.List;
 import java.util.Map;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,9 +21,10 @@ class NetworkManagerTest {
   @BeforeEach
   void setUp() {
     networkManager = new NetworkManager();
-    mockObserver = new NetworkObserver() {
-      @Override
-      public void localModelUpdate() {}
+    mockObserver =
+        new NetworkObserver() {
+          @Override
+          public void localModelUpdate() {}
 
           @Override
           public void gameEndedUpdate(String reason) {}
@@ -53,16 +53,15 @@ class NetworkManagerTest {
           @Override
           public void invitationDeclinedUpdate(String playerDeclined) {}
 
-        @Override
-        public void playersPlayerIdUpdate(Map<String, String> playerInfo) {
+          @Override
+          public void invitationCancelledUpdate(String reason) {}
 
-        }
+          @Override
+          public void playersPlayerIdUpdate(Map<String, String> playerInfo) {}
 
-        @Override
-        public void playerStatusUpdate(String status) {
-
-        }
-    };
+          @Override
+          public void playerStatusUpdate(String status) {}
+        };
   }
 
   @AfterEach

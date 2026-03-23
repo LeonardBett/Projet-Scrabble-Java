@@ -217,6 +217,11 @@ public class NetworkingMain {
           }
 
           @Override
+          public void invitationCancelledUpdate(String reason) {
+            System.out.println("\n[OBSERVER] -> Invitation annulé car : " + reason);
+          }
+
+          @Override
           public void playersPlayerIdUpdate(Map<String, String> playerInfo) {
             System.out.println("\n[OBSERVER] -> Détails du joueur : " + playerInfo);
           }
@@ -242,7 +247,8 @@ public class NetworkingMain {
     System.out.println("Commandes réseau : list | join <IP> | quit");
     // NOUVEAU : Mise à jour de l'aide pour afficher les nouvelles commandes
     System.out.println(
-        "Partie : players [ID] | status | new <ID1> [ID2] [ID3] | accept | decline | cancel | away | back");
+        "Partie : players [ID] | status | new <ID1> [ID2] [ID3]"
+            + "| accept | decline | cancel | away | back");
     System.out.println("Jeu : play <x> <y> <H|V> <tiles> | exchange <tiles> | pass");
 
     Scanner scanner = new Scanner(System.in);
@@ -250,7 +256,9 @@ public class NetworkingMain {
       System.out.print("> ");
       String input = scanner.nextLine();
       String[] parts = input.split(" ");
-      if (parts.length == 0) continue;
+      if (parts.length == 0) {
+        continue;
+      }
 
       String command = parts[0].toLowerCase();
 

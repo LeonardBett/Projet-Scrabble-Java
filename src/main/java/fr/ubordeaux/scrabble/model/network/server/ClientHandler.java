@@ -1,8 +1,6 @@
 package fr.ubordeaux.scrabble.model.network.server;
 
 import fr.ubordeaux.scrabble.model.network.PacketParser;
-import fr.ubordeaux.scrabble.model.network.PlayerStatus;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
