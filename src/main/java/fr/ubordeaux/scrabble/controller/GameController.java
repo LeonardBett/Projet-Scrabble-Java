@@ -71,8 +71,33 @@ public class GameController {
       throw new IllegalStateException("CLI loop requires a CliView instance as view.");
     }
 
-    CliInputHandler input = new CliInputHandler();
+    final CliInputHandler input = new CliInputHandler();
     CliView cliView = (CliView) view;
+
+    MlAgent sharedMlAgent = null;
+
+    if (this.useMl) {
+      List<String> dictList = getOrLoadDictionaryList();
+      String modelPath = "src/main/resources/ai/model_" + this.lang;
+      sharedMlAgent = new MlAgent(modelPath, dictList);
+
+      final MlAgent finalAgent = sharedMlAgent;
+      Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+        if (finalAgent != null) {
+          finalAgent.close();
+        }
+      }));
+    }
+
+    for (Player p : game.getPlayers()) {
+      if (p instanceof AiPlayer) {
+        AiPlayer bot = (AiPlayer) p;
+        bot.setExpectiminimaxMode(this.useExptiminimax);
+        if (sharedMlAgent != null) {
+          bot.setMlAgent(sharedMlAgent);
+        }
+      }
+    }
 
     cliView.displayWelcome();
 
@@ -82,33 +107,15 @@ public class GameController {
         String name = input.askPlayerName(i);
         PlayerColor assignedColor = PlayerColor.fromIndex(i - 1);
 
-        // If the name starts with "IA", create a bot automatically configured by
-        // command line args
         if (name.toUpperCase().startsWith("IA") || name.toUpperCase().startsWith("AI")) {
-          AiPlayer bot = new AiPlayer(name, 3, 5, assignedColor);
-
-          // Apply command-line configurations directly
+          // Utilisation de aiTime au lieu du 5 par défaut
+          AiPlayer bot = new AiPlayer(name, 3, this.aiTime, assignedColor);
           bot.setExpectiminimaxMode(this.useExptiminimax);
 
-          if (this.useMl) {
-            List<String> dictList = getOrLoadDictionaryList();
-            String modelPath = "src/main/resources/ai/model_" + this.lang;
-            MlAgent mlAgent = new MlAgent(modelPath, dictList);
-
-            // Register a Shutdown Hook to free TensorFlow resources on exit
-            Runtime.getRuntime()
-                .addShutdownHook(
-                    new Thread(
-                        () -> {
-                          if (mlAgent != null) {
-                            mlAgent.close();
-                          }
-                        }));
-
-            bot.setMlAgent(mlAgent);
+          if (sharedMlAgent != null) {
+            bot.setMlAgent(sharedMlAgent);
             cliView.displayMessage("-> ML Agent activated for " + name + " (" + this.lang + ")");
           }
-
           addPlayer(bot);
         } else {
           addPlayer(new HumanPlayer(name, assignedColor));
@@ -118,10 +125,7 @@ public class GameController {
 
     startGame();
 
-    // Loading Gaddag dictionnary from the resources folder
     Gaddag currentGaddag = getOrLoadGaddag();
-
-    // Main loop of the game
     boolean running = true;
     while (running && !game.isGameOver()) {
       view.refresh();
@@ -133,7 +137,6 @@ public class GameController {
         break;
       }
 
-      // AI Turn Handler
       if (current instanceof AiPlayer) {
         view.displayMessage("\n--- C'est au tour de l'IA (" + current.getName() + ") ---");
         AiPlayer ai = (AiPlayer) current;
@@ -146,11 +149,9 @@ public class GameController {
           e.printStackTrace();
           handlePlayerMove(Move.createPass(current));
         }
-
         continue;
       }
 
-      // Human Player turn handler
       String action = input.askAction();
       switch (action) {
         case "1": {

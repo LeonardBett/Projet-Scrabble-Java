@@ -85,7 +85,7 @@ public class App {
     if (guiMode) {
       GuiLauncher.launch(args, players);
     } else {
-      CliLauncher.launch(players, aiColors);
+      CliLauncher.launch(players, aiColors, useMl, useExptiminimax, aiTime, lang);
     }
   }
 }
