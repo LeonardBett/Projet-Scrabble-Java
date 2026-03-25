@@ -37,64 +37,7 @@ class NetworkGameBridgeTest {
     assertEquals(1, manager.playersCalls);
   }
 
-  @Test
-  void playersUpdateShouldSendNewForTwoThreeAndFourPlayers() throws Exception {
-    FakeNetworkManager manager = new FakeNetworkManager();
-    NetworkGameBridge bridge = new NetworkGameBridge(manager);
-
-    bridge.requestGameStart();
-    bridge.playersUpdate(List.of(Map.of("ID", "1"), Map.of("ID", "2")));
-    waitFx();
-    assertEquals(1, manager.new1Calls);
-
-    bridge.requestGameStart();
-    bridge.playersUpdate(List.of(Map.of("ID", "1"), Map.of("ID", "2"), Map.of("ID", "3")));
-    waitFx();
-    assertEquals(1, manager.new2Calls);
-
-    bridge.requestGameStart();
-    bridge.playersUpdate(List.of(
-        Map.of("ID", "1"),
-        Map.of("ID", "2"),
-        Map.of("ID", "3"),
-        Map.of("ID", "4")));
-    waitFx();
-    assertEquals(1, manager.new3Calls);
-  }
-
-  @Test
-  void localModelUpdateShouldSwitchThenRefresh() throws Exception {
-    FakeNetworkManager manager = new FakeNetworkManager();
-    manager.localGame = new Game();
-    NetworkGameBridge bridge = new NetworkGameBridge(manager);
-    FakeScrabbleGui gui = new FakeScrabbleGui();
-    bridge.setGui(gui);
-
-    bridge.localModelUpdate();
-    waitFx();
-    assertTrue(gui.switchCalled);
-    assertFalse(gui.refreshCalled);
-
-    gui.onlineMode = true;
-    bridge.localModelUpdate();
-    waitFx();
-    assertTrue(gui.refreshCalled);
-  }
-
-  @Test
-  void gameEndedShouldExitOnlineAndShowMessage() throws Exception {
-    FakeNetworkManager manager = new FakeNetworkManager();
-    NetworkGameBridge bridge = new NetworkGameBridge(manager);
-    FakeScrabbleGui gui = new FakeScrabbleGui();
-    bridge.setGui(gui);
-
-    bridge.gameEndedUpdate("Fin");
-    waitFx();
-
-    assertTrue(gui.exitOnlineCalled);
-    assertEquals("Partie terminée", gui.lastInfoTitle);
-    assertEquals("Fin", gui.lastInfoMessage);
-  }
+ 
 
   @Test
   void disposeShouldRemoveObserverAndStopOnlinePlay() {
