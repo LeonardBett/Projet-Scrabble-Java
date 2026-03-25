@@ -96,7 +96,8 @@ public class AiPlayer extends Player {
     if (this.mlAgent != null) {
       if (this.mlAgent.isModelLoaded()) {
         String rackStr = getRackAsString();
-        GameLogger.logVerbose("[ML] Neural Network is analyzing the current rack: [" + rackStr + "]");
+        GameLogger.logVerbose("[ML] Neural Network is analyzing " +
+            "the current rack: [" + rackStr + "]");
 
         List<String> mlPredictions = mlAgent.predictWords(rackStr, 100);
 

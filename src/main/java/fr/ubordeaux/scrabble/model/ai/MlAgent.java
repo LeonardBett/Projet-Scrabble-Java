@@ -92,7 +92,8 @@ public class MlAgent implements AutoCloseable {
     }
 
     GameLogger.logDebug(
-        String.format("[ML] Prediction completed in %d ms.", System.currentTimeMillis() - startTime));
+        String.format("[ML] Prediction completed in %d ms.",
+            System.currentTimeMillis() - startTime));
 
     return predictedWords;
   }
