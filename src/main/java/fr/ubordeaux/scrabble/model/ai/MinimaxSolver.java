@@ -10,6 +10,7 @@ import fr.ubordeaux.scrabble.model.core.Tile;
 import fr.ubordeaux.scrabble.model.dictionary.Gaddag;
 import fr.ubordeaux.scrabble.model.enums.Direction;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
+import fr.ubordeaux.scrabble.model.utils.GameLogger;
 import fr.ubordeaux.scrabble.model.utils.Point;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -88,7 +89,7 @@ public class MinimaxSolver {
     for (PlayableWord move : possibleMoves) {
       // Check if the allocated time limit has been reached
       if (System.currentTimeMillis() - startTime >= this.timeLimitMs) {
-        System.out.println("Time limit reached. The AI stops and plays the best move found.");
+        GameLogger.logVerbose("Time limit reached. The AI stops and plays the best move found.");
         break;
       }
 

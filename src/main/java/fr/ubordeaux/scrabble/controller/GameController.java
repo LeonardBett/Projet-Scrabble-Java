@@ -130,7 +130,7 @@ public class GameController {
     startGame();
 
     if (game.isBlitzModeEnabled()) {
-      cliView.displayMessage("⏱  Mode blitz activé — temps par joueur : "
+      cliView.displayMessage("⏱  Mode blitz activated — time per player : "
           + game.getPlayers().get(0).getRemainingTimeDisplay());
       startBlitzWatcher(cliView);
     }
@@ -145,18 +145,20 @@ public class GameController {
       // Vérification temps écoulé (blitz)
       if (game.isBlitzModeEnabled() && current != null && current.isOutOfTime()) {
         handleBlitzExpiry(current, cliView);
+        game.setGameOver(true);
+        view.displayError("Time's up for " + current.getName() + ". Game is over.");
         break;
       }
 
       // --- GESTION DU TOUR DE L'IA ---
       if (current instanceof AiPlayer) {
-        cliView.displayMessage("\n--- C'est au tour de l'IA (" + current.getName() + ") ---");
+        cliView.displayMessage("\n--- It's AI (" + current.getName() + ") turn ---");
         AiPlayer ai = (AiPlayer) current;
         try {
           ai.playTurn(game, currentGaddag);
           Thread.sleep(2000);
         } catch (Exception e) {
-          cliView.displayError("Erreur pendant le tour de l'IA : " + e.getMessage());
+          cliView.displayError("Error during AI's turn: " + e.getMessage());
           e.printStackTrace();
           handlePlayerMove(Move.createPass(current));
         }
@@ -178,7 +180,7 @@ public class GameController {
           if (move != null) {
             try {
               handlePlayerMove(move);
-              cliView.displaySuccess("Coup joué.");
+              cliView.displaySuccess("Move done.");
             } catch (RuntimeException e) {
               cliView.displayError(e.getMessage());
             }
@@ -190,7 +192,7 @@ public class GameController {
           if (move != null) {
             try {
               handlePlayerMove(move);
-              cliView.displaySuccess("Lettres échangées.");
+              cliView.displaySuccess("Letters exchanged.");
             } catch (RuntimeException e) {
               cliView.displayError(e.getMessage());
             }
@@ -200,7 +202,7 @@ public class GameController {
         case "3": {
           try {
             handlePlayerMove(Move.createPass(current));
-            cliView.displayMessage(current.getName() + " a passé son tour.");
+            cliView.displayMessage(current.getName() + " skips his turn.");
           } catch (RuntimeException e) {
             cliView.displayError(e.getMessage());
           }
@@ -215,7 +217,7 @@ public class GameController {
           break;
         }
         case "6": {
-          if (input.askConfirmation("Voulez-vous vraiment quitter ?")) {
+          if (input.askConfirmation("Do you really want to quit ?")) {
             running = false;
           }
           break;
@@ -225,7 +227,7 @@ public class GameController {
           break;
         }
         default:
-          cliView.displayError("Choix invalide.");
+          cliView.displayError("Invalid choice.");
       }
     }
 
@@ -233,7 +235,7 @@ public class GameController {
 
     Player winner = game.determineWinner();
     if (winner != null) {
-      cliView.displaySuccess("Partie terminée. Vainqueur: " + winner.getName()
+      cliView.displaySuccess("Game over. Winnenr: " + winner.getName()
           + " (" + winner.getScore() + " pts)");
     }
 
@@ -264,8 +266,8 @@ public class GameController {
             if (!warned[i] && remaining <= warnedAt[i] && remaining > 0) {
               warned[i] = true;
               long minutes = warnedAt[i] / 60_000L;
-              System.out.println("\n⚠  " + current.getName()
-                  + " — plus que " + minutes + " minute(s) !");
+              System.out.println("\n " + current.getName()
+                  + " — " + minutes + " minute(s) remaining !");
             }
           }
 
@@ -310,8 +312,8 @@ public class GameController {
   private void handleBlitzExpiry(Player expired, CliView cliView) {
     game.setGameOver(true);
     stopBlitzWatcher();
-    cliView.displayError("\n⏱  Temps écoulé pour " + expired.getName() + " !");
-    cliView.displayMessage("La partie est terminée.");
+    cliView.displayError("\nTime's up" + expired.getName() + " !");
+    cliView.displayMessage("Game is over.");
   }
 
   /**
@@ -501,13 +503,13 @@ public class GameController {
     }
 
     if (bestHintMove != null) {
-      view.displayMessage("\n Indice : Vous pouvez utiliser les lettres "
+      view.displayMessage("\n Hint : You can use the letters "
           + bestLettersToUse.toString()
-          + " pour faire un mot de " + bestScore + " points.\n");
+          + " to make a word of " + bestScore + " points.\n");
     } else {
-      view.displayMessage("\n Indice : Aucun mot valide de moins de 7 "
+      view.displayMessage("\n Hint : No words shorter than 7"
           +
-          "lettres n'a été trouvé avec votre chevalet.\n");
+          "letters were found with your rack.\n");
     }
   }
 

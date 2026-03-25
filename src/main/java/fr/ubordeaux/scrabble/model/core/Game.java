@@ -3,6 +3,7 @@ package fr.ubordeaux.scrabble.model.core;
 import fr.ubordeaux.scrabble.model.enums.GameMode;
 import fr.ubordeaux.scrabble.model.enums.MoveType;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
+import fr.ubordeaux.scrabble.model.utils.GameLogger;
 import fr.ubordeaux.scrabble.model.utils.Point;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -127,7 +128,7 @@ public class Game {
       }
     }
 
-    System.out.println("Game started! Tiles distributed.");
+    GameLogger.logVerbose("Game started! Tiles distributed.");
   }
 
   /**
@@ -358,12 +359,12 @@ public class Game {
    */
   public void undo() {
     if (!(getCurrentPlayer() instanceof HumanPlayer)) {
-      System.out.println("Only human players can undo.");
+      GameLogger.logVerbose("Only human players can undo.");
       return;
     }
 
     if (!undoRedo.canUndo()) {
-      System.out.println("Nothing to undo.");
+      GameLogger.logVerbose("Nothing to undo.");
       return;
     }
 
@@ -388,12 +389,12 @@ public class Game {
    */
   public void redo() {
     if (!(getCurrentPlayer() instanceof HumanPlayer)) {
-      System.out.println("Only human players can redo.");
+      GameLogger.logVerbose("Only human players can redo.");
       return;
     }
 
     if (!undoRedo.canRedo()) {
-      System.out.println("Nothing to redo.");
+      GameLogger.logVerbose("Nothing to redo.");
       return;
     }
 
@@ -417,6 +418,11 @@ public class Game {
    * @param clientMode      whether to display online synchronized bag size.
    */
   public void printDebugState(boolean showBonusSquare, boolean clientMode) {
+
+    if (!GameLogger.isDebug()) {
+      return;
+    }
+
     System.out.println("\n--- DEBUG: GAME STATE ---");
 
     // 1. Print Board

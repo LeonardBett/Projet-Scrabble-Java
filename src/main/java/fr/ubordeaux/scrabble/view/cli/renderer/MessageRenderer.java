@@ -7,7 +7,7 @@ package fr.ubordeaux.scrabble.view.cli.renderer;
 public class MessageRenderer {
 
   public void error(String message) {
-    System.out.println("Erreur : " + message);
+    System.out.println("Error : " + message);
   }
 
   public void success(String message) {
@@ -15,7 +15,7 @@ public class MessageRenderer {
   }
 
   public void welcome() {
-    System.out.println("Bienvenue dans le Scrabble CLI !");
+    System.out.println("Welcome to the Scrabble CLI!");
   }
 
   public void info(String message) {
@@ -31,6 +31,6 @@ public class MessageRenderer {
   }
 
   public void warning(String message) {
-    System.out.println("Attention : " + message);
+    System.out.println("Warning : " + message);
   }
 }
