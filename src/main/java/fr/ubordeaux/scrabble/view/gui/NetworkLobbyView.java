@@ -1,5 +1,6 @@
 package fr.ubordeaux.scrabble.view.gui;
 
+import fr.ubordeaux.scrabble.i18n.I18n;
 import fr.ubordeaux.scrabble.model.network.NetworkManager;
 import fr.ubordeaux.scrabble.model.network.server.ServerInfo;
 import java.util.List;
@@ -80,7 +81,7 @@ public class NetworkLobbyView extends Stage {
 
     initUi();
 
-    this.setTitle("🌐 Scrabble — Multijoueur en ligne");
+    this.setTitle(I18n.tr("network.title.window"));
     this.initModality(Modality.NONE);
     this.setResizable(false);
   }
@@ -92,7 +93,7 @@ public class NetworkLobbyView extends Stage {
     root.setPadding(new Insets(15));
     root.setStyle("-fx-background-color: #1a2a3a;");
 
-    Label title = new Label("🌐 Multijoueur en ligne");
+    Label title = new Label(I18n.tr("network.title.main"));
     title.setFont(Font.font("Arial", FontWeight.BOLD, 20));
     title.setTextFill(Color.WHITE);
 
@@ -107,11 +108,11 @@ public class NetworkLobbyView extends Stage {
     consoleArea.setStyle(
         "-fx-control-inner-background: #0d1b2a; -fx-text-fill: #00ff88; "
             + "-fx-font-family: monospace; -fx-font-size: 11;");
-    consoleArea.setPromptText("Logs réseau...");
+    consoleArea.setPromptText(I18n.tr("network.console.prompt"));
 
     VBox.setVgrow(tabPane, Priority.ALWAYS);
 
-    Label consoleLabel = new Label("Console :");
+    Label consoleLabel = new Label(I18n.tr("network.console.label"));
     consoleLabel.setTextFill(Color.LIGHTGRAY);
     consoleLabel.setFont(Font.font("Arial", FontWeight.BOLD, 12));
 
@@ -125,14 +126,14 @@ public class NetworkLobbyView extends Stage {
   // ─── Onglet Héberger ─────────────────────────────────────────────────────
 
   private Tab buildHostTab() {
-    final Tab tab = new Tab("🖥  Héberger");
+    final Tab tab = new Tab(I18n.tr("network.tab.host"));
 
     VBox content = new VBox(12);
     content.setPadding(new Insets(20));
     content.setStyle("-fx-background-color: #243447;");
 
     Label desc = styledLabel(
-        "Démarrez un serveur. Les joueurs sur le réseau local vous verront automatiquement.",
+        I18n.tr("network.host.description"),
         Color.LIGHTGRAY);
     desc.setWrapText(true);
 
@@ -140,31 +141,32 @@ public class NetworkLobbyView extends Stage {
     portRow.setAlignment(Pos.CENTER_LEFT);
     portField = new TextField(String.valueOf(NetworkManager.DEFAULT_TCP_PORT));
     portField.setPrefWidth(100);
-    portRow.getChildren().addAll(styledLabel("Port TCP :", Color.WHITE), portField);
+    portRow.getChildren().addAll(styledLabel(I18n.tr("network.host.tcpPort"), Color.WHITE),
+        portField);
 
-    startServerButton = createBtn("▶  Démarrer le serveur", "#4CAF50");
-    stopServerButton = createBtn("■  Arrêter le serveur", "#F44336");
+    startServerButton = createBtn(I18n.tr("network.host.startServer"), "#4CAF50");
+    stopServerButton = createBtn(I18n.tr("network.host.stopServer"), "#F44336");
 
-    serverStatusLabel = styledLabel("● Serveur arrêté", Color.GRAY);
+    serverStatusLabel = styledLabel(I18n.tr("network.host.statusStopped"), Color.GRAY);
     serverStatusLabel.setFont(Font.font("Arial", FontWeight.BOLD, 13));
 
     startServerButton.setOnAction(e -> onStartServer());
     stopServerButton.setOnAction(e -> onStopServer());
 
     // Bouton lancer la partie — actif quand >= 2 joueurs
-    startGameButton = createBtn("🎮 Lancer la partie", "#FF9800");
+    startGameButton = createBtn(I18n.tr("network.host.startGame"), "#FF9800");
     startGameButton.setDisable(true);
     startGameButton.setOnAction(e -> onStartGame());
 
     // Liste des joueurs dans le lobby (mis à jour auto)
     final Label playersTitle =
-        styledLabel("Joueurs connectés au salon :", Color.WHITE, 13, true);
+        styledLabel(I18n.tr("network.host.connectedPlayers"), Color.WHITE, 13, true);
     lobbyPlayerListView = new ListView<>();
     lobbyPlayerListView.setPrefHeight(130);
     lobbyPlayerListView.setStyle("-fx-control-inner-background: #1a2a3a; -fx-text-fill: white;");
 
     content.getChildren().addAll(
-        styledLabel("Héberger une partie", Color.WHITE, 15, true),
+        styledLabel(I18n.tr("network.host.title"), Color.WHITE, 15, true),
         desc, portRow, startServerButton, stopServerButton, serverStatusLabel,
         new Separator(), playersTitle, lobbyPlayerListView, startGameButton);
 
@@ -175,7 +177,7 @@ public class NetworkLobbyView extends Stage {
   // ─── Onglet Rejoindre ────────────────────────────────────────────────────
 
   private Tab buildJoinTab() {
-    final Tab tab = new Tab("🔍 Rejoindre");
+    final Tab tab = new Tab(I18n.tr("network.tab.join"));
 
     VBox content = new VBox(12);
     content.setPadding(new Insets(20));
@@ -185,7 +187,7 @@ public class NetworkLobbyView extends Stage {
     serverListView.setPrefHeight(140);
     serverListView.setStyle("-fx-control-inner-background: #1a2a3a; -fx-text-fill: white;");
 
-    Button joinSelectedButton = createBtn("🎮 Rejoindre le serveur sélectionné", "#4CAF50");
+    Button joinSelectedButton = createBtn(I18n.tr("network.join.joinSelected"), "#4CAF50");
     joinSelectedButton.setOnAction(e -> onJoinSelected());
 
     HBox ipRow = new HBox(10);
@@ -195,18 +197,19 @@ public class NetworkLobbyView extends Stage {
     joinPortField = new TextField(String.valueOf(NetworkManager.DEFAULT_TCP_PORT));
     joinPortField.setPrefWidth(80);
     ipRow.getChildren().addAll(
-        styledLabel("IP :", Color.WHITE), ipField,
-        styledLabel("Port :", Color.WHITE), joinPortField);
+        styledLabel(I18n.tr("network.join.ip"), Color.WHITE), ipField,
+        styledLabel(I18n.tr("network.join.port"), Color.WHITE), joinPortField);
 
-    connectButton = createBtn("🔗 Se connecter", "#4CAF50");
-    disconnectButton = createBtn("✖  Se déconnecter", "#F44336");
+    connectButton = createBtn(I18n.tr("network.join.connect"), "#4CAF50");
+    disconnectButton = createBtn(I18n.tr("network.join.disconnect"), "#F44336");
 
     connectButton.setOnAction(e -> onConnect());
     disconnectButton.setOnAction(e -> onDisconnect());
 
     final Label autoTitle =
-        styledLabel("Serveurs détectés automatiquement :", Color.WHITE, 13, true);
-    final Label manualTitle = styledLabel("Ou connexion manuelle :", Color.WHITE, 13, true);
+        styledLabel(I18n.tr("network.join.autoTitle"), Color.WHITE, 13, true);
+    final Label manualTitle = styledLabel(I18n.tr("network.join.manualTitle"), Color.WHITE, 13,
+        true);
 
     content.getChildren().addAll(
         autoTitle, serverListView, joinSelectedButton,
@@ -219,7 +222,7 @@ public class NetworkLobbyView extends Stage {
   // ─── Onglet Salon (client) ────────────────────────────────────────────────
 
   private Tab buildLobbyTab() {
-    final Tab tab = new Tab("🎮 Salon");
+    final Tab tab = new Tab(I18n.tr("network.tab.lobby"));
 
     VBox content = new VBox(12);
     content.setPadding(new Insets(20));
@@ -230,18 +233,20 @@ public class NetworkLobbyView extends Stage {
     playersListView.setStyle("-fx-control-inner-background: #1a2a3a; -fx-text-fill: white;");
 
     Label waitLabel = styledLabel(
-        "En attente que l'hôte lance la partie...", Color.LIGHTGRAY);
+        I18n.tr("network.lobby.waitHost"), Color.LIGHTGRAY);
     waitLabel.setWrapText(true);
 
     scoreboardListView = new ListView<>();
     scoreboardListView.setPrefHeight(120);
     scoreboardListView.setStyle("-fx-control-inner-background: #1a2a3a; -fx-text-fill: white;");
 
-    refreshScoreboardButton = createBtn("🏆 Voir le classement", "#9C27B0");
+    refreshScoreboardButton = createBtn(I18n.tr("network.lobby.showRanking"), "#9C27B0");
     refreshScoreboardButton.setOnAction(e -> onRefreshScoreboard());
 
-    final Label playersTitle = styledLabel("Joueurs connectés :", Color.WHITE, 13, true);
-    final Label sbTitle = styledLabel("Classement du serveur :", Color.WHITE, 13, true);
+    final Label playersTitle = styledLabel(I18n.tr("network.lobby.playersConnected"),
+        Color.WHITE, 13, true);
+    final Label sbTitle = styledLabel(I18n.tr("network.lobby.serverRanking"), Color.WHITE, 13,
+        true);
 
     content.getChildren().addAll(
         playersTitle, playersListView, waitLabel,
@@ -259,12 +264,12 @@ public class NetworkLobbyView extends Stage {
       networkManager.startOnlinePlay();
       networkManager.serverStart(port);
       serverRunning = true;
-      serverStatusLabel.setText("● Serveur en écoute sur le port " + port);
+      serverStatusLabel.setText(I18n.tr("network.host.statusListening", port));
       serverStatusLabel.setTextFill(Color.LIMEGREEN);
-      log("Serveur démarré sur le port " + port);
+      log(I18n.tr("network.log.serverStarted", port));
       updateButtonStates();
     } catch (NumberFormatException ex) {
-      log("❌ Port invalide : " + portField.getText());
+      log(I18n.tr("network.log.invalidPort", portField.getText()));
     }
   }
 
@@ -272,10 +277,10 @@ public class NetworkLobbyView extends Stage {
     networkManager.serverStop();
     serverRunning = false;
     lobbyPlayerCount = 0;
-    serverStatusLabel.setText("● Serveur arrêté");
+    serverStatusLabel.setText(I18n.tr("network.host.statusStopped"));
     serverStatusLabel.setTextFill(Color.GRAY);
     lobbyPlayerListView.getItems().clear();
-    log("Serveur arrêté.");
+    log(I18n.tr("network.log.serverStopped"));
     updateButtonStates();
   }
 
@@ -285,13 +290,13 @@ public class NetworkLobbyView extends Stage {
    */
   private void onStartGame() {
     bridge.requestGameStart();
-    log("🎮 Lancement de la partie...");
+    log(I18n.tr("network.log.startingGame"));
   }
 
   private void onJoinSelected() {
     int idx = serverListView.getSelectionModel().getSelectedIndex();
     if (idx < 0 || idx >= discoveredServers.size()) {
-      log("❌ Sélectionnez un serveur dans la liste.");
+      log(I18n.tr("network.log.selectServer"));
       return;
     }
     ServerInfo selected = discoveredServers.get(idx);
@@ -304,7 +309,7 @@ public class NetworkLobbyView extends Stage {
     try {
       port = Integer.parseInt(joinPortField.getText().trim());
     } catch (NumberFormatException e) {
-      log("❌ Port invalide.");
+      log(I18n.tr("network.log.invalidPortSimple"));
       return;
     }
     doConnect(ip, port);
@@ -314,7 +319,7 @@ public class NetworkLobbyView extends Stage {
     networkManager.startOnlinePlay();
     networkManager.join(ip, port);
     clientConnected = true;
-    log("🔗 Connexion à " + ip + ":" + port + "...");
+    log(I18n.tr("network.log.connecting", ip, port));
     updateButtonStates();
     tabPane.getSelectionModel().select(2);
     // Demande la liste des joueurs pour afficher le salon
@@ -324,13 +329,13 @@ public class NetworkLobbyView extends Stage {
   private void onDisconnect() {
     networkManager.quit();
     clientConnected = false;
-    log("✖ Déconnecté du serveur.");
+    log(I18n.tr("network.log.disconnected"));
     updateButtonStates();
   }
 
   private void onRefreshScoreboard() {
     if (!clientConnected) {
-      log("❌ Non connecté.");
+      log(I18n.tr("network.log.notConnected"));
       return;
     }
     networkManager.scoreboard();
@@ -365,7 +370,7 @@ public class NetworkLobbyView extends Stage {
     ObservableList<String> items = FXCollections.observableArrayList();
     for (Map<String, String> p : players) {
       String id = p.getOrDefault("ID", "?");
-      String name = p.getOrDefault("NAME", "Inconnu");
+      String name = p.getOrDefault("NAME", I18n.tr("network.players.unknown"));
       String status = p.getOrDefault("STATUS", "?");
       items.add(String.format("#%-4s %-16s [%s]", id, name, status));
     }
@@ -380,7 +385,7 @@ public class NetworkLobbyView extends Stage {
 
       // Auto-launch when exactly 2 players are ready (host + 1 client)
       if (lobbyPlayerCount >= 2) {
-        log("✅ " + lobbyPlayerCount + " joueur(s) connecté(s) — vous pouvez lancer la partie.");
+        log(I18n.tr("network.players.hostCanStart", lobbyPlayerCount));
       }
     }
 
@@ -401,7 +406,7 @@ public class NetworkLobbyView extends Stage {
       String wins = entry.getOrDefault("WINS", "0");
       String losses = entry.getOrDefault("LOSSES", "0");
       String total = entry.getOrDefault("TOTAL", "0");
-      items.add(String.format("%d. %-14s  V:%s  D:%s  T:%s", rank++, name, wins, losses, total));
+      items.add(I18n.tr("network.score.line", rank++, name, wins, losses, total));
     }
     scoreboardListView.setItems(items);
   }
@@ -412,9 +417,8 @@ public class NetworkLobbyView extends Stage {
    * @param info the status info map
    */
   public void onServerStatusReceived(Map<String, String> info) {
-    log("📊 Serveur — Port: " + info.get("PORT")
-        + " | Clients: " + info.get("CLIENTS")
-        + " | Parties: " + info.get("GAMES"));
+    log(I18n.tr("network.status.line", info.get("PORT"), info.get("CLIENTS"),
+        info.get("GAMES")));
   }
 
   /**
@@ -432,7 +436,7 @@ public class NetworkLobbyView extends Stage {
    * @param reason the end reason
    */
   public void onGameEnded(String reason) {
-    log("🏁 Partie terminée : " + reason);
+    log(I18n.tr("network.gameEnded", reason));
     clientConnected = false;
     lobbyPlayerCount = 0;
     updateButtonStates();

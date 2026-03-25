@@ -1,5 +1,6 @@
 package fr.ubordeaux.scrabble.view.gui;
 
+import fr.ubordeaux.scrabble.i18n.I18n;
 import fr.ubordeaux.scrabble.model.core.Game;
 import fr.ubordeaux.scrabble.model.network.NetworkManager;
 import fr.ubordeaux.scrabble.model.network.NetworkObserver;
@@ -73,7 +74,7 @@ public class NetworkGameBridge implements NetworkObserver {
     Platform.runLater(() -> {
       if (gui != null) {
         gui.exitOnlineMode();
-        gui.showInfo("Partie terminée", reason);
+        gui.showInfo(I18n.tr("network.bridge.gameEndedTitle"), reason);
       }
       if (lobbyView != null) {
         lobbyView.onGameEnded(reason);

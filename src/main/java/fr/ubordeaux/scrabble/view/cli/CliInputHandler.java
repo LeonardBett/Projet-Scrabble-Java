@@ -1,5 +1,6 @@
 package fr.ubordeaux.scrabble.view.cli;
 
+import fr.ubordeaux.scrabble.i18n.I18n;
 import fr.ubordeaux.scrabble.model.core.Move;
 import fr.ubordeaux.scrabble.model.core.Tile;
 import fr.ubordeaux.scrabble.model.enums.Direction;
@@ -32,14 +33,14 @@ public class CliInputHandler {
    * @return the action string chosen by the player
    */
   public String askAction() {
-    messageRenderer.sectionTitle("CHOISISSEZ UNE ACTION");
-    System.out.println("1. Jouer un mot");
-    System.out.println("2. Échanger des lettres");
-    System.out.println("3. Passer le tour");
-    System.out.println("4. Annuler le coup précédent");
-    System.out.println("5. Refaire le coup annulé");
-    System.out.println("6. Quitter");
-    System.out.print("\nVotre choix (1-6) : ");
+    messageRenderer.sectionTitle(I18n.tr("cli.input.actionTitle"));
+    System.out.println(I18n.tr("cli.input.action1"));
+    System.out.println(I18n.tr("cli.input.action2"));
+    System.out.println(I18n.tr("cli.input.action3"));
+    System.out.println(I18n.tr("cli.input.action4"));
+    System.out.println(I18n.tr("cli.input.action5"));
+    System.out.println(I18n.tr("cli.input.action6"));
+    System.out.print(I18n.tr("cli.input.choicePrompt"));
     return scanner.nextLine().trim();
   }
 
@@ -51,10 +52,10 @@ public class CliInputHandler {
    */
   public Move askPlayMove(Player player) {
     try {
-      System.out.print("\nPosition de départ (format: h 8 ou 8 8) : ");
+      System.out.print(I18n.tr("cli.input.startPosition"));
       String[] posInput = scanner.nextLine().trim().split("\\s+");
       if (posInput.length < 2) {
-        throw new IllegalArgumentException("Entrez 2 valeurs: ligne colonne.");
+        throw new IllegalArgumentException(I18n.tr("cli.input.twoValues"));
       }
 
       int x;
@@ -71,7 +72,7 @@ public class CliInputHandler {
           }
         }
         if (rowIndex == -1) {
-          throw new IllegalArgumentException("Ligne invalide: " + posInput[0]);
+          throw new IllegalArgumentException(I18n.tr("cli.input.invalidRow", posInput[0]));
         }
         y = rowIndex;
         x = Integer.parseInt(posInput[1]) - 1;
@@ -82,11 +83,11 @@ public class CliInputHandler {
 
       final Point startPoint = new Point(x, y);
 
-      System.out.print("Direction (H pour horizontal, V pour vertical) : ");
+      System.out.print(I18n.tr("cli.input.direction"));
       String dirInput = scanner.nextLine().trim().toUpperCase();
       Direction direction = dirInput.equals("H") ? Direction.HORIZONTAL : Direction.VERTICAL;
 
-      System.out.print("Lettres à jouer (ex: HELLO) : ");
+      System.out.print(I18n.tr("cli.input.lettersToPlay"));
       String lettersInput = scanner.nextLine().trim().toUpperCase();
 
       List<Tile> tiles = new ArrayList<>();
@@ -111,7 +112,7 @@ public class CliInputHandler {
           }
         }
         if (!found) {
-          messageRenderer.error("La lettre '" + letter + "' n'est pas dans votre chevalet !");
+          messageRenderer.error(I18n.tr("cli.input.tileNotInRack", letter));
           return null;
         }
       }
@@ -119,7 +120,7 @@ public class CliInputHandler {
       return Move.createPlay(player, tiles, startPoint, direction);
 
     } catch (Exception e) {
-      messageRenderer.error("Format invalide ! " + e.getMessage());
+      messageRenderer.error(I18n.tr("cli.input.invalidFormat", e.getMessage()));
       return null;
     }
   }
@@ -132,7 +133,7 @@ public class CliInputHandler {
    */
   public Move askExchangeMove(Player player) {
     try {
-      System.out.print("\nLettres à échanger (ex: ABC) : ");
+      System.out.print(I18n.tr("cli.input.lettersToExchange"));
       String lettersInput = scanner.nextLine().trim().toUpperCase();
 
       List<Tile> tiles = new ArrayList<>();
@@ -157,7 +158,7 @@ public class CliInputHandler {
           }
         }
         if (!found) {
-          messageRenderer.error("La lettre '" + letter + "' n'est pas dans votre chevalet !");
+          messageRenderer.error(I18n.tr("cli.input.tileNotInRack", letter));
           return null;
         }
       }
@@ -165,7 +166,7 @@ public class CliInputHandler {
       return Move.createExchange(player, tiles);
 
     } catch (Exception e) {
-      messageRenderer.error("Format invalide ! " + e.getMessage());
+      messageRenderer.error(I18n.tr("cli.input.invalidFormat", e.getMessage()));
       return null;
     }
   }
@@ -177,15 +178,15 @@ public class CliInputHandler {
    */
   public int askNumberOfPlayers() {
     while (true) {
-      System.out.print("\nNombre de joueurs (2-4) : ");
+      System.out.print(I18n.tr("cli.input.playersPrompt"));
       try {
         int num = Integer.parseInt(scanner.nextLine().trim());
         if (num >= 2 && num <= 4) {
           return num;
         }
-        messageRenderer.warning("Le nombre de joueurs doit être entre 2 et 4.");
+        messageRenderer.warning(I18n.tr("cli.input.playersRange"));
       } catch (NumberFormatException e) {
-        messageRenderer.error("Veuillez entrer un nombre valide.");
+        messageRenderer.error(I18n.tr("cli.input.playersValidNumber"));
       }
     }
   }
@@ -197,7 +198,7 @@ public class CliInputHandler {
    * @return the name entered by the user
    */
   public String askPlayerName(int playerNumber) {
-    System.out.print("Nom du joueur " + playerNumber + " : ");
+    System.out.print(I18n.tr("cli.input.playerNamePrompt", playerNumber));
     return scanner.nextLine().trim();
   }
 
@@ -208,7 +209,7 @@ public class CliInputHandler {
    * @return true if the user confirmed, false otherwise
    */
   public boolean askConfirmation(String question) {
-    System.out.print(question + " (o/n) : ");
+    System.out.print(question + " " + I18n.tr("cli.input.confirmSuffix"));
     String response = scanner.nextLine().trim().toLowerCase();
     return response.equals("o") || response.equals("oui") || response.equals("y")
         || response.equals("yes");

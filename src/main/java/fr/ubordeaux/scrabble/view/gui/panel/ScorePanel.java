@@ -1,5 +1,6 @@
 package fr.ubordeaux.scrabble.view.gui.panel;
 
+import fr.ubordeaux.scrabble.i18n.I18n;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
 import java.util.List;
 import javafx.animation.KeyFrame;
@@ -39,8 +40,8 @@ public class ScorePanel extends VBox {
   /** Creates the score panel. */
   public ScorePanel() {
     this.playerList = new ListView<>();
-    this.bagInfoLabel = new Label("Lettres restantes : 102");
-    this.currentPlayerLabel = new Label("Tour de : —");
+    this.bagInfoLabel = new Label(I18n.tr("gui.score.initialRemaining"));
+    this.currentPlayerLabel = new Label(I18n.tr("gui.score.initialTurn"));
     this.blitzLabel = new Label();
     initializeUi();
   }
@@ -52,7 +53,7 @@ public class ScorePanel extends VBox {
     this.setStyle("-fx-background-color: rgba(0,0,0,0.4); -fx-background-radius: 10;");
     this.setPrefWidth(250);
 
-    Label title = new Label("SCORES");
+    Label title = new Label(I18n.tr("gui.score.scores"));
     title.setFont(Font.font("Arial", FontWeight.BOLD, 16));
     title.setTextFill(Color.WHITE);
 
@@ -96,7 +97,7 @@ public class ScorePanel extends VBox {
    * @param remainingTiles number of tiles left in the bag
    */
   public void updateBagInfo(int remainingTiles) {
-    bagInfoLabel.setText("Lettres restantes : " + remainingTiles);
+    bagInfoLabel.setText(I18n.tr("gui.score.remainingTiles", remainingTiles));
   }
 
   /**
@@ -109,7 +110,7 @@ public class ScorePanel extends VBox {
     if (playerIndex >= 0 && playerIndex < playerList.getItems().size()) {
       playerList.getSelectionModel().select(playerIndex);
     }
-    currentPlayerLabel.setText("🎯 Tour de : " + playerName);
+    currentPlayerLabel.setText(I18n.tr("gui.score.turn", playerName));
   }
 
   /**
@@ -150,7 +151,7 @@ public class ScorePanel extends VBox {
       return;
     }
 
-    StringBuilder sb = new StringBuilder("⏱ Temps restant :\n");
+    StringBuilder sb = new StringBuilder(I18n.tr("gui.score.timeRemaining") + "\n");
     boolean anyExpired = false;
 
     for (Player p : livePlayers) {

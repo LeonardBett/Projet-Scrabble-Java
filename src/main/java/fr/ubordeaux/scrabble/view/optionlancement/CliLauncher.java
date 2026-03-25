@@ -1,6 +1,7 @@
 package fr.ubordeaux.scrabble.view.optionlancement;
 
 import fr.ubordeaux.scrabble.controller.GameController;
+import fr.ubordeaux.scrabble.i18n.I18n;
 import fr.ubordeaux.scrabble.model.core.Game;
 import fr.ubordeaux.scrabble.model.core.HumanPlayer;
 import fr.ubordeaux.scrabble.view.cli.CliView;
@@ -29,6 +30,7 @@ public class CliLauncher {
    */
   public static void launch(int players, boolean blitzMode, int blitzMinutes, int aiTime,
       boolean useExptiminimax, boolean useMl, String lang) {
+    I18n.setLanguage(lang);
     Game game = new Game();
     if (blitzMode) {
       game.enableBlitzMode(Duration.ofMinutes(blitzMinutes));
@@ -45,7 +47,7 @@ public class CliLauncher {
 
     final int count = players > 0 ? players : OptionPlayer.DEFAULT;
     for (int i = 1; i <= count; i++) {
-      game.addPlayer(new HumanPlayer("Joueur" + i));
+      game.addPlayer(new HumanPlayer(I18n.tr("player.defaultName") + i));
     }
 
     controller.runCli();
