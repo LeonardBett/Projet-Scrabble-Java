@@ -17,6 +17,7 @@ import fr.ubordeaux.scrabble.model.enums.Direction;
 import fr.ubordeaux.scrabble.model.enums.MoveType;
 import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
+import fr.ubordeaux.scrabble.model.utils.GameLogger;
 import fr.ubordeaux.scrabble.model.utils.Point;
 import fr.ubordeaux.scrabble.view.UserInterface;
 import fr.ubordeaux.scrabble.view.cli.CliInputHandler;
@@ -370,7 +371,7 @@ public class GameController {
         }
       }
     } catch (Exception e) {
-      System.err.println("Warning: Failed to load dictionary list for ML: " + e.getMessage());
+      GameLogger.logError("Warning: Failed to load dictionary list for ML: " + e.getMessage(), e);
     }
     return dictionaryList;
   }
@@ -387,7 +388,7 @@ public class GameController {
 
     gaddag = new Gaddag();
     String dictPath = "dictionaries/lexicon_" + this.lang + ".txt";
-    System.out.println("\nLoading Gaddag dictionary (" + dictPath + ") please wait...");
+    GameLogger.logVerbose("\nLoading Gaddag dictionary (" + dictPath + ") please wait...");
 
     try (InputStream is = getClass().getClassLoader().getResourceAsStream(dictPath)) {
       if (is == null) {
@@ -406,7 +407,7 @@ public class GameController {
         }
       }
 
-      System.out.println("Dictionary successfully loaded! (" + wordCount + " words added).\n");
+      GameLogger.logVerbose("Dictionary successfully loaded! (" + wordCount + " words added).\n");
       return gaddag;
     } catch (Exception e) {
       throw new IllegalStateException("Error while loading the dictionary: " + e.getMessage(), e);
