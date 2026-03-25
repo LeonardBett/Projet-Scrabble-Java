@@ -25,36 +25,36 @@ public class PlayerSetup extends Dialog<Integer> {
   private static final int MAX_PLAYERS = 4;
 
   private final Spinner<Integer> playerCountSpinner =
-      new Spinner<>(MIN_PLAYERS, MAX_PLAYERS, MIN_PLAYERS);
+      new Spinner<>(minPlayers(), maxPlayers(), defaultPlayers());
 
   /** Creates the player-count dialog. */
   public PlayerSetup() {
-    setTitle("Scrabble U-Bordeaux");
+    setTitle(dialogTitle());
     setHeaderText(null);
     setResizable(false);
 
     playerCountSpinner.setEditable(false);
-    playerCountSpinner.setPrefWidth(80);
+    playerCountSpinner.setPrefWidth(spinnerPrefWidth());
 
-    Label spinnerLabel = new Label("Nombre de joueurs :");
+    Label spinnerLabel = new Label(playersLabelText());
     spinnerLabel.setFont(Font.font("Arial", FontWeight.BOLD, 13));
 
-    HBox spinnerRow = new HBox(12, spinnerLabel, playerCountSpinner);
+    HBox spinnerRow = new HBox(spinnerRowSpacing(), spinnerLabel, playerCountSpinner);
     spinnerRow.setAlignment(Pos.CENTER_LEFT);
 
-    Label title = new Label("🎮  Nouvelle Partie");
+    Label title = new Label(dialogHeaderTitle());
     title.setFont(Font.font("Arial", FontWeight.BOLD, 20));
-    title.setTextFill(Color.web("#115829"));
+    title.setTextFill(Color.web(dialogHeaderColor()));
 
-    VBox content = new VBox(18, title, spinnerRow);
-    content.setPadding(new Insets(20));
-    content.setPrefWidth(320);
+    VBox content = new VBox(contentSpacing(), title, spinnerRow);
+    content.setPadding(new Insets(contentPadding()));
+    content.setPrefWidth(contentPrefWidth());
 
     getDialogPane().setContent(content);
-    getDialogPane().getStyleClass().add("setup-dialog");
+    getDialogPane().getStyleClass().add(dialogStyleClass());
 
-    ButtonType startType = new ButtonType("Commencer !", ButtonBar.ButtonData.OK_DONE);
-    ButtonType cancelType = new ButtonType("Annuler", ButtonBar.ButtonData.CANCEL_CLOSE);
+    ButtonType startType = new ButtonType(startButtonText(), ButtonBar.ButtonData.OK_DONE);
+    ButtonType cancelType = new ButtonType(cancelButtonText(), ButtonBar.ButtonData.CANCEL_CLOSE);
     getDialogPane().getButtonTypes().addAll(startType, cancelType);
 
     setResultConverter(buttonType -> {
@@ -73,5 +73,65 @@ public class PlayerSetup extends Dialog<Integer> {
   public static Optional<Integer> showDialog() {
     PlayerSetup dialog = new PlayerSetup();
     return dialog.showAndWait();
+  }
+
+  static String dialogTitle() {
+    return "Scrabble U-Bordeaux";
+  }
+
+  static String playersLabelText() {
+    return "Nombre de joueurs :";
+  }
+
+  static String dialogHeaderTitle() {
+    return "🎮  Nouvelle Partie";
+  }
+
+  static String startButtonText() {
+    return "Commencer !";
+  }
+
+  static String cancelButtonText() {
+    return "Annuler";
+  }
+
+  static int minPlayers() {
+    return MIN_PLAYERS;
+  }
+
+  static int maxPlayers() {
+    return MAX_PLAYERS;
+  }
+
+  static int defaultPlayers() {
+    return MIN_PLAYERS;
+  }
+
+  static double spinnerPrefWidth() {
+    return 80;
+  }
+
+  static double spinnerRowSpacing() {
+    return 12;
+  }
+
+  static double contentSpacing() {
+    return 18;
+  }
+
+  static double contentPadding() {
+    return 20;
+  }
+
+  static double contentPrefWidth() {
+    return 320;
+  }
+
+  static String dialogHeaderColor() {
+    return "#115829";
+  }
+
+  static String dialogStyleClass() {
+    return "setup-dialog";
   }
 }

@@ -1,6 +1,7 @@
 package fr.ubordeaux.scrabble.view;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import fr.ubordeaux.scrabble.view.gui.panel.MessagePanel;
 import java.util.ArrayList;
@@ -33,7 +34,7 @@ class MessagePanelTest {
       }
       latch.countDown();
     });
-    latch.await(2, TimeUnit.SECONDS);
+    awaitFxOrFail(latch);
   }
 
   @Test
@@ -62,10 +63,14 @@ class MessagePanelTest {
       }
     });
 
-    latch.await(2, TimeUnit.SECONDS);
+    awaitFxOrFail(latch);
     if (error.get() != null) {
       throw new RuntimeException(error.get());
     }
     return result.get();
+  }
+
+  private static void awaitFxOrFail(CountDownLatch latch) throws InterruptedException {
+    assertTrue(latch.await(2, TimeUnit.SECONDS), "Timeout waiting for JavaFX event queue");
   }
 }

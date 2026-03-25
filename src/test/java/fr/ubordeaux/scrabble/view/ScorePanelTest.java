@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import fr.ubordeaux.scrabble.view.gui.panel.ScorePanel;
+import java.lang.reflect.Field;
+import javafx.scene.control.Label;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -106,5 +108,27 @@ class ScorePanelTest {
   @Test
   void scorePanelShouldHavePositivePreferredWidth() {
     assertTrue(scorePanel.getPrefWidth() > 0);
+  }
+
+  @Test
+  void scorePanelShouldExposeExpectedDefaultTexts() {
+    Label title = (Label) scorePanel.getChildren().getFirst();
+    assertEquals("SCORES", title.getText());
+
+    Label bagInfo = (Label) getPrivateField(scorePanel, "bagInfoLabel");
+    Label currentPlayer = (Label) getPrivateField(scorePanel, "currentPlayerLabel");
+
+    assertEquals("Lettres restantes : 102", bagInfo.getText());
+    assertEquals("Tour de : —", currentPlayer.getText());
+  }
+
+  private static Object getPrivateField(Object target, String fieldName) {
+    try {
+      Field field = target.getClass().getDeclaredField(fieldName);
+      field.setAccessible(true);
+      return field.get(target);
+    } catch (NoSuchFieldException | IllegalAccessException e) {
+      throw new RuntimeException(e);
+    }
   }
 }

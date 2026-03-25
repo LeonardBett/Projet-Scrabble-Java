@@ -134,32 +134,13 @@ public class NetworkGameBridge implements NetworkObserver {
             lobbyView.onPlayersReceived(players);
           }
 
-          if (pendingGameStart && players.size() >= 2) {
-            pendingGameStart = false;
+      if (shouldDispatchGameStart(pendingGameStart, players.size())) {
+        pendingGameStart = false;
 
-            int[] ids =
-                players.stream()
-                    .mapToInt(
-                        p -> {
-                          try {
-                            return Integer.parseInt(p.getOrDefault("ID", "0"));
-                          } catch (NumberFormatException ex) {
-                            return 0;
-                          }
-                        })
-                    .filter(id -> id > 0)
-                    .sorted()
-                    .toArray();
-
-            if (ids.length == 2) {
-              networkManager.newPlayerId(ids[1]);
-            } else if (ids.length == 3) {
-              networkManager.newPlayerId(ids[1], ids[2]);
-            } else if (ids.length >= 4) {
-              networkManager.newPlayerId(ids[1], ids[2], ids[3]);
-            }
-          }
-        });
+        int[] ids = extractPositivePlayerIds(players);
+        dispatchNewGame(networkManager, ids);
+      }
+    });
   }
 
   /** Appelé en réponse à la commande SCOREBOARD. */
@@ -201,5 +182,40 @@ public class NetworkGameBridge implements NetworkObserver {
   public void dispose() {
     networkManager.removeObserver(this);
     networkManager.stopOnlinePlay();
+  }
+
+  static boolean shouldDispatchGameStart(boolean pending, int playerCount) {
+    return pending && playerCount >= 2;
+  }
+
+  static int parsePlayerId(Map<String, String> playerInfo) {
+    try {
+      return Integer.parseInt(playerInfo.getOrDefault("ID", "0"));
+    } catch (NumberFormatException ex) {
+      return 0;
+    }
+  }
+
+  static int[] extractPositivePlayerIds(List<Map<String, String>> players) {
+    return players.stream()
+        .mapToInt(NetworkGameBridge::parsePlayerId)
+        .filter(id -> id > 0)
+        .toArray();
+  }
+
+  static int dispatchNewGame(NetworkManager networkManager, int[] ids) {
+    if (ids.length == 2) {
+      networkManager.newPlayerId(ids[1]);
+      return 1;
+    }
+    if (ids.length == 3) {
+      networkManager.newPlayerId(ids[1], ids[2]);
+      return 2;
+    }
+    if (ids.length >= 4) {
+      networkManager.newPlayerId(ids[1], ids[2], ids[3]);
+      return 3;
+    }
+    return 0;
   }
 }
