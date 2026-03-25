@@ -159,6 +159,29 @@ class AiPlayerTest {
     assertEquals(MoveType.PLAY, game.getUndoRedo().getHistory().getFirst().getType());
   }
 
+  @Test
+  void testPlayTurnFallbackFailsAndPasses() {
+    Game game = new Game();
+    game.addPlayer(aiPlayer);
+    game.startGame();
+
+    // Give a rack with impossible letters (e.g., only W, X, Y, Z without vowels)
+    aiPlayer.getRack().setTiles(new ArrayList<>(List.of(
+        new Tile('W'), new Tile('X'), new Tile('Y'), new Tile('Z')
+    )));
+
+    Gaddag emptyDict = new Gaddag();
+
+    // Sets an ML agent that will bypass its phase due to empty predictions
+    MlAgent dummyAgent = new MlAgent("dummy", new ArrayList<>());
+    aiPlayer.setMlAgent(dummyAgent);
+
+    aiPlayer.playTurn(game, emptyDict);
+
+    // AI should try ML, fail, try Minimax, fail, and ultimately pass.
+    assertEquals(MoveType.PASS, game.getUndoRedo().getHistory().getFirst().getType());
+  }
+
   /* Joker is not yet implemented
   @Test
   void testPlayTurnWithJoker() {

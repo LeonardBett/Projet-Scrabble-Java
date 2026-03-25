@@ -6,11 +6,13 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import fr.ubordeaux.scrabble.model.core.Board;
 import fr.ubordeaux.scrabble.model.core.Game;
 import fr.ubordeaux.scrabble.model.core.HumanPlayer;
 import fr.ubordeaux.scrabble.model.core.PlayableWord;
 import fr.ubordeaux.scrabble.model.core.Tile;
 import fr.ubordeaux.scrabble.model.dictionary.Gaddag;
+import fr.ubordeaux.scrabble.model.enums.Direction;
 import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -217,5 +219,82 @@ class MinimaxSolverTest {
     // Verifies a move was found despite the complex heuristic calculations.
     assertNotNull(bestMove);
     assertEquals("TEA", bestMove.getWord());
+  }
+
+  @Test
+  void testEvaluateRackLeaveVowelConsonantImbalance() {
+    Game game = new Game();
+    game.addPlayer(new HumanPlayer("P1", PlayerColor.BLUE));
+    game.startGame();
+
+    // Provides a rack with only vowels to trigger the imbalance penalty (-12.0)
+    game.getCurrentPlayer().getRack().setTiles(new ArrayList<>(List.of(
+        new Tile('A'), new Tile('E'), new Tile('I'), new Tile('O'), new Tile('U'), new Tile('Y')
+    )));
+
+    Gaddag dict = new Gaddag();
+    dict.add("AE"); // Will leave I, O, U, Y in the rack (0 consonants, 4 vowels).
+
+    MinimaxSolver heuristicSolver = new MinimaxSolver(1, 5);
+    PlayableWord bestMove = heuristicSolver.findBestMove(game, dict);
+
+    assertNotNull(bestMove);
+    assertEquals("AE", bestMove.getWord());
+  }
+
+  @Test
+  void testEvaluateRackLeavePerfectBalance() {
+    Game game = new Game();
+    game.addPlayer(new HumanPlayer("P1", PlayerColor.BLUE));
+    game.startGame();
+
+    // Provides a rack with perfect balance (e.g., 2 vowels, 2 consonants left)
+    game.getCurrentPlayer().getRack().setTiles(new ArrayList<>(List.of(
+        new Tile('A'), new Tile('E'), new Tile('B'), new Tile('C'), new Tile('D')
+    )));
+
+    Gaddag dict = new Gaddag();
+    dict.add("A"); // Leaves E, B, C, D (1 vowel, 3 consonants -> difference > 1, no bonus).
+    // Let's play 'D' instead to leave A, E, B, C (2 vowels, 2 consonants).
+    dict.add("D");
+
+    MinimaxSolver heuristicSolver = new MinimaxSolver(1, 5);
+    PlayableWord bestMove = heuristicSolver.findBestMove(game, dict);
+
+    assertNotNull(bestMove);
+  }
+
+  @Test
+  void testSimulateAndScoreWordHandlesExceptionGracefully() throws Exception {
+    Game game = new Game();
+    game.addPlayer(new HumanPlayer("P1", PlayerColor.BLUE));
+    game.startGame();
+
+    // Places the word completely out of bounds (100, 100) to force board.getSquare()
+    // to return null. This will trigger a NullPointerException inside the Scoring
+    // calculation, which is exactly what we want to test the catch block.
+    PlayableWord faultyMove = new PlayableWord(100, 100, "TEST",
+        Direction.HORIZONTAL, ">TEST");
+
+    // Accesses the private method via reflection.
+    java.lang.reflect.Method simulateMethod =
+        MinimaxSolver.class.getDeclaredMethod("simulateAndScoreWord",
+            fr.ubordeaux.scrabble.model.core.Board.class, PlayableWord.class);
+    simulateMethod.setAccessible(true);
+
+    // The exception should be safely caught internally, returning a score of 0.
+    int score = (int) simulateMethod.invoke(solver, game.getBoard(), faultyMove);
+    assertEquals(0, score);
+  }
+
+  @Test
+  void testSetTimeLimitSecondsUpdatesInternalMs() throws Exception {
+    solver.setTimeLimitSeconds(10);
+
+    java.lang.reflect.Field timeLimitField = MinimaxSolver.class.getDeclaredField("timeLimitMs");
+    timeLimitField.setAccessible(true);
+
+    long currentLimit = (long) timeLimitField.get(solver);
+    assertEquals(10000L, currentLimit);
   }
 }

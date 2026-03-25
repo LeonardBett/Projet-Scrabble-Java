@@ -2,6 +2,7 @@ package fr.ubordeaux.scrabble.model.ai;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -87,5 +88,18 @@ class MlAgentTest {
 
       assertArrayEquals(expected, result, 0.001f);
     }
+  }
+
+  @Test
+  void testIsModelLoadedReturnsFalseForInvalidPath() {
+    MlAgent agent = new MlAgent("invalid/path", new ArrayList<>());
+    assertFalse(agent.isModelLoaded());
+  }
+
+  @Test
+  void testCloseWithUnloadedModel() {
+    MlAgent agent = new MlAgent("invalid/path", new ArrayList<>());
+    // Should do nothing and not throw NullPointerException
+    assertDoesNotThrow(agent::close);
   }
 }
