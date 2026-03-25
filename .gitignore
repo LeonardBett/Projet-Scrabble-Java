@@ -27,6 +27,7 @@ out/
 
 # Maven
 target/
+dependency-reduced-pom.xml
 
 # Machine Learning generated models and labels
 src/main/resources/ai/model_*/

@@ -390,6 +390,39 @@ class GameControllerTest {
   }
 
   @Test
+  void runCliShouldAttachMlAgentToExistingAiPlayers() throws Exception {
+    Game game = new Game();
+    AiPlayer ai = new AiPlayer("IA-existing", 1, 3, PlayerColor.BLUE);
+    HumanPlayer bob = new HumanPlayer("Bob", PlayerColor.RED);
+    game.addPlayer(ai);
+    game.addPlayer(bob);
+
+    CliView view = new CliView(game);
+    GameController controller = new GameController(game, view);
+    controller.setUseMl(true);
+    setDictionary(controller, minimalDictionary("AA", "ART"));
+
+    runCliWithInput(controller, "6\no\n");
+
+    assertNotNull(getAiMlAgent(ai));
+  }
+
+  @Test
+  void runCliShouldCreateAiPlayerWithMlAgentWhenConfigured() throws Exception {
+    Game game = new Game();
+    CliView view = new CliView(game);
+    GameController controller = new GameController(game, view);
+    controller.setUseMl(true);
+    controller.setPlayerCount(2);
+
+    runCliWithInput(controller, "IAbot\nBob\n6\no\n");
+
+    assertEquals(2, game.getPlayers().size());
+    assertInstanceOf(AiPlayer.class, game.getPlayers().get(0));
+    assertNotNull(getAiMlAgent((AiPlayer) game.getPlayers().get(0)));
+  }
+
+  @Test
   void runCliShouldUseConfiguredPlayerCountWithoutPromptingNumber() throws Exception {
     Game game = new Game();
     CliView view = new CliView(game);
@@ -510,6 +543,35 @@ class GameControllerTest {
 
     assertTrue(game.isGameOver());
     invokePrivateMethod(controller, "stopBlitzWatcher");
+  }
+
+  @Test
+  void controllerAuxPrivateBranchesShouldHandleBlitzAndNoWinner() throws Exception {
+    Game game = new Game();
+    HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
+    HumanPlayer bob = new HumanPlayer("Bob", PlayerColor.RED);
+    game.addPlayer(alice);
+    game.addPlayer(bob);
+    game.enableBlitzMode(Duration.ofMillis(1));
+    game.startGame();
+
+    CliView view = new CliView(game);
+    GameController controller = new GameController(game, view);
+    GameControllerAux aux = new GameControllerAux(controller);
+
+    Thread.sleep(30);
+
+    Object elapsed = invokePrivateAuxMethod(aux, "isBlitzTimeElapsed",
+        new Class<?>[] {fr.ubordeaux.scrabble.model.interfaces.Player.class, CliView.class,
+            boolean.class},
+        game.getCurrentPlayer(), view, true);
+    assertEquals(true, elapsed);
+
+    Game emptyGame = new Game();
+    GameController emptyController = new GameController(emptyGame, new CliView(emptyGame));
+    GameControllerAux emptyAux = new GameControllerAux(emptyController);
+    assertDoesNotThrow(() -> invokePrivateAuxMethod(emptyAux, "displayWinner",
+        new Class<?>[] {CliView.class}, new CliView(emptyGame)));
   }
 
   @Test
@@ -659,6 +721,19 @@ class GameControllerTest {
     Method method = GameController.class.getDeclaredMethod(methodName);
     method.setAccessible(true);
     return method.invoke(controller);
+  }
+
+  private static Object invokePrivateAuxMethod(GameControllerAux aux, String methodName,
+      Class<?>[] parameterTypes, Object... args) throws Exception {
+    Method method = GameControllerAux.class.getDeclaredMethod(methodName, parameterTypes);
+    method.setAccessible(true);
+    return method.invoke(aux, args);
+  }
+
+  private static Object getAiMlAgent(AiPlayer ai) throws Exception {
+    Field field = AiPlayer.class.getDeclaredField("mlAgent");
+    field.setAccessible(true);
+    return field.get(ai);
   }
 
   private static Gaddag minimalDictionary(String... words) {

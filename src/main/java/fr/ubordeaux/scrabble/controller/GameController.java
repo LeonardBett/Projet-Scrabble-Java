@@ -1,10 +1,7 @@
 package fr.ubordeaux.scrabble.controller;
 
-import fr.ubordeaux.scrabble.model.ai.AiPlayer;
-import fr.ubordeaux.scrabble.model.ai.MlAgent;
 import fr.ubordeaux.scrabble.model.core.Board;
 import fr.ubordeaux.scrabble.model.core.Game;
-import fr.ubordeaux.scrabble.model.core.HumanPlayer;
 import fr.ubordeaux.scrabble.model.core.Move;
 import fr.ubordeaux.scrabble.model.core.MoveGenerator;
 import fr.ubordeaux.scrabble.model.core.MoveHandler;
@@ -15,12 +12,10 @@ import fr.ubordeaux.scrabble.model.core.Tile;
 import fr.ubordeaux.scrabble.model.dictionary.Gaddag;
 import fr.ubordeaux.scrabble.model.enums.Direction;
 import fr.ubordeaux.scrabble.model.enums.MoveType;
-import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
 import fr.ubordeaux.scrabble.model.utils.GameLogger;
 import fr.ubordeaux.scrabble.model.utils.Point;
 import fr.ubordeaux.scrabble.view.UserInterface;
-import fr.ubordeaux.scrabble.view.cli.CliInputHandler;
 import fr.ubordeaux.scrabble.view.cli.CliView;
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -77,174 +72,42 @@ public class GameController {
    * missing), start the game and process player actions until the game ends or the user quits.
    */
   public void runCli() {
+    new GameControllerAux(this).runCli();
+  }
+
+  CliView requireCliView() {
     if (!(view instanceof CliView)) {
       throw new IllegalStateException("CLI loop requires a CliView instance as view.");
     }
+    return (CliView) view;
+  }
 
-    final CliInputHandler input = new CliInputHandler();
-    CliView cliView = (CliView) view;
+  Game internalGame() {
+    return game;
+  }
 
-    MlAgent sharedMlAgent = null;
+  UserInterface internalView() {
+    return view;
+  }
 
-    if (this.useMl) {
-      List<String> dictList = getOrLoadDictionaryList();
-      String modelPath = "src/main/resources/ai/model_" + this.lang;
-      sharedMlAgent = new MlAgent(modelPath, dictList);
+  int configuredAiTime() {
+    return aiTime;
+  }
 
-      final MlAgent finalAgent = sharedMlAgent;
-      Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-        if (finalAgent != null) {
-          finalAgent.close();
-        }
-      }));
-    }
+  boolean isExpectiminimaxEnabled() {
+    return useExptiminimax;
+  }
 
-    for (Player p : game.getPlayers()) {
-      if (p instanceof AiPlayer) {
-        AiPlayer bot = (AiPlayer) p;
-        bot.setExpectiminimaxMode(this.useExptiminimax);
-        if (sharedMlAgent != null) {
-          bot.setMlAgent(sharedMlAgent);
-        }
-      }
-    }
+  boolean isMlEnabled() {
+    return useMl;
+  }
 
-    cliView.displayWelcome();
+  int configuredPlayerCount() {
+    return playerCount;
+  }
 
-    if (game.getPlayers().size() < 2) {
-      int num = playerCount > 0 ? playerCount : input.askNumberOfPlayers();
-      for (int i = 1; i <= num; i++) {
-        String name = input.askPlayerName(i);
-        PlayerColor assignedColor = PlayerColor.fromIndex(i - 1);
-
-        if (name.toUpperCase().startsWith("IA") || name.toUpperCase().startsWith("AI")) {
-          AiPlayer bot = new AiPlayer(name, 3, this.aiTime, assignedColor);
-          bot.setExpectiminimaxMode(this.useExptiminimax);
-
-          if (sharedMlAgent != null) {
-            bot.setMlAgent(sharedMlAgent);
-            cliView.displayMessage("-> ML Agent activated for " + name + " (" + this.lang + ")");
-          }
-          addPlayer(bot);
-        } else {
-          addPlayer(new HumanPlayer(name, assignedColor));
-        }
-      }
-    }
-
-    startGame();
-
-    if (game.isBlitzModeEnabled()) {
-      cliView.displayMessage("⏱  Mode blitz activated — time per player : "
-          + game.getPlayers().get(0).getRemainingTimeDisplay());
-      startBlitzWatcher(cliView);
-    }
-
-    Gaddag currentGaddag = getOrLoadGaddag();
-
-    boolean running = true;
-    while (running && !game.isGameOver()) {
-      view.refresh();
-      Player current = game.getCurrentPlayer();
-
-      // Vérification temps écoulé (blitz)
-      if (game.isBlitzModeEnabled() && current != null && current.isOutOfTime()) {
-        handleBlitzExpiry(current, cliView);
-        game.setGameOver(true);
-        view.displayError("Time's up for " + current.getName() + ". Game is over.");
-        break;
-      }
-
-      // --- GESTION DU TOUR DE L'IA ---
-      if (current instanceof AiPlayer) {
-        cliView.displayMessage("\n--- It's AI (" + current.getName() + ") turn ---");
-        AiPlayer ai = (AiPlayer) current;
-        try {
-          ai.playTurn(game, currentGaddag);
-          Thread.sleep(2000);
-        } catch (Exception e) {
-          cliView.displayError("Error during AI's turn: " + e.getMessage());
-          e.printStackTrace();
-          handlePlayerMove(Move.createPass(current));
-        }
-        continue;
-      }
-
-      // --- GESTION DU TOUR D'UN JOUEUR HUMAIN ---
-      String action = input.askAction();
-
-      // Re-vérifier le temps après la saisie (le joueur a peut-être pris trop longtemps)
-      if (game.isBlitzModeEnabled() && current.isOutOfTime()) {
-        handleBlitzExpiry(current, cliView);
-        break;
-      }
-
-      switch (action) {
-        case "1": {
-          Move move = input.askPlayMove(current);
-          if (move != null) {
-            try {
-              handlePlayerMove(move);
-              cliView.displaySuccess("Move done.");
-            } catch (RuntimeException e) {
-              cliView.displayError(e.getMessage());
-            }
-          }
-          break;
-        }
-        case "2": {
-          Move move = input.askExchangeMove(current);
-          if (move != null) {
-            try {
-              handlePlayerMove(move);
-              cliView.displaySuccess("Letters exchanged.");
-            } catch (RuntimeException e) {
-              cliView.displayError(e.getMessage());
-            }
-          }
-          break;
-        }
-        case "3": {
-          try {
-            handlePlayerMove(Move.createPass(current));
-            cliView.displayMessage(current.getName() + " skips his turn.");
-          } catch (RuntimeException e) {
-            cliView.displayError(e.getMessage());
-          }
-          break;
-        }
-        case "4": {
-          undo();
-          break;
-        }
-        case "5": {
-          redo();
-          break;
-        }
-        case "6": {
-          if (input.askConfirmation("Do you really want to quit ?")) {
-            running = false;
-          }
-          break;
-        }
-        case "7": {
-          provideHint();
-          break;
-        }
-        default:
-          cliView.displayError("Invalid choice.");
-      }
-    }
-
-    stopBlitzWatcher();
-
-    Player winner = game.determineWinner();
-    if (winner != null) {
-      cliView.displaySuccess("Game over. Winnenr: " + winner.getName()
-          + " (" + winner.getScore() + " pts)");
-    }
-
-    input.close();
+  String configuredLanguage() {
+    return lang;
   }
 
   /** Thread de surveillance blitz — affiche un avertissement toutes les minutes. */
@@ -256,7 +119,7 @@ public class GameController {
    *
    * @param cliView the CLI view used to display warnings
    */
-  private void startBlitzWatcher(CliView cliView) {
+  void startBlitzWatcher(CliView cliView) {
     blitzWatcherThread = new Thread(() -> {
       final long[] warnedAt = {5 * 60_000L, 2 * 60_000L, 60_000L};
       boolean[] warned = new boolean[warnedAt.length];
@@ -301,7 +164,7 @@ public class GameController {
   }
 
   /** Stops the blitz watcher thread if running. */
-  private void stopBlitzWatcher() {
+  void stopBlitzWatcher() {
     if (blitzWatcherThread != null) {
       blitzWatcherThread.interrupt();
       blitzWatcherThread = null;
@@ -314,7 +177,7 @@ public class GameController {
    * @param expired the player who ran out of time
    * @param cliView the CLI view for output
    */
-  private void handleBlitzExpiry(Player expired, CliView cliView) {
+  void handleBlitzExpiry(Player expired, CliView cliView) {
     game.setGameOver(true);
     stopBlitzWatcher();
     cliView.displayError("\nTime's up" + expired.getName() + " !");
@@ -357,7 +220,7 @@ public class GameController {
    *
    * @return A list of all valid words.
    */
-  private List<String> getOrLoadDictionaryList() {
+  List<String> getOrLoadDictionaryList() {
     if (dictionaryList != null) {
       return dictionaryList;
     }
@@ -388,7 +251,7 @@ public class GameController {
    *
    * @return The populated Gaddag instance.
    */
-  private Gaddag getOrLoadGaddag() {
+  Gaddag getOrLoadGaddag() {
     if (gaddag != null) {
       return gaddag;
     }
@@ -505,7 +368,7 @@ public class GameController {
    * Searches for the highest-scoring move that specifically uses fewer than 7 letters
    * from the rack to avoid giving away a bingo/scrabble.
    */
-  private void provideHint() {
+  void provideHint() {
     MoveGenerator moveGen = new MoveGenerator();
     List<PlayableWord> possibleMoves = moveGen.getPlayableWordsList(game, getOrLoadGaddag());
 
