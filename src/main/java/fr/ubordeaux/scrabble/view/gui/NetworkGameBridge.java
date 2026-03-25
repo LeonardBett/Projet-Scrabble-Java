@@ -202,4 +202,39 @@ public class NetworkGameBridge implements NetworkObserver {
     networkManager.removeObserver(this);
     networkManager.stopOnlinePlay();
   }
+
+  static boolean shouldDispatchGameStart(boolean pending, int playerCount) {
+    return pending && playerCount >= 2;
+  }
+
+  static int parsePlayerId(Map<String, String> playerInfo) {
+    try {
+      return Integer.parseInt(playerInfo.getOrDefault("ID", "0"));
+    } catch (NumberFormatException ex) {
+      return 0;
+    }
+  }
+
+  static int[] extractPositivePlayerIds(List<Map<String, String>> players) {
+    return players.stream()
+        .mapToInt(NetworkGameBridge::parsePlayerId)
+        .filter(id -> id > 0)
+        .toArray();
+  }
+
+  static int dispatchNewGame(NetworkManager networkManager, int[] ids) {
+    if (ids.length == 2) {
+      networkManager.newPlayerId(ids[1]);
+      return 1;
+    }
+    if (ids.length == 3) {
+      networkManager.newPlayerId(ids[1], ids[2]);
+      return 2;
+    }
+    if (ids.length >= 4) {
+      networkManager.newPlayerId(ids[1], ids[2], ids[3]);
+      return 3;
+    }
+    return 0;
+  }
 }

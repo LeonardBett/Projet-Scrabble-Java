@@ -16,6 +16,13 @@ import javafx.application.Application;
  */
 public class GuiLauncher {
 
+  @FunctionalInterface
+  interface LaunchHandler {
+    void launch(Class<? extends Application> appClass, String[] args);
+  }
+
+  private static LaunchHandler launchHandler = Application::launch;
+
   private GuiLauncher() {}
 
   /**
@@ -36,6 +43,26 @@ public class GuiLauncher {
    */
   public static void launch(String[] args, int players, List<String> aiColors, boolean blitzMode,
       int blitzMinutes, int aiTime, boolean useExptiminimax, boolean useMl, String lang) {
+    Game game = createConfiguredGame(players, aiColors, blitzMode, blitzMinutes, aiTime,
+        useExptiminimax);
+    JavaFxView view = new JavaFxView(game);
+    ScrabbleGui.setGame(game);
+    ScrabbleGui.setView(view);
+    launchHandler.launch(ScrabbleGui.class, args);
+  }
+
+  /**
+   * Starts the game in GUI mode without blitz mode.
+   *
+   * @param args the command-line arguments passed to JavaFX
+   * @param players the number of players (0 = use default of 2)
+   */
+  public static void launch(String[] args, int players) {
+    launch(args, players, List.of(), false, 30, 5, false, false, "en");
+  }
+
+  static Game createConfiguredGame(int players, List<String> aiColors, boolean blitzMode,
+      int blitzMinutes, int aiTime, boolean useExptiminimax) {
     int count = players > 0 ? players : OptionPlayer.DEFAULT;
     Game game = new Game();
     if (blitzMode) {
@@ -57,20 +84,14 @@ public class GuiLauncher {
         humanCount++;
       }
     }
-
-    JavaFxView view = new JavaFxView(game);
-    ScrabbleGui.setGame(game);
-    ScrabbleGui.setView(view);
-    Application.launch(ScrabbleGui.class, args);
+    return game;
   }
 
-  /**
-   * Starts the game in GUI mode without blitz mode.
-   *
-   * @param args the command-line arguments passed to JavaFX
-   * @param players the number of players (0 = use default of 2)
-   */
-  public static void launch(String[] args, int players) {
-    launch(args, players, List.of(), false, 30, 5, false, false, "en");
+  static void setLaunchHandlerForTests(LaunchHandler handler) {
+    launchHandler = handler;
+  }
+
+  static void resetLaunchHandlerForTests() {
+    launchHandler = Application::launch;
   }
 }

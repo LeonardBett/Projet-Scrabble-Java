@@ -22,7 +22,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -103,7 +103,7 @@ public class ScrabbleGui extends Application {
   @Override
   public void start(Stage stage) {
     if (gameInstance == null) {
-      throw new IllegalStateException("Appelez ScrabbleGui.setGame() avant de lancer.");
+      throw new IllegalStateException(missingGameErrorMessage());
     }
 
     networkManager = new NetworkManager();
@@ -128,28 +128,29 @@ public class ScrabbleGui extends Application {
     VBox leftMenu = buildLeftMenu();
 
     BorderPane root = new BorderPane();
-    root.setPadding(new Insets(10));
-    root.setStyle("-fx-background-color: #115829;");
+    root.setPadding(new Insets(rootPadding()));
+    root.setStyle(rootBackgroundStyle());
     root.setCenter(boardPanel);
     root.setLeft(leftMenu);
 
     connectButtons();
 
-    VBox right = new VBox(15);
+    VBox right = new VBox(rightPanelSpacing());
     right.setAlignment(Pos.TOP_CENTER);
-    right.setPadding(new Insets(0, 0, 0, 15));
+    right.setPadding(new Insets(rightTopPadding(), rightRightPadding(),
+        rightBottomPadding(), rightLeftPadding()));
     right.getChildren().addAll(scorePanel, controlPanel);
     root.setRight(right);
     root.setBottom(rackPanel);
 
     stage.setOnCloseRequest(e -> networkBridge.dispose());
-    stage.setTitle("Scrabble U-Bordeaux");
-    stage.setScene(new Scene(root, 1200, 800));
+    stage.setTitle(windowTitleText());
+    stage.setScene(new Scene(root, windowWidth(), windowHeight()));
     stage.setFullScreen(true);
     stage.show();
 
     controller.startGame();
-    if (gameInstance.isBlitzModeEnabled()) {
+    if (shouldStartBlitz(gameInstance.isBlitzModeEnabled())) {
       scorePanel.startBlitzTimers(gameInstance.getPlayers(), this::onBlitzTimeExpired);
     }
     refreshAll();
@@ -157,17 +158,17 @@ public class ScrabbleGui extends Application {
 
   private void connectButtons() {
     controlPanel.getPlayButton().setOnAction(e -> {
-      if (gameInstance.isGameOver()) {
+      if (shouldIgnoreGameplayAction(gameInstance.isGameOver())) {
         return;
       }
       submitPendingTiles();
     });
 
     controlPanel.getPassButton().setOnAction(e -> {
-      if (gameInstance.isGameOver()) {
+      if (shouldIgnoreGameplayAction(gameInstance.isGameOver())) {
         return;
       }
-      if (onlineMode) {
+      if (shouldPassThroughNetwork(onlineMode)) {
         networkManager.pass();
       } else {
         controller.handlePlayerMove(Move.createPass(gameInstance.getCurrentPlayer()));
@@ -175,36 +176,36 @@ public class ScrabbleGui extends Application {
     });
 
     controlPanel.getExchangeButton().setOnAction(e -> {
-      if (gameInstance.isGameOver()) {
+      if (shouldIgnoreGameplayAction(gameInstance.isGameOver())) {
         return;
       }
       openExchangeDialog();
     });
     controlPanel.getCancelPlacementButton().setOnAction(e -> {
-      if (gameInstance.isGameOver()) {
+      if (shouldIgnoreGameplayAction(gameInstance.isGameOver())) {
         return;
       }
       cancelPendingTiles();
     });
     controlPanel.getUndoButton().setOnAction(e -> {
-      if (!onlineMode && !gameInstance.isGameOver()) {
+      if (canUseUndoRedo(onlineMode, gameInstance.isGameOver())) {
         controller.undo();
       }
     });
     controlPanel.getRedoButton().setOnAction(e -> {
-      if (!onlineMode && !gameInstance.isGameOver()) {
+      if (canUseUndoRedo(onlineMode, gameInstance.isGameOver())) {
         controller.redo();
       }
     });
     controlPanel.getHelpButton().setOnAction(e ->
-        showInfo("Help", "Fonction non implémentée pour le moment."));
+        showInfo(helpDialogTitle(), helpDialogMessage()));
 
     newGameMenuItem.setOnAction(e -> handleNewGame());
     onlineMenuItem.setOnAction(e -> openNetworkLobby());
-    saveMenuItem.setOnAction(e -> showInfo("À venir", "Sauvegarde bientôt disponible."));
-    loadMenuItem.setOnAction(e -> showInfo("À venir", "Chargement bientôt disponible."));
+    saveMenuItem.setOnAction(e -> showInfo(comingSoonTitle(), saveComingSoonMessage()));
+    loadMenuItem.setOnAction(e -> showInfo(comingSoonTitle(), loadComingSoonMessage()));
     quitMenuItem.setOnAction(e -> {
-      if (messagePanel.showConfirmation("Voulez-vous vraiment quitter ?")) {
+      if (messagePanel.showConfirmation(quitConfirmationMessage())) {
         networkBridge.dispose();
         Platform.exit();
       }
@@ -212,7 +213,7 @@ public class ScrabbleGui extends Application {
   }
 
   private void openNetworkLobby() {
-    if (lobbyView == null) {
+    if (shouldOpenNetworkLobby(lobbyView)) {
       lobbyView = new NetworkLobbyView(networkBridge);
     }
     lobbyView.show();
@@ -232,7 +233,7 @@ public class ScrabbleGui extends Application {
     boardPanel.setBoard(gameInstance.getBoard());
     pendingTiles.clear();
     refreshAll();
-    showInfo("Partie en ligne", "La partie a commencé ! Bonne chance 🎮");
+    showInfo(onlineStartedTitle(), onlineStartedMessage());
   }
 
   /**
@@ -270,13 +271,13 @@ public class ScrabbleGui extends Application {
    * @param col the column index of the drop target
    */
   public void onTileDropped(int row, int col) {
-    if (currentlyDraggedTile == null || gameInstance.isGameOver()) {
+    if (shouldIgnoreTileDrop(currentlyDraggedTile, gameInstance.isGameOver())) {
       return;
     }
 
     Point point = new Point(col, row);
-    if (!gameInstance.getBoard().getSquare(point).isEmpty() || pendingTiles.containsKey(point)) {
-      showError("Cette case est déjà occupée !");
+    if (isOccupiedOrPending(gameInstance, pendingTiles, point)) {
+      showError(occupiedCellMessage());
       currentlyDraggedTile = null;
       return;
     }
@@ -299,37 +300,36 @@ public class ScrabbleGui extends Application {
         try (BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
           String line;
           while ((line = br.readLine()) != null) {
-            if (!line.trim().isEmpty()) {
-              gaddag.add(line.trim());
+            String normalized = normalizedDictionaryLine(line);
+            if (shouldAddDictionaryEntry(normalized)) {
+              gaddag.add(normalized);
             }
           }
         }
       }
     } catch (IOException e) {
-      showError("Impossible de charger le dictionnaire : " + e.getMessage());
+      showError(dictionaryLoadErrorMessage(e.getMessage()));
     }
   }
 
   private void submitPendingTiles() {
-    if (pendingTiles.isEmpty()) {
-      showError("Placez au moins une tuile avant de valider !");
+    if (shouldRejectSubmitWhenNoPending(pendingTiles)) {
+      showError(placeAtLeastOneTileMessage());
       return;
     }
 
     Move move = PendingMoveBuilder.build(pendingTiles, gameInstance.getCurrentPlayer());
-    if (move == null) {
-      showError("Les tuiles doivent être alignées horizontalement ou verticalement !");
+    if (shouldRejectSubmitWhenMoveNull(move)) {
+      showError(invalidAlignmentMessage());
       cancelPendingTiles();
       return;
     }
 
     if (onlineMode) {
       // En mode online : on envoie directement au serveur, c'est lui qui valide
-      Point origin = move.getStartPosition();
-      String dir = move.getDirection().name().substring(0, 1);
-      String word = move.getTiles().stream().map(t -> String.valueOf(t.getCharacter())).reduce("",
-          String::concat);
-      networkManager.play(origin.getX(), origin.getY(), dir, word);
+      String dir = moveDirectionToken(move);
+      String word = buildPlayedWord(move);
+      networkManager.play(moveOriginX(move), moveOriginY(move), dir, word);
       pendingTiles.clear();
     } else {
       // En mode local : on valide via le controller
@@ -337,27 +337,27 @@ public class ScrabbleGui extends Application {
         controller.handlePlayerMove(move);
         pendingTiles.clear();
       } catch (RuntimeException e) {
-        showError("Coup invalide : " + e.getMessage());
+        showError(invalidMoveMessage(e.getMessage()));
         cancelPendingTiles();
       }
     }
   }
 
   private void openExchangeDialog() {
-    if (!pendingTiles.isEmpty()) {
-      showError("Annulez d'abord les tuiles placées (bouton ↩).");
+    if (shouldBlockExchangeWhilePending(pendingTiles)) {
+      showError(cancelTilesBeforeExchangeMessage());
       return;
     }
 
     TextInputDialog dialog = new TextInputDialog();
-    dialog.setTitle("Échanger des lettres");
-    dialog.setHeaderText("Lettres de votre chevalet à échanger");
-    dialog.setContentText("Lettres (ex: ABC) :");
+    dialog.setTitle(exchangeDialogTitle());
+    dialog.setHeaderText(exchangeDialogHeaderText());
+    dialog.setContentText(exchangeDialogContentText());
 
     Optional<String> result = dialog.showAndWait();
     result.ifPresent(input -> {
-      String letters = input.trim().toUpperCase();
-      if (letters.isEmpty()) {
+      String letters = normalizeExchangeLetters(input);
+      if (shouldSkipExchange(letters)) {
         return;
       }
 
@@ -366,7 +366,7 @@ public class ScrabbleGui extends Application {
       } else {
         Move move = ExchangeMoveBuilder.build(letters, gameInstance.getCurrentPlayer());
         if (move == null) {
-          showError("Certaines lettres ne sont pas dans votre chevalet !");
+          showError(exchangeLettersNotInRackMessage());
           return;
         }
         controller.handlePlayerMove(move);
@@ -375,7 +375,7 @@ public class ScrabbleGui extends Application {
   }
 
   private void cancelPendingTiles() {
-    if (pendingTiles.isEmpty()) {
+    if (shouldCancelWhenPendingEmpty(pendingTiles)) {
       return;
     }
     pendingTiles.forEach((p, t) -> boardPanel.clearTile(p.getY(), p.getX()));
@@ -384,17 +384,17 @@ public class ScrabbleGui extends Application {
   }
 
   private void handleNewGame() {
-    if (!messagePanel.showConfirmation("Abandonner la partie en cours et recommencer ?")) {
+    if (shouldAbortNewGame(messagePanel.showConfirmation(newGameConfirmationMessage()))) {
       return;
     }
 
     Optional<Integer> countOpt = PlayerSetup.showDialog();
-    if (countOpt.isEmpty()) {
+    if (shouldAbortWhenMissingPlayerCount(countOpt)) {
       return;
     }
 
     // Nettoyage complet avant de recréer
-    if (onlineMode) {
+    if (shouldReinitializeNetworkForNewGame(onlineMode)) {
       networkBridge.dispose();
       networkManager = new NetworkManager();
       networkBridge = new NetworkGameBridge(networkManager);
@@ -404,15 +404,12 @@ public class ScrabbleGui extends Application {
     }
 
     gameInstance = new Game();
-    int count = countOpt.get();
+    int count = selectedPlayerCount(countOpt);
 
-    if (gaddag == null) {
+    if (shouldLoadGaddag(gaddag)) {
       loadDictionary();
     }
-    for (int i = 1; i <= count; i++) {
-      PlayerColor color = PlayerColor.fromIndex(i - 1);
-      gameInstance.addPlayer(new HumanPlayer("Joueur" + i, color));
-    }
+    createDefaultPlayers(count).forEach(gameInstance::addPlayer);
 
     viewInstance = new JavaFxView(gameInstance);
     viewInstance.setGui(this);
@@ -426,7 +423,7 @@ public class ScrabbleGui extends Application {
 
     // Démarrer la partie AVANT de rafraîchir l'affichage
     controller.startGame();
-    if (gameInstance.isBlitzModeEnabled()) {
+    if (shouldStartBlitz(gameInstance.isBlitzModeEnabled())) {
       scorePanel.startBlitzTimers(gameInstance.getPlayers(), this::onBlitzTimeExpired);
     } else {
       scorePanel.stopBlitzTimers();
@@ -441,12 +438,8 @@ public class ScrabbleGui extends Application {
   private void onBlitzTimeExpired() {
     gameInstance.setGameOver(true);
     setGameplayControlsDisabled(true);
-    // Find the player who ran out of time
-    gameInstance.getPlayers().stream()
-        .filter(p -> p.isBlitzClockEnabled() && p.isOutOfTime())
-        .findFirst()
-        .ifPresent(p -> showInfo("⏱ Temps écoulé !",
-            p.getName() + " a épuisé son temps. La partie est terminée !"));
+    findOutOfTimePlayerName(gameInstance.getPlayers())
+        .ifPresent(name -> showInfo(blitzTimeoutTitle(), buildBlitzTimeoutMessage(name)));
     refreshScores();
   }
 
@@ -465,8 +458,8 @@ public class ScrabbleGui extends Application {
       return;
     }
     Player current = gameInstance.getCurrentPlayer();
-    if (current instanceof AiPlayer && !gameInstance.isGameOver()) {
-      if (gaddag == null) {
+    if (shouldRunAiTurn(current, gameInstance.isGameOver())) {
+      if (shouldLoadDictionaryForAi(gaddag)) {
         loadDictionary();
       }
       final AiPlayer ai = (AiPlayer) current;
@@ -482,11 +475,11 @@ public class ScrabbleGui extends Application {
           Thread.currentThread().interrupt();
           Platform.runLater(() -> controller.handlePlayerMove(Move.createPass(ai)));
         } catch (RuntimeException e) {
-          Platform.runLater(() -> showError("Erreur IA : " + e.getMessage()));
+          Platform.runLater(() -> showError(aiErrorMessage(e.getMessage())));
           Platform.runLater(() -> controller.handlePlayerMove(Move.createPass(ai)));
         } finally {
           Platform.runLater(() -> {
-            if (gameInstance.isGameOver()) {
+            if (shouldKeepGameplayDisabledAfterAi(gameInstance.isGameOver())) {
               setGameplayControlsDisabled(true);
             } else {
               boardPanel.setDisable(false);
@@ -507,24 +500,25 @@ public class ScrabbleGui extends Application {
   }
 
   private VBox buildLeftMenu() {
-    Label menuLabel = new Label("MENU");
+    Label menuLabel = new Label(menuTitleText());
     menuLabel.setTextFill(Color.WHITE);
-    menuLabel.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+    menuLabel.setFont(Font.font(menuLabelFontFamily(), FontWeight.BOLD, menuLabelFontSize()));
 
-    newGameMenuItem = new MenuItem("Nouvelle partie");
-    onlineMenuItem = new MenuItem("Multijoueur");
-    saveMenuItem = new MenuItem("Sauvegarder");
-    loadMenuItem = new MenuItem("Charger");
-    quitMenuItem = new MenuItem("Quitter");
+    newGameMenuItem = new MenuItem(newGameMenuText());
+    onlineMenuItem = new MenuItem(multiplayerMenuText());
+    saveMenuItem = new MenuItem(saveMenuText());
+    loadMenuItem = new MenuItem(loadMenuText());
+    quitMenuItem = new MenuItem(quitMenuText());
 
-    appMenuButton = new MenuButton("☰ Jeu", null,
+    appMenuButton = new MenuButton(appMenuButtonText(), null,
         newGameMenuItem, onlineMenuItem, saveMenuItem, loadMenuItem, quitMenuItem);
-    appMenuButton.setPrefWidth(190);
-    appMenuButton.setStyle("-fx-background-color: #0B3D1D; -fx-text-fill: white;");
+    appMenuButton.setPrefWidth(appMenuButtonWidth());
+    appMenuButton.setStyle(appMenuButtonStyle());
 
-    VBox left = new VBox(8, menuLabel, appMenuButton);
+    VBox left = new VBox(leftMenuSpacing(), menuLabel, appMenuButton);
     left.setAlignment(Pos.TOP_LEFT);
-    left.setPadding(new Insets(8, 15, 0, 0));
+    left.setPadding(new Insets(leftMenuTopPadding(), leftMenuRightPadding(),
+          leftMenuBottomPadding(), leftMenuLeftPadding()));
     return left;
   }
 
@@ -548,19 +542,16 @@ public class ScrabbleGui extends Application {
    */
   public void refreshScores() {
     List<Player> players = gameInstance.getPlayers();
-    if (players.isEmpty()) {
+    if (shouldSkipScoreRefresh(players)) {
       return;
     }
-    String[] names = players.stream().map(Player::getName).toArray(String[]::new);
-    int[] scores = players.stream().mapToInt(Player::getScore).toArray();
+    String[] names = toPlayerNames(players);
+    int[] scores = toPlayerScores(players);
     scorePanel.updateScores(names, scores);
     scorePanel.updateBagInfo(gameInstance.getBag().size());
-    Player current = gameInstance.getCurrentPlayer();
-    if (current != null) {
-      int idx = players.indexOf(current);
-      if (idx >= 0) {
-        scorePanel.highlightCurrentPlayer(idx, current.getName());
-      }
+    int idx = indexOfCurrentPlayer(players, gameInstance.getCurrentPlayer());
+    if (shouldHighlightScoreIndex(idx)) {
+      scorePanel.highlightCurrentPlayer(idx, names[idx]);
     }
   }
 
@@ -595,5 +586,352 @@ public class ScrabbleGui extends Application {
    */
   public static void main(String[] args) {
     launch(args);
+  }
+
+  static boolean isOccupiedOrPending(Game game, Map<Point, Tile> pending, Point point) {
+    return !game.getBoard().getSquare(point).isEmpty() || pending.containsKey(point);
+  }
+
+  static String buildPlayedWord(Move move) {
+    return move.getTiles().stream().map(t -> String.valueOf(t.getCharacter())).reduce("",
+        String::concat);
+  }
+
+  static boolean canUseUndoRedo(boolean isOnlineMode, boolean isGameOver) {
+    return !isOnlineMode && !isGameOver;
+  }
+
+  static boolean shouldIgnoreTileDrop(Tile draggedTile, boolean isGameOver) {
+    return draggedTile == null || isGameOver;
+  }
+
+  static String normalizeExchangeLetters(String input) {
+    return input.trim().toUpperCase();
+  }
+
+  static boolean shouldSkipExchange(String letters) {
+    return letters.isEmpty();
+  }
+
+  static boolean shouldRunAiTurn(Player current, boolean isGameOver) {
+    return current instanceof AiPlayer && !isGameOver;
+  }
+
+  static boolean shouldIgnoreGameplayAction(boolean isGameOver) {
+    return isGameOver;
+  }
+
+  static boolean shouldPassThroughNetwork(boolean isOnlineMode) {
+    return isOnlineMode;
+  }
+
+  static boolean shouldOpenNetworkLobby(NetworkLobbyView currentLobbyView) {
+    return currentLobbyView == null;
+  }
+
+  static String normalizedDictionaryLine(String line) {
+    return line.trim();
+  }
+
+  static boolean shouldAddDictionaryEntry(String normalizedLine) {
+    return !normalizedLine.isEmpty();
+  }
+
+  static boolean shouldLoadDictionaryForAi(Gaddag current) {
+    return current == null;
+  }
+
+  static boolean shouldSkipScoreRefresh(List<Player> players) {
+    return players.isEmpty();
+  }
+
+  static boolean shouldHighlightScoreIndex(int idx) {
+    return idx >= 0;
+  }
+
+  static boolean shouldKeepGameplayDisabledAfterAi(boolean isGameOver) {
+    return isGameOver;
+  }
+
+  static String helpDialogTitle() {
+    return "Help";
+  }
+
+  static String helpDialogMessage() {
+    return "Fonction non implémentée pour le moment.";
+  }
+
+  static String comingSoonTitle() {
+    return "À venir";
+  }
+
+  static String saveComingSoonMessage() {
+    return "Sauvegarde bientôt disponible.";
+  }
+
+  static String loadComingSoonMessage() {
+    return "Chargement bientôt disponible.";
+  }
+
+  static String quitConfirmationMessage() {
+    return "Voulez-vous vraiment quitter ?";
+  }
+
+  static String onlineStartedTitle() {
+    return "Partie en ligne";
+  }
+
+  static String onlineStartedMessage() {
+    return "La partie a commencé ! Bonne chance 🎮";
+  }
+
+  static String occupiedCellMessage() {
+    return "Cette case est déjà occupée !";
+  }
+
+  static String dictionaryLoadErrorMessage(String details) {
+    return "Impossible de charger le dictionnaire : " + details;
+  }
+
+  static String placeAtLeastOneTileMessage() {
+    return "Placez au moins une tuile avant de valider !";
+  }
+
+  static String invalidAlignmentMessage() {
+    return "Les tuiles doivent être alignées horizontalement ou verticalement !";
+  }
+
+  static String invalidMoveMessage(String details) {
+    return "Coup invalide : " + details;
+  }
+
+  static String cancelTilesBeforeExchangeMessage() {
+    return "Annulez d'abord les tuiles placées (bouton ↩).";
+  }
+
+  static String exchangeLettersNotInRackMessage() {
+    return "Certaines lettres ne sont pas dans votre chevalet !";
+  }
+
+  static String newGameConfirmationMessage() {
+    return "Abandonner la partie en cours et recommencer ?";
+  }
+
+  static String menuTitleText() {
+    return "MENU";
+  }
+
+  static String appMenuButtonText() {
+    return "☰ Jeu";
+  }
+
+  static String newGameMenuText() {
+    return "Nouvelle partie";
+  }
+
+  static String multiplayerMenuText() {
+    return "Multijoueur";
+  }
+
+  static String saveMenuText() {
+    return "Sauvegarder";
+  }
+
+  static String loadMenuText() {
+    return "Charger";
+  }
+
+  static String quitMenuText() {
+    return "Quitter";
+  }
+
+  static String missingGameErrorMessage() {
+    return "Appelez ScrabbleGui.setGame() avant de lancer.";
+  }
+
+  static double rootPadding() {
+    return 10;
+  }
+
+  static String rootBackgroundStyle() {
+    return "-fx-background-color: #115829;";
+  }
+
+  static double rightPanelSpacing() {
+    return 15;
+  }
+
+  static double rightTopPadding() {
+    return 0;
+  }
+
+  static double rightRightPadding() {
+    return 0;
+  }
+
+  static double rightBottomPadding() {
+    return 0;
+  }
+
+  static double rightLeftPadding() {
+    return 15;
+  }
+
+  static String windowTitleText() {
+    return "Scrabble U-Bordeaux";
+  }
+
+  static int windowWidth() {
+    return 1200;
+  }
+
+  static int windowHeight() {
+    return 800;
+  }
+
+  static String exchangeDialogTitle() {
+    return "Échanger des lettres";
+  }
+
+  static String exchangeDialogHeaderText() {
+    return "Lettres de votre chevalet à échanger";
+  }
+
+  static String exchangeDialogContentText() {
+    return "Lettres (ex: ABC) :";
+  }
+
+  static String aiErrorMessage(String details) {
+    return "Erreur IA : " + details;
+  }
+
+  static double appMenuButtonWidth() {
+    return 190;
+  }
+
+  static String appMenuButtonStyle() {
+    return "-fx-background-color: #0B3D1D; -fx-text-fill: white;";
+  }
+
+  static double leftMenuSpacing() {
+    return 8;
+  }
+
+  static double leftMenuTopPadding() {
+    return 8;
+  }
+
+  static double leftMenuRightPadding() {
+    return 15;
+  }
+
+  static double leftMenuBottomPadding() {
+    return 0;
+  }
+
+  static double leftMenuLeftPadding() {
+    return 0;
+  }
+
+  static String defaultPlayerName(int oneBasedIndex) {
+    return "Joueur" + oneBasedIndex;
+  }
+
+  static Optional<String> findOutOfTimePlayerName(List<Player> players) {
+    return players.stream()
+        .filter(p -> p.isBlitzClockEnabled() && p.isOutOfTime())
+        .map(Player::getName)
+        .findFirst();
+  }
+
+  static String buildBlitzTimeoutMessage(String playerName) {
+    return playerName + " a épuisé son temps. La partie est terminée !";
+  }
+
+  static String blitzTimeoutTitle() {
+    return "⏱ Temps écoulé !";
+  }
+
+  static String menuLabelFontFamily() {
+    return "Arial";
+  }
+
+  static int menuLabelFontSize() {
+    return 14;
+  }
+
+  static String[] toPlayerNames(List<Player> players) {
+    return players.stream().map(Player::getName).toArray(String[]::new);
+  }
+
+  static int[] toPlayerScores(List<Player> players) {
+    return players.stream().mapToInt(Player::getScore).toArray();
+  }
+
+  static int indexOfCurrentPlayer(List<Player> players, Player current) {
+    if (current == null) {
+      return -1;
+    }
+    return players.indexOf(current);
+  }
+
+  static boolean shouldRejectSubmitWhenNoPending(Map<Point, Tile> pending) {
+    return pending.isEmpty();
+  }
+
+  static boolean shouldRejectSubmitWhenMoveNull(Move move) {
+    return move == null;
+  }
+
+  static int moveOriginX(Move move) {
+    return move.getStartPosition().getX();
+  }
+
+  static int moveOriginY(Move move) {
+    return move.getStartPosition().getY();
+  }
+
+  static String moveDirectionToken(Move move) {
+    return move.getDirection().name().substring(0, 1);
+  }
+
+  static boolean shouldBlockExchangeWhilePending(Map<Point, Tile> pending) {
+    return !pending.isEmpty();
+  }
+
+  static boolean shouldCancelWhenPendingEmpty(Map<Point, Tile> pending) {
+    return pending.isEmpty();
+  }
+
+  static boolean shouldAbortNewGame(boolean confirmed) {
+    return !confirmed;
+  }
+
+  static boolean shouldAbortWhenMissingPlayerCount(Optional<Integer> countOpt) {
+    return countOpt.isEmpty();
+  }
+
+  static boolean shouldReinitializeNetworkForNewGame(boolean isOnlineMode) {
+    return isOnlineMode;
+  }
+
+  static int selectedPlayerCount(Optional<Integer> countOpt) {
+    return countOpt.orElse(0);
+  }
+
+  static boolean shouldLoadGaddag(Gaddag current) {
+    return current == null;
+  }
+
+  static List<HumanPlayer> createDefaultPlayers(int count) {
+    List<HumanPlayer> players = new ArrayList<>();
+    for (int i = 1; i <= count; i++) {
+      players.add(new HumanPlayer(defaultPlayerName(i), PlayerColor.fromIndex(i - 1)));
+    }
+    return players;
+  }
+
+  static boolean shouldStartBlitz(boolean isBlitzModeEnabled) {
+    return isBlitzModeEnabled;
   }
 }
