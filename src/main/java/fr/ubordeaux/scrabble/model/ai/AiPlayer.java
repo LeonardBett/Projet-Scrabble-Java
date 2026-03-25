@@ -67,6 +67,11 @@ public class AiPlayer extends Player {
     return solver.isUsingExpectiminimax();
   }
 
+  @Override
+  public boolean isAutonomous() {
+    return true;
+  }
+
   /**
    * Extracts the letters currently in the AI's rack as a string format.
    *
@@ -87,6 +92,7 @@ public class AiPlayer extends Player {
    * @param game The current game instance.
    * @param gaddag The Gaddag dictionary used to validate moves.
    */
+  @Override
   public void playTurn(Game game, Gaddag gaddag) {
     GameLogger.logVerbose("AI " + getName() + " is computing its move...");
 

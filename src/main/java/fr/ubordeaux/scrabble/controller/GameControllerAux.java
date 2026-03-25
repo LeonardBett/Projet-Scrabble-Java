@@ -8,7 +8,6 @@ import fr.ubordeaux.scrabble.model.core.Move;
 import fr.ubordeaux.scrabble.model.dictionary.Gaddag;
 import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
-import fr.ubordeaux.scrabble.view.UserInterface;
 import fr.ubordeaux.scrabble.view.cli.CliInputHandler;
 import fr.ubordeaux.scrabble.view.cli.CliView;
 import java.util.List;
@@ -132,8 +131,8 @@ class GameControllerAux {
         break;
       }
 
-      if (current instanceof AiPlayer) {
-        playAiTurn((AiPlayer) current, currentGaddag, cliView);
+      if (current.isAutonomous()) {
+        playAutonomousTurn(current, currentGaddag, cliView);
         continue;
       }
 
@@ -156,15 +155,15 @@ class GameControllerAux {
     return true;
   }
 
-  private void playAiTurn(AiPlayer ai, Gaddag currentGaddag, CliView cliView) {
-    cliView.displayMessage("\n--- It's AI (" + ai.getName() + ") turn ---");
+  private void playAutonomousTurn(Player player, Gaddag currentGaddag, CliView cliView) {
+    cliView.displayMessage("\n--- It's AI (" + player.getName() + ") turn ---");
     try {
-      ai.playTurn(controller.internalGame(), currentGaddag);
+      player.playTurn(controller.internalGame(), currentGaddag);
       Thread.sleep(2000);
     } catch (Exception e) {
       cliView.displayError("Error during AI's turn: " + e.getMessage());
       e.printStackTrace();
-      controller.handlePlayerMove(Move.createPass(ai));
+      controller.handlePlayerMove(Move.createPass(player));
     }
   }
 
