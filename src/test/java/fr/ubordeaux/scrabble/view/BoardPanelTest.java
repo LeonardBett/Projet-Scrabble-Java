@@ -1,9 +1,15 @@
 package fr.ubordeaux.scrabble.view;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import fr.ubordeaux.scrabble.model.core.Board;
 import fr.ubordeaux.scrabble.view.gui.panel.BoardPanel;
+import java.lang.reflect.Field;
+import javafx.scene.Node;
+import javafx.scene.control.Label;
+import javafx.scene.layout.GridPane;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -111,5 +117,34 @@ class BoardPanelTest {
     boardPanel.placeTile(7, 7, 'Z', 10);
     boardPanel.clearTile(7, 7);
     boardPanel.updateBoard(); // ne doit pas planter
+  }
+
+  @Test
+  void boardPanelShouldContainTitleAndGridWithFifteenByFifteenCells() {
+    assertEquals(2, boardPanel.getChildren().size());
+
+    Node first = boardPanel.getChildren().getFirst();
+    Node second = boardPanel.getChildren().get(1);
+    assertTrue(first instanceof Label);
+    assertTrue(second instanceof GridPane);
+
+    Label title = (Label) first;
+    assertEquals("PLATEAU DE JEU", title.getText());
+
+    Label[][] cells = (Label[][]) getPrivateField(boardPanel, "cellLabels");
+    assertEquals(15, cells.length);
+    assertEquals(15, cells[0].length);
+    assertNotNull(cells[7][7]);
+    assertEquals("★", cells[7][7].getText());
+  }
+
+  private static Object getPrivateField(Object target, String fieldName) {
+    try {
+      Field field = target.getClass().getDeclaredField(fieldName);
+      field.setAccessible(true);
+      return field.get(target);
+    } catch (NoSuchFieldException | IllegalAccessException e) {
+      throw new RuntimeException(e);
+    }
   }
 }

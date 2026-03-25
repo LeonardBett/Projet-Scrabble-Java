@@ -3,10 +3,15 @@ package fr.ubordeaux.scrabble.view;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import fr.ubordeaux.scrabble.model.core.Rack;
 import fr.ubordeaux.scrabble.model.core.Tile;
 import fr.ubordeaux.scrabble.view.gui.panel.RackPanel;
+import java.lang.reflect.Field;
+import javafx.scene.Node;
+import javafx.scene.control.Label;
+import javafx.scene.layout.HBox;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -109,5 +114,31 @@ class RackPanelTest {
     newRack.addTile(new Tile('X'));
     rackPanel.setRack(newRack);
     assertEquals(1, rackPanel.getRack().getTiles().size());
+  }
+
+  @Test
+  void rackPanelShouldContainTitleAndSevenSlotsContainer() {
+    assertEquals(2, rackPanel.getChildren().size());
+
+    Node first = rackPanel.getChildren().getFirst();
+    Node second = rackPanel.getChildren().get(1);
+    assertTrue(first instanceof Label);
+    assertTrue(second instanceof HBox);
+
+    Label title = (Label) first;
+    assertEquals("CHEVALET DU JOUEUR", title.getText());
+
+    Object[] slots = (Object[]) getPrivateField(rackPanel, "tileContainers");
+    assertEquals(7, slots.length);
+  }
+
+  private static Object getPrivateField(Object target, String fieldName) {
+    try {
+      Field field = target.getClass().getDeclaredField(fieldName);
+      field.setAccessible(true);
+      return field.get(target);
+    } catch (NoSuchFieldException | IllegalAccessException e) {
+      throw new RuntimeException(e);
+    }
   }
 }
