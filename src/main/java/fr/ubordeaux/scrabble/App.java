@@ -1,5 +1,6 @@
 package fr.ubordeaux.scrabble;
 
+import fr.ubordeaux.scrabble.model.utils.GameLogger;
 import fr.ubordeaux.scrabble.model.enums.GameMode;
 import fr.ubordeaux.scrabble.view.optionlancement.CliLauncher;
 import fr.ubordeaux.scrabble.view.optionlancement.GuiLauncher;
@@ -65,6 +66,8 @@ public class App {
           }
         }
         case "-ai-exptiminimax", "--ai-exptiminimax" -> useExptiminimax = true;
+        case "-v", "--verbose" -> GameLogger.setVerbose(true);
+        case "-d", "--debug" -> GameLogger.setDebug(true);
         case "--ai-ml" -> useMl = true;
         case "-a", "--ai" -> {
           if (i + 1 >= args.length) {

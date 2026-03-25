@@ -21,7 +21,7 @@ public class PlayerRenderer {
    */
   public void renderPlayerList(List<Player> players) {
     System.out.println("╔════════════════════════════════════════════════╗");
-    System.out.println("║                   JOUEURS                      ║");
+    System.out.println("║                   PLAYERS                      ║");
     System.out.println("╠════════════════════════════════════════════════╣");
     for (Player player : players) {
       renderPlayerScore(player);

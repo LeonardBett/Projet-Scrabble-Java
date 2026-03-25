@@ -2,11 +2,15 @@ package fr.ubordeaux.scrabble.model.ai;
 
 import fr.ubordeaux.scrabble.model.core.Game;
 import fr.ubordeaux.scrabble.model.core.Move;
+import fr.ubordeaux.scrabble.model.core.MoveGenerator;
 import fr.ubordeaux.scrabble.model.core.PlayableWord;
+import fr.ubordeaux.scrabble.model.core.Square;
 import fr.ubordeaux.scrabble.model.core.Tile;
 import fr.ubordeaux.scrabble.model.dictionary.Gaddag;
+import fr.ubordeaux.scrabble.model.enums.Direction;
 import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
+import fr.ubordeaux.scrabble.model.utils.GameLogger;
 import fr.ubordeaux.scrabble.model.utils.Point;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,7 +54,7 @@ public class AiPlayer extends Player {
    */
   public void setExpectiminimaxMode(boolean enable) {
     solver.setUseExpectiminimax(enable);
-    System.out.println("AI [" + getName() + "] mode changed to: "
+    GameLogger.logVerbose("AI [" + getName() + "] mode changed to: "
         + (enable ? "EXPECTIMINIMAX" : "Classic MINIMAX"));
   }
 
@@ -84,7 +88,7 @@ public class AiPlayer extends Player {
    * @param gaddag The Gaddag dictionary used to validate moves.
    */
   public void playTurn(Game game, Gaddag gaddag) {
-    System.out.println("AI " + getName() + " is computing its move...");
+    GameLogger.logVerbose("AI " + getName() + " is computing its move...");
 
     PlayableWord bestPlay = null;
 
@@ -92,24 +96,20 @@ public class AiPlayer extends Player {
     if (this.mlAgent != null) {
       if (this.mlAgent.isModelLoaded()) {
         String rackStr = getRackAsString();
-        System.out.println("[ML] Neural Network is analyzing the current rack: [" + rackStr + "]");
+        GameLogger.logVerbose("[ML] Neural Network is analyzing "
+            +
+            "the current rack: [" + rackStr + "]");
 
-        // Request a larger batch of predictions because many will not fit on the active
-        // board
         List<String> mlPredictions = mlAgent.predictWords(rackStr, 100);
 
-        // Generate all legally playable moves on the board
-        fr.ubordeaux.scrabble.model.core.MoveGenerator moveGen =
-            new fr.ubordeaux.scrabble.model.core.MoveGenerator();
+        MoveGenerator moveGen = new MoveGenerator();
         List<PlayableWord> allLegalMoves = moveGen.getPlayableWordsList(game, gaddag);
 
-        // Search for the highest-probability predicted word that represents a legal
-        // board placement
         for (String predictedWord : mlPredictions) {
           for (PlayableWord legalMove : allLegalMoves) {
             if (legalMove.getWord().equals(predictedWord)) {
               bestPlay = legalMove;
-              System.out.println(
+              GameLogger.logVerbose(
                   "[ML] SUCCESS: Found legal board placement for predicted word: " + predictedWord);
               break;
             }
@@ -120,60 +120,54 @@ public class AiPlayer extends Player {
         }
 
         if (bestPlay == null) {
-          System.out.println("[ML] NOTE: None of the top predicted words fit on the board. "
+          GameLogger.logVerbose("[ML] NOTE: None of the top predicted words fit on the board. "
               + "Falling back to algorithmic search.");
         }
       } else {
-        System.out.println("[ML] Model is missing. Bypassing neural network and defaulting "
+        GameLogger.logVerbose("[ML] Model is missing. Bypassing neural network and defaulting "
             + "to algorithmic search.");
       }
     }
 
     // Phase 2: Algorithmic Fallback & Resolution Step
     if (bestPlay == null) {
-      System.out.println("[AI] Proceeding with "
+      GameLogger.logVerbose("[AI] Proceeding with "
           + (isExpectiminimaxMode() ? "Expectiminimax" : "Minimax") + " algorithm...");
       bestPlay = solver.findBestMove(game, gaddag);
     }
 
     Move moveToExecute;
     if (bestPlay != null) {
-      System.out.println("The AI decided to play: " + bestPlay.getWord() + " for "
+      GameLogger.logVerbose("The AI decided to play: " + bestPlay.getWord() + " for "
           + bestPlay.getScore() + " points.");
 
       int hookIndex = bestPlay.getGaddagRepresentation().indexOf('>') - 1;
 
-      int startX = bestPlay.getDirection() == fr.ubordeaux.scrabble.model.enums.Direction.HORIZONTAL
+      int startX = bestPlay.getDirection() == Direction.HORIZONTAL
           ? bestPlay.getHookX() - hookIndex
           : bestPlay.getHookX();
-      int startY = bestPlay.getDirection() == fr.ubordeaux.scrabble.model.enums.Direction.VERTICAL
+      int startY = bestPlay.getDirection() == Direction.VERTICAL
           ? bestPlay.getHookY() - hookIndex
           : bestPlay.getHookY();
 
       Point startPos = new Point(startX, startY);
 
-      // Duplicate the AI rack temporarily to identify the Joker utilization
       List<Character> myRack = new ArrayList<>();
       for (Tile t : getRack().getTiles()) {
         myRack.add(t.getCharacter());
       }
 
-      // Isolate the letters that need to be played from the rack
       List<Tile> wordTiles = new ArrayList<>();
       String word = bestPlay.getWord();
 
       for (int i = 0; i < word.length(); i++) {
         int currentX = startX
-            + (bestPlay.getDirection() == fr.ubordeaux.scrabble.model.enums.Direction.HORIZONTAL ? i
-            : 0);
+            + (bestPlay.getDirection() == Direction.HORIZONTAL ? i : 0);
         int currentY = startY
-            + (bestPlay.getDirection() == fr.ubordeaux.scrabble.model.enums.Direction.VERTICAL ? i
-            : 0);
+            + (bestPlay.getDirection() == Direction.VERTICAL ? i : 0);
 
-        fr.ubordeaux.scrabble.model.core.Square sq =
-            game.getBoard().getSquare(new Point(currentX, currentY));
+        Square sq = game.getBoard().getSquare(new Point(currentX, currentY));
 
-        // If the square is empty, the letter originates from the player's rack
         if (sq != null && sq.isEmpty()) {
           char neededChar = word.charAt(i);
 
@@ -181,7 +175,6 @@ public class AiPlayer extends Player {
             myRack.remove((Character) neededChar);
             wordTiles.add(new Tile(neededChar));
           } else {
-            // The exact letter is missing, thus the Joker must be used
             myRack.remove((Character) ' ');
             wordTiles.add(new Tile(neededChar, true));
           }
@@ -190,7 +183,7 @@ public class AiPlayer extends Player {
 
       moveToExecute = Move.createPlay(this, wordTiles, startPos, bestPlay.getDirection());
     } else {
-      System.out.println("The AI could not find any playable word and passes its turn.");
+      GameLogger.logVerbose("The AI could not find any playable word and passes its turn.");
       moveToExecute = Move.createPass(this);
     }
 

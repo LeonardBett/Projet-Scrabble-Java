@@ -1,5 +1,6 @@
 package fr.ubordeaux.scrabble.model.ai;
 
+import fr.ubordeaux.scrabble.model.utils.GameLogger;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -32,7 +33,7 @@ public class MlAgent implements AutoCloseable {
 
     File modelDir = new File(modelPath);
     if (!modelDir.exists() || !modelDir.isDirectory()) {
-      System.out.println("[ML] Model directory not found at '" + modelPath
+      GameLogger.logVerbose("[ML] Model directory not found at '" + modelPath
           + "'. Neural network will be disabled.");
       this.model = null;
       return;
@@ -40,8 +41,9 @@ public class MlAgent implements AutoCloseable {
 
     try {
       this.model = SavedModelBundle.load(modelPath, "serve");
+      GameLogger.logVerbose("[ML] TensorFlow model successfully loaded from: " + modelPath);
     } catch (Exception e) {
-      System.out.println("[ML] Failed to load TensorFlow model: " + e.getMessage());
+      GameLogger.logError("[ML] Failed to load TensorFlow model", e);
       this.model = null;
     }
   }
@@ -70,6 +72,7 @@ public class MlAgent implements AutoCloseable {
       return predictedWords;
     }
 
+    long startTime = System.currentTimeMillis();
     float[] inputVector = vectorizeRack(rack);
 
     // Explicitly create a 2D FloatNdArray to match the expected batch shape
@@ -78,17 +81,19 @@ public class MlAgent implements AutoCloseable {
       ndArray.setFloat(inputVector[i], 0, i);
     }
 
-    // Try-with-resources ensures Tensors and Result are safely closed to avoid
-    // memory leaks
+    // Try-with-resources ensures Tensors and Result are safely closed to avoid memory leaks
     try (TFloat32 inputTensor = TFloat32.tensorOf(ndArray);
          Result output = this.model.session().runner().feed("serving_default_input:0", inputTensor)
              .fetch("StatefulPartitionedCall:0").run()) {
 
-      // Safely extract the output tensor and cast it
       try (TFloat32 outputTensor = (TFloat32) output.get(0)) {
         predictedWords = getTopPredictions(outputTensor, topK);
       }
     }
+
+    GameLogger.logDebug(
+        String.format("[ML] Prediction completed in %d ms.",
+            System.currentTimeMillis() - startTime));
 
     return predictedWords;
   }
@@ -120,12 +125,8 @@ public class MlAgent implements AutoCloseable {
    */
   private List<String> getTopPredictions(TFloat32 outputTensor, int topK) {
     final List<String> results = new ArrayList<>();
-
     int numClasses = (int) outputTensor.shape().size(1);
 
-    /**
-     * Helper class to store and sort probability predictions.
-     */
     class Prediction implements Comparable<Prediction> {
       int index;
       float probability;
@@ -157,7 +158,12 @@ public class MlAgent implements AutoCloseable {
     for (int i = 0; i < limit; i++) {
       int wordIndex = predictions.get(i).index;
       if (wordIndex < this.dictionary.size()) {
-        results.add(this.dictionary.get(wordIndex));
+        String word = this.dictionary.get(wordIndex);
+        results.add(word);
+
+        // Log the exact math probability in debug mode
+        GameLogger.logDebug(String.format("[ML-DEBUG] Rank %d: %s (%.2f%%)",
+            (i + 1), word, predictions.get(i).probability * 100));
       }
     }
 
@@ -171,6 +177,7 @@ public class MlAgent implements AutoCloseable {
   public void close() {
     if (isModelLoaded()) {
       this.model.close();
+      GameLogger.logVerbose("[ML] TensorFlow session successfully closed.");
     }
   }
 }

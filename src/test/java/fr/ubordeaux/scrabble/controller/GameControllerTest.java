@@ -423,7 +423,7 @@ class GameControllerTest {
       String consoleOutput = outContent.toString();
 
       // Asserts that the hint was successfully calculated and displayed
-      assertTrue(consoleOutput.contains("Indice"));
+      assertTrue(consoleOutput.contains("Hint"));
       assertTrue(consoleOutput.contains("B, A, R"));
     } finally {
       // Restores the original standard output to avoid breaking other tests
@@ -467,7 +467,7 @@ class GameControllerTest {
       String consoleOutput = outContent.toString();
 
       // Asserts that the hint algorithm correctly filtered out the 7-letter word
-      assertTrue(consoleOutput.contains("Aucun mot valide de moins de 7 lettres"));
+      assertTrue(consoleOutput.contains("shorter than 7"));
     } finally {
       System.setOut(originalOut);
     }

@@ -18,7 +18,7 @@ public class MessageRenderer {
    * @param message The error message to display.
    */
   public void error(String message) {
-    System.out.println("Erreur : " + message);
+    System.out.println("Error : " + message);
   }
 
 
@@ -35,7 +35,7 @@ public class MessageRenderer {
    * Displays a welcome message.
    */
   public void welcome() {
-    System.out.println("Bienvenue dans le Scrabble CLI !");
+    System.out.println("Welcome to the Scrabble CLI!");
   }
 
   /**
@@ -69,6 +69,6 @@ public class MessageRenderer {
    * @param message the warning message to display
    */
   public void warning(String message) {
-    System.out.println("Attention : " + message);
+    System.out.println("Warning : " + message);
   }
 }

@@ -3,6 +3,7 @@ package fr.ubordeaux.scrabble.model.core;
 import fr.ubordeaux.scrabble.model.enums.Direction;
 import fr.ubordeaux.scrabble.model.enums.MoveType;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
+import fr.ubordeaux.scrabble.model.utils.GameLogger;
 import fr.ubordeaux.scrabble.model.utils.Point;
 import java.util.ArrayList;
 import java.util.List;
@@ -196,8 +197,8 @@ public class MoveHandler {
     List<Tile> drawn = game.refillRack(player);
     move.setDrawnTiles(drawn);
 
-    System.out
-        .println("Player " + player.getName() + " played a word for " + totalScore + " points.");
+    GameLogger.logVerbose(
+        "Player " + player.getName() + " played a word for " + totalScore + " points.");
   }
 
   /**
@@ -229,8 +230,8 @@ public class MoveHandler {
     List<Tile> drawn = game.refillRack(player);
     move.setDrawnTiles(drawn);
 
-    System.out
-        .println("Player " + player.getName() + " exchanged " + tilesToExchange.size() + " tiles.");
+    GameLogger.logVerbose(
+        "Player " + player.getName() + " exchanged " + tilesToExchange.size() + " tiles.");
   }
 
   /**
@@ -239,7 +240,7 @@ public class MoveHandler {
    * @param move move to apply.
    */
   public void handlePassMove(Move move) {
-    System.out.println("Player " + move.getPlayer() + " passed.");
+    GameLogger.logVerbose("Player " + move.getPlayer() + " passed.");
   }
 
   /**
