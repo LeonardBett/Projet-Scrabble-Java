@@ -1,0 +1,50 @@
+package fr.ubordeaux.scrabble.view;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import fr.ubordeaux.scrabble.model.core.HumanPlayer;
+import fr.ubordeaux.scrabble.model.enums.PlayerColor;
+import fr.ubordeaux.scrabble.model.interfaces.Player;
+import fr.ubordeaux.scrabble.view.cli.renderer.PlayerRenderer;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+
+class PlayerRendererCliTest {
+
+  @Test
+  void renderPlayerListShouldPrintNamesAndScores() {
+    Player alice = new HumanPlayer("Alice", PlayerColor.BLUE);
+    Player bob = new HumanPlayer("Bob", PlayerColor.RED);
+    alice.addScore(12);
+    bob.addScore(7);
+
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+    PrintStream original = System.out;
+    System.setOut(new PrintStream(out));
+
+    new PlayerRenderer().renderPlayerList(List.of(alice, bob));
+
+    System.setOut(original);
+    String output = out.toString();
+    assertTrue(output.contains("JOUEURS"));
+    assertTrue(output.contains("Alice"));
+    assertTrue(output.contains("Bob"));
+    assertTrue(output.contains("Score:"));
+  }
+
+  @Test
+  void renderCurrentPlayerShouldPrintTurnLine() {
+    Player alice = new HumanPlayer("Alice", PlayerColor.BLUE);
+
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+    PrintStream original = System.out;
+    System.setOut(new PrintStream(out));
+
+    new PlayerRenderer().renderCurrentPlayer(alice);
+
+    System.setOut(original);
+    assertTrue(out.toString().contains("Current turn: Alice"));
+  }
+}
