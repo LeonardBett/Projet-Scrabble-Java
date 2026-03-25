@@ -47,9 +47,20 @@ class BoardTest {
   void defaultConstructorShouldCreateStandardBoardLayout() {
     Board board = new Board();
 
+    assertEquals(15, board.getSize());
     assertEquals(SquareType.TRIPLE_WORD, board.getSquare(new Point(0, 0)).getSquareType());
     assertEquals(SquareType.DOUBLE_WORD, board.getSquare(new Point(7, 7)).getSquareType());
     assertEquals(SquareType.NORMAL, board.getSquare(new Point(7, 6)).getSquareType());
+  }
+
+  @Test
+  void sizeConstructorShouldCreateSuperBoardLayout() {
+    Board board = new Board(21);
+
+    assertEquals(21, board.getSize());
+    assertEquals(SquareType.TRIPLE_WORD, board.getSquare(new Point(0, 0)).getSquareType());
+    assertEquals(SquareType.DOUBLE_WORD, board.getSquare(new Point(10, 10)).getSquareType());
+    assertEquals(SquareType.NORMAL, board.getSquare(new Point(10, 9)).getSquareType());
   }
 
   private Square[][] createEmptyGrid() {

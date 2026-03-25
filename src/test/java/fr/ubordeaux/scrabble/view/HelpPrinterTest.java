@@ -35,6 +35,8 @@ class HelpPrinterTest {
     assertTrue(output.contains("-h"));
     assertTrue(output.contains("--help"));
     assertTrue(output.contains("-g"));
+    assertTrue(output.contains("-s"));
+    assertTrue(output.contains("--super"));
     assertTrue(output.contains("-p"));
   }
 

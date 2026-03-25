@@ -1,5 +1,6 @@
 package fr.ubordeaux.scrabble;
 
+import fr.ubordeaux.scrabble.model.enums.GameMode;
 import fr.ubordeaux.scrabble.view.optionlancement.CliLauncher;
 import fr.ubordeaux.scrabble.view.optionlancement.GuiLauncher;
 import fr.ubordeaux.scrabble.view.optionlancement.HelpPrinter;
@@ -21,6 +22,7 @@ public class App {
   public static void main(String[] args) {
     int players = OptionPlayer.DEFAULT;
     boolean guiMode = false;
+    boolean superMode = false;
     boolean blitzMode = false;
     int blitzMinutes = 30;
     int aiTime = 5;
@@ -36,6 +38,7 @@ public class App {
         case "-h", "--help" -> HelpPrinter.printHelp();
         case "-V", "--version" -> HelpPrinter.printVersion();
         case "-g", "--gui" -> guiMode = true;
+        case "-s", "--super" -> superMode = true;
         case "-b", "--blitz" -> {
           if (i + 1 < args.length && (args[i + 1].equals("-t") || args[i + 1].equals("--time"))) {
             if (i + 2 >= args.length) {
@@ -101,13 +104,16 @@ public class App {
       }
     }
 
+    GameMode mode = superMode ? GameMode.SUPER : GameMode.STANDARD;
+
     if (guiMode) {
-      launchGui(args, players, aiColors, blitzMode, blitzMinutes, aiTime, useExptiminimax,
-          useMl, lang);
+      launchGui(args, players, aiColors, blitzMode, blitzMinutes, aiTime, useExptiminimax, useMl,
+          lang);
     } else {
       launchCli(players, aiColors, blitzMode, blitzMinutes, aiTime, useExptiminimax, useMl, lang);
     }
   }
+
   /**
    * Launches the Command Line Interface (CLI) mode.
    *
@@ -122,10 +128,9 @@ public class App {
    */
 
   private static void launchCli(int players, List<String> aiColors, boolean blitzMode,
-      int blitzMinutes, int aiTime,
-      boolean useExptiminimax, boolean useMl, String lang) {
-    CliLauncher.launch(players, aiColors, blitzMode, blitzMinutes, aiTime, useExptiminimax,
-        useMl, lang);
+      int blitzMinutes, int aiTime, boolean useExptiminimax, boolean useMl, String lang) {
+    CliLauncher.launch(players, aiColors, blitzMode, blitzMinutes, aiTime, useExptiminimax, useMl,
+        lang);
   }
 
 
@@ -143,10 +148,10 @@ public class App {
    * @param lang The language of the dictionary to load ("en" or "fr").
    */
   private static void launchGui(String[] args, int players, List<String> aiColors,
-      boolean blitzMode, int blitzMinutes,
-      int aiTime, boolean useExptiminimax, boolean useMl, String lang) {
-    GuiLauncher.launch(args, players, aiColors, blitzMode, blitzMinutes, aiTime,
-        useExptiminimax, useMl, lang);
+      boolean blitzMode, int blitzMinutes, int aiTime, boolean useExptiminimax, boolean useMl,
+      String lang) {
+    GuiLauncher.launch(args, players, aiColors, blitzMode, blitzMinutes, aiTime, useExptiminimax,
+        useMl, lang);
   }
 
 

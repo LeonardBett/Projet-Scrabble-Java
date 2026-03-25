@@ -3,6 +3,7 @@ package fr.ubordeaux.scrabble.view.optionlancement;
 import fr.ubordeaux.scrabble.model.ai.AiPlayer;
 import fr.ubordeaux.scrabble.model.core.Game;
 import fr.ubordeaux.scrabble.model.core.HumanPlayer;
+import fr.ubordeaux.scrabble.model.enums.GameMode;
 import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.view.gui.JavaFxView;
 import fr.ubordeaux.scrabble.view.gui.ScrabbleGui;
@@ -15,16 +16,15 @@ import javafx.application.Application;
  */
 public class GuiLauncher {
 
-  private GuiLauncher() {
-  }
+  private GuiLauncher() {}
 
   /**
    * Starts the game in GUI mode with the given configuration.
-   *
-   * <p>Uses {@code players} if provided via {@code -p}, otherwise defaults to 2.
+   * 
+   * <p>Uses {@code players} if provided via {@code -p}, otherwise defaults to 2. 
    * If {@code blitzMode} is true, enables blitz mode with {@code blitzMinutes} per player.
    *
-   * @param args    the command-line arguments passed to JavaFX
+   * @param args the command-line arguments passed to JavaFX
    * @param players the number of players (between 2 and 4)
    * @param aiColors colors controlled by AI players
    * @param blitzMode true to enable blitz mode
@@ -44,8 +44,8 @@ public class GuiLauncher {
     int humanCount = 1;
     for (int i = 1; i <= count; i++) {
       PlayerColor color = PlayerColor.fromIndex(i - 1);
-      boolean isAi = aiColors != null && aiColors.stream().anyMatch(c -> c.equalsIgnoreCase(
-          color.name()));
+      boolean isAi =
+          aiColors != null && aiColors.stream().anyMatch(c -> c.equalsIgnoreCase(color.name()));
 
       if (isAi) {
         AiPlayer ai = new AiPlayer("IA-" + color.name(), 3, aiTime, color);
