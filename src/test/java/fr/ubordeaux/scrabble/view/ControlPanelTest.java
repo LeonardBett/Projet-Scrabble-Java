@@ -71,31 +71,31 @@ class ControlPanelTest {
   @Test
   void newGameButtonShouldNotBeNull() {
     ControlPanel panel = new ControlPanel();
-    assertNotNull(panel.getNewGameButton());
+    assertNotNull(panel.getHelpButton());
   }
 
   @Test
   void onlineButtonShouldNotBeNull() {
     ControlPanel panel = new ControlPanel();
-    assertNotNull(panel.getOnlineButton());
+    assertNotNull(panel.getCancelPlacementButton());
   }
 
   @Test
   void saveButtonShouldNotBeNull() {
     ControlPanel panel = new ControlPanel();
-    assertNotNull(panel.getSaveButton());
+    assertNotNull(panel.getUndoButton());
   }
 
   @Test
   void loadButtonShouldNotBeNull() {
     ControlPanel panel = new ControlPanel();
-    assertNotNull(panel.getLoadButton());
+    assertNotNull(panel.getRedoButton());
   }
 
   @Test
   void quitButtonShouldNotBeNull() {
     ControlPanel panel = new ControlPanel();
-    assertNotNull(panel.getQuitButton());
+    assertNotNull(panel.getPlayButton());
   }
 
   @Test
@@ -119,7 +119,7 @@ class ControlPanelTest {
   @Test
   void quitButtonShouldContainQuitText() {
     ControlPanel panel = new ControlPanel();
-    Button btn = panel.getQuitButton();
+    Button btn = panel.getHelpButton();
     assertNotNull(btn.getText());
     assertFalse(btn.getText().isBlank());
   }
@@ -158,6 +158,15 @@ class ControlPanelTest {
     ControlPanel panel = new ControlPanel();
     assertTrue(panel.getPlayButton().getPrefWidth() > 0);
     assertTrue(panel.getPassButton().getPrefWidth() > 0);
-    assertTrue(panel.getQuitButton().getPrefWidth() > 0);
+    assertTrue(panel.getHelpButton().getPrefWidth() > 0);
+  }
+
+  @Test
+  void setGameplayButtonsDisabledShouldNotDisableHelp() {
+    ControlPanel panel = new ControlPanel();
+    panel.setGameplayButtonsDisabled(true);
+    assertTrue(panel.getPlayButton().isDisable());
+    assertTrue(panel.getPassButton().isDisable());
+    assertFalse(panel.getHelpButton().isDisable());
   }
 }

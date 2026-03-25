@@ -44,6 +44,9 @@ public class GameController {
   private boolean useExptiminimax = false;
   private boolean useMl = false;
 
+  // Player count set by launcher (0 = ask interactively)
+  private int playerCount = 0;
+
   public GameController(Game game, UserInterface view) {
     this.game = game;
     this.view = view;
@@ -102,7 +105,7 @@ public class GameController {
     cliView.displayWelcome();
 
     if (game.getPlayers().size() < 2) {
-      int num = input.askNumberOfPlayers();
+      int num = playerCount > 0 ? playerCount : input.askNumberOfPlayers();
       for (int i = 1; i <= num; i++) {
         String name = input.askPlayerName(i);
         PlayerColor assignedColor = PlayerColor.fromIndex(i - 1);
@@ -125,43 +128,58 @@ public class GameController {
 
     startGame();
 
+    if (game.isBlitzModeEnabled()) {
+      cliView.displayMessage("⏱  Mode blitz activé — temps par joueur : "
+          + game.getPlayers().get(0).getRemainingTimeDisplay());
+      startBlitzWatcher(cliView);
+    }
+
     Gaddag currentGaddag = getOrLoadGaddag();
+
     boolean running = true;
     while (running && !game.isGameOver()) {
       view.refresh();
       Player current = game.getCurrentPlayer();
 
+      // Vérification temps écoulé (blitz)
       if (game.isBlitzModeEnabled() && current != null && current.isOutOfTime()) {
-        game.setGameOver(true);
-        view.displayError("Temps ecoule pour " + current.getName() + ". Partie terminee.");
+        handleBlitzExpiry(current, cliView);
         break;
       }
 
+      // --- GESTION DU TOUR DE L'IA ---
       if (current instanceof AiPlayer) {
-        view.displayMessage("\n--- C'est au tour de l'IA (" + current.getName() + ") ---");
+        cliView.displayMessage("\n--- C'est au tour de l'IA (" + current.getName() + ") ---");
         AiPlayer ai = (AiPlayer) current;
-
         try {
           ai.playTurn(game, currentGaddag);
           Thread.sleep(2000);
         } catch (Exception e) {
-          view.displayError("Erreur pendant le tour de l'IA : " + e.getMessage());
+          cliView.displayError("Erreur pendant le tour de l'IA : " + e.getMessage());
           e.printStackTrace();
           handlePlayerMove(Move.createPass(current));
         }
         continue;
       }
 
+      // --- GESTION DU TOUR D'UN JOUEUR HUMAIN ---
       String action = input.askAction();
+
+      // Re-vérifier le temps après la saisie (le joueur a peut-être pris trop longtemps)
+      if (game.isBlitzModeEnabled() && current.isOutOfTime()) {
+        handleBlitzExpiry(current, cliView);
+        break;
+      }
+
       switch (action) {
         case "1": {
           Move move = input.askPlayMove(current);
           if (move != null) {
             try {
               handlePlayerMove(move);
-              view.displaySuccess("Coup joué.");
+              cliView.displaySuccess("Coup joué.");
             } catch (RuntimeException e) {
-              view.displayError(e.getMessage());
+              cliView.displayError(e.getMessage());
             }
           }
           break;
@@ -171,9 +189,9 @@ public class GameController {
           if (move != null) {
             try {
               handlePlayerMove(move);
-              view.displaySuccess("Lettres échangées.");
+              cliView.displaySuccess("Lettres échangées.");
             } catch (RuntimeException e) {
-              view.displayError(e.getMessage());
+              cliView.displayError(e.getMessage());
             }
           }
           break;
@@ -181,9 +199,9 @@ public class GameController {
         case "3": {
           try {
             handlePlayerMove(Move.createPass(current));
-            view.displayMessage(current.getName() + " a passé son tour.");
+            cliView.displayMessage(current.getName() + " a passé son tour.");
           } catch (RuntimeException e) {
-            view.displayError(e.getMessage());
+            cliView.displayError(e.getMessage());
           }
           break;
         }
@@ -206,16 +224,93 @@ public class GameController {
           break;
         }
         default:
-          view.displayError("Choix invalide.");
+          cliView.displayError("Choix invalide.");
       }
     }
 
+    stopBlitzWatcher();
+
     Player winner = game.determineWinner();
     if (winner != null) {
-      view.displaySuccess("Partie terminée. Vainqueur: " + winner.getName());
+      cliView.displaySuccess("Partie terminée. Vainqueur: " + winner.getName()
+          + " (" + winner.getScore() + " pts)");
     }
 
     input.close();
+  }
+
+  /** Thread de surveillance blitz — affiche un avertissement toutes les minutes. */
+  private volatile Thread blitzWatcherThread;
+
+  /**
+   * Starts a background thread that checks blitz time every second and warns the player
+   * at 5 minutes, 2 minutes and 1 minute remaining.
+   *
+   * @param cliView the CLI view used to display warnings
+   */
+  private void startBlitzWatcher(CliView cliView) {
+    blitzWatcherThread = new Thread(() -> {
+      final long[] warnedAt = {5 * 60_000L, 2 * 60_000L, 60_000L};
+      boolean[] warned = new boolean[warnedAt.length];
+
+      while (!Thread.currentThread().isInterrupted() && !game.isGameOver()) {
+        Player current = game.getCurrentPlayer();
+        if (current != null && current.isBlitzClockEnabled()) {
+          long remaining = current.getRemainingTimeMillis();
+
+          // Avertissements à 5 min, 2 min, 1 min
+          for (int i = 0; i < warnedAt.length; i++) {
+            if (!warned[i] && remaining <= warnedAt[i] && remaining > 0) {
+              warned[i] = true;
+              long minutes = warnedAt[i] / 60_000L;
+              System.out.println("\n⚠  " + current.getName()
+                  + " — plus que " + minutes + " minute(s) !");
+            }
+          }
+
+          // Temps expiré
+          if (current.isOutOfTime() && !game.isGameOver()) {
+            handleBlitzExpiry(current, cliView);
+            break;
+          }
+
+          // Réinitialiser les avertissements au changement de joueur
+          Player newCurrent = game.getCurrentPlayer();
+          if (newCurrent != current) {
+            warned = new boolean[warnedAt.length];
+          }
+        }
+
+        try {
+          Thread.sleep(1000);
+        } catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
+        }
+      }
+    });
+    blitzWatcherThread.setDaemon(true);
+    blitzWatcherThread.start();
+  }
+
+  /** Stops the blitz watcher thread if running. */
+  private void stopBlitzWatcher() {
+    if (blitzWatcherThread != null) {
+      blitzWatcherThread.interrupt();
+      blitzWatcherThread = null;
+    }
+  }
+
+  /**
+   * Handles blitz time expiry for the given player: sets game over and notifies.
+   *
+   * @param expired the player who ran out of time
+   * @param cliView the CLI view for output
+   */
+  private void handleBlitzExpiry(Player expired, CliView cliView) {
+    game.setGameOver(true);
+    stopBlitzWatcher();
+    cliView.displayError("\n⏱  Temps écoulé pour " + expired.getName() + " !");
+    cliView.displayMessage("La partie est terminée.");
   }
 
   /**
@@ -232,11 +327,9 @@ public class GameController {
       if (move.getType() == MoveType.PLAY) {
         Gaddag dictionary = getOrLoadGaddag();
         MoveHandler moveHandler = new MoveHandler(game);
-        for (String formedWord :
-            moveHandler.getFormedWords(
-                move.getStartPosition(), move.getDirection(), move.getTiles())) {
-          if (formedWord == null
-              || formedWord.isBlank()
+        for (String formedWord : moveHandler.getFormedWords(move.getStartPosition(),
+            move.getDirection(), move.getTiles())) {
+          if (formedWord == null || formedWord.isBlank()
               || !dictionary.containsWord(formedWord.toUpperCase())) {
             throw new IllegalArgumentException("Word not found in dictionary: " + formedWord);
           }
@@ -496,5 +589,14 @@ public class GameController {
     }
 
     return score;
+  }
+
+  /**
+   * Sets the number of players to use at launch (skips the interactive prompt).
+   *
+   * @param count the number of players (2‑4)
+   */
+  public void setPlayerCount(int count) {
+    this.playerCount = count;
   }
 }
