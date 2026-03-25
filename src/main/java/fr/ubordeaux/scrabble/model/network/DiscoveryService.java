@@ -18,6 +18,12 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class DiscoveryService {
 
+  /**
+   * Default constructor for DiscoveryService.
+   */
+  public DiscoveryService() {
+  }
+
   // List of observers
   private final List<NetworkObserver> observers = new ArrayList<>();
 

@@ -6,9 +6,24 @@ import java.util.ArrayList;
  * Implementation of a prefix tree (Trie) for efficient word storage and prefix searching.
  */
 public class Trie {
+  /**
+   * The root node of the trie structure.
+   */
   protected Node root;
+
+  /**
+   * The total number of nodes in the trie.
+   */
   protected long nodeCount;
+
+  /**
+   * The total number of words stored in the trie.
+   */
   protected int wordCount;
+
+  /**
+   * The maximum depth of the trie tree.
+   */
   protected short maxDepth;
 
   /**

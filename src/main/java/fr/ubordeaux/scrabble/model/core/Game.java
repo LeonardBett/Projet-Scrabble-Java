@@ -75,6 +75,8 @@ public class Game {
 
   /**
    * Enables blitz mode with a custom time per player.
+   *
+   * @param timePerPlayer The custom duration for each player's turn.
    */
   public void enableBlitzMode(Duration timePerPlayer) {
     if (timePerPlayer == null || timePerPlayer.isNegative() || timePerPlayer.isZero()) {
@@ -99,6 +101,11 @@ public class Game {
     }
   }
 
+  /**
+   * Checks if blitz mode is currently enabled for this game.
+   *
+   * @return true if blitz mode is enabled; false otherwise.
+   */
   public boolean isBlitzModeEnabled() {
     return blitzModeEnabled;
   }
@@ -160,8 +167,52 @@ public class Game {
     // 3. Add move to history
     undoRedo.addMove(move);
 
+    // Scrabble end condition: player emptied rack while bag is empty.
+    if (shouldEndOnEmptyRackAndBag(move)) {
+      applyRemainingRackPointsBonus(move.getPlayer());
+      setGameOver(true);
+      if (blitzModeEnabled && getCurrentPlayer() != null) {
+        getCurrentPlayer().pauseTurnTimer();
+      }
+      return;
+    }
+
     // 4. Prepare next turn
     nextTurn();
+  }
+
+  private boolean shouldEndOnEmptyRackAndBag(Move move) {
+    if (move.getType() != MoveType.PLAY) {
+      return false;
+    }
+    Player player = move.getPlayer();
+    return player.getRack().isEmpty() && bag.isEmpty();
+  }
+
+  private void applyRemainingRackPointsBonus(Player finishingPlayer) {
+    int totalTransferredPoints = 0;
+
+    for (Player player : players) {
+      if (player.equals(finishingPlayer)) {
+        continue;
+      }
+
+      int remainingRackPoints = calculateRackPoints(player);
+      if (remainingRackPoints > 0) {
+        player.addScore(-remainingRackPoints);
+        totalTransferredPoints += remainingRackPoints;
+      }
+    }
+
+    finishingPlayer.addScore(totalTransferredPoints);
+  }
+
+  private int calculateRackPoints(Player player) {
+    int points = 0;
+    for (Tile tile : player.getRack().getTiles()) {
+      points += tile.getValue();
+    }
+    return points;
   }
 
   // Need to be separated from executeMove() because it will be used for undo/redo
@@ -322,6 +373,15 @@ public class Game {
    * @return true when game over flag is set.
    */
   public boolean isGameOver() {
+    return isGameOver;
+  }
+
+  /**
+   * Alias dedicated to external layers (CLI/network) to check whether the game has ended.
+   *
+   * @return true when the game is finished.
+   */
+  public boolean hasGameEnded() {
     return isGameOver;
   }
 

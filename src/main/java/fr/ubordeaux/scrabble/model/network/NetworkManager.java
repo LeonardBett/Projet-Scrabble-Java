@@ -367,6 +367,8 @@ public class NetworkManager {
 
   /**
    * Get the local game client side.
+   *
+   * @return the local Game instance
    */
   public Game getLocalGame() {
     if (gameClient == null) {

@@ -27,10 +27,20 @@ public class Point {
     this.ypos = y;
   }
 
+  /**
+   * Returns the X coordinate of this point.
+   *
+   * @return the x position
+   */
   public int getX() {
     return xpos;
   }
 
+  /**
+   * Returns the Y coordinate of this point.
+   *
+   * @return the y position
+   */
   public int getY() {
     return ypos;
   }

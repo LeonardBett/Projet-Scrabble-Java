@@ -25,6 +25,12 @@ import java.util.Map;
  */
 public class GameClient {
 
+  /**
+   * Default constructor for GameClient.
+   */
+  public GameClient() {
+  }
+
   // List of observers
   private final List<NetworkObserver> observers = new ArrayList<>();
 

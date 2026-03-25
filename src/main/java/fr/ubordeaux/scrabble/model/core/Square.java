@@ -24,6 +24,9 @@ public class Square {
 
   /**
    * Constructor for an empty square at the start of the game.
+   *
+   * @param position The coordinates of the square.
+   * @param squareType The bonus type of the square.
    */
   public Square(Point position, SquareType squareType) {
     this(position, null, squareType);

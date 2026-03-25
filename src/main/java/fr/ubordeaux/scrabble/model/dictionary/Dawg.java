@@ -25,6 +25,9 @@ public class Dawg {
   // efficiency)
   private Map<DawgNode, DawgNode> minimizedNodes = new HashMap<>();
 
+  /**
+   * Initializes a new Dawg structure with an empty root node.
+   */
   public Dawg() {
     uncheckedNodes.add(root);
   }

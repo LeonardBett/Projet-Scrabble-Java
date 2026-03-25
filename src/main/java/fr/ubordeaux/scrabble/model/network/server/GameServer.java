@@ -16,6 +16,12 @@ import java.util.List;
  */
 public class GameServer {
 
+  /**
+   * Default constructor for GameServer.
+   */
+  public GameServer() {
+  }
+
   // Volatile flag used to maintain the loop active and allow a graceful shutdown
   // of the thread.
   private volatile boolean isRunning = false;

@@ -5,8 +5,19 @@ package fr.ubordeaux.scrabble.view.optionlancement;
  */
 public class OptionPlayer {
 
+  /**
+   * Minimum number of players allowed.
+   */
   public static final int MIN = 2;
+
+  /**
+   * Maximum number of players allowed.
+   */
   public static final int MAX = 4;
+
+  /**
+   * Default number of players.
+   */
   public static final int DEFAULT = 2;
 
   private OptionPlayer() {

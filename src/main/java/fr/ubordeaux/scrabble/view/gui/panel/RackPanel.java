@@ -161,6 +161,8 @@ public class RackPanel extends VBox {
 
   /**
    * Hides a tile visually (it has been placed on the board, pending validation).
+   *
+   * @param tile the tile to hide
    */
   public void hideTile(Tile tile) {
     List<Tile> tiles = rack.getTiles();
@@ -175,12 +177,18 @@ public class RackPanel extends VBox {
   /**
    * Changes the displayed rack (e.g. when the turn changes).
    *
+   * @param newRack the new rack to display
    */
   public void setRack(Rack newRack) {
     this.rack = newRack;
     updateDisplay();
   }
 
+  /**
+   * Returns the current rack displayed in the panel.
+   *
+   * @return the rack
+   */
   public Rack getRack() {
     return rack;
   }

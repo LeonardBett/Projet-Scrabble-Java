@@ -20,19 +20,39 @@ public class NetworkGameBridge implements NetworkObserver {
   // Le modèle local synchronisé par le serveur
   private Game localGame;
 
+  /**
+   * Constructor for NetworkGameBridge.
+   *
+   * @param networkManager the network manager instance
+   */
   public NetworkGameBridge(NetworkManager networkManager) {
     this.networkManager = networkManager;
     this.networkManager.addObserver(this);
   }
 
+  /**
+   * Sets the GUI reference.
+   *
+   * @param gui the GUI instance
+   */
   public void setGui(ScrabbleGui gui) {
     this.gui = gui;
   }
 
+  /**
+   * Sets the lobby view reference.
+   *
+   * @param lobbyView the lobby view instance
+   */
   public void setLobbyView(NetworkLobbyView lobbyView) {
     this.lobbyView = lobbyView;
   }
 
+  /**
+   * Returns the network manager.
+   *
+   * @return the network manager instance
+   */
   public NetworkManager getNetworkManager() {
     return networkManager;
   }

@@ -23,7 +23,14 @@ public class Gaddag extends Trie {
    * Represents a word found in the GADDAG along with its internal path.
    */
   public static class GaddagResult {
+    /**
+     * The literal word found.
+     */
     public final String word;
+
+    /**
+     * The specific path used to find it in the graph.
+     */
     public final String gaddagPath;
 
     /**

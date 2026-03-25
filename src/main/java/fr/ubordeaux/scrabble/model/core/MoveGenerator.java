@@ -14,6 +14,12 @@ import java.util.List;
 public class MoveGenerator {
 
   /**
+   * Default constructor for MoveGenerator.
+   */
+  public MoveGenerator() {
+  }
+
+  /**
    * Original method used by the game. It extracts the player's rack and delegates to the overloaded
    * method.
    *

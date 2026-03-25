@@ -6,30 +6,68 @@ package fr.ubordeaux.scrabble.view.cli.renderer;
  */
 public class MessageRenderer {
 
+  /**
+   * Default constructor for MessageRenderer.
+   */
+  public MessageRenderer() {
+  }
+
+  /**
+   * Displays an error message in red format.
+   *
+   * @param message The error message to display.
+   */
   public void error(String message) {
     System.out.println("Erreur : " + message);
   }
 
+
+  /**
+   * Displays a success message in green format.
+   *
+   * @param message The success message to display.
+   */
   public void success(String message) {
     System.out.println("OK : " + message);
   }
 
+  /**
+   * Displays a welcome message.
+   */
   public void welcome() {
     System.out.println("Bienvenue dans le Scrabble CLI !");
   }
 
+  /**
+   * Displays an informational message.
+   *
+   * @param message The information message to display.
+   */
   public void info(String message) {
     System.out.println("Info : " + message);
   }
 
+  /**
+   * Displays a visual separator line.
+   */
   public void separator() {
     System.out.println("----------------------------------------------");
   }
 
+  /**
+   * Displays a formatted section title.
+   *
+   * @param title The title text to display.
+   */
   public void sectionTitle(String title) {
     System.out.println("\n=== " + title + " ===");
   }
 
+  /**
+   * Displays a warning message.
+   *
+   * @param message the warning message to display
+   */
   public void warning(String message) {
     System.out.println("Attention : " + message);
   }

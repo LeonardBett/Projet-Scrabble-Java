@@ -9,6 +9,12 @@ import java.util.List;
 public class PlayerRenderer {
 
   /**
+   * Default constructor for PlayerRenderer.
+   */
+  public PlayerRenderer() {
+  }
+
+  /**
    * Affiche la liste de tous les joueurs avec leur score dans la console CLI.
    *
    * @param players liste des joueurs à afficher

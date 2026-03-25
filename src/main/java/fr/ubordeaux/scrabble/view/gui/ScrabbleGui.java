@@ -50,6 +50,12 @@ import javafx.stage.Stage;
  */
 public class ScrabbleGui extends Application {
 
+  /**
+   * Default constructor for ScrabbleGui.
+   */
+  public ScrabbleGui() {
+  }
+
   private static Game gameInstance;
   private static JavaFxView viewInstance;
 
@@ -75,10 +81,20 @@ public class ScrabbleGui extends Application {
   private MenuItem loadMenuItem;
   private MenuItem quitMenuItem;
 
+  /**
+   * Sets the game instance for static access.
+   *
+   * @param game the game to use
+   */
   public static void setGame(Game game) {
     gameInstance = game;
   }
 
+  /**
+   * Sets the view instance for static access.
+   *
+   * @param view the view to use
+   */
   public static void setView(JavaFxView view) {
     viewInstance = view;
   }
@@ -547,10 +563,21 @@ public class ScrabbleGui extends Application {
     }
   }
 
+  /**
+   * Displays an informational dialog.
+   *
+   * @param title the dialog title
+   * @param message the message to display
+   */
   public void showInfo(String title, String message) {
     messagePanel.showInfo(title, message);
   }
 
+  /**
+   * Displays an error dialog.
+   *
+   * @param message the error message to display
+   */
   public void showError(String message) {
     messagePanel.showError(message);
   }
@@ -560,6 +587,11 @@ public class ScrabbleGui extends Application {
     return p != null ? p.getRack() : new Rack();
   }
 
+  /**
+   * Entry point for the JavaFX application.
+   *
+   * @param args application arguments
+   */
   public static void main(String[] args) {
     launch(args);
   }

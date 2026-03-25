@@ -47,6 +47,12 @@ public class GameController {
   // Player count set by launcher (0 = ask interactively)
   private int playerCount = 0;
 
+  /**
+   * Constructor for GameController.
+   *
+   * @param game the game instance to control
+   * @param view the user interface to update
+   */
   public GameController(Game game, UserInterface view) {
     this.game = game;
     this.view = view;
@@ -456,18 +462,38 @@ public class GameController {
     return view;
   }
 
+  /**
+   * Sets the AI thinking time per turn.
+   *
+   * @param aiTime the time in seconds allocated to AI for decision-making
+   */
   public void setAiTime(int aiTime) {
     this.aiTime = aiTime;
   }
 
+  /**
+   * Enables or disables expectimax algorithm usage for AI.
+   *
+   * @param useExptiminimax true to use expectimax; false otherwise
+   */
   public void setUseExptiminimax(boolean useExptiminimax) {
     this.useExptiminimax = useExptiminimax;
   }
 
+  /**
+   * Enables or disables machine learning model usage for AI.
+   *
+   * @param useMl true to use ML; false otherwise
+   */
   public void setUseMl(boolean useMl) {
     this.useMl = useMl;
   }
 
+  /**
+   * Sets the game language for dictionary and UI.
+   *
+   * @param lang the language code (e.g., "en" or "fr")
+   */
   public void setLang(String lang) {
     this.lang = lang;
   }

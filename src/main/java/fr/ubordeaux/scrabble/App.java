@@ -15,6 +15,12 @@ import java.util.List;
 public class App {
 
   /**
+   * Default constructor for App. Should not be instantiated directly.
+   */
+  public App() {
+  }
+
+  /**
    * Starts the application and routes to CLI or GUI mode based on command-line options.
    *
    * @param args Application command-line arguments.

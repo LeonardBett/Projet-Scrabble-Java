@@ -5,10 +5,15 @@ package fr.ubordeaux.scrabble.model.enums;
  * Includes the corresponding ANSI escape codes for CLI formatting.
  */
 public enum PlayerColor {
+  /** Blue color for player 1. */
   BLUE("\u001B[34m"),
+  /** Red color for player 2. */
   RED("\u001B[31m"),
+  /** Yellow color for player 3. */
   YELLOW("\u001B[33m"),
+  /** Green color for player 4. */
   GREEN("\u001B[32m"),
+  /** Reset ANSI code to default terminal color. */
   RESET("\u001B[0m");
 
   private final String ansiCode;

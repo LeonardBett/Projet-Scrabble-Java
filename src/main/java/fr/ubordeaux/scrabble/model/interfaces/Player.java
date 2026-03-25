@@ -8,8 +8,19 @@ import java.time.Duration;
  * Abstract class or interface representing a player (Human or AI).
  */
 public abstract class Player {
+  /**
+   * The name of the player.
+   */
   protected String name;
+
+  /**
+   * The current score of the player.
+   */
   protected int score;
+
+  /**
+   * The rack holding the player's tiles.
+   */
   protected Rack rack;
   private boolean blitzClockEnabled;
   private long remainingTimeNanos;

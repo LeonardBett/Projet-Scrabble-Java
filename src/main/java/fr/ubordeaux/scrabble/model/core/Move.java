@@ -115,6 +115,8 @@ public class Move {
   /**
    * Returns the tiles associated with the move. For PLAY: The tiles forming the word. For EXCHANGE:
    * The tiles to be exchanged.
+   *
+   * @return an unmodifiable list of tiles in this move
    */
   public List<Tile> getTiles() {
     return Collections.unmodifiableList(tiles);

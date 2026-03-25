@@ -6,9 +6,12 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import fr.ubordeaux.scrabble.model.enums.Direction;
 import fr.ubordeaux.scrabble.model.enums.GameMode;
 import fr.ubordeaux.scrabble.model.enums.PlayerColor;
+import fr.ubordeaux.scrabble.model.utils.Point;
 import java.time.Duration;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 
 class GameTest {
@@ -173,5 +176,31 @@ class GameTest {
 
     assertThrows(IllegalStateException.class, () -> game.executeMove(Move.createPass(alice)));
     assertTrue(game.isGameOver());
+  }
+
+  @Test
+  void executePlayShouldEndGameAndTransferRemainingRackPointsWhenBagIsEmpty() {
+    Game game = new Game();
+    HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
+    HumanPlayer bob = new HumanPlayer("Bob", PlayerColor.RED);
+    game.addPlayer(alice);
+    game.addPlayer(bob);
+
+    alice.getRack().setTiles(List.of(new Tile(' ')));
+    bob.getRack().setTiles(List.of(new Tile('B'), new Tile('C')));
+
+    while (!game.getBag().isEmpty()) {
+      game.getBag().drawTile();
+    }
+
+    int bobRackPoints = Tile.getStandardValue('B') + Tile.getStandardValue('C');
+
+    Move move =
+        Move.createPlay(alice, List.of(new Tile(' ')), new Point(7, 7), Direction.HORIZONTAL);
+    game.executeMove(move);
+
+    assertTrue(game.isGameOver());
+    assertEquals(bobRackPoints, alice.getScore());
+    assertEquals(-bobRackPoints, bob.getScore());
   }
 }
