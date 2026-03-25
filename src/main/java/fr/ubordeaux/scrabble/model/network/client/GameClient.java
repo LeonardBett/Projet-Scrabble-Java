@@ -6,6 +6,7 @@ import static fr.ubordeaux.scrabble.model.network.NetworkManager.DEFAULT_TCP_POR
 import fr.ubordeaux.scrabble.model.core.Game;
 import fr.ubordeaux.scrabble.model.core.HumanPlayer;
 import fr.ubordeaux.scrabble.model.core.Tile;
+import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
 import fr.ubordeaux.scrabble.model.network.NetworkObserver;
 import fr.ubordeaux.scrabble.model.network.PacketParser;
@@ -25,6 +26,12 @@ import java.util.Map;
  * events.
  */
 public class GameClient {
+
+  /**
+   * Default constructor for GameClient.
+   */
+  public GameClient() {
+  }
 
   // List of observers
   private final List<NetworkObserver> observers = new ArrayList<>();
@@ -196,10 +203,13 @@ public class GameClient {
             localGame.getBag().setOnlineSize(bagSize);
 
             // Extracting player info and adding them to the local model
+            int playerIndex = 0;
             for (Map<String, String> playerData : packetParser.getEntries()) {
               String name = playerData.get("NAME");
               if (name != null) {
-                this.localGame.addPlayer(new HumanPlayer(name));
+                this.localGame.addPlayer(
+                    new HumanPlayer(name, PlayerColor.fromIndex(playerIndex)));
+                playerIndex++;
               }
             }
 
@@ -213,21 +223,34 @@ public class GameClient {
             if (localGame != null && !packetParser.getEntries().isEmpty()) {
               String tilesStr = packetParser.getEntries().getFirst().get("TILES");
               if (tilesStr != null) {
-                // We need our name in the model
-                String myName = "Player-" + myId;
-
-                // We build the list of Tile from the server message
-                List<Tile> receivedTiles = new ArrayList<>();
-                if (!tilesStr.trim().isEmpty()) {
-                  for (String letter : tilesStr.split(",")) {
-                    receivedTiles.add(new Tile(letter.charAt(0)));
+                // Find our player in the local model by matching ID position
+                // The server sends SET_RACK only to the player it concerns,
+                // so we identify ourselves by our position in the player list
+                // (players are added in connection order, our ID = 1-based index)
+                Player myPlayer = null;
+                List<Player> playerList = localGame.getPlayers();
+                for (Player pp : playerList) {
+                  // Match by "Player-N" fallback or by finding the player whose
+                  // index matches our ID
+                  if (pp.getName().equals("Player-" + myId)) {
+                    myPlayer = pp;
+                    break;
                   }
                 }
+                // Fallback: use ID as 1-based index into the player list
+                if (myPlayer == null && myId > 0 && myId <= playerList.size()) {
+                  myPlayer = playerList.get(myId - 1);
+                }
 
-                // We update our local model with this Tile list
-                localGame.forceTilesToPlayer(myName, receivedTiles);
-                // System.out.println("Local rack updated: " + tilesStr);
-                // localGame.printDebugState(false, true);
+                if (myPlayer != null) {
+                  List<Tile> receivedTiles = new ArrayList<>();
+                  if (!tilesStr.trim().isEmpty()) {
+                    for (String letter : tilesStr.split(",")) {
+                      receivedTiles.add(new Tile(letter.charAt(0)));
+                    }
+                  }
+                  localGame.forceTilesToPlayer(myPlayer.getName(), receivedTiles);
+                }
 
                 for (NetworkObserver obs : observers) {
                   obs.localModelUpdate();
@@ -257,7 +280,7 @@ public class GameClient {
 
               // We extract and sync new score to the local model
               int score = Integer.parseInt(move.get("SCORE"));
-              player.addScore(score);
+              player.setScore(score);
 
               // We extract and sync new bag size to the local model
               int bagSizes = Integer.parseInt(move.get("BAG"));
@@ -499,7 +522,7 @@ public class GameClient {
     sendMessage(message);
   }
 
-  /** Sends a PASS move to the server. */
+  /** Send PASS move command to the server. */
   public void sendPassMove() {
     // Format: MOVE:TYPE=PASS
     sendMessage("MOVE:TYPE=PASS");

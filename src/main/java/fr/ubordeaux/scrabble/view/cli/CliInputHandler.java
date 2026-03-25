@@ -32,14 +32,15 @@ public class CliInputHandler {
    * @return the action string chosen by the player
    */
   public String askAction() {
-    messageRenderer.sectionTitle("CHOISISSEZ UNE ACTION");
-    System.out.println("1. Jouer un mot");
-    System.out.println("2. Échanger des lettres");
-    System.out.println("3. Passer le tour");
-    System.out.println("4. Annuler le coup précédent");
-    System.out.println("5. Refaire le coup annulé");
-    System.out.println("6. Quitter");
-    System.out.print("\nVotre choix (1-6) : ");
+    messageRenderer.sectionTitle("CHOSE AN ACTION");
+    System.out.println("1. Play a word");
+    System.out.println("2. Exchange letters");
+    System.out.println("3. Skip turn");
+    System.out.println("4. Undo former move");
+    System.out.println("5. Redo the canceled move");
+    System.out.println("6. Quit");
+    System.out.println("7. Ask for an hint");
+    System.out.print("\nYour choice (1-7) : ");
     return scanner.nextLine().trim();
   }
 
@@ -51,10 +52,10 @@ public class CliInputHandler {
    */
   public Move askPlayMove(Player player) {
     try {
-      System.out.print("\nPosition de départ (format: h 8 ou 8 8) : ");
+      System.out.print("\nStart position (format: h 8 ou 8 8) : ");
       String[] posInput = scanner.nextLine().trim().split("\\s+");
       if (posInput.length < 2) {
-        throw new IllegalArgumentException("Entrez 2 valeurs: ligne colonne.");
+        throw new IllegalArgumentException("Input two values: line column.");
       }
 
       int x;
@@ -82,11 +83,11 @@ public class CliInputHandler {
 
       final Point startPoint = new Point(x, y);
 
-      System.out.print("Direction (H pour horizontal, V pour vertical) : ");
+      System.out.print("Direction (H for horizontal, V for vertical) : ");
       String dirInput = scanner.nextLine().trim().toUpperCase();
       Direction direction = dirInput.equals("H") ? Direction.HORIZONTAL : Direction.VERTICAL;
 
-      System.out.print("Lettres à jouer (ex: HELLO) : ");
+      System.out.print("Letters to play (ex: HELLO) : ");
       String lettersInput = scanner.nextLine().trim().toUpperCase();
 
       List<Tile> tiles = new ArrayList<>();
@@ -111,7 +112,7 @@ public class CliInputHandler {
           }
         }
         if (!found) {
-          messageRenderer.error("La lettre '" + letter + "' n'est pas dans votre chevalet !");
+          messageRenderer.error("The letter '" + letter + "' is not in your rack !");
           return null;
         }
       }
@@ -119,7 +120,7 @@ public class CliInputHandler {
       return Move.createPlay(player, tiles, startPoint, direction);
 
     } catch (Exception e) {
-      messageRenderer.error("Format invalide ! " + e.getMessage());
+      messageRenderer.error("Invalid format ! " + e.getMessage());
       return null;
     }
   }
@@ -132,7 +133,7 @@ public class CliInputHandler {
    */
   public Move askExchangeMove(Player player) {
     try {
-      System.out.print("\nLettres à échanger (ex: ABC) : ");
+      System.out.print("\nLetters to exchange (ex: ABC) : ");
       String lettersInput = scanner.nextLine().trim().toUpperCase();
 
       List<Tile> tiles = new ArrayList<>();
@@ -177,15 +178,15 @@ public class CliInputHandler {
    */
   public int askNumberOfPlayers() {
     while (true) {
-      System.out.print("\nNombre de joueurs (2-4) : ");
+      System.out.print("\nNumbers of players (2-4) : ");
       try {
         int num = Integer.parseInt(scanner.nextLine().trim());
         if (num >= 2 && num <= 4) {
           return num;
         }
-        messageRenderer.warning("Le nombre de joueurs doit être entre 2 et 4.");
+        messageRenderer.warning("The numbers of player must be between 2 and 4.");
       } catch (NumberFormatException e) {
-        messageRenderer.error("Veuillez entrer un nombre valide.");
+        messageRenderer.error("Please enter a valid number.");
       }
     }
   }
@@ -197,7 +198,7 @@ public class CliInputHandler {
    * @return the name entered by the user
    */
   public String askPlayerName(int playerNumber) {
-    System.out.print("Nom du joueur " + playerNumber + " : ");
+    System.out.print("Player's name " + playerNumber + " : ");
     return scanner.nextLine().trim();
   }
 

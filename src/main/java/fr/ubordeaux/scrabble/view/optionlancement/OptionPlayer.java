@@ -5,20 +5,32 @@ package fr.ubordeaux.scrabble.view.optionlancement;
  */
 public class OptionPlayer {
 
+  /**
+   * Minimum number of players allowed.
+   */
   public static final int MIN = 2;
+
+  /**
+   * Maximum number of players allowed.
+   */
   public static final int MAX = 4;
+
+  /**
+   * Default number of players.
+   */
   public static final int DEFAULT = 2;
 
-  private OptionPlayer() {}
+  private OptionPlayer() {
+  }
 
   /**
    * Analyse et valide la valeur de l'argument {@code -p} (nombre de joueurs).
    * Termine le programme avec un message d'erreur si la valeur est invalide.
    *
-   * @param value la chaîne à analyser 
+   * @param value la chaîne à analyser
    * @return le nombre de joueurs valide
    */
-  public static int parsePlayers(String value) { 
+  public static int parsePlayers(String value) {
     try {
       int n = Integer.parseInt(value);
       if (n < MIN || n > MAX) {

@@ -1,5 +1,55 @@
 # scrabble-java
 
+## Bash autocompletion for launch options
+
+You can enable tab-completion for CLI options such as `--help`, `--super`, `--players`, `--lang`, `--ai-time`, and `--ai-ml`.
+
+### Recommended workflow
+
+After each new clone (on any machine), run this once from the repository root:
+
+```bash
+source scripts/setup-completion.sh
+```
+
+This command:
+- activates completion immediately in the current terminal;
+- installs persistence in `~/.bashrc` for future terminals.
+
+After `git pull`, run the same command only if completion behavior changed or if your current shell was not reloaded.
+
+At first launch (`./scrabble` or `./run.sh`), the launcher can still auto-install persistence and points to the same setup command for immediate activation.
+
+Note: a script started with `./scrabble` cannot directly modify the parent shell state. For immediate activation in the current terminal, use `source scripts/setup-completion.sh`.
+
+### Quick check
+
+1. Ensure completion is installed and loaded:
+
+```bash
+source scripts/setup-completion.sh
+```
+
+2. Then type and complete options with `TAB`:
+
+```bash
+./run.sh --<TAB>
+./scrabble --<TAB>
+./run.sh -p <TAB>     # suggests: 2 3 4
+./scrabble -p <TAB>   # suggests: 2 3 4
+./run.sh -l <TAB>     # suggests: en fr
+./run.sh -ai-time <TAB>
+```
+
+### Super Scrabble mode
+
+Use `-s` or `--super` to start a game on a `21x21` board. The standard mode remains `15x15`.
+
+```bash
+./scrabble --super
+./run.sh -s
+```
+
 
 
 ## Getting started

@@ -11,13 +11,14 @@ import java.util.List;
  */
 public class ExchangeMoveBuilder {
 
-  private ExchangeMoveBuilder() {}
+  private ExchangeMoveBuilder() {
+  }
 
   /**
    * Builds an EXCHANGE Move from a letter string (e.g. "ABC").
    *
    * @param letters the letters to exchange, as a string (e.g. "ABC")
-   * @param player the player performing the exchange
+   * @param player  the player performing the exchange
    * @return the constructed Move, or null if a letter is not found in the rack
    */
   public static Move build(String letters, Player player) {

@@ -7,7 +7,9 @@ import java.util.List;
  * Represents a player's rack containing their tiles. Holds up to 7 tiles.
  */
 public class Rack {
-  /** Maximum number of tiles in a rack. */
+  /**
+   * Maximum number of tiles in a rack.
+   */
   public static final int MAX_SIZE = 7;
 
   private final List<Tile> tiles;

@@ -13,8 +13,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-/** The type Discovery service. */
+/**
+ * The type Discovery service.
+ */
 public class DiscoveryService {
+
+  /**
+   * Default constructor for DiscoveryService.
+   */
+  public DiscoveryService() {
+  }
 
   // List of observers
   private final List<NetworkObserver> observers = new ArrayList<>();
@@ -52,8 +60,8 @@ public class DiscoveryService {
    * Start broadcasting. Message format: "SCRABBLE_SERVER;serverName;PortTCP"
    *
    * @param serverName the server name
-   * @param tcpPort the tcp port
-   * @param localIp the local ip to broadcast on
+   * @param tcpPort    the tcp port
+   * @param localIp    the local ip to broadcast on
    */
   public void startBroadcasting(String serverName, int tcpPort, String localIp) {
     if (isBroadcasting) {
@@ -67,7 +75,7 @@ public class DiscoveryService {
     // Can be put in an external methode
     broadCastThread = new Thread(() -> {
       try (DatagramSocket broadcastSocket =
-          new DatagramSocket(new java.net.InetSocketAddress(localIp, 0))) {
+               new DatagramSocket(new java.net.InetSocketAddress(localIp, 0))) {
         // We have to set the broadcast to true to be able to send broadcast message
         broadcastSocket.setBroadcast(true);
 
@@ -112,13 +120,15 @@ public class DiscoveryService {
    * Start broadcasting with default port.
    *
    * @param serverName the server name
-   * @param localIp the local ip
+   * @param localIp    the local ip
    */
   public void startBroadcasting(String serverName, String localIp) {
     startBroadcasting(serverName, DEFAULT_TCP_PORT, localIp);
   }
 
-  /** Stop broadcasting. */
+  /**
+   * Stop broadcasting.
+   */
   public void stopBroadcasting() {
     if (!isBroadcasting) {
       return;
@@ -136,7 +146,9 @@ public class DiscoveryService {
   // LISTENING
   // =========================================================================
 
-  /** Start listening to broadcast message. */
+  /**
+   * Start listening to broadcast message.
+   */
   public void startListening() {
     if (isListening) {
       // System.out.println("Listening is already running");
@@ -227,7 +239,9 @@ public class DiscoveryService {
     }
   }
 
-  /** Stop listening to broadcast message. */
+  /**
+   * Stop listening to broadcast message.
+   */
   public void stopListening() {
     if (!isListening) {
       return;

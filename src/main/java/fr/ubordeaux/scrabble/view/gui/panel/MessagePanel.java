@@ -1,6 +1,7 @@
 package fr.ubordeaux.scrabble.view.gui.panel;
 
 import java.util.Optional;
+import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 
@@ -9,13 +10,16 @@ import javafx.scene.control.ButtonType;
  */
 public class MessagePanel {
 
-  /** Default constructor. */
-  public MessagePanel() {}
+  /**
+   * Default constructor.
+   */
+  public MessagePanel() {
+  }
 
   /**
    * Displays an information dialog.
    *
-   * @param title the dialog title
+   * @param title   the dialog title
    * @param message the message to display
    */
   public void showInfo(String title, String message) {
@@ -23,7 +27,7 @@ public class MessagePanel {
     alert.setTitle(title);
     alert.setHeaderText(null);
     alert.setContentText(message);
-    alert.showAndWait();
+    showNonBlocking(alert);
   }
 
   /**
@@ -36,13 +40,13 @@ public class MessagePanel {
     alert.setTitle("Erreur");
     alert.setHeaderText(null);
     alert.setContentText(message);
-    alert.showAndWait();
+    showNonBlocking(alert);
   }
 
   /**
    * Displays a warning dialog.
    *
-   * @param title the dialog title
+   * @param title   the dialog title
    * @param message the warning message to display
    */
   public void showWarning(String title, String message) {
@@ -50,7 +54,7 @@ public class MessagePanel {
     alert.setTitle(title);
     alert.setHeaderText(null);
     alert.setContentText(message);
-    alert.showAndWait();
+    showNonBlocking(alert);
   }
 
   /**
@@ -66,5 +70,13 @@ public class MessagePanel {
     alert.setContentText(message);
     Optional<ButtonType> result = alert.showAndWait();
     return result.isPresent() && result.get() == ButtonType.OK;
+  }
+
+  private void showNonBlocking(Alert alert) {
+    if (Platform.isFxApplicationThread()) {
+      alert.show();
+    } else {
+      Platform.runLater(alert::show);
+    }
   }
 }

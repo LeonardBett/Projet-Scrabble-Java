@@ -1,5 +1,6 @@
 package fr.ubordeaux.scrabble.model.dictionary;
 
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -24,6 +25,9 @@ public class Dawg {
   // efficiency)
   private Map<DawgNode, DawgNode> minimizedNodes = new HashMap<>();
 
+  /**
+   * Initializes a new Dawg structure with an empty root node.
+   */
   public Dawg() {
     uncheckedNodes.add(root);
   }
@@ -142,10 +146,10 @@ public class Dawg {
   /**
    * Recursively explores the graph using backtracking to find constructible words.
    *
-   * @param node The current graph node.
+   * @param node        The current graph node.
    * @param currentWord The prefix built so far.
-   * @param rack The remaining letters available in the rack.
-   * @param results The collection of valid words found.
+   * @param rack        The remaining letters available in the rack.
+   * @param results     The collection of valid words found.
    */
   private void backtrack(DawgNode node, String currentWord, List<Character> rack,
                          Set<String> results) {

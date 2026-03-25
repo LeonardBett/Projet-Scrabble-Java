@@ -16,14 +16,14 @@ public class PlayableWord {
   /**
    * Creates a playable word candidate.
    *
-   * @param hookX hook x coordinate.
-   * @param hookY hook y coordinate.
-   * @param word candidate word text.
-   * @param direction candidate placement direction.
+   * @param hookX                hook x coordinate.
+   * @param hookY                hook y coordinate.
+   * @param word                 candidate word text.
+   * @param direction            candidate placement direction.
    * @param gaddagRepresentation internal Gaddag representation used to build the word.
    */
   public PlayableWord(int hookX, int hookY, String word, Direction direction,
-      String gaddagRepresentation) {
+                      String gaddagRepresentation) {
     this.hookX = hookX;
     this.hookY = hookY;
     this.word = word;

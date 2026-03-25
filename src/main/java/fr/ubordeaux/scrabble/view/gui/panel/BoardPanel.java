@@ -20,9 +20,9 @@ import javafx.scene.text.FontWeight;
  */
 public class BoardPanel extends VBox {
 
-  private static final int GRID_SIZE = Board.SIZE;
   private static final int CELL_SIZE = 40;
 
+  private final int gridSize;
   private final GridPane gridPane;
   private final Label[][] cellLabels;
   private Board board;
@@ -36,7 +36,8 @@ public class BoardPanel extends VBox {
    */
   public BoardPanel(Board board) {
     this.board = board;
-    this.cellLabels = new Label[GRID_SIZE][GRID_SIZE];
+    this.gridSize = board.getSize();
+    this.cellLabels = new Label[gridSize][gridSize];
     this.gridPane = new GridPane();
     initializeUi();
   }
@@ -63,8 +64,8 @@ public class BoardPanel extends VBox {
     gridPane.setMaxWidth(GridPane.USE_PREF_SIZE);
     gridPane.setMaxHeight(GridPane.USE_PREF_SIZE);
 
-    for (int row = 0; row < GRID_SIZE; row++) {
-      for (int col = 0; col < GRID_SIZE; col++) {
+    for (int row = 0; row < gridSize; row++) {
+      for (int col = 0; col < gridSize; col++) {
         Label cell = createCell(row, col);
         cellLabels[row][col] = cell;
         gridPane.add(cell, col, row);
@@ -150,8 +151,9 @@ public class BoardPanel extends VBox {
       }
     }
 
-    if (row == 7 && col == 7) {
-      text = "★";
+    int center = gridSize / 2;
+    if (row == center && col == center) {
+      text = "*";
       cell.setFont(Font.font("Arial", FontWeight.BOLD, 24));
     } else if (!text.isEmpty()) {
       cell.setFont(Font.font("Arial", FontWeight.BOLD, 10));
@@ -167,8 +169,8 @@ public class BoardPanel extends VBox {
    * Refreshes all cells to reflect the current board state.
    */
   public void updateBoard() {
-    for (int row = 0; row < GRID_SIZE; row++) {
-      for (int col = 0; col < GRID_SIZE; col++) {
+    for (int row = 0; row < gridSize; row++) {
+      for (int col = 0; col < gridSize; col++) {
         Square square = board.getSquare(new Point(col, row));
         Label cell = cellLabels[row][col];
         if (!square.isEmpty()) {
@@ -188,13 +190,13 @@ public class BoardPanel extends VBox {
   /**
    * Places a tile visually on a cell (pending placement, not yet validated).
    *
-   * @param row the row index
-   * @param col the column index
+   * @param row    the row index
+   * @param col    the column index
    * @param letter the letter to display
-   * @param value the tile point value (unused visually, kept for API consistency)
+   * @param value  the tile point value (unused visually, kept for API consistency)
    */
   public void placeTile(int row, int col, char letter, int value) {
-    if (row < 0 || row >= GRID_SIZE || col < 0 || col >= GRID_SIZE) {
+    if (row < 0 || row >= gridSize || col < 0 || col >= gridSize) {
       return;
     }
     Label cell = cellLabels[row][col];
@@ -211,7 +213,7 @@ public class BoardPanel extends VBox {
    * @param col the column index
    */
   public void clearTile(int row, int col) {
-    if (row < 0 || row >= GRID_SIZE || col < 0 || col >= GRID_SIZE) {
+    if (row < 0 || row >= gridSize || col < 0 || col >= gridSize) {
       return;
     }
     Square square = board.getSquare(new Point(col, row));
@@ -222,8 +224,8 @@ public class BoardPanel extends VBox {
    * Clears all pending (unvalidated) tiles from the board display.
    */
   public void clearAllPending() {
-    for (int row = 0; row < GRID_SIZE; row++) {
-      for (int col = 0; col < GRID_SIZE; col++) {
+    for (int row = 0; row < gridSize; row++) {
+      for (int col = 0; col < gridSize; col++) {
         Square square = board.getSquare(new Point(col, row));
         if (square.isEmpty()) {
           applyCellStyle(cellLabels[row][col], square.getSquareType(), row, col);

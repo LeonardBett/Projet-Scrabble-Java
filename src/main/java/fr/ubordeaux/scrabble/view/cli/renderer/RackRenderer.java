@@ -11,7 +11,13 @@ import java.util.List;
 public class RackRenderer {
 
   /**
-   * Affiche le chevalet du joueur dans la console CLI. 
+   * Default constructor for RackRenderer.
+   */
+  public RackRenderer() {
+  }
+
+  /**
+   * Affiche le chevalet du joueur dans la console CLI.
    *
    * @param player le joueur dont le chevalet doit être affiché
    */

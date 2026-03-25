@@ -6,7 +6,12 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import fr.ubordeaux.scrabble.model.enums.Direction;
+import fr.ubordeaux.scrabble.model.enums.GameMode;
+import fr.ubordeaux.scrabble.model.enums.PlayerColor;
+import fr.ubordeaux.scrabble.model.utils.Point;
 import java.time.Duration;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 
 class GameTest {
@@ -21,6 +26,12 @@ class GameTest {
     assertThrows(IllegalStateException.class, game::startGame);
   }
 
+  @Test
+  void constructorShouldCreateSuperBoardWhenModeIsSuper() {
+    Game game = new Game(GameMode.SUPER);
+    assertEquals(21, game.getBoard().getSize());
+  }
+
   /**
    * Test that starting a game correctly fills each player's rack with the maximum number of tiles
    * from the bag.
@@ -28,8 +39,8 @@ class GameTest {
   @Test
   void startGameShouldFillPlayerRacks() {
     Game game = new Game();
-    HumanPlayer alice = new HumanPlayer("Alice");
-    HumanPlayer bob = new HumanPlayer("Bob");
+    HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
+    HumanPlayer bob = new HumanPlayer("Bob", PlayerColor.RED);
 
     game.addPlayer(alice);
     game.addPlayer(bob);
@@ -49,8 +60,8 @@ class GameTest {
   @Test
   void executeMoveShouldRejectWrongPlayerTurn() {
     Game game = new Game();
-    HumanPlayer alice = new HumanPlayer("Alice");
-    HumanPlayer bob = new HumanPlayer("Bob");
+    HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
+    HumanPlayer bob = new HumanPlayer("Bob", PlayerColor.RED);
     game.addPlayer(alice);
     game.addPlayer(bob);
 
@@ -66,8 +77,8 @@ class GameTest {
   @Test
   void executePassMoveShouldAdvanceTurnAndTrackHistory() {
     Game game = new Game();
-    HumanPlayer alice = new HumanPlayer("Alice");
-    HumanPlayer bob = new HumanPlayer("Bob");
+    HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
+    HumanPlayer bob = new HumanPlayer("Bob", PlayerColor.RED);
     game.addPlayer(alice);
     game.addPlayer(bob);
 
@@ -87,8 +98,8 @@ class GameTest {
     assertNull(emptyGame.determineWinner());
 
     Game game = new Game();
-    HumanPlayer alice = new HumanPlayer("Alice");
-    HumanPlayer bob = new HumanPlayer("Bob");
+    HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
+    HumanPlayer bob = new HumanPlayer("Bob", PlayerColor.RED);
     alice.addScore(10);
     bob.addScore(15);
     game.addPlayer(alice);
@@ -104,7 +115,7 @@ class GameTest {
   @Test
   void refillRackShouldAddTilesUntilFullOrBagEmpty() {
     Game game = new Game();
-    HumanPlayer player = new HumanPlayer("Alice");
+    HumanPlayer player = new HumanPlayer("Alice", PlayerColor.BLUE);
 
     var drawn = game.refillRack(player);
 
@@ -116,8 +127,8 @@ class GameTest {
   @Test
   void blitzModeShouldStartOnlyCurrentPlayerTimer() {
     Game game = new Game();
-    HumanPlayer alice = new HumanPlayer("Alice");
-    HumanPlayer bob = new HumanPlayer("Bob");
+    HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
+    HumanPlayer bob = new HumanPlayer("Bob", PlayerColor.RED);
     game.addPlayer(alice);
     game.addPlayer(bob);
 
@@ -134,8 +145,8 @@ class GameTest {
   @Test
   void blitzModeShouldPauseAndResumeOnTurnChange() throws InterruptedException {
     Game game = new Game();
-    HumanPlayer alice = new HumanPlayer("Alice");
-    HumanPlayer bob = new HumanPlayer("Bob");
+    HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
+    HumanPlayer bob = new HumanPlayer("Bob", PlayerColor.RED);
     game.addPlayer(alice);
     game.addPlayer(bob);
 
@@ -154,8 +165,8 @@ class GameTest {
   @Test
   void blitzModeShouldEndGameWhenCurrentPlayerTimesOut() throws InterruptedException {
     Game game = new Game();
-    HumanPlayer alice = new HumanPlayer("Alice");
-    HumanPlayer bob = new HumanPlayer("Bob");
+    HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
+    HumanPlayer bob = new HumanPlayer("Bob", PlayerColor.RED);
     game.addPlayer(alice);
     game.addPlayer(bob);
 
@@ -165,5 +176,31 @@ class GameTest {
 
     assertThrows(IllegalStateException.class, () -> game.executeMove(Move.createPass(alice)));
     assertTrue(game.isGameOver());
+  }
+
+  @Test
+  void executePlayShouldEndGameAndTransferRemainingRackPointsWhenBagIsEmpty() {
+    Game game = new Game();
+    HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
+    HumanPlayer bob = new HumanPlayer("Bob", PlayerColor.RED);
+    game.addPlayer(alice);
+    game.addPlayer(bob);
+
+    alice.getRack().setTiles(List.of(new Tile(' ')));
+    bob.getRack().setTiles(List.of(new Tile('B'), new Tile('C')));
+
+    while (!game.getBag().isEmpty()) {
+      game.getBag().drawTile();
+    }
+
+    int bobRackPoints = Tile.getStandardValue('B') + Tile.getStandardValue('C');
+
+    Move move =
+        Move.createPlay(alice, List.of(new Tile(' ')), new Point(7, 7), Direction.HORIZONTAL);
+    game.executeMove(move);
+
+    assertTrue(game.isGameOver());
+    assertEquals(bobRackPoints, alice.getScore());
+    assertEquals(-bobRackPoints, bob.getScore());
   }
 }

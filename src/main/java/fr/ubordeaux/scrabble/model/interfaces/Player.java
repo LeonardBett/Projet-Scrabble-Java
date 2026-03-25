@@ -1,26 +1,40 @@
 package fr.ubordeaux.scrabble.model.interfaces;
 
 import fr.ubordeaux.scrabble.model.core.Rack;
+import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import java.time.Duration;
 
 /**
  * Abstract class or interface representing a player (Human or AI).
  */
 public abstract class Player {
+  /**
+   * The name of the player.
+   */
   protected String name;
+
+  /**
+   * The current score of the player.
+   */
   protected int score;
+
+  /**
+   * The rack holding the player's tiles.
+   */
   protected Rack rack;
   private boolean blitzClockEnabled;
   private long remainingTimeNanos;
   private long activeSinceNanos;
   private boolean turnTimerRunning;
+  private final PlayerColor color;
 
   /**
    * Base constructor for any player.
    *
-   * @param name The name of the player.
+   * @param name  The name of the player.
+   * @param color The color assigned to the player.
    */
-  public Player(String name) {
+  public Player(String name, PlayerColor color) {
     this.name = name;
     this.score = 0;
     this.rack = new Rack();
@@ -28,6 +42,7 @@ public abstract class Player {
     this.remainingTimeNanos = 0L;
     this.activeSinceNanos = 0L;
     this.turnTimerRunning = false;
+    this.color = color;
   }
 
   /**
@@ -55,6 +70,16 @@ public abstract class Player {
    */
   public void addScore(int points) {
     this.score += points;
+  }
+
+  /**
+   * Sets the score to an absolute value. Used for network synchronization
+   * where the server sends the total score rather than a delta.
+   *
+   * @param points The exact score to set.
+   */
+  public void setScore(int points) {
+    this.score = points;
   }
 
   /**

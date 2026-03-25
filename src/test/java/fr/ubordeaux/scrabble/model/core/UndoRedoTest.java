@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import org.junit.jupiter.api.Test;
 
 class UndoRedoTest {
@@ -16,7 +17,7 @@ class UndoRedoTest {
   @Test
   void undoAndRedoShouldFollowHistoryStacks() {
     UndoRedo undoRedo = new UndoRedo();
-    Move move = Move.createPass(new HumanPlayer("Alice"));
+    Move move = Move.createPass(new HumanPlayer("Alice", PlayerColor.BLUE));
 
     assertFalse(undoRedo.canUndo());
     assertFalse(undoRedo.canRedo());
@@ -41,8 +42,8 @@ class UndoRedoTest {
   @Test
   void addMoveShouldClearRedoStack() {
     UndoRedo undoRedo = new UndoRedo();
-    Move first = Move.createPass(new HumanPlayer("Alice"));
-    final Move second = Move.createPass(new HumanPlayer("Bob"));
+    Move first = Move.createPass(new HumanPlayer("Alice", PlayerColor.BLUE));
+    final Move second = Move.createPass(new HumanPlayer("Bob", PlayerColor.RED));
 
     undoRedo.addMove(first);
     undoRedo.undo();

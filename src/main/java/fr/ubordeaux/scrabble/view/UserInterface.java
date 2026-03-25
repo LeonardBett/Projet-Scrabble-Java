@@ -1,9 +1,13 @@
 package fr.ubordeaux.scrabble.view;
 
-/** Common interface for views (CLI and GUI). */
+/**
+ * Common interface for views (CLI and GUI).
+ */
 public interface UserInterface {
 
-  /** Refreshes the complete game display. */
+  /**
+   * Refreshes the complete game display.
+   */
   void refresh();
 
   /**

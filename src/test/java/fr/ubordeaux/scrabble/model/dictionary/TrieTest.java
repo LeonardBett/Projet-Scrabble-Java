@@ -19,7 +19,9 @@ class TrieTest {
     trie = new Trie();
   }
 
-  /** Test that adding words updates the counts and allows finding them. */
+  /**
+   * Test that adding words updates the counts and allows finding them.
+   */
   @Test
   void addShouldIncreaseWordAndNodeCounts() {
     trie.add("HELLO");
@@ -29,7 +31,9 @@ class TrieTest {
     assertFalse(trie.contains("HELL")); // Not finite yet
   }
 
-  /** Test that addAll correctly processes multiple words. */
+  /**
+   * Test that addAll correctly processes multiple words.
+   */
   @Test
   void addAllShouldInsertMultipleWords() {
     String[] words = {"CAT", "CAR", "DOG"};
@@ -40,7 +44,9 @@ class TrieTest {
     assertTrue(trie.contains("DOG"));
   }
 
-  /** Test prefix finding logic. */
+  /**
+   * Test prefix finding logic.
+   */
   @Test
   void findShouldReturnCorrectNodeForPrefix() {
     trie.add("SCRABBLE");
@@ -51,7 +57,9 @@ class TrieTest {
     assertNull(trie.find("Z")); // Non-existent prefix
   }
 
-  /** Test the recursive word retrieval. */
+  /**
+   * Test the recursive word retrieval.
+   */
   @Test
   void getWordsShouldReturnAllInsertedWords() {
     trie.add("IN");
@@ -64,7 +72,9 @@ class TrieTest {
     assertTrue(words.contains("INK"));
   }
 
-  /** Test that maxDepth is updated correctly during additions. */
+  /**
+   * Test that maxDepth is updated correctly during additions.
+   */
   @Test
   void maxDepthShouldTrackLongestWord() {
     trie.add("SHORT");

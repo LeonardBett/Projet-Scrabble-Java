@@ -12,6 +12,8 @@ public class Tile {
 
   /**
    * Standard constructor.
+   *
+   * @param character the character represented by this tile
    */
   public Tile(char character) {
     this.character = character;
@@ -22,6 +24,9 @@ public class Tile {
   /**
    * NEW CONSTRUCTOR: Creates a tile acting as a Joker. It displays the chosen letter, but is worth
    * 0 points.
+   *
+   * @param character the character represented by this tile
+   * @param isJoker true if this tile is a joker; false otherwise
    */
   public Tile(char character, boolean isJoker) {
     this.character = character;

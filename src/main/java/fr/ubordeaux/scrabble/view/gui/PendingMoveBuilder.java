@@ -14,11 +14,16 @@ import java.util.Map;
  */
 public class PendingMoveBuilder {
 
-  private PendingMoveBuilder() {}
+  private PendingMoveBuilder() {
+  }
 
   /**
    * Builds a Move from the pending tiles, or returns null if the tiles are not aligned (which the
    * view will show as an error).
+   *
+   * @param pendingTiles the tiles that have been placed pending validation
+   * @param player the player placing the tiles
+   * @return the constructed Move, or null if tiles are not properly aligned
    */
   public static Move build(Map<Point, Tile> pendingTiles, Player player) {
     if (pendingTiles.isEmpty()) {

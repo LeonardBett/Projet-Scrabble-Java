@@ -5,12 +5,19 @@ import fr.ubordeaux.scrabble.model.enums.Direction;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
 import fr.ubordeaux.scrabble.model.utils.Point;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
  * Generates playable words from the current board state and a rack.
  */
 public class MoveGenerator {
+
+  /**
+   * Default constructor for MoveGenerator.
+   */
+  public MoveGenerator() {
+  }
 
   /**
    * Original method used by the game. It extracts the player's rack and delegates to the overloaded
@@ -43,8 +50,32 @@ public class MoveGenerator {
       return playableMoves;
     }
 
-    for (int y = 0; y < Board.SIZE; y++) {
-      for (int x = 0; x < Board.SIZE; x++) {
+    int boardSize = board.getSize();
+
+    // Automatically detect first turn: the center square is empty
+    Square centerSquare = board.getSquare(new Point(7, 7));
+    boolean isFirstMove = (centerSquare == null || centerSquare.isEmpty());
+
+    // Specific logic for the opening move
+    if (isFirstMove) {
+      for (Gaddag.GaddagResult result : gaddag.findWordsWithRackAndHook(rackChars, ' ')) {
+        String word = result.word;
+        String gaddagRep = result.gaddagPath;
+
+        // Force evaluation on the center square (7, 7)
+        if (isPlayable(word, gaddagRep, 7, 7, Direction.HORIZONTAL, board, rackChars, gaddag)) {
+          playableMoves.add(new PlayableWord(7, 7, word, Direction.HORIZONTAL, gaddagRep));
+        }
+        if (isPlayable(word, gaddagRep, 7, 7, Direction.VERTICAL, board, rackChars, gaddag)) {
+          playableMoves.add(new PlayableWord(7, 7, word, Direction.VERTICAL, gaddagRep));
+        }
+      }
+      return playableMoves; // Return early, no need to scan the empty board
+    }
+
+    // Normal logic for subsequent turns
+    for (int y = 0; y < boardSize; y++) {
+      for (int x = 0; x < boardSize; x++) {
         Square square = board.getSquare(new Point(x, y));
 
         if (square != null && !square.isEmpty()) {
@@ -84,41 +115,36 @@ public class MoveGenerator {
     if (startX < 0 || startY < 0) {
       return false;
     }
-    if (dir == Direction.HORIZONTAL && startX + word.length() > Board.SIZE) {
+    int boardSize = board.getSize();
+    if (dir == Direction.HORIZONTAL && startX + word.length() > boardSize) {
       return false;
     }
-    if (dir == Direction.VERTICAL && startY + word.length() > Board.SIZE) {
+    if (dir == Direction.VERTICAL && startY + word.length() > boardSize) {
       return false;
     }
 
     // 2. Check contiguous letters (make sure we don't accidentally extend an
     // existing word)
-    // If the square exactly before the word is NOT empty, we reject the move
     int beforeX = (dir == Direction.HORIZONTAL) ? startX - 1 : startX;
     int beforeY = (dir == Direction.VERTICAL) ? startY - 1 : startY;
     if (beforeX >= 0 && beforeY >= 0) {
       Square beforeSq = board.getSquare(new Point(beforeX, beforeY));
       if (beforeSq != null && !beforeSq.isEmpty()) {
-        // System.out.println("Debug: Word " + word + " rejected because of contiguous
-        // letter before.");
         return false;
       }
     }
 
-    // If the square exactly after the word is NOT empty, we reject the move
     int afterX = (dir == Direction.HORIZONTAL) ? startX + word.length() : startX;
     int afterY = (dir == Direction.VERTICAL) ? startY + word.length() : startY;
-    if (afterX < Board.SIZE && afterY < Board.SIZE) {
+    if (afterX < boardSize && afterY < boardSize) {
       Square afterSq = board.getSquare(new Point(afterX, afterY));
       if (afterSq != null && !afterSq.isEmpty()) {
-        // System.out.println("Debug: Word " + word + " rejected because of contiguous
-        // letter after.");
         return false;
       }
     }
 
     // 3. Rack check & Cross-word check
-    List<Character> rackCopy = new ArrayList<>(java.util.Arrays.asList(rackChars));
+    List<Character> rackCopy = new ArrayList<>(Arrays.asList(rackChars));
     int lettersFromRack = 0;
 
     for (int i = 0; i < word.length(); i++) {
@@ -147,8 +173,6 @@ public class MoveGenerator {
 
         // Check cross words formed by this new tile
         if (!isValidCrossWord(board, currentX, currentY, letterNeeded, dir, gaddag)) {
-          // System.out.println("Debug: Word " + word + " rejected due to invalid cross
-          // word.");
           return false;
         }
       }
@@ -186,7 +210,8 @@ public class MoveGenerator {
     StringBuilder crossWord = new StringBuilder();
     int curX = startX;
     int curY = startY;
-    while (curX < Board.SIZE && curY < Board.SIZE) {
+    int boardSize = board.getSize();
+    while (curX < boardSize && curY < boardSize) {
       if (curX == x && curY == y) {
         crossWord.append(placedLetter);
       } else {

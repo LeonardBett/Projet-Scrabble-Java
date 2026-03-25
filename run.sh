@@ -5,6 +5,45 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR" || exit 1
 
+COMPLETION_FILE="$SCRIPT_DIR/scripts/scrabble-completion.bash"
+BASHRC_FILE="$HOME/.bashrc"
+SETUP_COMPLETION_SCRIPT="$SCRIPT_DIR/scripts/setup-completion.sh"
+COMPLETION_LINE="source \"$COMPLETION_FILE\""
+
+install_completion_if_needed() {
+    # Only propose auto-install for interactive Bash sessions with a completion script present.
+    if [ ! -t 0 ] || [ -z "${BASH_VERSION:-}" ] || [ ! -f "$COMPLETION_FILE" ]; then
+        return
+    fi
+
+    if [ ! -f "$BASHRC_FILE" ]; then
+        touch "$BASHRC_FILE" 2>/dev/null || return
+    fi
+
+    if grep -Fqx "$COMPLETION_LINE" "$BASHRC_FILE"; then
+        return
+    fi
+
+    echo "Bash completion for ./run.sh is not installed yet."
+    printf "Install it automatically in %s now? [Y/n] " "$BASHRC_FILE"
+    read -r reply
+
+    case "$reply" in
+        ""|"y"|"Y"|"yes"|"YES")
+            printf '\n%s\n' "$COMPLETION_LINE" >> "$BASHRC_FILE"
+            echo "Completion installed."
+            echo "To activate it now in this terminal, run:"
+            echo "source \"$SETUP_COMPLETION_SCRIPT\""
+            echo "It will be active automatically in new terminals."
+            ;;
+        *)
+            echo "Completion installation skipped."
+            ;;
+    esac
+}
+
+install_completion_if_needed
+
 # Check if verbose mode is requested
 VERBOSE=false
 if [[ "$*" == *"-v"* ]]; then
@@ -14,7 +53,7 @@ fi
 # Build the project
 if [ "$VERBOSE" = true ]; then
     echo "Building project..." >&2
-    mvn clean compile -Djacoco.skip=true
+    mvn clean compile
     # mvn clean install -Djacoco.skip=true
     if [ $? -ne 0 ]; then
         echo "Error: Build failed." >&2
@@ -23,7 +62,7 @@ if [ "$VERBOSE" = true ]; then
 else
     echo "Building project..." >&2
     echo "Use -v to see maven logs." >&2
-     mvn clean compile -Djacoco.skip=true
+     mvn clean compile
     # mvn clean install -Djacoco.skip=true >/dev/null 2>&1
     if [ $? -ne 0 ]; then
         echo "Error: Build failed. Run 'mvn clean install' manually to see errors." >&2

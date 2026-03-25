@@ -5,6 +5,7 @@ import fr.ubordeaux.scrabble.model.core.Move;
 import fr.ubordeaux.scrabble.model.core.Square;
 import fr.ubordeaux.scrabble.model.core.Tile;
 import fr.ubordeaux.scrabble.model.enums.Direction;
+import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
 import fr.ubordeaux.scrabble.model.network.PacketParser;
 import fr.ubordeaux.scrabble.model.network.PlayerStatus;
@@ -14,7 +15,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/** This class represent an outgoing online game on the server. */
+/**
+ * This class represent an outgoing online game on the server.
+ */
 public class OnlineGame {
 
   // Game main model, in opposite of client local model
@@ -32,9 +35,11 @@ public class OnlineGame {
     this.handlers = handlers;
 
     // Loop for adding each handler to the game
-    for (ClientHandler handler : handlers) {
+    for (int i = 0; i < handlers.size(); i++) {
       // We create a player for this client
-      Player player = new Player(handler.getClientInfo().getName()) {};
+      ClientHandler handler = handlers.get(i);
+      Player player = new Player(handler.getClientInfo().getName(), PlayerColor.fromIndex(i)) {
+      };
       // We add it to the game
       this.game.addPlayer(player);
 
@@ -96,7 +101,7 @@ public class OnlineGame {
    * synchronized with the server's authoritative model.
    *
    * @param handler the handler
-   * @param player the player
+   * @param player  the player
    */
   public void sendRack(ClientHandler handler, Player player) {
     List<Tile> tiles = player.getRack().getTiles();
@@ -111,7 +116,7 @@ public class OnlineGame {
   /**
    * Processes a move command from a client and updates the game state.
    *
-   * @param sender the client handler who sent the move
+   * @param sender       the client handler who sent the move
    * @param packetParser the parsed move packetParser
    */
   public synchronized void processMove(ClientHandler sender, PacketParser packetParser) {
@@ -143,7 +148,9 @@ public class OnlineGame {
     }
   }
 
-  /** Handles the logic for placing a word on the board. */
+  /**
+   * Handles the logic for placing a word on the board.
+   */
   private void handlePlay(ClientHandler sender, Map<String, String> data, Player player) {
     // We get the start position of the word
     int x = Integer.parseInt(data.get("X"));
@@ -192,7 +199,9 @@ public class OnlineGame {
     game.printDebugState(false, false);
   }
 
-  /** Handles the exchange of tiles. */
+  /**
+   * Handles the exchange of tiles.
+   */
   private void handleExchange(ClientHandler sender, Map<String, String> data, Player player) {
     // We extract, clean and create a list of tiles to exchange
     String tilesStr = data.get("TILES");
@@ -222,7 +231,9 @@ public class OnlineGame {
     game.printDebugState(false, false);
   }
 
-  /** Handles skipping a turn. */
+  /**
+   * Handles skipping a turn.
+   */
   private void handlePass(ClientHandler sender, Player player) {
     // We create and execute a move with these data
     Move passMove = Move.createPass(player);

@@ -39,8 +39,8 @@ public class ClientHandler implements Runnable {
   /**
    * Instantiates a new Client handler.
    *
-   * @param socket the socket
-   * @param server the server
+   * @param socket   the socket
+   * @param server   the server
    * @param playerId the player id
    */
   public ClientHandler(Socket socket, GameServer server, int playerId) {
@@ -126,7 +126,9 @@ public class ClientHandler implements Runnable {
     }
   }
 
-  /** Close the connexion with the client. */
+  /**
+   * Close the connexion with the client.
+   */
   public void quit() {
     if (!isRunning) {
       // err.println("Client is already disconnected");

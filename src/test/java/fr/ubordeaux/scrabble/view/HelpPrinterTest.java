@@ -1,17 +1,8 @@
 package fr.ubordeaux.scrabble.view;
 
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 
 import fr.ubordeaux.scrabble.view.optionlancement.HelpPrinter;
 import java.io.ByteArrayOutputStream;
@@ -44,6 +35,8 @@ class HelpPrinterTest {
     assertTrue(output.contains("-h"));
     assertTrue(output.contains("--help"));
     assertTrue(output.contains("-g"));
+    assertTrue(output.contains("-s"));
+    assertTrue(output.contains("--super"));
     assertTrue(output.contains("-p"));
   }
 

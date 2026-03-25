@@ -3,6 +3,7 @@ package fr.ubordeaux.scrabble.model.core;
 import fr.ubordeaux.scrabble.model.enums.Direction;
 import fr.ubordeaux.scrabble.model.enums.MoveType;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
+import fr.ubordeaux.scrabble.model.utils.GameLogger;
 import fr.ubordeaux.scrabble.model.utils.Point;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,8 +29,8 @@ public class MoveHandler {
    * existing tiles on the board (prefix and suffix) combined with new tiles.
    *
    * @param startPosition Starting position of the word.
-   * @param direction Direction of the word (HORIZONTAL or VERTICAL).
-   * @param tiles Tiles to be placed.
+   * @param direction     Direction of the word (HORIZONTAL or VERTICAL).
+   * @param tiles         Tiles to be placed.
    * @return The complete word as a String (including existing tiles from the board).
    */
   public String getCompleteWord(Point startPosition, Direction direction, List<Tile> tiles) {
@@ -42,8 +43,8 @@ public class MoveHandler {
    * first, followed by any perpendicular words created.
    *
    * @param startPosition starting position of the move.
-   * @param direction direction of the move.
-   * @param tiles tiles to be placed.
+   * @param direction     direction of the move.
+   * @param tiles         tiles to be placed.
    * @return ordered list of formed words.
    */
   public List<String> getFormedWords(Point startPosition, Direction direction, List<Tile> tiles) {
@@ -71,7 +72,7 @@ public class MoveHandler {
   }
 
   private String buildWord(List<Square> wordSquares, List<Square> newlyPlacedSquares,
-      List<Tile> newlyPlacedTiles) {
+                           List<Tile> newlyPlacedTiles) {
     StringBuilder word = new StringBuilder();
     for (Square square : wordSquares) {
       if (!square.isEmpty()) {
@@ -196,8 +197,8 @@ public class MoveHandler {
     List<Tile> drawn = game.refillRack(player);
     move.setDrawnTiles(drawn);
 
-    System.out
-        .println("Player " + player.getName() + " played a word for " + totalScore + " points.");
+    GameLogger.logVerbose(
+        "Player " + player.getName() + " played a word for " + totalScore + " points.");
   }
 
   /**
@@ -229,8 +230,8 @@ public class MoveHandler {
     List<Tile> drawn = game.refillRack(player);
     move.setDrawnTiles(drawn);
 
-    System.out
-        .println("Player " + player.getName() + " exchanged " + tilesToExchange.size() + " tiles.");
+    GameLogger.logVerbose(
+        "Player " + player.getName() + " exchanged " + tilesToExchange.size() + " tiles.");
   }
 
   /**
@@ -239,7 +240,7 @@ public class MoveHandler {
    * @param move move to apply.
    */
   public void handlePassMove(Move move) {
-    System.out.println("Player " + move.getPlayer() + " passed.");
+    GameLogger.logVerbose("Player " + move.getPlayer() + " passed.");
   }
 
   /**
@@ -309,8 +310,9 @@ public class MoveHandler {
    * invalid placements.
    */
   private void buildWordForMove(Point startPosition, Direction direction, List<Tile> tiles,
-      List<Square> wordSquares, List<Point> wordPositions, List<Square> newlyPlacedSquares,
-      List<Point> newlyPlacedPositions, List<Tile> newlyPlacedTiles) {
+                                List<Square> wordSquares, List<Point> wordPositions,
+                                List<Square> newlyPlacedSquares,
+                                List<Point> newlyPlacedPositions, List<Tile> newlyPlacedTiles) {
 
     int x = startPosition.getX();
     int y = startPosition.getY();
@@ -378,7 +380,8 @@ public class MoveHandler {
 
     // Validation: center for first move
     if (!game.isFirstMoveDone()) {
-      Point center = new Point(Board.SIZE / 2, Board.SIZE / 2);
+      int boardSize = game.getBoard().getSize();
+      Point center = new Point(boardSize / 2, boardSize / 2);
       boolean coversCenter = wordPositions.stream().anyMatch(center::equals);
       if (!coversCenter) {
         throw new IllegalArgumentException("First word must cover the center square.");
@@ -475,7 +478,8 @@ public class MoveHandler {
     // board)
     boolean boardEmpty = !game.isFirstMoveDone();
     if (boardEmpty) {
-      Point center = new Point(Board.SIZE / 2, Board.SIZE / 2);
+      int boardSize = game.getBoard().getSize();
+      Point center = new Point(boardSize / 2, boardSize / 2);
       boolean coversCenter = positions.stream().anyMatch(center::equals);
       if (!coversCenter) {
         throw new IllegalArgumentException("First word must cover the center square.");

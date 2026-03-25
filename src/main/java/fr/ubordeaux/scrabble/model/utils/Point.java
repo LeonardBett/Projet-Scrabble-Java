@@ -6,10 +6,14 @@ import java.util.Objects;
  * Represents a 2D coordinate (x, y) on the board.
  */
 public class Point {
-  /** The horizontal coordinate (column). */
+  /**
+   * The horizontal coordinate (column).
+   */
   private final int xpos;
 
-  /** The vertical coordinate (row). */
+  /**
+   * The vertical coordinate (row).
+   */
   private final int ypos;
 
   /**
@@ -23,10 +27,20 @@ public class Point {
     this.ypos = y;
   }
 
+  /**
+   * Returns the X coordinate of this point.
+   *
+   * @return the x position
+   */
   public int getX() {
     return xpos;
   }
 
+  /**
+   * Returns the Y coordinate of this point.
+   *
+   * @return the y position
+   */
   public int getY() {
     return ypos;
   }

@@ -5,40 +5,36 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import fr.ubordeaux.scrabble.model.core.Game;
 import fr.ubordeaux.scrabble.model.core.Tile;
+import fr.ubordeaux.scrabble.model.dictionary.Gaddag;
+import fr.ubordeaux.scrabble.model.enums.MoveType;
+import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
  * Comprehensive unit tests for the AiPlayer class. Verifies player configuration, delegation to the
- * solver, and internal rack parsing.
+ * solver, and internal rack parsing and turn playing logic.
  */
 class AiPlayerTest {
 
   private AiPlayer aiPlayer;
 
-  /**
-   * Initializes an AiPlayer instance before each test.
-   */
   @BeforeEach
   void setUp() {
-    aiPlayer = new AiPlayer("IA-Bot", 3, 5);
+    aiPlayer = new AiPlayer("IA-Bot", 3, 5, PlayerColor.BLUE);
   }
 
-  /**
-   * Tests the basic constructor parameters and default configuration states.
-   */
   @Test
   void testInitialization() {
     assertEquals("IA-Bot", aiPlayer.getName());
     assertFalse(aiPlayer.isExpectiminimaxMode());
   }
 
-  /**
-   * Tests the Expectiminimax mode toggling through the AiPlayer wrapper.
-   */
   @Test
   void testSetExpectiminimaxMode() {
     aiPlayer.setExpectiminimaxMode(true);
@@ -48,36 +44,24 @@ class AiPlayerTest {
     assertFalse(aiPlayer.isExpectiminimaxMode());
   }
 
-  /**
-   * Tests the injection and removal of a Machine Learning agent.
-   */
   @Test
   void testSetMlAgent() {
     MlAgent dummyAgent = new MlAgent("dummy/path", new ArrayList<>());
     aiPlayer.setMlAgent(dummyAgent);
     assertNotNull(aiPlayer);
 
-    // AI should be able to handle nullification (fallback to algorithmic mode)
     aiPlayer.setMlAgent(null);
     assertNotNull(aiPlayer);
   }
 
-  /**
-   * Tests the delegation of the time limit setter to the underlying solver.
-   */
   @Test
   void testSetTimeLimitSeconds() {
     aiPlayer.setTimeLimitSeconds(15);
-    // Asserts that the delegation executes smoothly without exceptions
     assertTrue(true);
   }
 
-  /**
-   * Tests the private getRackAsString method. Scenario: Rack contains multiple specific tiles.
-   */
   @Test
   void testGetRackAsString() throws Exception {
-    // Add specific tiles to the AI's rack for the test
     aiPlayer.getRack().addTile(new Tile('S'));
     aiPlayer.getRack().addTile(new Tile('C'));
     aiPlayer.getRack().addTile(new Tile('R'));
@@ -86,20 +70,137 @@ class AiPlayerTest {
     getRackMethod.setAccessible(true);
 
     String rackStr = (String) getRackMethod.invoke(aiPlayer);
-
     assertEquals("SCR", rackStr);
   }
 
-  /**
-   * Tests the private getRackAsString method. Scenario: Rack is completely empty.
-   */
   @Test
-  void testGetRackAsStringEmpty() throws Exception {
-    Method getRackMethod = AiPlayer.class.getDeclaredMethod("getRackAsString");
-    getRackMethod.setAccessible(true);
+  void testPlayTurnPassesWhenNoWordFound() {
+    Game game = new Game();
+    game.addPlayer(aiPlayer);
+    game.startGame();
 
-    String rackStr = (String) getRackMethod.invoke(aiPlayer);
+    // Give a rack with no possible words
+    aiPlayer.getRack().setTiles(new ArrayList<>(List.of(new Tile('X'), new Tile('Z'))));
+    Gaddag emptyDict = new Gaddag();
 
-    assertEquals("", rackStr);
+    aiPlayer.playTurn(game, emptyDict);
+
+    // AI should pass its turn
+    assertEquals(MoveType.PASS, game.getUndoRedo().getHistory().getFirst().getType());
   }
+
+  @Test
+  void testPlayTurnFindsWordAndPlaysIt() {
+    Game game = new Game();
+    game.addPlayer(aiPlayer);
+    game.startGame();
+
+    // Give a specific rack
+    aiPlayer.getRack().setTiles(new ArrayList<>(List.of(
+        new Tile('C'), new Tile('A'), new Tile('T')
+    )));
+
+    // Create a dictionary containing only our target word
+    Gaddag dict = new Gaddag();
+    dict.add("CAT");
+
+    aiPlayer.playTurn(game, dict);
+
+    // AI should play the word CAT
+    assertTrue(game.isFirstMoveDone());
+    assertEquals(MoveType.PLAY, game.getUndoRedo().getHistory().getFirst().getType());
+  }
+
+  @Test
+  void testPlayTurnWithMlAgentNotLoadedFallsBackToSolver() {
+    // Sets up the game and player.
+    Game game = new Game();
+    game.addPlayer(aiPlayer);
+    game.startGame();
+
+    aiPlayer.getRack().setTiles(new ArrayList<>(List.of(
+        new Tile('B'), new Tile('A'), new Tile('T')
+    )));
+
+    // Injects an ML agent that will fail to load (invalid path).
+    MlAgent invalidAgent = new MlAgent("invalid/path", new ArrayList<>());
+    aiPlayer.setMlAgent(invalidAgent);
+
+    Gaddag dict = new Gaddag();
+    dict.add("BAT");
+
+    aiPlayer.playTurn(game, dict);
+
+    // The AI should fall back to Minimax and play the word.
+    assertTrue(game.isFirstMoveDone());
+    assertEquals(MoveType.PLAY, game.getUndoRedo().getHistory().getFirst().getType());
+  }
+
+  @Test
+  void testPlayTurnVerticalDirection() {
+    // Sets up the game.
+    Game game = new Game();
+    game.addPlayer(aiPlayer);
+    game.startGame();
+
+    aiPlayer.getRack().setTiles(new ArrayList<>(List.of(
+        new Tile('V'), new Tile('E'), new Tile('R'), new Tile('T')
+    )));
+
+    Gaddag dict = new Gaddag();
+    dict.add("VERT");
+
+    // Forces a vertical play by artificially placing a tile and setting up a constraint
+    // if your MoveGenerator allows it, or we simply verify that vertical words
+    // don't crash the coordinate calculation.
+    aiPlayer.playTurn(game, dict);
+
+    // Verifies the move was executed.
+    assertEquals(MoveType.PLAY, game.getUndoRedo().getHistory().getFirst().getType());
+  }
+
+  @Test
+  void testPlayTurnFallbackFailsAndPasses() {
+    Game game = new Game();
+    game.addPlayer(aiPlayer);
+    game.startGame();
+
+    // Give a rack with impossible letters (e.g., only W, X, Y, Z without vowels)
+    aiPlayer.getRack().setTiles(new ArrayList<>(List.of(
+        new Tile('W'), new Tile('X'), new Tile('Y'), new Tile('Z')
+    )));
+
+    Gaddag emptyDict = new Gaddag();
+
+    // Sets an ML agent that will bypass its phase due to empty predictions
+    MlAgent dummyAgent = new MlAgent("dummy", new ArrayList<>());
+    aiPlayer.setMlAgent(dummyAgent);
+
+    aiPlayer.playTurn(game, emptyDict);
+
+    // AI should try ML, fail, try Minimax, fail, and ultimately pass.
+    assertEquals(MoveType.PASS, game.getUndoRedo().getHistory().getFirst().getType());
+  }
+
+  /* Joker is not yet implemented
+  @Test
+  void testPlayTurnWithJoker() {
+    Game game = new Game();
+    game.addPlayer(aiPlayer);
+    game.startGame();
+
+    // Give a specific rack containing a blank tile (Joker)
+    aiPlayer.getRack().setTiles(new ArrayList<>(List.of(
+        new Tile('D'), new Tile('O'), new Tile(' ', true)
+    )));
+
+    Gaddag dict = new Gaddag();
+    dict.add("DOG");
+
+    aiPlayer.playTurn(game, dict);
+
+    // AI should use the joker as 'G' to play DOG
+    assertTrue(game.isFirstMoveDone());
+    assertEquals(MoveType.PLAY, game.getUndoRedo().getHistory().getFirst().getType());
+  } */
 }

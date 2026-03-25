@@ -1,12 +1,18 @@
 package fr.ubordeaux.scrabble.view.cli.renderer;
 
 import fr.ubordeaux.scrabble.model.interfaces.Player;
-import java.util.List;  
+import java.util.List;
 
 /**
  * Responsible for rendering player information.
  */
 public class PlayerRenderer {
+
+  /**
+   * Default constructor for PlayerRenderer.
+   */
+  public PlayerRenderer() {
+  }
 
   /**
    * Affiche la liste de tous les joueurs avec leur score dans la console CLI.
@@ -15,7 +21,7 @@ public class PlayerRenderer {
    */
   public void renderPlayerList(List<Player> players) {
     System.out.println("╔════════════════════════════════════════════════╗");
-    System.out.println("║                   JOUEURS                      ║");
+    System.out.println("║                   PLAYERS                      ║");
     System.out.println("╠════════════════════════════════════════════════╣");
     for (Player player : players) {
       renderPlayerScore(player);
@@ -31,7 +37,7 @@ public class PlayerRenderer {
   }
 
   /**
-   * Affiche le nom du joueur dont c'est le tour, avec son temps si le mode blitz est actif. 
+   * Affiche le nom du joueur dont c'est le tour, avec son temps si le mode blitz est actif.
    *
    * @param player le joueur courant
    */

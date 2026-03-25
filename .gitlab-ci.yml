@@ -28,7 +28,7 @@ run_tests:
   - CREMI
   - Podman
   script:
-    - mvn clean test
+    - mvn clean checkstyle:check javadoc:javadoc verify
   artifacts:
     when: always
     reports:

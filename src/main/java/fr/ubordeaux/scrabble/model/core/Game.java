@@ -1,7 +1,9 @@
 package fr.ubordeaux.scrabble.model.core;
 
+import fr.ubordeaux.scrabble.model.enums.GameMode;
 import fr.ubordeaux.scrabble.model.enums.MoveType;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
+import fr.ubordeaux.scrabble.model.utils.GameLogger;
 import fr.ubordeaux.scrabble.model.utils.Point;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -21,7 +23,9 @@ public class Game {
   private boolean isGameOver;
   private final MoveHandler moveHandler;
   private final UndoRedo undoRedo;
-  /** True once the first PLAY move has been successfully executed. */
+  /**
+   * True once the first PLAY move has been successfully executed.
+   */
   private boolean firstMoveDone;
   private boolean blitzModeEnabled;
   private Duration blitzTimePerPlayer;
@@ -30,7 +34,16 @@ public class Game {
    * Builds a new game with an empty player list and initialized board/bag.
    */
   public Game() {
-    this.board = new Board();
+    this(GameMode.STANDARD);
+  }
+
+  /**
+   * Builds a new game with an empty player list using a specific board preset.
+   *
+   * @param mode selected game mode.
+   */
+  public Game(GameMode mode) {
+    this.board = mode == GameMode.SUPER ? new Board(21) : new Board();
     this.bag = new Bag();
     this.players = new ArrayList<>();
     this.currentPlayerIndex = 0;
@@ -63,6 +76,8 @@ public class Game {
 
   /**
    * Enables blitz mode with a custom time per player.
+   *
+   * @param timePerPlayer The custom duration for each player's turn.
    */
   public void enableBlitzMode(Duration timePerPlayer) {
     if (timePerPlayer == null || timePerPlayer.isNegative() || timePerPlayer.isZero()) {
@@ -87,6 +102,11 @@ public class Game {
     }
   }
 
+  /**
+   * Checks if blitz mode is currently enabled for this game.
+   *
+   * @return true if blitz mode is enabled; false otherwise.
+   */
   public boolean isBlitzModeEnabled() {
     return blitzModeEnabled;
   }
@@ -115,7 +135,7 @@ public class Game {
       }
     }
 
-    System.out.println("Game started! Tiles distributed.");
+    GameLogger.logVerbose("Game started! Tiles distributed.");
   }
 
   /**
@@ -148,8 +168,52 @@ public class Game {
     // 3. Add move to history
     undoRedo.addMove(move);
 
+    // Scrabble end condition: player emptied rack while bag is empty.
+    if (shouldEndOnEmptyRackAndBag(move)) {
+      applyRemainingRackPointsBonus(move.getPlayer());
+      setGameOver(true);
+      if (blitzModeEnabled && getCurrentPlayer() != null) {
+        getCurrentPlayer().pauseTurnTimer();
+      }
+      return;
+    }
+
     // 4. Prepare next turn
     nextTurn();
+  }
+
+  private boolean shouldEndOnEmptyRackAndBag(Move move) {
+    if (move.getType() != MoveType.PLAY) {
+      return false;
+    }
+    Player player = move.getPlayer();
+    return player.getRack().isEmpty() && bag.isEmpty();
+  }
+
+  private void applyRemainingRackPointsBonus(Player finishingPlayer) {
+    int totalTransferredPoints = 0;
+
+    for (Player player : players) {
+      if (player.equals(finishingPlayer)) {
+        continue;
+      }
+
+      int remainingRackPoints = calculateRackPoints(player);
+      if (remainingRackPoints > 0) {
+        player.addScore(-remainingRackPoints);
+        totalTransferredPoints += remainingRackPoints;
+      }
+    }
+
+    finishingPlayer.addScore(totalTransferredPoints);
+  }
+
+  private int calculateRackPoints(Player player) {
+    int points = 0;
+    for (Tile tile : player.getRack().getTiles()) {
+      points += tile.getValue();
+    }
+    return points;
   }
 
   // Need to be separated from executeMove() because it will be used for undo/redo
@@ -229,8 +293,9 @@ public class Game {
 
   // Returns true if there is at least one tile on the board
   private boolean boardHasAnyTile() {
-    for (int x = 0; x < Board.SIZE; x++) {
-      for (int y = 0; y < Board.SIZE; y++) {
+    int boardSize = board.getSize();
+    for (int x = 0; x < boardSize; x++) {
+      for (int y = 0; y < boardSize; y++) {
         Square sq = board.getSquare(new fr.ubordeaux.scrabble.model.utils.Point(x, y));
         if (sq != null && !sq.isEmpty()) {
           return true;
@@ -313,6 +378,15 @@ public class Game {
   }
 
   /**
+   * Alias dedicated to external layers (CLI/network) to check whether the game has ended.
+   *
+   * @return true when the game is finished.
+   */
+  public boolean hasGameEnded() {
+    return isGameOver;
+  }
+
+  /**
    * Sets the game-over state.
    *
    * @param gameOver new game-over value.
@@ -345,12 +419,12 @@ public class Game {
    */
   public void undo() {
     if (!(getCurrentPlayer() instanceof HumanPlayer)) {
-      System.out.println("Only human players can undo.");
+      GameLogger.logVerbose("Only human players can undo.");
       return;
     }
 
     if (!undoRedo.canUndo()) {
-      System.out.println("Nothing to undo.");
+      GameLogger.logVerbose("Nothing to undo.");
       return;
     }
 
@@ -375,12 +449,12 @@ public class Game {
    */
   public void redo() {
     if (!(getCurrentPlayer() instanceof HumanPlayer)) {
-      System.out.println("Only human players can redo.");
+      GameLogger.logVerbose("Only human players can redo.");
       return;
     }
 
     if (!undoRedo.canRedo()) {
-      System.out.println("Nothing to redo.");
+      GameLogger.logVerbose("Nothing to redo.");
       return;
     }
 
@@ -401,21 +475,27 @@ public class Game {
    * Debug function to display the board and player stats in the terminal. Will be removed
    *
    * @param showBonusSquare whether bonus square codes should be displayed.
-   * @param clientMode whether to display online synchronized bag size.
+   * @param clientMode      whether to display online synchronized bag size.
    */
   public void printDebugState(boolean showBonusSquare, boolean clientMode) {
+
+    if (!GameLogger.isDebug()) {
+      return;
+    }
+
     System.out.println("\n--- DEBUG: GAME STATE ---");
 
     // 1. Print Board
     System.out.print("   ");
-    for (int x = 0; x < Board.SIZE; x++) {
+    int boardSize = board.getSize();
+    for (int x = 0; x < boardSize; x++) {
       System.out.printf("%2d ", x);
     }
     System.out.println();
 
-    for (int y = 0; y < Board.SIZE; y++) {
+    for (int y = 0; y < boardSize; y++) {
       System.out.printf("%2d ", y);
-      for (int x = 0; x < Board.SIZE; x++) {
+      for (int x = 0; x < boardSize; x++) {
         Square square = board.getSquare(new Point(x, y));
         if (!square.isEmpty()) {
           System.out.print(" " + square.getTile().getCharacter() + " ");
@@ -459,6 +539,7 @@ public class Game {
   // -----NETWORKING-----
   // These methods are needed for online play, for manipulating client side model
   // with data from the server side model directly, without redoing calculation
+
   /**
    * Finds a player in the game by their name. Needed for networking
    *
@@ -479,7 +560,7 @@ public class Game {
    * network play.
    *
    * @param playerName target player name.
-   * @param tiles rack content to force.
+   * @param tiles      rack content to force.
    */
   public void forceTilesToPlayer(String playerName, List<Tile> tiles) {
     Player p = getPlayerFromName(playerName);
