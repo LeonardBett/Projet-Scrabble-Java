@@ -140,4 +140,82 @@ class MinimaxSolverTest {
 
     assertEquals(3, rack.length);
   }
+
+  @Test
+  void testFindBestMoveWithTimeLimitReached() {
+    // Sets up the game environment first.
+    Game game = new Game();
+    game.addPlayer(new HumanPlayer("P1", PlayerColor.BLUE));
+    game.startGame();
+
+    game.getCurrentPlayer().getRack().setTiles(new ArrayList<>(List.of(
+        new Tile('A'), new Tile('R'), new Tile('T')
+    )));
+
+    Gaddag dict = new Gaddag();
+    dict.add("ART");
+
+    // Sets an impossibly short time limit (0 seconds) right before usage
+    // to satisfy the Checkstyle distance rule.
+    MinimaxSolver timeoutSolver = new MinimaxSolver(2, 0);
+
+    // The solver should break out of loops early due to the time constraint.
+    PlayableWord bestMove = timeoutSolver.findBestMove(game, dict);
+
+    // Asserts that the bestMove is null because the 0ms timeout correctly
+    // prevents any move evaluation.
+    assertNull(bestMove);
+  }
+
+  @Test
+  void testUnseenTilesWithBoardTiles() {
+    Game game = new Game();
+    game.addPlayer(new HumanPlayer("P1", PlayerColor.BLUE));
+    game.startGame();
+
+    // Places a 'B' on the board to allow connecting a word.
+    game.getBoard().getSquare(new fr.ubordeaux.scrabble.model.utils.Point(7, 7))
+        .setTile(new Tile('B'));
+
+    // Provides the remaining letters for "BOY" in the rack.
+    game.getCurrentPlayer().getRack().setTiles(new ArrayList<>(List.of(
+        new Tile('O'), new Tile('Y')
+    )));
+
+    Gaddag dict = new Gaddag();
+    dict.add("BOY");
+
+    // Requires depth 2 to trigger the getUnseenTiles and expectiminimax/minimax logic.
+    MinimaxSolver deepSolver = new MinimaxSolver(2, 5);
+    PlayableWord bestMove = deepSolver.findBestMove(game, dict);
+
+    // Now the MoveGenerator can find "BOY" by connecting the rack to the board.
+    assertNotNull(bestMove);
+    assertEquals("BOY", bestMove.getWord());
+  }
+
+  @Test
+  void testEvaluateRackLeaveCoverage() {
+    Game game = new Game();
+    game.addPlayer(new HumanPlayer("P1", PlayerColor.BLUE));
+    game.startGame();
+
+    // Provides a rack designed to trigger specific rack leave heuristic branches:
+    // 'S' (bonus), ' ' (huge bonus), 'Z' (penalty), 'V' (penalty), 'A', 'E' (vowels).
+    game.getCurrentPlayer().getRack().setTiles(new ArrayList<>(List.of(
+        new Tile('S'), new Tile(' ', true), new Tile('Z'),
+        new Tile('V'), new Tile('A'), new Tile('E'), new Tile('T')
+    )));
+
+    Gaddag dict = new Gaddag();
+    dict.add("TEA"); // Will leave S, Blank, Z, V in the rack.
+
+    // Uses depth 1 to trigger evaluateRackLeave immediately.
+    MinimaxSolver heuristicSolver = new MinimaxSolver(1, 5);
+    PlayableWord bestMove = heuristicSolver.findBestMove(game, dict);
+
+    // Verifies a move was found despite the complex heuristic calculations.
+    assertNotNull(bestMove);
+    assertEquals("TEA", bestMove.getWord());
+  }
 }

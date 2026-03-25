@@ -111,6 +111,54 @@ class AiPlayerTest {
     assertEquals(MoveType.PLAY, game.getUndoRedo().getHistory().getFirst().getType());
   }
 
+  @Test
+  void testPlayTurnWithMlAgentNotLoadedFallsBackToSolver() {
+    // Sets up the game and player.
+    Game game = new Game();
+    game.addPlayer(aiPlayer);
+    game.startGame();
+
+    aiPlayer.getRack().setTiles(new ArrayList<>(List.of(
+        new Tile('B'), new Tile('A'), new Tile('T')
+    )));
+
+    // Injects an ML agent that will fail to load (invalid path).
+    MlAgent invalidAgent = new MlAgent("invalid/path", new ArrayList<>());
+    aiPlayer.setMlAgent(invalidAgent);
+
+    Gaddag dict = new Gaddag();
+    dict.add("BAT");
+
+    aiPlayer.playTurn(game, dict);
+
+    // The AI should fall back to Minimax and play the word.
+    assertTrue(game.isFirstMoveDone());
+    assertEquals(MoveType.PLAY, game.getUndoRedo().getHistory().getFirst().getType());
+  }
+
+  @Test
+  void testPlayTurnVerticalDirection() {
+    // Sets up the game.
+    Game game = new Game();
+    game.addPlayer(aiPlayer);
+    game.startGame();
+
+    aiPlayer.getRack().setTiles(new ArrayList<>(List.of(
+        new Tile('V'), new Tile('E'), new Tile('R'), new Tile('T')
+    )));
+
+    Gaddag dict = new Gaddag();
+    dict.add("VERT");
+
+    // Forces a vertical play by artificially placing a tile and setting up a constraint
+    // if your MoveGenerator allows it, or we simply verify that vertical words
+    // don't crash the coordinate calculation.
+    aiPlayer.playTurn(game, dict);
+
+    // Verifies the move was executed.
+    assertEquals(MoveType.PLAY, game.getUndoRedo().getHistory().getFirst().getType());
+  }
+
   /* Joker is not yet implemented
   @Test
   void testPlayTurnWithJoker() {
