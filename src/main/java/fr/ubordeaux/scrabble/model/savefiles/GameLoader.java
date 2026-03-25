@@ -46,7 +46,6 @@ public class GameLoader {
         }
 
         try {
-          // Validation immédiate de la section (Correction pour pointer la bonne ligne)
           if (line.startsWith("[")) {
             section = line.toLowerCase();
             if (!section.equals("[settings]") && !section.equals("[game]")
@@ -67,11 +66,9 @@ public class GameLoader {
               parseHistory(game, line);
               break;
             default:
-              // Sécurité au cas où aucune section n'a encore été définie
               throw new IllegalStateException("Data found before any valid section header.");
           }
         } catch (Exception e) {
-          // Signalement de l'erreur avec le numéro de ligne exact
           throw new Exception("Format error at line " + lineCount + ": " + e.getMessage());
         }
       }
