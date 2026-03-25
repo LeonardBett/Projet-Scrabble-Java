@@ -112,7 +112,6 @@ public class GameController {
         PlayerColor assignedColor = PlayerColor.fromIndex(i - 1);
 
         if (name.toUpperCase().startsWith("IA") || name.toUpperCase().startsWith("AI")) {
-          // Utilisation de aiTime au lieu du 5 par défaut
           AiPlayer bot = new AiPlayer(name, 3, this.aiTime, assignedColor);
           bot.setExpectiminimaxMode(this.useExptiminimax);
 

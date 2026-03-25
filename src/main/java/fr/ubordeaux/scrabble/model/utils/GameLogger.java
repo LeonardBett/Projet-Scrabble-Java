@@ -13,12 +13,25 @@ public class GameLogger {
     // Private constructor to prevent instantiation of utility class
   }
 
+  /**
+   * Sets the verbose logging mode for the application.
+   *
+   * @param isVerbose true to activate verbose mode; false to deactivate it
+   */
   public static void setVerbose(boolean isVerbose) {
     verbose = isVerbose;
   }
 
+  /**
+   * Sets the debug logging mode for the application.
+   *
+   * @param isDebug true to activate debug mode; false to deactivate it
+   */
   public static void setDebug(boolean isDebug) {
     debug = isDebug;
+    if (isDebug) {
+      verbose = true;
+    }
   }
 
   public static boolean isVerbose() {
