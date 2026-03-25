@@ -21,6 +21,13 @@ public class GameLoader {
   private boolean isInBlockComment = false;
 
   /**
+   * Constructs a new GameLoader instance.
+   */
+  public GameLoader() {
+    this.isInBlockComment = false;
+  }
+
+  /**
    * Loads a game state from an ASCII text file.
    *
    * @param filePath Path to the .scrabble save file.

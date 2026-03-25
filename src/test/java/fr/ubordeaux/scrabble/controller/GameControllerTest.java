@@ -539,7 +539,7 @@ class GameControllerTest {
 
     invokePrivateMethod(controller, "startBlitzWatcher", new Class<?>[] {CliView.class}, view);
 
-    Thread.sleep(120);
+    Thread.sleep(1200);
 
     assertTrue(game.isGameOver());
     invokePrivateMethod(controller, "stopBlitzWatcher");

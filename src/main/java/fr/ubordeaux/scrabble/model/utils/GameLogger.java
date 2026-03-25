@@ -34,10 +34,20 @@ public class GameLogger {
     }
   }
 
+  /**
+   * Checks if the verbose logging mode is currently enabled.
+   *
+   * @return true if verbose mode is active, false otherwise
+   */
   public static boolean isVerbose() {
     return verbose;
   }
 
+  /**
+   * Checks if the debug logging mode is currently enabled.
+   *
+   * @return true if debug mode is active, false otherwise
+   */
   public static boolean isDebug() {
     return debug;
   }

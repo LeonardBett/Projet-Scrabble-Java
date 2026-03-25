@@ -21,6 +21,12 @@ import java.util.stream.Collectors;
 public class SaveManager {
 
   /**
+   * Constructs a new SaveManager instance.
+   */
+  public SaveManager() {
+  }
+
+  /**
    * Saves the current game state, including settings, board, and history, into a text file.
    *
    * @param game The current game instance to be saved.
