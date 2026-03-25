@@ -1,7 +1,7 @@
 package fr.ubordeaux.scrabble;
 
-import fr.ubordeaux.scrabble.model.utils.GameLogger;
 import fr.ubordeaux.scrabble.model.enums.GameMode;
+import fr.ubordeaux.scrabble.model.utils.GameLogger;
 import fr.ubordeaux.scrabble.view.optionlancement.CliLauncher;
 import fr.ubordeaux.scrabble.view.optionlancement.GuiLauncher;
 import fr.ubordeaux.scrabble.view.optionlancement.HelpPrinter;
