@@ -62,6 +62,16 @@ public abstract class Player {
   }
 
   /**
+   * Sets the score to an absolute value. Used for network synchronization
+   * where the server sends the total score rather than a delta.
+   *
+   * @param points The exact score to set.
+   */
+  public void setScore(int points) {
+    this.score = points;
+  }
+
+  /**
    * Returns the rack associated with this player.
    *
    * @return The player's rack.
@@ -187,14 +197,5 @@ public abstract class Player {
   @Override
   public String toString() {
     return name;
-  }
-
-  /**
-   * Retrieves the color assigned to the player.
-   *
-   * @return The PlayerColor instance.
-   */
-  public PlayerColor getColor() {
-    return color;
   }
 }
