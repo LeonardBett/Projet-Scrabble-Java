@@ -1,6 +1,7 @@
 package fr.ubordeaux.scrabble.view.gui;
 
 import fr.ubordeaux.scrabble.controller.GameController;
+import fr.ubordeaux.scrabble.i18n.I18n;
 import fr.ubordeaux.scrabble.model.ai.AiPlayer;
 import fr.ubordeaux.scrabble.model.core.Game;
 import fr.ubordeaux.scrabble.model.core.HumanPlayer;
@@ -22,14 +23,20 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Arrays;
 import java.util.HashMap;
+<<<<<<< HEAD
 <<<<<<< HEAD
 import java.util.HashMap;
 =======
 >>>>>>> 615b204 (fix bug)
+=======
+import java.util.HashSet;
+>>>>>>> 80eb4dd (Add internationalization support for GUI and CLI components)
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
@@ -106,6 +113,47 @@ public class ScrabbleGui extends Application {
     viewInstance = view;
   }
 
+  /**
+   * Extracts AI-controlled color names from command-line args.
+   *
+   * @param args command-line arguments
+   * @return set of color names in lowercase
+   */
+  public static Set<String> extractAiColorSelections(String[] args) {
+    Set<String> result = new HashSet<>();
+    if (args == null || args.length == 0) {
+      return result;
+    }
+
+    for (int i = 0; i < args.length; i++) {
+      if (("-a".equals(args[i]) || "--ai".equals(args[i])) && i + 1 < args.length) {
+        String[] colors = args[++i].split(",");
+        Arrays.stream(colors)
+            .map(String::trim)
+            .map(String::toLowerCase)
+            .filter(c -> !c.isEmpty())
+            .forEach(result::add);
+      }
+    }
+    return result;
+  }
+
+  /**
+   * Maps player index to supported color name.
+   *
+   * @param playerIndex one-based player index
+   * @return color name
+   */
+  public static String playerColorName(int playerIndex) {
+    return switch (playerIndex) {
+      case 1 -> "red";
+      case 2 -> "blue";
+      case 3 -> "green";
+      case 4 -> "yellow";
+      default -> "";
+    };
+  }
+
   @Override
   public void start(Stage stage) {
     if (gameInstance == null) {
@@ -131,6 +179,7 @@ public class ScrabbleGui extends Application {
     rackPanel.setOnTileDragged(this::onTileDragged);
 
     controller = new GameController(gameInstance, viewInstance);
+    controller.setLang(currentLangCode());
     VBox leftMenu = buildLeftMenu();
 
     BorderPane root = new BorderPane();
@@ -149,7 +198,7 @@ public class ScrabbleGui extends Application {
     root.setBottom(rackPanel);
 
     stage.setOnCloseRequest(e -> networkBridge.dispose());
-    stage.setTitle("Scrabble U-Bordeaux");
+    stage.setTitle(I18n.tr("gui.title.app"));
     stage.setScene(new Scene(root, 1200, 800));
     stage.setFullScreen(true);
     stage.show();
@@ -203,14 +252,16 @@ public class ScrabbleGui extends Application {
       }
     });
     controlPanel.getHelpButton().setOnAction(e ->
-        showInfo("Help", "Fonction non implémentée pour le moment."));
+        showInfo(I18n.tr("gui.msg.notImplementedTitle"), I18n.tr("gui.msg.notImplemented")));
 
     newGameMenuItem.setOnAction(e -> handleNewGame());
     onlineMenuItem.setOnAction(e -> openNetworkLobby());
-    saveMenuItem.setOnAction(e -> showInfo("À venir", "Sauvegarde bientôt disponible."));
-    loadMenuItem.setOnAction(e -> showInfo("À venir", "Chargement bientôt disponible."));
+    saveMenuItem.setOnAction(e ->
+        showInfo(I18n.tr("gui.msg.comingSoon"), I18n.tr("gui.msg.saveSoon")));
+    loadMenuItem.setOnAction(e ->
+        showInfo(I18n.tr("gui.msg.comingSoon"), I18n.tr("gui.msg.loadSoon")));
     quitMenuItem.setOnAction(e -> {
-      if (messagePanel.showConfirmation("Voulez-vous vraiment quitter ?")) {
+      if (messagePanel.showConfirmation(I18n.tr("gui.msg.confirmQuit"))) {
         networkBridge.dispose();
         Platform.exit();
       }
@@ -238,7 +289,7 @@ public class ScrabbleGui extends Application {
     boardPanel.setBoard(gameInstance.getBoard());
     pendingTiles.clear();
     refreshAll();
-    showInfo("Partie en ligne", "La partie a commencé ! Bonne chance 🎮");
+    showInfo(I18n.tr("gui.msg.onlineTitle"), I18n.tr("gui.msg.onlineStarted"));
   }
 
   /**
@@ -282,7 +333,7 @@ public class ScrabbleGui extends Application {
 
     Point point = new Point(col, row);
     if (!gameInstance.getBoard().getSquare(point).isEmpty() || pendingTiles.containsKey(point)) {
-      showError("Cette case est déjà occupée !");
+      showError(I18n.tr("gui.msg.squareOccupied"));
       currentlyDraggedTile = null;
       return;
     }
@@ -298,9 +349,10 @@ public class ScrabbleGui extends Application {
 
   private void loadDictionary() {
     gaddag = new Gaddag();
-    System.out.println("Chargement du Gaddag pour l'interface graphique...");
+    System.out.println(I18n.tr("gui.msg.loadingGaddag"));
+    String dictPath = "dictionaries/lexicon_" + currentLangCode() + ".txt";
     try (InputStream is =
-            getClass().getClassLoader().getResourceAsStream("dictionaries/lexicon_en.txt")) {
+            getClass().getClassLoader().getResourceAsStream(dictPath)) {
       if (is != null) {
         try (BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
           String line;
@@ -312,19 +364,19 @@ public class ScrabbleGui extends Application {
         }
       }
     } catch (IOException e) {
-      showError("Impossible de charger le dictionnaire : " + e.getMessage());
+      showError(I18n.tr("gui.msg.cannotLoadDict", e.getMessage()));
     }
   }
 
   private void submitPendingTiles() {
     if (pendingTiles.isEmpty()) {
-      showError("Placez au moins une tuile avant de valider !");
+      showError(I18n.tr("gui.msg.placeOneTile"));
       return;
     }
 
     Move move = PendingMoveBuilder.build(pendingTiles, gameInstance.getCurrentPlayer());
     if (move == null) {
-      showError("Les tuiles doivent être alignées horizontalement ou verticalement !");
+      showError(I18n.tr("gui.msg.tilesAlignment"));
       cancelPendingTiles();
       return;
     }
@@ -343,7 +395,7 @@ public class ScrabbleGui extends Application {
         controller.handlePlayerMove(move);
         pendingTiles.clear();
       } catch (RuntimeException e) {
-        showError("Coup invalide : " + e.getMessage());
+        showError(I18n.tr("gui.msg.invalidMove", e.getMessage()));
         cancelPendingTiles();
       }
     }
@@ -351,14 +403,14 @@ public class ScrabbleGui extends Application {
 
   private void openExchangeDialog() {
     if (!pendingTiles.isEmpty()) {
-      showError("Annulez d'abord les tuiles placées (bouton ↩).");
+      showError(I18n.tr("gui.msg.cancelPlacedFirst"));
       return;
     }
 
     TextInputDialog dialog = new TextInputDialog();
-    dialog.setTitle("Échanger des lettres");
-    dialog.setHeaderText("Lettres de votre chevalet à échanger");
-    dialog.setContentText("Lettres (ex: ABC) :");
+    dialog.setTitle(I18n.tr("gui.msg.exchangeTitle"));
+    dialog.setHeaderText(I18n.tr("gui.msg.exchangeHeader"));
+    dialog.setContentText(I18n.tr("gui.msg.exchangePrompt"));
 
     Optional<String> result = dialog.showAndWait();
     result.ifPresent(input -> {
@@ -372,7 +424,7 @@ public class ScrabbleGui extends Application {
       } else {
         Move move = ExchangeMoveBuilder.build(letters, gameInstance.getCurrentPlayer());
         if (move == null) {
-          showError("Certaines lettres ne sont pas dans votre chevalet !");
+          showError(I18n.tr("gui.msg.lettersNotInRack"));
           return;
         }
         controller.handlePlayerMove(move);
@@ -390,7 +442,7 @@ public class ScrabbleGui extends Application {
   }
 
   private void handleNewGame() {
-    if (!messagePanel.showConfirmation("Abandonner la partie en cours et recommencer ?")) {
+    if (!messagePanel.showConfirmation(I18n.tr("gui.msg.confirmRestart"))) {
       return;
     }
 
@@ -417,16 +469,21 @@ public class ScrabbleGui extends Application {
     }
     for (int i = 1; i <= count; i++) {
 <<<<<<< HEAD
+<<<<<<< HEAD
       PlayerColor color = PlayerColor.fromIndex(i - 1);
       gameInstance.addPlayer(new HumanPlayer("Joueur" + i, color));
 =======
       gameInstance.addPlayer(new HumanPlayer("Joueur" + i));
 >>>>>>> 615b204 (fix bug)
+=======
+      gameInstance.addPlayer(new HumanPlayer(I18n.tr("player.defaultName") + i));
+>>>>>>> 80eb4dd (Add internationalization support for GUI and CLI components)
     }
 
     viewInstance = new JavaFxView(gameInstance);
     viewInstance.setGui(this);
     controller = new GameController(gameInstance, viewInstance);
+    controller.setLang(currentLangCode());
 
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -477,8 +534,8 @@ public class ScrabbleGui extends Application {
     gameInstance.getPlayers().stream()
         .filter(p -> p.isBlitzClockEnabled() && p.isOutOfTime())
         .findFirst()
-        .ifPresent(p -> showInfo("⏱ Temps écoulé !",
-            p.getName() + " a épuisé son temps. La partie est terminée !"));
+        .ifPresent(p -> showInfo(I18n.tr("gui.msg.timeUpTitle"),
+            I18n.tr("gui.msg.timeUpBody", p.getName())));
     refreshScores();
   }
 
@@ -519,7 +576,7 @@ public class ScrabbleGui extends Application {
           Thread.currentThread().interrupt();
           Platform.runLater(() -> controller.handlePlayerMove(Move.createPass(ai)));
         } catch (RuntimeException e) {
-          Platform.runLater(() -> showError("Erreur IA : " + e.getMessage()));
+          Platform.runLater(() -> showError(I18n.tr("gui.msg.aiError", e.getMessage())));
           Platform.runLater(() -> controller.handlePlayerMove(Move.createPass(ai)));
         } finally {
           Platform.runLater(() -> {
@@ -544,17 +601,17 @@ public class ScrabbleGui extends Application {
   }
 
   private VBox buildLeftMenu() {
-    Label menuLabel = new Label("MENU");
+    Label menuLabel = new Label(I18n.tr("gui.menu.label"));
     menuLabel.setTextFill(Color.WHITE);
     menuLabel.setFont(Font.font("Arial", FontWeight.BOLD, 14));
 
-    newGameMenuItem = new MenuItem("Nouvelle partie");
-    onlineMenuItem = new MenuItem("Multijoueur");
-    saveMenuItem = new MenuItem("Sauvegarder");
-    loadMenuItem = new MenuItem("Charger");
-    quitMenuItem = new MenuItem("Quitter");
+    newGameMenuItem = new MenuItem(I18n.tr("gui.menu.newGame"));
+    onlineMenuItem = new MenuItem(I18n.tr("gui.menu.multiplayer"));
+    saveMenuItem = new MenuItem(I18n.tr("gui.menu.save"));
+    loadMenuItem = new MenuItem(I18n.tr("gui.menu.load"));
+    quitMenuItem = new MenuItem(I18n.tr("gui.menu.quit"));
 
-    appMenuButton = new MenuButton("☰ Jeu", null,
+    appMenuButton = new MenuButton(I18n.tr("gui.menu.game"), null,
         newGameMenuItem, onlineMenuItem, saveMenuItem, loadMenuItem, quitMenuItem);
     appMenuButton.setPrefWidth(190);
     appMenuButton.setStyle("-fx-background-color: #0B3D1D; -fx-text-fill: white;");
@@ -632,5 +689,9 @@ public class ScrabbleGui extends Application {
    */
   public static void main(String[] args) {
     launch(args);
+  }
+
+  private String currentLangCode() {
+    return I18n.isFrench() ? "fr" : "en";
   }
 }

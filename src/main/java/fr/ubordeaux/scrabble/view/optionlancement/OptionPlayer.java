@@ -1,5 +1,7 @@
 package fr.ubordeaux.scrabble.view.optionlancement;
 
+import fr.ubordeaux.scrabble.i18n.I18n;
+
 /**
  * Parse et valide l'argument du nombre de joueurs (-p N).
  */
@@ -34,13 +36,12 @@ public class OptionPlayer {
     try {
       int n = Integer.parseInt(value);
       if (n < MIN || n > MAX) {
-        System.err.println("Nombre de joueurs invalide : " + n
-            + " (valeurs acceptees : " + MIN + " a " + MAX + ").");
+        System.err.println(I18n.tr("option.players.invalid", n, MIN, MAX));
         System.exit(1);
       }
       return n;
     } catch (NumberFormatException e) {
-      System.err.println("'-p' attend un entier, recu : " + value);
+      System.err.println(I18n.tr("option.players.notInteger", value));
       System.exit(1);
       return DEFAULT;
     }

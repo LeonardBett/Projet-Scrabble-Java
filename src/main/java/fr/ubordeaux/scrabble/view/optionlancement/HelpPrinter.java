@@ -1,5 +1,7 @@
 package fr.ubordeaux.scrabble.view.optionlancement;
 
+import fr.ubordeaux.scrabble.i18n.I18n;
+
 /**
  * Displays the help and version information of the program. SRP: Single Responsibility Principle —
  * all help text is centralized here.
@@ -22,6 +24,7 @@ public class HelpPrinter {
    * Prints the help message to standard output.
    */
   public static void printHelp() {
+<<<<<<< HEAD
     System.out.println("""
 <<<<<<< HEAD
           Usage : scrabble [OPTION]
@@ -70,6 +73,13 @@ public class HelpPrinter {
           java -jar scrabble.jar --ai-ml -l en     Launches in CLI with ML using English models
         """);
 >>>>>>> c984150 (feat: Enhance game configuration and blitz mode functionality)
+=======
+    if (I18n.isFrench()) {
+      System.out.println(I18n.tr("help.text.fr"));
+      return;
+    }
+    System.out.println(I18n.tr("help.text.en"));
+>>>>>>> 80eb4dd (Add internationalization support for GUI and CLI components)
   }
 
   /**

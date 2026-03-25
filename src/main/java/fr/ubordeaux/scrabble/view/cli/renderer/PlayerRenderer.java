@@ -1,5 +1,6 @@
 package fr.ubordeaux.scrabble.view.cli.renderer;
 
+import fr.ubordeaux.scrabble.i18n.I18n;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
 import java.util.List;
 
@@ -21,7 +22,11 @@ public class PlayerRenderer {
    */
   public void renderPlayerList(List<Player> players) {
     System.out.println("╔════════════════════════════════════════════════╗");
+<<<<<<< HEAD
     System.out.println("║                   PLAYERS                      ║");
+=======
+    System.out.printf("║%1$-48s║%n", center(I18n.tr("cli.msg.playersTitle"), 48));
+>>>>>>> 80eb4dd (Add internationalization support for GUI and CLI components)
     System.out.println("╠════════════════════════════════════════════════╣");
     for (Player player : players) {
       renderPlayerScore(player);
@@ -32,8 +37,9 @@ public class PlayerRenderer {
   private void renderPlayerScore(Player player) {
     String timerPart =
         player.isBlitzClockEnabled() ? " | " + player.getRemainingTimeDisplay() : "";
-    System.out.printf("║ %-18s Score: %4d pts%-11s ║%n",
-        player.getName(), player.getScore(), timerPart);
+    System.out.printf("║ %-18s %s: %4d %s%-11s ║%n",
+        player.getName(), I18n.tr("cli.msg.scoreLabel"), player.getScore(),
+        I18n.tr("cli.msg.pointsAbbrev"), timerPart);
   }
 
   /**
@@ -43,10 +49,19 @@ public class PlayerRenderer {
    */
   public void renderCurrentPlayer(Player player) {
     if (player.isBlitzClockEnabled()) {
-      System.out.println("\n>>> Current turn: " + player.getName()
-          + " (" + player.getRemainingTimeDisplay() + ")");
+      System.out.println("\n" + I18n.tr("cli.msg.currentTurnWithTime", player.getName(),
+          player.getRemainingTimeDisplay()));
       return;
     }
-    System.out.println("\n>>> Current turn: " + player.getName());
+    System.out.println("\n" + I18n.tr("cli.msg.currentTurn", player.getName()));
+  }
+
+  private String center(String text, int width) {
+    if (text.length() >= width) {
+      return text;
+    }
+    int left = (width - text.length()) / 2;
+    int right = width - text.length() - left;
+    return " ".repeat(left) + text + " ".repeat(right);
   }
 }

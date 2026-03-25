@@ -1,5 +1,6 @@
 package fr.ubordeaux.scrabble.view.gui.panel;
 
+import fr.ubordeaux.scrabble.i18n.I18n;
 import fr.ubordeaux.scrabble.model.core.Rack;
 import fr.ubordeaux.scrabble.model.core.Tile;
 import java.util.List;
@@ -66,7 +67,7 @@ public class RackPanel extends VBox {
   }
 
   private void initializeUi() {
-    Label title = new Label("CHEVALET DU JOUEUR");
+    Label title = new Label(I18n.tr("gui.rack.title"));
     title.setFont(Font.font("Arial", FontWeight.BOLD, 14));
     title.setTextFill(Color.WHITE);
     title.setPadding(new Insets(0, 0, 10, 0));

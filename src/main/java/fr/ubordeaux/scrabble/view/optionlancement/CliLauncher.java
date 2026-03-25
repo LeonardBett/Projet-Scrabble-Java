@@ -1,7 +1,11 @@
 package fr.ubordeaux.scrabble.view.optionlancement;
 
 import fr.ubordeaux.scrabble.controller.GameController;
+<<<<<<< HEAD
 import fr.ubordeaux.scrabble.model.ai.AiPlayer;
+=======
+import fr.ubordeaux.scrabble.i18n.I18n;
+>>>>>>> 80eb4dd (Add internationalization support for GUI and CLI components)
 import fr.ubordeaux.scrabble.model.core.Game;
 import fr.ubordeaux.scrabble.model.core.HumanPlayer;
 import fr.ubordeaux.scrabble.model.enums.GameMode;
@@ -49,7 +53,11 @@ public class CliLauncher {
 =======
   public static void launch(int players, boolean blitzMode, int blitzMinutes, int aiTime,
       boolean useExptiminimax, boolean useMl, String lang) {
+<<<<<<< HEAD
 >>>>>>> c984150 (feat: Enhance game configuration and blitz mode functionality)
+=======
+    I18n.setLanguage(lang);
+>>>>>>> 80eb4dd (Add internationalization support for GUI and CLI components)
     Game game = new Game();
     if (blitzMode) {
       game.enableBlitzMode(Duration.ofMinutes(blitzMinutes));
@@ -95,8 +103,12 @@ public class CliLauncher {
 
     final int count = players > 0 ? players : OptionPlayer.DEFAULT;
     for (int i = 1; i <= count; i++) {
+<<<<<<< HEAD
       game.addPlayer(new HumanPlayer("Joueur" + i));
 >>>>>>> c984150 (feat: Enhance game configuration and blitz mode functionality)
+=======
+      game.addPlayer(new HumanPlayer(I18n.tr("player.defaultName") + i));
+>>>>>>> 80eb4dd (Add internationalization support for GUI and CLI components)
     }
 
     controller.runCli();

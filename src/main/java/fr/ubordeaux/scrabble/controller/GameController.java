@@ -1,6 +1,12 @@
 package fr.ubordeaux.scrabble.controller;
 
+<<<<<<< HEAD
 import fr.ubordeaux.scrabble.model.core.Board;
+=======
+import fr.ubordeaux.scrabble.i18n.I18n;
+import fr.ubordeaux.scrabble.model.ai.AiPlayer;
+import fr.ubordeaux.scrabble.model.ai.MlAgent;
+>>>>>>> 80eb4dd (Add internationalization support for GUI and CLI components)
 import fr.ubordeaux.scrabble.model.core.Game;
 import fr.ubordeaux.scrabble.model.core.Move;
 import fr.ubordeaux.scrabble.model.core.MoveGenerator;
@@ -181,7 +187,7 @@ public class GameController {
               }
             }));
             bot.setMlAgent(mlAgent);
-            cliView.displayMessage("-> ML Agent activated for " + name + " (" + this.lang + ")");
+            cliView.displayMessage(I18n.tr("controller.msg.mlActivated", name, this.lang));
           }
           addPlayer(bot);
         } else {
@@ -193,8 +199,8 @@ public class GameController {
     startGame();
 
     if (game.isBlitzModeEnabled()) {
-      cliView.displayMessage("⏱  Mode blitz activé — temps par joueur : "
-          + game.getPlayers().get(0).getRemainingTimeDisplay());
+      cliView.displayMessage(I18n.tr("controller.msg.blitzEnabled",
+          game.getPlayers().get(0).getRemainingTimeDisplay()));
       startBlitzWatcher(cliView);
     }
 
@@ -213,13 +219,13 @@ public class GameController {
 
       // Tour de l'IA
       if (current instanceof AiPlayer) {
-        cliView.displayMessage("\n--- C'est au tour de l'IA (" + current.getName() + ") ---");
+        cliView.displayMessage(I18n.tr("controller.msg.aiTurn", current.getName()));
         AiPlayer ai = (AiPlayer) current;
         try {
           ai.playTurn(game, currentGaddag);
           Thread.sleep(2000);
         } catch (Exception e) {
-          cliView.displayError("Erreur pendant le tour de l'IA : " + e.getMessage());
+          cliView.displayError(I18n.tr("controller.msg.aiTurnError", e.getMessage()));
           e.printStackTrace();
           handlePlayerMove(Move.createPass(current));
         }
@@ -253,7 +259,7 @@ public class GameController {
           if (move != null) {
             try {
               handlePlayerMove(move);
-              cliView.displaySuccess("Coup joué.");
+              cliView.displaySuccess(I18n.tr("controller.msg.movePlayed"));
             } catch (RuntimeException e) {
               cliView.displayError(e.getMessage());
             }
@@ -265,7 +271,7 @@ public class GameController {
           if (move != null) {
             try {
               handlePlayerMove(move);
-              cliView.displaySuccess("Lettres échangées.");
+              cliView.displaySuccess(I18n.tr("controller.msg.lettersExchanged"));
             } catch (RuntimeException e) {
               cliView.displayError(e.getMessage());
             }
@@ -275,7 +281,7 @@ public class GameController {
         case "3": {
           try {
             handlePlayerMove(Move.createPass(current));
-            cliView.displayMessage(current.getName() + " a passé son tour.");
+            cliView.displayMessage(I18n.tr("controller.msg.turnPassed", current.getName()));
           } catch (RuntimeException e) {
             cliView.displayError(e.getMessage());
           }
@@ -296,7 +302,7 @@ public class GameController {
           break;
         }
         default:
-          cliView.displayError("Choix invalide.");
+          cliView.displayError(I18n.tr("controller.msg.invalidChoice"));
       }
 >>>>>>> c984150 (feat: Enhance game configuration and blitz mode functionality)
     }
@@ -319,8 +325,8 @@ public class GameController {
 
     Player winner = game.determineWinner();
     if (winner != null) {
-      cliView.displaySuccess("Partie terminée. Vainqueur: " + winner.getName()
-          + " (" + winner.getScore() + " pts)");
+      cliView.displaySuccess(I18n.tr("controller.msg.gameOverWinner", winner.getName(),
+          winner.getScore()));
     }
 
     input.close();
@@ -351,8 +357,8 @@ public class GameController {
             if (!warned[i] && remaining <= warnedAt[i] && remaining > 0) {
               warned[i] = true;
               long minutes = warnedAt[i] / 60_000L;
-              System.out.println("\n⚠  " + current.getName()
-                  + " — plus que " + minutes + " minute(s) !");
+              System.out.println(I18n.tr("controller.msg.blitzWarning", current.getName(),
+                  minutes));
             }
           }
 
@@ -397,8 +403,8 @@ public class GameController {
   private void handleBlitzExpiry(Player expired, CliView cliView) {
     game.setGameOver(true);
     stopBlitzWatcher();
-    cliView.displayError("\n⏱  Temps écoulé pour " + expired.getName() + " !");
-    cliView.displayMessage("La partie est terminée.");
+    cliView.displayError(I18n.tr("controller.msg.blitzExpired", expired.getName()));
+    cliView.displayMessage(I18n.tr("controller.msg.gameFinished"));
   }
 
   /**
@@ -419,7 +425,7 @@ public class GameController {
             move.getDirection(), move.getTiles())) {
           if (formedWord == null || formedWord.isBlank()
               || !dictionary.containsWord(formedWord.toUpperCase())) {
-            throw new IllegalArgumentException("Word not found in dictionary: " + formedWord);
+            throw new IllegalArgumentException(I18n.tr("controller.err.wordMissing", formedWord));
           }
         }
       }
@@ -428,7 +434,7 @@ public class GameController {
       view.refresh();
 
     } catch (IllegalArgumentException | IllegalStateException e) {
-      throw new RuntimeException("Invalid move: " + e.getMessage(), e);
+      throw new RuntimeException(I18n.tr("controller.err.invalidMove", e.getMessage()), e);
     }
   }
 
@@ -458,7 +464,11 @@ public class GameController {
         }
       }
     } catch (Exception e) {
+<<<<<<< HEAD
       GameLogger.logError("Warning: Failed to load dictionary list for ML: " + e.getMessage(), e);
+=======
+      System.err.println(I18n.tr("controller.warn.dictListLoad", e.getMessage()));
+>>>>>>> 80eb4dd (Add internationalization support for GUI and CLI components)
     }
     return dictionaryList;
   }
@@ -475,11 +485,15 @@ public class GameController {
 
     gaddag = new Gaddag();
     String dictPath = "dictionaries/lexicon_" + this.lang + ".txt";
+<<<<<<< HEAD
     GameLogger.logVerbose("\nLoading Gaddag dictionary (" + dictPath + ") please wait...");
+=======
+    System.out.println(I18n.tr("controller.msg.loadingDict", dictPath));
+>>>>>>> 80eb4dd (Add internationalization support for GUI and CLI components)
 
     try (InputStream is = getClass().getClassLoader().getResourceAsStream(dictPath)) {
       if (is == null) {
-        throw new IllegalStateException("Dictionary file " + dictPath + " not found in resources.");
+        throw new IllegalStateException(I18n.tr("controller.err.dictMissing", dictPath));
       }
 
       int wordCount = 0;
@@ -494,10 +508,14 @@ public class GameController {
         }
       }
 
+<<<<<<< HEAD
       GameLogger.logVerbose("Dictionary successfully loaded! (" + wordCount + " words added).\n");
+=======
+      System.out.println(I18n.tr("controller.msg.dictLoaded", wordCount));
+>>>>>>> 80eb4dd (Add internationalization support for GUI and CLI components)
       return gaddag;
     } catch (Exception e) {
-      throw new IllegalStateException("Error while loading the dictionary: " + e.getMessage(), e);
+      throw new IllegalStateException(I18n.tr("controller.err.dictLoad", e.getMessage()), e);
     }
   }
 
