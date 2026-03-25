@@ -6,8 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.model.enums.GameMode;
+import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import java.time.Duration;
 import org.junit.jupiter.api.Test;
 

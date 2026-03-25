@@ -3,8 +3,8 @@ package fr.ubordeaux.scrabble.view.optionlancement;
 import fr.ubordeaux.scrabble.model.ai.AiPlayer;
 import fr.ubordeaux.scrabble.model.core.Game;
 import fr.ubordeaux.scrabble.model.core.HumanPlayer;
-import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.model.enums.GameMode;
+import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.view.gui.JavaFxView;
 import fr.ubordeaux.scrabble.view.gui.ScrabbleGui;
 import java.time.Duration;
@@ -20,10 +20,9 @@ public class GuiLauncher {
 
   /**
    * Starts the game in GUI mode with the given configuration.
-   *
-   * <p>
-   * Uses {@code players} if provided via {@code -p}, otherwise defaults to 2. If {@code blitzMode}
-   * is true, enables blitz mode with {@code blitzMinutes} per player.
+   * 
+   * <p>Uses {@code players} if provided via {@code -p}, otherwise defaults to 2. 
+   * If {@code blitzMode} is true, enables blitz mode with {@code blitzMinutes} per player.
    *
    * @param args the command-line arguments passed to JavaFX
    * @param players the number of players (between 2 and 4)

@@ -4,8 +4,8 @@ import fr.ubordeaux.scrabble.controller.GameController;
 import fr.ubordeaux.scrabble.model.ai.AiPlayer;
 import fr.ubordeaux.scrabble.model.core.Game;
 import fr.ubordeaux.scrabble.model.core.HumanPlayer;
-import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.model.enums.GameMode;
+import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.view.cli.CliView;
 import java.time.Duration;
 import java.util.List;
@@ -19,10 +19,9 @@ public class CliLauncher {
 
   /**
    * Starts the game in CLI mode with the given configuration.
-   *
-   * <p>
-   * If {@code players} is 0, the number of players is asked interactively. If {@code blitzMode} is
-   * true, enables blitz mode with {@code blitzMinutes} per player.
+   * 
+   * <p>If {@code players} is 0, the number of players is asked interactively. 
+   * If {@code blitzMode} is true, enables blitz mode with {@code blitzMinutes} per player.
    *
    * @param players the total number of players (0 = ask, 2-4 = use directly)
    * @param aiColors the list of colors that should be controlled by AI
