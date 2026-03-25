@@ -12,6 +12,7 @@ import fr.ubordeaux.scrabble.model.ai.AiPlayer;
 import fr.ubordeaux.scrabble.model.core.Game;
 import fr.ubordeaux.scrabble.model.core.HumanPlayer;
 import fr.ubordeaux.scrabble.model.core.Move;
+import fr.ubordeaux.scrabble.model.core.PlayableWord;
 import fr.ubordeaux.scrabble.model.core.Tile;
 import fr.ubordeaux.scrabble.model.dictionary.Gaddag;
 import fr.ubordeaux.scrabble.model.enums.Direction;
@@ -25,7 +26,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -171,6 +174,42 @@ class GameControllerTest {
     controller.redo();
 
     assertEquals(2, view.refreshCount);
+  }
+
+  @Test
+  void settersShouldUpdateControllerConfiguration() throws Exception {
+    GameController controller = new GameController(new Game(), new RecordingView());
+
+    controller.setAiTime(9);
+    controller.setUseExptiminimax(true);
+    controller.setUseMl(true);
+    controller.setLang("fr");
+    controller.setPlayerCount(3);
+
+    assertEquals(9, (int) getPrivateField(controller, "aiTime"));
+    assertTrue((boolean) getPrivateField(controller, "useExptiminimax"));
+    assertTrue((boolean) getPrivateField(controller, "useMl"));
+    assertEquals("fr", getPrivateField(controller, "lang"));
+    assertEquals(3, (int) getPrivateField(controller, "playerCount"));
+  }
+
+  @Test
+  void handlePlayerMoveShouldWrapDictionaryLoadingErrorForUnknownLanguage() {
+    Game game = new Game();
+    HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
+    game.addPlayer(alice);
+
+    alice.getRack().setTiles(new ArrayList<>(List.of(new Tile('A'))));
+
+    GameController controller = new GameController(game, new RecordingView());
+    controller.setLang("zz");
+
+    Move move = Move.createPlay(alice, List.of(new Tile('A')), new Point(7, 7),
+        Direction.HORIZONTAL);
+
+    RuntimeException error = assertThrows(RuntimeException.class,
+        () -> controller.handlePlayerMove(move));
+    assertTrue(error.getMessage().contains("Dictionary file dictionaries/lexicon_zz.txt"));
   }
 
   @Test
@@ -351,6 +390,129 @@ class GameControllerTest {
   }
 
   @Test
+  void runCliShouldUseConfiguredPlayerCountWithoutPromptingNumber() throws Exception {
+    Game game = new Game();
+    CliView view = new CliView(game);
+    GameController controller = new GameController(game, view);
+    setDictionary(controller, minimalDictionary("AA", "ART"));
+    controller.setPlayerCount(2);
+
+    // No numeric input for number of players here; only names then quit.
+    runCliWithInput(controller, "Alice\nBob\n6\no\n");
+
+    assertEquals(2, game.getPlayers().size());
+    assertEquals("Alice", game.getPlayers().get(0).getName());
+    assertEquals("Bob", game.getPlayers().get(1).getName());
+  }
+
+  @Test
+  void privateDictionaryListLoaderShouldLoadAndCache() throws Exception {
+    GameController controller = new GameController(new Game(), new RecordingView());
+    controller.setLang("en");
+
+    @SuppressWarnings("unchecked")
+    List<String> firstLoad =
+        (List<String>) invokePrivateMethod(controller, "getOrLoadDictionaryList");
+    @SuppressWarnings("unchecked")
+    List<String> secondLoad =
+        (List<String>) invokePrivateMethod(controller, "getOrLoadDictionaryList");
+
+    assertNotNull(firstLoad);
+    assertTrue(firstLoad.size() > 1000);
+    assertSame(firstLoad, secondLoad);
+  }
+
+  @Test
+  void privateHintHelpersShouldExtractLettersComputeScoreAndCleanup() throws Exception {
+    Game game = new Game();
+    HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
+    HumanPlayer bob = new HumanPlayer("Bob", PlayerColor.RED);
+    game.addPlayer(alice);
+    game.addPlayer(bob);
+
+    GameController controller = new GameController(game, new RecordingView());
+
+    PlayableWord move = new PlayableWord(7, 7, "AB", Direction.HORIZONTAL, "A>B");
+
+    @SuppressWarnings("unchecked")
+    List<Character> letters = (List<Character>) invokePrivateMethod(controller,
+        "getLettersFromRack", new Class<?>[] {fr.ubordeaux.scrabble.model.core.Board.class,
+            PlayableWord.class}, game.getBoard(), move);
+
+    assertEquals(List.of('A', 'B'), letters);
+
+    int score = (int) invokePrivateMethod(controller, "simulateScoreForHint",
+        new Class<?>[] {fr.ubordeaux.scrabble.model.core.Board.class, PlayableWord.class},
+        game.getBoard(), move);
+    assertTrue(score >= 0);
+    assertTrue(game.getBoard().getSquare(new Point(7, 7)).isEmpty());
+    assertTrue(game.getBoard().getSquare(new Point(8, 7)).isEmpty());
+  }
+
+  @Test
+  void privateBlitzHandlersShouldSetGameOverAndStopWatcher() throws Exception {
+    Game game = new Game();
+    HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
+    HumanPlayer bob = new HumanPlayer("Bob", PlayerColor.RED);
+    game.addPlayer(alice);
+    game.addPlayer(bob);
+
+    CliView view = new CliView(game);
+    GameController controller = new GameController(game, view);
+
+    Field watcherField = GameController.class.getDeclaredField("blitzWatcherThread");
+    watcherField.setAccessible(true);
+    watcherField.set(controller, new Thread(() -> {
+    }));
+
+    invokePrivateMethod(controller, "handleBlitzExpiry",
+        new Class<?>[] {fr.ubordeaux.scrabble.model.interfaces.Player.class, CliView.class},
+        alice, view);
+
+    assertTrue(game.isGameOver());
+    assertEquals(null, watcherField.get(controller));
+
+    // Covers stopBlitzWatcher no-op branch when watcher is already null.
+    invokePrivateMethod(controller, "stopBlitzWatcher");
+    assertEquals(null, watcherField.get(controller));
+  }
+
+  @Test
+  void privateGaddagLoaderShouldLoadAndCache() throws Exception {
+    GameController controller = new GameController(new Game(), new RecordingView());
+    controller.setLang("en");
+
+    Gaddag first = (Gaddag) invokePrivateMethod(controller, "getOrLoadGaddag");
+    Gaddag second = (Gaddag) invokePrivateMethod(controller, "getOrLoadGaddag");
+
+    assertNotNull(first);
+    assertSame(first, second);
+    assertTrue(first.containsWord("ART"));
+  }
+
+  @Test
+  void privateBlitzWatcherShouldEndGameWhenTimeExpires() throws Exception {
+    Game game = new Game();
+    game.enableBlitzMode(Duration.ofMillis(1));
+
+    HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
+    HumanPlayer bob = new HumanPlayer("Bob", PlayerColor.RED);
+    game.addPlayer(alice);
+    game.addPlayer(bob);
+    game.startGame();
+
+    CliView view = new CliView(game);
+    GameController controller = new GameController(game, view);
+
+    invokePrivateMethod(controller, "startBlitzWatcher", new Class<?>[] {CliView.class}, view);
+
+    Thread.sleep(120);
+
+    assertTrue(game.isGameOver());
+    invokePrivateMethod(controller, "stopBlitzWatcher");
+  }
+
+  @Test
   void runCliShouldHandleAiTurnFailureAndContinue() throws Exception {
     Game game = new Game();
     AiPlayer failing = new FailingAiPlayer("IA-crash");
@@ -477,6 +639,26 @@ class GameControllerTest {
     Field field = GameController.class.getDeclaredField("gaddag");
     field.setAccessible(true);
     field.set(controller, dictionary);
+  }
+
+  private static Object getPrivateField(GameController controller, String name) throws Exception {
+    Field field = GameController.class.getDeclaredField(name);
+    field.setAccessible(true);
+    return field.get(controller);
+  }
+
+  private static Object invokePrivateMethod(GameController controller, String methodName,
+      Class<?>[] parameterTypes, Object... args) throws Exception {
+    Method method = GameController.class.getDeclaredMethod(methodName, parameterTypes);
+    method.setAccessible(true);
+    return method.invoke(controller, args);
+  }
+
+  private static Object invokePrivateMethod(GameController controller, String methodName)
+      throws Exception {
+    Method method = GameController.class.getDeclaredMethod(methodName);
+    method.setAccessible(true);
+    return method.invoke(controller);
   }
 
   private static Gaddag minimalDictionary(String... words) {
