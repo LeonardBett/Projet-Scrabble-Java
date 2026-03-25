@@ -392,15 +392,9 @@ public class ScrabbleGui extends Application {
     if (gaddag == null) {
       loadDictionary();
     }
-    int playerIndex = 0;
-    for (String name : namesOpt.get()) {
-      PlayerColor assignedColor = PlayerColor.fromIndex(playerIndex);
-      if (name.toUpperCase().startsWith("IA") || name.toUpperCase().startsWith("AI")) {
-        gameInstance.addPlayer(new AiPlayer(name, 3, 5, assignedColor));
-      } else {
-        gameInstance.addPlayer(new HumanPlayer(name, assignedColor));
-      }
-      playerIndex++;
+    for (int i = 1; i <= count; i++) {
+      PlayerColor color = PlayerColor.fromIndex(i - 1);
+      gameInstance.addPlayer(new HumanPlayer("Joueur" + i, color));
     }
 
     viewInstance = new JavaFxView(gameInstance);
@@ -455,6 +449,9 @@ public class ScrabbleGui extends Application {
     }
     Player current = gameInstance.getCurrentPlayer();
     if (current instanceof AiPlayer && !gameInstance.isGameOver()) {
+      if (gaddag == null) {
+        loadDictionary();
+      }
       final AiPlayer ai = (AiPlayer) current;
       boardPanel.setDisable(true);
       rackPanel.setDisable(true);

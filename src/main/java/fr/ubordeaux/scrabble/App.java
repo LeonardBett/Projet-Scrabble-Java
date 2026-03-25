@@ -102,17 +102,17 @@ public class App {
     }
 
     if (guiMode) {
-      launchGui(args, players, blitzMode, blitzMinutes, aiTime, useExptiminimax, useMl, lang);
+      launchGui(args, players, aiColors, blitzMode, blitzMinutes, aiTime, useExptiminimax,
+          useMl, lang);
     } else {
       launchCli(players, aiColors, blitzMode, blitzMinutes, aiTime, useExptiminimax, useMl, lang);
     }
   }
-
-  
   /**
    * Launches the Command Line Interface (CLI) mode.
    *
    * @param players the number of players (0 = ask interactively)
+   * @param aiColors colors controlled by AI players
    * @param blitzMode True if blitz mode is enabled.
    * @param blitzMinutes Time limit per player in minutes (used only when blitzMode is true).
    * @param aiTime The thinking time allocated for the AI in seconds.
@@ -120,9 +120,12 @@ public class App {
    * @param useMl True if the AI should use Machine Learning for word search.
    * @param lang The language of the dictionary to load ("en" or "fr").
    */
-  private static void launchCli(int players, boolean blitzMode, int blitzMinutes, int aiTime,
+
+  private static void launchCli(int players, List<String> aiColors, boolean blitzMode,
+      int blitzMinutes, int aiTime,
       boolean useExptiminimax, boolean useMl, String lang) {
-    CliLauncher.launch(players, aiColors,blitzMode, blitzMinutes, aiTime, useExptiminimax, useMl, lang);
+    CliLauncher.launch(players, aiColors, blitzMode, blitzMinutes, aiTime, useExptiminimax,
+        useMl, lang);
   }
 
 
@@ -131,6 +134,7 @@ public class App {
    *
    * @param args Application command-line arguments passed to JavaFX.
    * @param players the number of players (0 = use default of 2)
+   * @param aiColors colors controlled by AI players
    * @param blitzMode True if blitz mode is enabled.
    * @param blitzMinutes Time limit per player in minutes (used only when blitzMode is true).
    * @param aiTime The thinking time allocated for the AI in seconds.
@@ -138,9 +142,11 @@ public class App {
    * @param useMl True if the AI should use Machine Learning for word search.
    * @param lang The language of the dictionary to load ("en" or "fr").
    */
-  private static void launchGui(String[] args, int players, boolean blitzMode, int blitzMinutes,
+  private static void launchGui(String[] args, int players, List<String> aiColors,
+      boolean blitzMode, int blitzMinutes,
       int aiTime, boolean useExptiminimax, boolean useMl, String lang) {
-    GuiLauncher.launch(args, players, blitzMode, blitzMinutes);
+    GuiLauncher.launch(args, players, aiColors, blitzMode, blitzMinutes, aiTime,
+        useExptiminimax, useMl, lang);
   }
 
 

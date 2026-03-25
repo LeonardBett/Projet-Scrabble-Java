@@ -43,10 +43,10 @@ public class HelpPrinter {
             Without any options, the game starts in terminal mode (CLI) with default parameters.
             
             Examples :
-              java -jar scrabble.jar -l fr             Launches in CLI mode with the French dictionary
-              java -jar scrabble.jar -b -t 20          Launches in CLI blitz mode with 20 min per player
-          java -jar scrabble.jar -g -b -t 10       Launches in GUI blitz mode with 10 min per player
-          java -jar scrabble.jar --ai-ml -l en     Launches in CLI with ML using English models
+              java -jar scrabble.jar -l fr             Launches CLI with French dictionary
+              java -jar scrabble.jar -b -t 20          Launches CLI blitz (20 min/player)
+              java -jar scrabble.jar -g -b -t 10       Launches GUI blitz mode (10 min per player)
+              java -jar scrabble.jar --ai-ml -l en     Launches CLI + ML with English models
             """);
   }
 
