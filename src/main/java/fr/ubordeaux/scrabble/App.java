@@ -84,7 +84,10 @@ public class App {
         case "-h", "--help" -> HelpPrinter.printHelp();
         case "-V", "--version" -> HelpPrinter.printVersion();
         case "-g", "--gui" -> guiMode = true;
+<<<<<<< HEAD
         case "-s", "--super" -> superMode = true;
+=======
+>>>>>>> c984150 (feat: Enhance game configuration and blitz mode functionality)
         case "-b", "--blitz" -> {
           if (i + 1 < args.length && (args[i + 1].equals("-t") || args[i + 1].equals("--time"))) {
             if (i + 2 >= args.length) {
@@ -158,6 +161,7 @@ public class App {
     }
 
     if (guiMode) {
+<<<<<<< HEAD
       launchGui(args, players, aiColors, blitzMode, blitzMinutes, aiTime, useExptiminimax, useMl,
           lang);
     } else {
@@ -165,11 +169,23 @@ public class App {
     }
   }
 
+=======
+      launchGui(args, players, blitzMode, blitzMinutes, aiTime, useExptiminimax, useMl, lang);
+    } else {
+      launchCli(players, blitzMode, blitzMinutes, aiTime, useExptiminimax, useMl, lang);
+    }
+  }
+
+  
+>>>>>>> c984150 (feat: Enhance game configuration and blitz mode functionality)
   /**
    * Launches the Command Line Interface (CLI) mode.
    *
    * @param players the number of players (0 = ask interactively)
+<<<<<<< HEAD
    * @param aiColors colors controlled by AI players
+=======
+>>>>>>> c984150 (feat: Enhance game configuration and blitz mode functionality)
    * @param blitzMode True if blitz mode is enabled.
    * @param blitzMinutes Time limit per player in minutes (used only when blitzMode is true).
    * @param aiTime The thinking time allocated for the AI in seconds.
@@ -177,11 +193,17 @@ public class App {
    * @param useMl True if the AI should use Machine Learning for word search.
    * @param lang The language of the dictionary to load ("en" or "fr").
    */
+<<<<<<< HEAD
 
   private static void launchCli(int players, List<String> aiColors, boolean blitzMode,
       int blitzMinutes, int aiTime, boolean useExptiminimax, boolean useMl, String lang) {
     cliLauncherHandler.launch(players, aiColors, blitzMode, blitzMinutes, aiTime,
         useExptiminimax, useMl, lang);
+=======
+  private static void launchCli(int players, boolean blitzMode, int blitzMinutes, int aiTime,
+      boolean useExptiminimax, boolean useMl, String lang) {
+    CliLauncher.launch(players, blitzMode, blitzMinutes, aiTime, useExptiminimax, useMl, lang);
+>>>>>>> c984150 (feat: Enhance game configuration and blitz mode functionality)
   }
 
 
@@ -190,7 +212,10 @@ public class App {
    *
    * @param args Application command-line arguments passed to JavaFX.
    * @param players the number of players (0 = use default of 2)
+<<<<<<< HEAD
    * @param aiColors colors controlled by AI players
+=======
+>>>>>>> c984150 (feat: Enhance game configuration and blitz mode functionality)
    * @param blitzMode True if blitz mode is enabled.
    * @param blitzMinutes Time limit per player in minutes (used only when blitzMode is true).
    * @param aiTime The thinking time allocated for the AI in seconds.
@@ -198,11 +223,17 @@ public class App {
    * @param useMl True if the AI should use Machine Learning for word search.
    * @param lang The language of the dictionary to load ("en" or "fr").
    */
+<<<<<<< HEAD
   private static void launchGui(String[] args, int players, List<String> aiColors,
       boolean blitzMode, int blitzMinutes, int aiTime, boolean useExptiminimax, boolean useMl,
       String lang) {
     guiLauncherHandler.launch(args, players, aiColors, blitzMode, blitzMinutes, aiTime,
         useExptiminimax, useMl, lang);
+=======
+  private static void launchGui(String[] args, int players, boolean blitzMode, int blitzMinutes,
+      int aiTime, boolean useExptiminimax, boolean useMl, String lang) {
+    GuiLauncher.launch(args, players, blitzMode, blitzMinutes);
+>>>>>>> c984150 (feat: Enhance game configuration and blitz mode functionality)
   }
 
 

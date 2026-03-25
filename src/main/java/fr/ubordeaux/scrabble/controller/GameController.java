@@ -43,12 +43,15 @@ public class GameController {
   // Player count set by launcher (0 = ask interactively)
   private int playerCount = 0;
 
+<<<<<<< HEAD
   /**
    * Constructor for GameController.
    *
    * @param game the game instance to control
    * @param view the user interface to update
    */
+=======
+>>>>>>> c984150 (feat: Enhance game configuration and blitz mode functionality)
   public GameController(Game game, UserInterface view) {
     this.game = game;
     this.view = view;
@@ -90,6 +93,7 @@ public class GameController {
     return view;
   }
 
+<<<<<<< HEAD
   int configuredAiTime() {
     return aiTime;
   }
@@ -157,6 +161,219 @@ public class GameController {
         } catch (InterruptedException e) {
           Thread.currentThread().interrupt();
         }
+=======
+    if (game.getPlayers().size() < 2) {
+      int num = playerCount > 0 ? playerCount : input.askNumberOfPlayers();
+      for (int i = 1; i <= num; i++) {
+        String name = input.askPlayerName(i);
+
+        if (name.toUpperCase().startsWith("IA") || name.toUpperCase().startsWith("AI")) {
+          AiPlayer bot = new AiPlayer(name, 3, 5);
+          bot.setExpectiminimaxMode(this.useExptiminimax);
+
+          if (this.useMl) {
+            List<String> dictList = getOrLoadDictionaryList();
+            String modelPath = "src/main/resources/ai/model_" + this.lang;
+            MlAgent mlAgent = new MlAgent(modelPath, dictList);
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+              if (mlAgent != null) {
+                mlAgent.close();
+              }
+            }));
+            bot.setMlAgent(mlAgent);
+            cliView.displayMessage("-> ML Agent activated for " + name + " (" + this.lang + ")");
+          }
+          addPlayer(bot);
+        } else {
+          addPlayer(new HumanPlayer(name));
+        }
+      }
+    }
+
+    startGame();
+
+    if (game.isBlitzModeEnabled()) {
+      cliView.displayMessage("⏱  Mode blitz activé — temps par joueur : "
+          + game.getPlayers().get(0).getRemainingTimeDisplay());
+      startBlitzWatcher(cliView);
+    }
+
+    Gaddag currentGaddag = getOrLoadGaddag();
+
+    boolean running = true;
+    while (running && !game.isGameOver()) {
+      view.refresh();
+      Player current = game.getCurrentPlayer();
+
+      // Vérification temps écoulé (blitz)
+      if (game.isBlitzModeEnabled() && current != null && current.isOutOfTime()) {
+        handleBlitzExpiry(current, cliView);
+        break;
+      }
+
+      // Tour de l'IA
+      if (current instanceof AiPlayer) {
+        cliView.displayMessage("\n--- C'est au tour de l'IA (" + current.getName() + ") ---");
+        AiPlayer ai = (AiPlayer) current;
+        try {
+          ai.playTurn(game, currentGaddag);
+          Thread.sleep(2000);
+        } catch (Exception e) {
+          cliView.displayError("Erreur pendant le tour de l'IA : " + e.getMessage());
+          e.printStackTrace();
+          handlePlayerMove(Move.createPass(current));
+        }
+        continue;
+>>>>>>> c984150 (feat: Enhance game configuration and blitz mode functionality)
+      }
+    });
+    blitzWatcherThread.setDaemon(true);
+    blitzWatcherThread.start();
+  }
+
+<<<<<<< HEAD
+  /** Stops the blitz watcher thread if running. */
+  void stopBlitzWatcher() {
+    if (blitzWatcherThread != null) {
+      blitzWatcherThread.interrupt();
+      blitzWatcherThread = null;
+=======
+      // Tour humain
+      String action = input.askAction();
+
+      // Re-vérifier le temps après la saisie (le joueur a peut-être pris trop longtemps)
+      if (game.isBlitzModeEnabled() && current.isOutOfTime()) {
+        handleBlitzExpiry(current, cliView);
+        break;
+      }
+
+      switch (action) {
+        case "1": {
+          Move move = input.askPlayMove(current);
+          if (move != null) {
+            try {
+              handlePlayerMove(move);
+              cliView.displaySuccess("Coup joué.");
+            } catch (RuntimeException e) {
+              cliView.displayError(e.getMessage());
+            }
+          }
+          break;
+        }
+        case "2": {
+          Move move = input.askExchangeMove(current);
+          if (move != null) {
+            try {
+              handlePlayerMove(move);
+              cliView.displaySuccess("Lettres échangées.");
+            } catch (RuntimeException e) {
+              cliView.displayError(e.getMessage());
+            }
+          }
+          break;
+        }
+        case "3": {
+          try {
+            handlePlayerMove(Move.createPass(current));
+            cliView.displayMessage(current.getName() + " a passé son tour.");
+          } catch (RuntimeException e) {
+            cliView.displayError(e.getMessage());
+          }
+          break;
+        }
+        case "4": {
+          undo();
+          break;
+        }
+        case "5": {
+          redo();
+          break;
+        }
+        case "6": {
+          if (input.askConfirmation("Voulez-vous vraiment quitter ?")) {
+            running = false;
+          }
+          break;
+        }
+        default:
+          cliView.displayError("Choix invalide.");
+      }
+>>>>>>> c984150 (feat: Enhance game configuration and blitz mode functionality)
+    }
+  }
+
+<<<<<<< HEAD
+  /**
+   * Handles blitz time expiry for the given player: sets game over and notifies.
+   *
+   * @param expired the player who ran out of time
+   * @param cliView the CLI view for output
+   */
+  void handleBlitzExpiry(Player expired, CliView cliView) {
+    game.setGameOver(true);
+    stopBlitzWatcher();
+    cliView.displayError("\nTime's up" + expired.getName() + " !");
+    cliView.displayMessage("Game is over.");
+=======
+    stopBlitzWatcher();
+
+    Player winner = game.determineWinner();
+    if (winner != null) {
+      cliView.displaySuccess("Partie terminée. Vainqueur: " + winner.getName()
+          + " (" + winner.getScore() + " pts)");
+    }
+
+    input.close();
+>>>>>>> c984150 (feat: Enhance game configuration and blitz mode functionality)
+  }
+
+  /** Thread de surveillance blitz — affiche un avertissement toutes les minutes. */
+  private volatile Thread blitzWatcherThread;
+
+  /**
+   * Starts a background thread that checks blitz time every second and warns the player
+   * at 5 minutes, 2 minutes and 1 minute remaining.
+   *
+   * @param cliView the CLI view used to display warnings
+   */
+  private void startBlitzWatcher(CliView cliView) {
+    blitzWatcherThread = new Thread(() -> {
+      final long[] warnedAt = {5 * 60_000L, 2 * 60_000L, 60_000L};
+      boolean[] warned = new boolean[warnedAt.length];
+
+      while (!Thread.currentThread().isInterrupted() && !game.isGameOver()) {
+        Player current = game.getCurrentPlayer();
+        if (current != null && current.isBlitzClockEnabled()) {
+          long remaining = current.getRemainingTimeMillis();
+
+          // Avertissements à 5 min, 2 min, 1 min
+          for (int i = 0; i < warnedAt.length; i++) {
+            if (!warned[i] && remaining <= warnedAt[i] && remaining > 0) {
+              warned[i] = true;
+              long minutes = warnedAt[i] / 60_000L;
+              System.out.println("\n⚠  " + current.getName()
+                  + " — plus que " + minutes + " minute(s) !");
+            }
+          }
+
+          // Temps expiré
+          if (current.isOutOfTime() && !game.isGameOver()) {
+            handleBlitzExpiry(current, cliView);
+            break;
+          }
+
+          // Réinitialiser les avertissements au changement de joueur
+          Player newCurrent = game.getCurrentPlayer();
+          if (newCurrent != current) {
+            warned = new boolean[warnedAt.length];
+          }
+        }
+
+        try {
+          Thread.sleep(1000);
+        } catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
+        }
       }
     });
     blitzWatcherThread.setDaemon(true);
@@ -164,7 +381,7 @@ public class GameController {
   }
 
   /** Stops the blitz watcher thread if running. */
-  void stopBlitzWatcher() {
+  private void stopBlitzWatcher() {
     if (blitzWatcherThread != null) {
       blitzWatcherThread.interrupt();
       blitzWatcherThread = null;
@@ -177,11 +394,11 @@ public class GameController {
    * @param expired the player who ran out of time
    * @param cliView the CLI view for output
    */
-  void handleBlitzExpiry(Player expired, CliView cliView) {
+  private void handleBlitzExpiry(Player expired, CliView cliView) {
     game.setGameOver(true);
     stopBlitzWatcher();
-    cliView.displayError("\nTime's up" + expired.getName() + " !");
-    cliView.displayMessage("Game is over.");
+    cliView.displayError("\n⏱  Temps écoulé pour " + expired.getName() + " !");
+    cliView.displayMessage("La partie est terminée.");
   }
 
   /**
@@ -364,6 +581,7 @@ public class GameController {
   }
 
   /**
+<<<<<<< HEAD
    * Generates and displays a hint for the current human player without ending their turn.
    * Searches for the highest-scoring move that specifically uses fewer than 7 letters
    * from the rack to avoid giving away a bingo/scrabble.
@@ -483,6 +701,8 @@ public class GameController {
   }
 
   /**
+=======
+>>>>>>> c984150 (feat: Enhance game configuration and blitz mode functionality)
    * Sets the number of players to use at launch (skips the interactive prompt).
    *
    * @param count the number of players (2‑4)
@@ -490,4 +710,8 @@ public class GameController {
   public void setPlayerCount(int count) {
     this.playerCount = count;
   }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> c984150 (feat: Enhance game configuration and blitz mode functionality)

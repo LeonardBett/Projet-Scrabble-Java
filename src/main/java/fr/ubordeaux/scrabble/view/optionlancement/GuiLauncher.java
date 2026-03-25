@@ -8,7 +8,10 @@ import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.view.gui.JavaFxView;
 import fr.ubordeaux.scrabble.view.gui.ScrabbleGui;
 import java.time.Duration;
+<<<<<<< HEAD
 import java.util.List;
+=======
+>>>>>>> c984150 (feat: Enhance game configuration and blitz mode functionality)
 import javafx.application.Application;
 
 /**
@@ -19,6 +22,7 @@ public class GuiLauncher {
   private GuiLauncher() {}
 
   /**
+<<<<<<< HEAD
 <<<<<<< HEAD
    * Starts the game in GUI mode with the given configuration.
    * 
@@ -44,13 +48,24 @@ public class GuiLauncher {
 =======
    * Starts the game in GUI mode. Uses {@code players} if provided via {@code -p}, otherwise
    * defaults to 2 players.
+=======
+   * Starts the game in GUI mode with the given configuration.
+   *
+   * <p>Uses {@code players} if provided via {@code -p}, otherwise defaults to 2.
+   * If {@code blitzMode} is true, enables blitz mode with {@code blitzMinutes} per player.
+>>>>>>> c984150 (feat: Enhance game configuration and blitz mode functionality)
    *
    * @param args the command-line arguments passed to JavaFX
    * @param players the number of players (0 = use default of 2)
+   * @param blitzMode true to enable blitz mode
+   * @param blitzMinutes time limit per player in minutes (only used when blitzMode is true)
    */
-  public static void launch(String[] args, int players) {
+  public static void launch(String[] args, int players, boolean blitzMode, int blitzMinutes) {
     int count = players > 0 ? players : OptionPlayer.DEFAULT;
     Game game = new Game();
+    if (blitzMode) {
+      game.enableBlitzMode(Duration.ofMinutes(blitzMinutes));
+    }
     for (int i = 1; i <= count; i++) {
       game.addPlayer(new HumanPlayer("Joueur" + i));
 >>>>>>> 615b204 (fix bug)
@@ -78,6 +93,9 @@ public class GuiLauncher {
     Application.launch(ScrabbleGui.class, args);
   }
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c984150 (feat: Enhance game configuration and blitz mode functionality)
 
   /**
    * Starts the game in GUI mode without blitz mode.
@@ -86,9 +104,15 @@ public class GuiLauncher {
    * @param players the number of players (0 = use default of 2)
    */
   public static void launch(String[] args, int players) {
+<<<<<<< HEAD
     launch(args, players, List.of(), false, 30, 5, false, false, "en");
   }
 }
 =======
 }
 >>>>>>> 615b204 (fix bug)
+=======
+    launch(args, players, false, 30);
+  }
+}
+>>>>>>> c984150 (feat: Enhance game configuration and blitz mode functionality)

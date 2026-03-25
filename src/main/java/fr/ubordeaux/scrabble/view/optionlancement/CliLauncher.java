@@ -8,7 +8,10 @@ import fr.ubordeaux.scrabble.model.enums.GameMode;
 import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.view.cli.CliView;
 import java.time.Duration;
+<<<<<<< HEAD
 import java.util.List;
+=======
+>>>>>>> c984150 (feat: Enhance game configuration and blitz mode functionality)
 
 /**
  * Lance le jeu en mode CLI.
@@ -19,12 +22,20 @@ public class CliLauncher {
 
   /**
    * Starts the game in CLI mode with the given configuration.
+<<<<<<< HEAD
    * 
    * <p>If {@code players} is 0, the number of players is asked interactively. 
    * If {@code blitzMode} is true, enables blitz mode with {@code blitzMinutes} per player.
    *
    * @param players the total number of players (0 = ask, 2-4 = use directly)
    * @param aiColors the list of colors that should be controlled by AI
+=======
+   *
+   * <p>If {@code players} is 0, the number of players is asked interactively.
+   * If {@code blitzMode} is true, enables blitz mode with {@code blitzMinutes} per player.
+   *
+   * @param players the number of players (0 = ask, 2-4 = use directly)
+>>>>>>> c984150 (feat: Enhance game configuration and blitz mode functionality)
    * @param blitzMode true to enable blitz mode
    * @param blitzMinutes time limit per player in minutes (only used when blitzMode is true)
    * @param aiTime AI thinking time in seconds
@@ -32,8 +43,13 @@ public class CliLauncher {
    * @param useMl true to enable the Machine Learning agent
    * @param lang the dictionary language ("en" or "fr")
    */
+<<<<<<< HEAD
   public static void launch(int players, List<String> aiColors, boolean blitzMode, int blitzMinutes,
       int aiTime, boolean useExptiminimax, boolean useMl, String lang) {
+=======
+  public static void launch(int players, boolean blitzMode, int blitzMinutes, int aiTime,
+      boolean useExptiminimax, boolean useMl, String lang) {
+>>>>>>> c984150 (feat: Enhance game configuration and blitz mode functionality)
     Game game = new Game();
     if (blitzMode) {
       game.enableBlitzMode(Duration.ofMinutes(blitzMinutes));
@@ -43,6 +59,7 @@ public class CliLauncher {
     view.setBlitzMode(blitzMode);
 
     GameController controller = new GameController(game, view);
+<<<<<<< HEAD
 
     controller.setUseMl(useMl);
     controller.setUseExptiminimax(useExptiminimax);
@@ -70,8 +87,27 @@ public class CliLauncher {
         game.addPlayer(new HumanPlayer("Player" + humanCount, color));
         humanCount++;
       }
+=======
+    controller.setAiTime(aiTime);
+    controller.setUseExptiminimax(useExptiminimax);
+    controller.setUseMl(useMl);
+    controller.setLang(lang);
+
+    final int count = players > 0 ? players : OptionPlayer.DEFAULT;
+    for (int i = 1; i <= count; i++) {
+      game.addPlayer(new HumanPlayer("Joueur" + i));
+>>>>>>> c984150 (feat: Enhance game configuration and blitz mode functionality)
     }
 
     controller.runCli();
+  }
+
+  /**
+   * Starts the game in CLI mode with default configuration and the given player count.
+   *
+   * @param players the number of players (0 = ask interactively)
+   */
+  public static void launch(int players) {
+    launch(players, false, 30, 5, false, false, "en");
   }
 }

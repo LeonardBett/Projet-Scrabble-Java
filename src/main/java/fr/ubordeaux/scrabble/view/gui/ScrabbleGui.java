@@ -85,11 +85,14 @@ public class ScrabbleGui extends Application {
   private MenuItem loadMenuItem;
   private MenuItem quitMenuItem;
 
+<<<<<<< HEAD
   /**
    * Sets the game instance for static access.
    *
    * @param game the game to use
    */
+=======
+>>>>>>> c984150 (feat: Enhance game configuration and blitz mode functionality)
   public static void setGame(Game game) {
     gameInstance = game;
   }
@@ -426,11 +429,15 @@ public class ScrabbleGui extends Application {
     controller = new GameController(gameInstance, viewInstance);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     setGameplayControlsDisabled(false);
 =======
     controlPanel.getUndoButton().setDisable(false);
     controlPanel.getRedoButton().setDisable(false);
 >>>>>>> 615b204 (fix bug)
+=======
+    setGameplayControlsDisabled(false);
+>>>>>>> c984150 (feat: Enhance game configuration and blitz mode functionality)
 
     boardPanel.clearAllPending();
     pendingTiles.clear();
@@ -439,18 +446,27 @@ public class ScrabbleGui extends Application {
     // Démarrer la partie AVANT de rafraîchir l'affichage
     controller.startGame();
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c984150 (feat: Enhance game configuration and blitz mode functionality)
     if (gameInstance.isBlitzModeEnabled()) {
       scorePanel.startBlitzTimers(gameInstance.getPlayers(), this::onBlitzTimeExpired);
     } else {
       scorePanel.stopBlitzTimers();
     }
+<<<<<<< HEAD
 =======
 >>>>>>> 615b204 (fix bug)
+=======
+>>>>>>> c984150 (feat: Enhance game configuration and blitz mode functionality)
     refreshAll();
   }
 
   /**
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c984150 (feat: Enhance game configuration and blitz mode functionality)
    * Called when a player's blitz time has expired.
    * Ends the game and notifies the players.
    */
@@ -467,8 +483,11 @@ public class ScrabbleGui extends Application {
   }
 
   /**
+<<<<<<< HEAD
 =======
 >>>>>>> 615b204 (fix bug)
+=======
+>>>>>>> c984150 (feat: Enhance game configuration and blitz mode functionality)
    * Refreshes all GUI panels: board, rack, scores, and checks if it is the AI's turn.
    */
   public void refreshAll() {
