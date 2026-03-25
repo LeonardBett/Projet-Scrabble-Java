@@ -18,7 +18,14 @@ import java.util.List;
  * Handles single-line (#) and multi-line ({}) comments (Requirement F22).
  */
 public class GameLoader {
-  private boolean isInBlockComment = false;
+  private boolean isInBlockComment;
+
+  /**
+   * Constructs a new GameLoader instance.
+   */
+  public GameLoader() {
+    this.isInBlockComment = false;
+  }
 
   /**
    * Loads a game state from an ASCII text file.
