@@ -148,6 +148,14 @@ class NetworkManagerTest {
     networkManager.exchange("ABC");
     networkManager.pass();
 
+    // Testing the new invitation-related commands
+    networkManager.accept();
+    networkManager.decline();
+    networkManager.cancel();
+    networkManager.away();
+    networkManager.back();
+    networkManager.playersPlayerId(1);
+
     // No exceptions should be thrown despite being disconnected
   }
 }
