@@ -1,6 +1,7 @@
 package fr.ubordeaux.scrabble.view.gui.panel;
 
 import java.util.Optional;
+import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 
@@ -23,7 +24,7 @@ public class MessagePanel {
     alert.setTitle(title);
     alert.setHeaderText(null);
     alert.setContentText(message);
-    alert.showAndWait();
+    showNonBlocking(alert);
   }
 
   /**
@@ -36,7 +37,7 @@ public class MessagePanel {
     alert.setTitle("Erreur");
     alert.setHeaderText(null);
     alert.setContentText(message);
-    alert.showAndWait();
+    showNonBlocking(alert);
   }
 
   /**
@@ -50,7 +51,7 @@ public class MessagePanel {
     alert.setTitle(title);
     alert.setHeaderText(null);
     alert.setContentText(message);
-    alert.showAndWait();
+    showNonBlocking(alert);
   }
 
   /**
@@ -66,5 +67,13 @@ public class MessagePanel {
     alert.setContentText(message);
     Optional<ButtonType> result = alert.showAndWait();
     return result.isPresent() && result.get() == ButtonType.OK;
+  }
+
+  private void showNonBlocking(Alert alert) {
+    if (Platform.isFxApplicationThread()) {
+      alert.show();
+    } else {
+      Platform.runLater(alert::show);
+    }
   }
 }

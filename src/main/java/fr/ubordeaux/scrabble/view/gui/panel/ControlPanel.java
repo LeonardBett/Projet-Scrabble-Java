@@ -4,6 +4,9 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -20,11 +23,7 @@ public class ControlPanel extends VBox {
   private final Button cancelPlacementButton;
   private final Button undoButton;
   private final Button redoButton;
-  private final Button newGameButton;
-  private final Button onlineButton;
-  private final Button saveButton;
-  private final Button loadButton;
-  private final Button quitButton;
+  private final Button helpButton;
 
   /**
    * Creates the ControlPanel and initializes all buttons.
@@ -36,11 +35,8 @@ public class ControlPanel extends VBox {
     cancelPlacementButton = createButton("↩  Annuler placement", "#795548");
     undoButton = createButton("↶  Annuler coup", "#9E9E9E");
     redoButton = createButton("↷  Refaire coup", "#9E9E9E");
-    newGameButton = createButton("🎮 Nouvelle partie", "#673AB7");
-    onlineButton = createButton("🌐 Multijoueur en ligne", "#009688");
-    saveButton = createButton("💾 Sauvegarder", "#00BCD4");
-    loadButton = createButton("📁 Charger", "#00BCD4");
-    quitButton = createButton("❌ Quitter", "#F44336");
+    helpButton = createButton("❓ Help", "#1E88E5");
+    helpButton.setPrefWidth(96);
     initializeUi();
   }
 
@@ -54,11 +50,16 @@ public class ControlPanel extends VBox {
     Label title = new Label("ACTIONS");
     title.setFont(Font.font("Arial", FontWeight.BOLD, 16));
     title.setTextFill(Color.WHITE);
-    title.setPadding(new Insets(0, 0, 8, 0));
 
-    this.getChildren().addAll(title, playButton, passButton, exchangeButton, cancelPlacementButton,
-        separator(), undoButton, redoButton, separator(), newGameButton, onlineButton, separator(),
-        saveButton, loadButton, separator(), quitButton);
+    HBox titleBar = new HBox(8);
+    titleBar.setAlignment(Pos.CENTER_LEFT);
+    Region spacer = new Region();
+    HBox.setHgrow(spacer, Priority.ALWAYS);
+    titleBar.getChildren().addAll(title, spacer, helpButton);
+    titleBar.setPadding(new Insets(0, 0, 8, 0));
+
+    this.getChildren().addAll(titleBar, playButton, passButton, exchangeButton,
+        cancelPlacementButton, separator(), undoButton, redoButton);
   }
 
   private Button createButton(String text, String color) {
@@ -134,47 +135,25 @@ public class ControlPanel extends VBox {
   }
 
   /**
-   * Returns the new game button.
+   * Returns the help button.
    *
-   * @return the new game button.
+   * @return the help button.
    */
-  public Button getNewGameButton() {
-    return newGameButton;
+  public Button getHelpButton() {
+    return helpButton;
   }
 
   /**
-   * Returns the online multiplayer button.
+   * Enables or disables only gameplay-related controls.
    *
-   * @return the online multiplayer button.
+   * @param disabled true to disable gameplay controls
    */
-  public Button getOnlineButton() {
-    return onlineButton;
-  }
-
-  /**
-   * Returns the save button.
-   *
-   * @return the save button.
-   */
-  public Button getSaveButton() {
-    return saveButton;
-  }
-
-  /**
-   * Returns the load button.
-   *
-   * @return the load button.
-   */
-  public Button getLoadButton() {
-    return loadButton;
-  }
-
-  /**
-   * Returns the quit button.
-   *
-   * @return the quit button.
-   */
-  public Button getQuitButton() {
-    return quitButton;
+  public void setGameplayButtonsDisabled(boolean disabled) {
+    playButton.setDisable(disabled);
+    passButton.setDisable(disabled);
+    exchangeButton.setDisable(disabled);
+    cancelPlacementButton.setDisable(disabled);
+    undoButton.setDisable(disabled);
+    redoButton.setDisable(disabled);
   }
 }
