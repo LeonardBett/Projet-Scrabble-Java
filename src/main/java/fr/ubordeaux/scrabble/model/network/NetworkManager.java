@@ -128,7 +128,7 @@ public class NetworkManager {
     gameServer = new GameServer();
 
     // We start the server in a Thread for not blocking this function with the while(true)
-    new Thread(gameServer::start).start();
+    new Thread(() -> gameServer.start(port)).start();
 
     // Since servers need to have a name but the command don't tell about it, I use for now the
     // System user's name

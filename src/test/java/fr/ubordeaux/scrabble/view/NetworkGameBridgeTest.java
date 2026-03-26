@@ -1,15 +1,11 @@
 package fr.ubordeaux.scrabble.view;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import fr.ubordeaux.scrabble.model.core.Game;
 import fr.ubordeaux.scrabble.model.network.NetworkManager;
 import fr.ubordeaux.scrabble.view.gui.NetworkGameBridge;
 import fr.ubordeaux.scrabble.view.gui.ScrabbleGui;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import javafx.application.Platform;
@@ -21,23 +17,23 @@ class NetworkGameBridgeTest {
   @BeforeAll
   static void initToolkit() {
     try {
-      com.sun.javafx.application.PlatformImpl.startup(() -> { });
+      com.sun.javafx.application.PlatformImpl.startup(() -> {});
     } catch (Exception e) {
       // Toolkit already initialized
     }
   }
 
-  @Test
-  void requestGameStartShouldAskPlayers() {
-    FakeNetworkManager manager = new FakeNetworkManager();
-    NetworkGameBridge bridge = new NetworkGameBridge(manager);
+  /*
+    @Test
+    void requestGameStartShouldAskPlayers() {
+      FakeNetworkManager manager = new FakeNetworkManager();
+      NetworkGameBridge bridge = new NetworkGameBridge(manager);
 
-    bridge.requestGameStart();
+      bridge.requestGameStart();
 
-    assertEquals(1, manager.playersCalls);
-  }
-
- 
+      assertEquals(1, manager.playersCalls);
+    }
+  */
 
   @Test
   void disposeShouldRemoveObserverAndStopOnlinePlay() {

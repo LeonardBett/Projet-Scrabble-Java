@@ -8,20 +8,22 @@ import java.util.List;
 import java.util.Map;
 import javafx.application.Platform;
 
-/** Bridges network observer callbacks to the JavaFX GUI and lobby views. */
+/**
+ * Bridges network observer callbacks to the JavaFX GUI and lobby views. It listens to network
+ * events (via NetworkObserver) and updates the UI accordingly by forwarding the data to the
+ * appropriate view (ScrabbleGui or NetworkLobbyView). All UI updates are wrapped in
+ * Platform.runLater() to ensure thread safety with JavaFX.
+ */
 public class NetworkGameBridge implements NetworkObserver {
 
   private final NetworkManager networkManager;
   private ScrabbleGui gui;
   private NetworkLobbyView lobbyView;
 
-  // Le modèle local synchronisé par le serveur
-  private Game localGame;
-
   /**
-   * Constructor for NetworkGameBridge.
+   * Constructs the bridge and registers it as an observer to the NetworkManager.
    *
-   * @param networkManager the network manager instance
+   * @param networkManager the network manager instance handling the client/server logic.
    */
   public NetworkGameBridge(NetworkManager networkManager) {
     this.networkManager = networkManager;
@@ -29,38 +31,38 @@ public class NetworkGameBridge implements NetworkObserver {
   }
 
   /**
-   * Sets the GUI reference.
+   * Links the main game GUI to this bridge.
    *
-   * @param gui the GUI instance
+   * @param gui the ScrabbleGui instance.
    */
   public void setGui(ScrabbleGui gui) {
     this.gui = gui;
   }
 
   /**
-   * Sets the lobby view reference.
+   * Links the lobby view to this bridge.
    *
-   * @param lobbyView the lobby view instance
+   * @param lobbyView the NetworkLobbyView instance.
    */
   public void setLobbyView(NetworkLobbyView lobbyView) {
     this.lobbyView = lobbyView;
   }
 
   /**
-   * Returns the network manager.
+   * Gets the associated network manager.
    *
-   * @return the network manager instance
+   * @return the network manager instance.
    */
   public NetworkManager getNetworkManager() {
     return networkManager;
   }
 
-  // ─── NetworkObserver ──────────────────────────────────────────────────────
+  // ─── Core Game Updates ────────────────────────────────────────────────────
 
   /**
-   * Appelé quand le modèle local (board, rack, scores) est mis à jour par le serveur. Si c'est le
-   * premier update (GAME_START), bascule la GUI sur le modèle réseau. Sinon, rafraîchit simplement
-   * l'affichage.
+   * Triggered when the local game model is updated by the server. If the GUI is not yet in online
+   * mode (first update), it switches to the online view. Otherwise, it just refreshes the board,
+   * rack, and scores.
    */
   @Override
   public void localModelUpdate() {
@@ -69,29 +71,32 @@ public class NetworkGameBridge implements NetworkObserver {
           if (gui == null) {
             return;
           }
+
           Game onlineGame = networkManager.getLocalGame();
           if (onlineGame == null) {
             return;
           }
 
           if (!gui.isOnlineMode()) {
-            // Première fois : bascule la GUI en mode online
             gui.switchToOnlineGame(onlineGame);
           } else {
-            // Déjà en mode online : rafraîchit juste l'affichage
             gui.refreshAll();
           }
         });
   }
 
-  /** Appelé quand la partie se termine (victoire, déconnexion, abandon). */
+  /**
+   * Triggered when the game ends (win, draw, or disconnection).
+   *
+   * @param reason the string describing why the game ended.
+   */
   @Override
   public void gameEndedUpdate(String reason) {
     Platform.runLater(
         () -> {
           if (gui != null) {
             gui.exitOnlineMode();
-            gui.showInfo("Partie terminée", reason);
+            gui.showInfo("Partie terminee", reason);
           }
           if (lobbyView != null) {
             lobbyView.onGameEnded(reason);
@@ -99,7 +104,13 @@ public class NetworkGameBridge implements NetworkObserver {
         });
   }
 
-  /** Appelé en réponse à la commande SERVER_STATUS. */
+  // ─── Lobby & Server Info Updates ──────────────────────────────────────────
+
+  /**
+   * Triggered when the server sends its global status.
+   *
+   * @param info a map containing server stats (PORT, CLIENTS, GAMES).
+   */
   @Override
   public void serverStatusUpdate(Map<String, String> info) {
     Platform.runLater(
@@ -110,21 +121,10 @@ public class NetworkGameBridge implements NetworkObserver {
         });
   }
 
-  // Flag activé uniquement quand l'hôte clique "Lancer la partie"
-  private boolean pendingGameStart = false;
-
   /**
-   * Appelé par le lobby quand l'hôte clique sur "Lancer la partie". Déclenche la récupération de la
-   * liste des joueurs puis envoie NEW.
-   */
-  public void requestGameStart() {
-    pendingGameStart = true;
-    networkManager.players();
-  }
-
-  /**
-   * Appelé en réponse à la commande PLAYERS. Met à jour le lobby et, si l'hôte a explicitement
-   * demandé le lancement, envoie la commande NEW.
+   * Triggered when the server sends the updated list of connected players.
+   *
+   * @param players a list of maps containing player data (ID, NAME, STATUS).
    */
   @Override
   public void playersUpdate(List<Map<String, String>> players) {
@@ -133,36 +133,14 @@ public class NetworkGameBridge implements NetworkObserver {
           if (lobbyView != null) {
             lobbyView.onPlayersReceived(players);
           }
-
-          if (pendingGameStart && players.size() >= 2) {
-            pendingGameStart = false;
-
-            int[] ids =
-                players.stream()
-                    .mapToInt(
-                        p -> {
-                          try {
-                            return Integer.parseInt(p.getOrDefault("ID", "0"));
-                          } catch (NumberFormatException ex) {
-                            return 0;
-                          }
-                        })
-                    .filter(id -> id > 0)
-                    .sorted()
-                    .toArray();
-
-            if (ids.length == 2) {
-              networkManager.newPlayerId(ids[1]);
-            } else if (ids.length == 3) {
-              networkManager.newPlayerId(ids[1], ids[2]);
-            } else if (ids.length >= 4) {
-              networkManager.newPlayerId(ids[1], ids[2], ids[3]);
-            }
-          }
         });
   }
 
-  /** Appelé en réponse à la commande SCOREBOARD. */
+  /**
+   * Triggered when the server sends the scoreboard data.
+   *
+   * @param scoreboard a list of maps containing player statistics.
+   */
   @Override
   public void scoreboardUpdate(List<Map<String, String>> scoreboard) {
     Platform.runLater(
@@ -173,7 +151,11 @@ public class NetworkGameBridge implements NetworkObserver {
         });
   }
 
-  /** Appelé quand la liste des serveurs disponibles sur le réseau change. */
+  /**
+   * Triggered by the UDP discovery service when local servers are found.
+   *
+   * @param activeServers a list of discovered server information objects.
+   */
   @Override
   public void serverListUpdate(List<ServerInfo> activeServers) {
     Platform.runLater(
@@ -184,7 +166,11 @@ public class NetworkGameBridge implements NetworkObserver {
         });
   }
 
-  /** Appelé pour les messages génériques du serveur (ping, erreurs, etc.). */
+  /**
+   * Triggered when a generic text message is received from the server.
+   *
+   * @param message the message string.
+   */
   @Override
   public void messageUpdate(String message) {
     Platform.runLater(
@@ -195,39 +181,94 @@ public class NetworkGameBridge implements NetworkObserver {
         });
   }
 
+  // ─── F40: Invitation System Updates ───────────────────────────────────────
+
+  /**
+   * Triggered when this client receives an invitation from another player.
+   *
+   * @param from the name of the player who sent the invitation.
+   */
   @Override
   public void invitationReceivedUpdate(String from) {
-
+    Platform.runLater(
+        () -> {
+          if (lobbyView != null) {
+            lobbyView.onInvitationReceived(from);
+          }
+        });
   }
 
+  /**
+   * Triggered when an invited player accepts the invitation.
+   *
+   * @param playerAccepted the name of the player who accepted.
+   */
   @Override
   public void invitationAcceptedUpdate(String playerAccepted) {
-
+    Platform.runLater(
+        () -> {
+          if (lobbyView != null) {
+            lobbyView.onMessageReceived(playerAccepted + " a accepte l'invitation.");
+          }
+        });
   }
 
+  /**
+   * Triggered when an invited player declines the invitation.
+   *
+   * @param playerDeclined the name of the player who declined.
+   */
   @Override
   public void invitationDeclinedUpdate(String playerDeclined) {
-
+    Platform.runLater(
+        () -> {
+          if (lobbyView != null) {
+            lobbyView.onMessageReceived(playerDeclined + " a refuse l'invitation.");
+          }
+        });
   }
 
+  /**
+   * Triggered when a pending invitation is cancelled (by the host or by the server).
+   *
+   * @param reason the reason for the cancellation.
+   */
   @Override
   public void invitationCancelledUpdate(String reason) {
-
+    Platform.runLater(
+        () -> {
+          if (lobbyView != null) {
+            lobbyView.onInvitationCancelled(reason);
+          }
+        });
   }
 
+  /**
+   * Triggered when detailed player information is received.
+   *
+   * @param playerInfo map containing player details.
+   */
   @Override
   public void playersPlayerIdUpdate(Map<String, String> playerInfo) {
-
+    Platform.runLater(
+        () -> {
+          if (lobbyView != null) {
+            lobbyView.onPlayerDetailsReceived(playerInfo);
+          }
+        });
   }
 
   @Override
   public void playerStatusUpdate(String status) {
-
+    // Not explicitly used in the current GUI implementation
   }
 
-  // ─── Nettoyage ────────────────────────────────────────────────────────────
+  // ─── Cleanup ──────────────────────────────────────────────────────────────
 
-  /** À appeler quand on ferme l'application pour se désenregistrer proprement. */
+  /**
+   * Cleans up the bridge by removing it from the observers list and stopping network play. Should
+   * be called when the application is closing.
+   */
   public void dispose() {
     networkManager.removeObserver(this);
     networkManager.stopOnlinePlay();
