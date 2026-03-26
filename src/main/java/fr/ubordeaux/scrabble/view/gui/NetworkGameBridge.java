@@ -8,9 +8,7 @@ import java.util.List;
 import java.util.Map;
 import javafx.application.Platform;
 
-/**
- * Bridges network observer callbacks to the JavaFX GUI and lobby views.
- */
+/** Bridges network observer callbacks to the JavaFX GUI and lobby views. */
 public class NetworkGameBridge implements NetworkObserver {
 
   private final NetworkManager networkManager;
@@ -66,59 +64,58 @@ public class NetworkGameBridge implements NetworkObserver {
    */
   @Override
   public void localModelUpdate() {
-    Platform.runLater(() -> {
-      if (gui == null) {
-        return;
-      }
-      Game onlineGame = networkManager.getLocalGame();
-      if (onlineGame == null) {
-        return;
-      }
+    Platform.runLater(
+        () -> {
+          if (gui == null) {
+            return;
+          }
+          Game onlineGame = networkManager.getLocalGame();
+          if (onlineGame == null) {
+            return;
+          }
 
-      if (!gui.isOnlineMode()) {
-        // Première fois : bascule la GUI en mode online
-        gui.switchToOnlineGame(onlineGame);
-      } else {
-        // Déjà en mode online : rafraîchit juste l'affichage
-        gui.refreshAll();
-      }
-    });
+          if (!gui.isOnlineMode()) {
+            // Première fois : bascule la GUI en mode online
+            gui.switchToOnlineGame(onlineGame);
+          } else {
+            // Déjà en mode online : rafraîchit juste l'affichage
+            gui.refreshAll();
+          }
+        });
   }
 
-  /**
-   * Appelé quand la partie se termine (victoire, déconnexion, abandon).
-   */
+  /** Appelé quand la partie se termine (victoire, déconnexion, abandon). */
   @Override
   public void gameEndedUpdate(String reason) {
-    Platform.runLater(() -> {
-      if (gui != null) {
-        gui.exitOnlineMode();
-        gui.showInfo("Partie terminée", reason);
-      }
-      if (lobbyView != null) {
-        lobbyView.onGameEnded(reason);
-      }
-    });
+    Platform.runLater(
+        () -> {
+          if (gui != null) {
+            gui.exitOnlineMode();
+            gui.showInfo("Partie terminée", reason);
+          }
+          if (lobbyView != null) {
+            lobbyView.onGameEnded(reason);
+          }
+        });
   }
 
-  /**
-   * Appelé en réponse à la commande SERVER_STATUS.
-   */
+  /** Appelé en réponse à la commande SERVER_STATUS. */
   @Override
   public void serverStatusUpdate(Map<String, String> info) {
-    Platform.runLater(() -> {
-      if (lobbyView != null) {
-        lobbyView.onServerStatusReceived(info);
-      }
-    });
+    Platform.runLater(
+        () -> {
+          if (lobbyView != null) {
+            lobbyView.onServerStatusReceived(info);
+          }
+        });
   }
 
   // Flag activé uniquement quand l'hôte clique "Lancer la partie"
   private boolean pendingGameStart = false;
 
   /**
-   * Appelé par le lobby quand l'hôte clique sur "Lancer la partie".
-   * Déclenche la récupération de la liste des joueurs puis envoie NEW.
+   * Appelé par le lobby quand l'hôte clique sur "Lancer la partie". Déclenche la récupération de la
+   * liste des joueurs puis envoie NEW.
    */
   public void requestGameStart() {
     pendingGameStart = true;
@@ -126,82 +123,81 @@ public class NetworkGameBridge implements NetworkObserver {
   }
 
   /**
-   * Appelé en réponse à la commande PLAYERS. Met à jour le lobby et, si l'hôte
-   * a explicitement demandé le lancement, envoie la commande NEW.
+   * Appelé en réponse à la commande PLAYERS. Met à jour le lobby et, si l'hôte a explicitement
+   * demandé le lancement, envoie la commande NEW.
    */
   @Override
   public void playersUpdate(List<Map<String, String>> players) {
-    Platform.runLater(() -> {
-      if (lobbyView != null) {
-        lobbyView.onPlayersReceived(players);
-      }
+    Platform.runLater(
+        () -> {
+          if (lobbyView != null) {
+            lobbyView.onPlayersReceived(players);
+          }
 
-      if (pendingGameStart && players.size() >= 2) {
-        pendingGameStart = false;
+          if (pendingGameStart && players.size() >= 2) {
+            pendingGameStart = false;
 
-        int[] ids = players.stream()
-            .mapToInt(p -> {
-              try {
-                return Integer.parseInt(p.getOrDefault("ID", "0"));
-              } catch (NumberFormatException ex) {
-                return 0;
-              }
-            })
-            .filter(id -> id > 0)
-            .toArray();
+            int[] ids =
+                players.stream()
+                    .mapToInt(
+                        p -> {
+                          try {
+                            return Integer.parseInt(p.getOrDefault("ID", "0"));
+                          } catch (NumberFormatException ex) {
+                            return 0;
+                          }
+                        })
+                    .filter(id -> id > 0)
+                    .sorted()
+                    .toArray();
 
-        if (ids.length == 2) {
-          networkManager.newPlayerId(ids[1]);
-        } else if (ids.length == 3) {
-          networkManager.newPlayerId(ids[1], ids[2]);
-        } else if (ids.length >= 4) {
-          networkManager.newPlayerId(ids[1], ids[2], ids[3]);
-        }
-      }
-    });
+            if (ids.length == 2) {
+              networkManager.newPlayerId(ids[1]);
+            } else if (ids.length == 3) {
+              networkManager.newPlayerId(ids[1], ids[2]);
+            } else if (ids.length >= 4) {
+              networkManager.newPlayerId(ids[1], ids[2], ids[3]);
+            }
+          }
+        });
   }
 
-  /**
-   * Appelé en réponse à la commande SCOREBOARD.
-   */
+  /** Appelé en réponse à la commande SCOREBOARD. */
   @Override
   public void scoreboardUpdate(List<Map<String, String>> scoreboard) {
-    Platform.runLater(() -> {
-      if (lobbyView != null) {
-        lobbyView.onScoreboardReceived(scoreboard);
-      }
-    });
+    Platform.runLater(
+        () -> {
+          if (lobbyView != null) {
+            lobbyView.onScoreboardReceived(scoreboard);
+          }
+        });
   }
 
-  /**
-   * Appelé quand la liste des serveurs disponibles sur le réseau change.
-   */
+  /** Appelé quand la liste des serveurs disponibles sur le réseau change. */
   @Override
   public void serverListUpdate(List<ServerInfo> activeServers) {
-    Platform.runLater(() -> {
-      if (lobbyView != null) {
-        lobbyView.onServerListUpdated(activeServers);
-      }
-    });
+    Platform.runLater(
+        () -> {
+          if (lobbyView != null) {
+            lobbyView.onServerListUpdated(activeServers);
+          }
+        });
   }
 
-  /**
-   * Appelé pour les messages génériques du serveur (ping, erreurs, etc.).
-   */
+  /** Appelé pour les messages génériques du serveur (ping, erreurs, etc.). */
   @Override
   public void messageUpdate(String message) {
-    Platform.runLater(() -> {
-      if (lobbyView != null) {
-        lobbyView.onMessageReceived(message);
-      }
-    });
+    Platform.runLater(
+        () -> {
+          if (lobbyView != null) {
+            lobbyView.onMessageReceived(message);
+          }
+        });
   }
 
   // ─── Nettoyage ────────────────────────────────────────────────────────────
 
-  /**
-   * À appeler quand on ferme l'application pour se désenregistrer proprement.
-   */
+  /** À appeler quand on ferme l'application pour se désenregistrer proprement. */
   public void dispose() {
     networkManager.removeObserver(this);
     networkManager.stopOnlinePlay();
