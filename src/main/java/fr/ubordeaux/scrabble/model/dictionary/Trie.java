@@ -3,7 +3,8 @@ package fr.ubordeaux.scrabble.model.dictionary;
 import java.util.ArrayList;
 
 /**
- * Implementation of a prefix tree (Trie) for efficient word storage and prefix searching.
+ * Implementation of a prefix tree (Trie) for efficient word storage and prefix
+ * searching.
  */
 public class Trie {
   /**

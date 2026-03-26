@@ -1,4 +1,4 @@
-package fr.ubordeaux.scrabble.model.core;
+package fr.ubordeaux.scrabble.model.dictionary.core;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -12,7 +12,8 @@ import org.junit.jupiter.api.Test;
 class ScoringTest {
 
   /**
-   * Test that word score calculation correctly applies letter and word multipliers only to newly
+   * Test that word score calculation correctly applies letter and word
+   * multipliers only to newly
    * placed tiles, not to tiles already on the board.
    */
   @Test
@@ -27,7 +28,8 @@ class ScoringTest {
   }
 
   /**
-   * Test that placing all 7 tiles from the rack (a "bingo") adds a 50-point bonus to the word
+   * Test that placing all 7 tiles from the rack (a "bingo") adds a 50-point bonus
+   * to the word
    * score.
    */
   @Test
@@ -43,7 +45,8 @@ class ScoringTest {
   }
 
   /**
-   * Test that calculateWordScore validates its inputs and throws appropriate exceptions for null
+   * Test that calculateWordScore validates its inputs and throws appropriate
+   * exceptions for null
    * parameters, empty squares, or squares without tiles.
    */
   @Test
@@ -61,7 +64,8 @@ class ScoringTest {
   }
 
   /**
-   * Test that the bingo bonus returns 50 points only when exactly 7 tiles (rack maximum) are
+   * Test that the bingo bonus returns 50 points only when exactly 7 tiles (rack
+   * maximum) are
    * placed, and 0 otherwise.
    */
   @Test

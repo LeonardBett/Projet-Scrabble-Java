@@ -1,4 +1,4 @@
-package fr.ubordeaux.scrabble.model.core;
+package fr.ubordeaux.scrabble.model.dictionary.core;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -25,8 +25,8 @@ class MoveHandlerTest {
     final MoveHandler handler = new MoveHandler(game);
 
     alice.getRack().setTiles(new ArrayList<>(List.of(new Tile('a'))));
-    Move move =
-        Move.createPlay(alice, List.of(new Tile('a')), new Point(0, 0), Direction.HORIZONTAL);
+    Move move = Move.createPlay(alice, List.of(new Tile('a')),
+        new Point(0, 0), Direction.HORIZONTAL);
 
     assertThrows(IllegalArgumentException.class, () -> handler.handlePlayMove(move));
   }
@@ -42,8 +42,8 @@ class MoveHandlerTest {
     game.setFirstMoveDone(true);
 
     alice.getRack().setTiles(new ArrayList<>(List.of(new Tile('b'))));
-    Move move =
-        Move.createPlay(alice, List.of(new Tile('b')), new Point(7, 8), Direction.HORIZONTAL);
+    Move move = Move.createPlay(alice, List.of(new Tile('b')),
+        new Point(7, 8), Direction.HORIZONTAL);
 
     assertDoesNotThrow(() -> handler.handlePlayMove(move));
     assertNotNull(game.getBoard().getSquare(new Point(7, 8)).getTile());
@@ -57,8 +57,8 @@ class MoveHandlerTest {
     game.getBoard().getSquare(new Point(6, 7)).setTile(new Tile('c'));
     game.getBoard().getSquare(new Point(8, 7)).setTile(new Tile('t'));
 
-    String word =
-        handler.getCompleteWord(new Point(7, 7), Direction.HORIZONTAL, List.of(new Tile('a')));
+    String word = handler.getCompleteWord(new Point(7, 7),
+        Direction.HORIZONTAL, List.of(new Tile('a')));
 
     assertEquals("cat", word);
   }
@@ -82,8 +82,8 @@ class MoveHandlerTest {
     MoveHandler handler = new MoveHandler(game);
 
     alice.getRack().setTiles(new ArrayList<>(List.of(new Tile('a'))));
-    Move move =
-        Move.createPlay(alice, List.of(new Tile('a')), new Point(7, 7), Direction.HORIZONTAL);
+    Move move = Move.createPlay(alice, List.of(new Tile('a')),
+        new Point(7, 7), Direction.HORIZONTAL);
 
     handler.handlePlayMove(move);
 
@@ -102,8 +102,8 @@ class MoveHandlerTest {
     MoveHandler handler = new MoveHandler(game);
 
     alice.getRack().setTiles(new ArrayList<>());
-    Move move =
-        Move.createPlay(alice, List.of(new Tile('a')), new Point(7, 7), Direction.HORIZONTAL);
+    Move move = Move.createPlay(alice, List.of(new Tile('a')),
+        new Point(7, 7), Direction.HORIZONTAL);
 
     assertThrows(IllegalArgumentException.class, () -> handler.handlePlayMove(move));
   }
@@ -119,8 +119,8 @@ class MoveHandlerTest {
     game.getBoard().getSquare(new Point(7, 7)).setTile(new Tile('a'));
     alice.getRack().setTiles(new ArrayList<>(List.of(new Tile('b'))));
 
-    Move move =
-        Move.createPlay(alice, List.of(new Tile('b')), new Point(0, 0), Direction.HORIZONTAL);
+    Move move = Move.createPlay(alice, List.of(new Tile('b')),
+        new Point(0, 0), Direction.HORIZONTAL);
 
     assertThrows(IllegalArgumentException.class, () -> handler.handlePlayMove(move));
   }
@@ -174,8 +174,8 @@ class MoveHandlerTest {
     assertDoesNotThrow(() -> handler.revertMove(Move.createPass(alice)));
 
     alice.getRack().setTiles(new ArrayList<>(List.of(new Tile('a'))));
-    Move play =
-        Move.createPlay(alice, List.of(new Tile('a')), new Point(7, 7), Direction.HORIZONTAL);
+    Move play = Move.createPlay(alice, List.of(new Tile('a')),
+        new Point(7, 7), Direction.HORIZONTAL);
     handler.handlePlayMove(play);
     int scoreAfterPlay = alice.getScore();
 
@@ -197,8 +197,8 @@ class MoveHandlerTest {
     computePositions.setAccessible(true);
 
     @SuppressWarnings("unchecked")
-    List<Point> positions =
-        (List<Point>) computePositions.invoke(handler, new Point(0, 0), Direction.HORIZONTAL, 3);
+    List<Point> positions = (List<Point>) computePositions.invoke(
+        handler, new Point(0, 0), Direction.HORIZONTAL, 3);
     assertEquals(3, positions.size());
     assertEquals(new Point(2, 0), positions.get(2));
 
@@ -212,8 +212,8 @@ class MoveHandlerTest {
     Game game = new Game();
     MoveHandler handler = new MoveHandler(game);
 
-    Method validatePlacement =
-        MoveHandler.class.getDeclaredMethod("validatePlacement", List.class, List.class);
+    Method validatePlacement = MoveHandler.class.getDeclaredMethod(
+        "validatePlacement", List.class, List.class);
     validatePlacement.setAccessible(true);
 
     List<Point> offCenter = List.of(new Point(0, 0));

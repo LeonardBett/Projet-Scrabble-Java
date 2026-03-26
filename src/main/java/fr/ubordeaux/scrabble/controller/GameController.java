@@ -1,15 +1,15 @@
 package fr.ubordeaux.scrabble.controller;
 
-import fr.ubordeaux.scrabble.model.core.Board;
-import fr.ubordeaux.scrabble.model.core.Game;
-import fr.ubordeaux.scrabble.model.core.Move;
-import fr.ubordeaux.scrabble.model.core.MoveGenerator;
-import fr.ubordeaux.scrabble.model.core.MoveHandler;
-import fr.ubordeaux.scrabble.model.core.PlayableWord;
-import fr.ubordeaux.scrabble.model.core.Scoring;
-import fr.ubordeaux.scrabble.model.core.Square;
-import fr.ubordeaux.scrabble.model.core.Tile;
 import fr.ubordeaux.scrabble.model.dictionary.Gaddag;
+import fr.ubordeaux.scrabble.model.dictionary.core.Board;
+import fr.ubordeaux.scrabble.model.dictionary.core.Game;
+import fr.ubordeaux.scrabble.model.dictionary.core.Move;
+import fr.ubordeaux.scrabble.model.dictionary.core.MoveGenerator;
+import fr.ubordeaux.scrabble.model.dictionary.core.MoveHandler;
+import fr.ubordeaux.scrabble.model.dictionary.core.PlayableWord;
+import fr.ubordeaux.scrabble.model.dictionary.core.Scoring;
+import fr.ubordeaux.scrabble.model.dictionary.core.Square;
+import fr.ubordeaux.scrabble.model.dictionary.core.Tile;
 import fr.ubordeaux.scrabble.model.enums.Direction;
 import fr.ubordeaux.scrabble.model.enums.MoveType;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
@@ -24,13 +24,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Main controller (application logic). Handles user input, updates the model and the view.
- * Responsibilities: - Orchestrate communication between the view and the model - Manage application
+ * Main controller (application logic). Handles user input, updates the model
+ * and the view.
+ * Responsibilities: - Orchestrate communication between the view and the model
+ * - Manage application
  * logic (turns, validations) - Notify the view of model changes.
  */
 public class GameController {
-  private Game game;
-  private UserInterface view;
+  private final Game game;
+  private final UserInterface view;
   private Gaddag gaddag;
   private List<String> dictionaryList;
   private String lang = "en"; // Default
@@ -68,8 +70,10 @@ public class GameController {
   }
 
   /**
-   * Runs a CLI game loop if the provided view is a CliView. This will prompt for players (if
-   * missing), start the game and process player actions until the game ends or the user quits.
+   * Runs a CLI game loop if the provided view is a CliView. This will prompt for
+   * players (if
+   * missing), start the game and process player actions until the game ends or
+   * the user quits.
    */
   public void runCli() {
     new GameControllerAux(this).runCli();
@@ -110,18 +114,21 @@ public class GameController {
     return lang;
   }
 
-  /** Thread de surveillance blitz — affiche un avertissement toutes les minutes. */
+  /**
+   * Thread de surveillance blitz — affiche un avertissement toutes les minutes.
+   */
   private volatile Thread blitzWatcherThread;
 
   /**
-   * Starts a background thread that checks blitz time every second and warns the player
+   * Starts a background thread that checks blitz time every second and warns the
+   * player
    * at 5 minutes, 2 minutes and 1 minute remaining.
    *
    * @param cliView the CLI view used to display warnings
    */
   void startBlitzWatcher(CliView cliView) {
     blitzWatcherThread = new Thread(() -> {
-      final long[] warnedAt = {5 * 60_000L, 2 * 60_000L, 60_000L};
+      final long[] warnedAt = { 5 * 60_000L, 2 * 60_000L, 60_000L };
       boolean[] warned = new boolean[warnedAt.length];
 
       while (!Thread.currentThread().isInterrupted() && !game.isGameOver()) {
@@ -216,7 +223,8 @@ public class GameController {
   }
 
   /**
-   * Loads the lexicon into a simple List of strings to map ML index predictions to words.
+   * Loads the lexicon into a simple List of strings to map ML index predictions
+   * to words.
    *
    * @return A list of all valid words.
    */
@@ -364,8 +372,10 @@ public class GameController {
   }
 
   /**
-   * Generates and displays a hint for the current human player without ending their turn.
-   * Searches for the highest-scoring move that specifically uses fewer than 7 letters
+   * Generates and displays a hint for the current human player without ending
+   * their turn.
+   * Searches for the highest-scoring move that specifically uses fewer than 7
+   * letters
    * from the rack to avoid giving away a bingo/scrabble.
    */
   void provideHint() {
@@ -395,9 +405,10 @@ public class GameController {
           + bestLettersToUse.toString()
           + " to make a word of " + bestScore + " points.\n");
     } else {
-      view.displayMessage("\n Hint : No words shorter than 7"
-          +
-          "letters were found with your rack.\n");
+      view.displayMessage("""
+
+           Hint : No words shorter than 7 letters were found with your rack.
+          """);
     }
   }
 
@@ -406,7 +417,7 @@ public class GameController {
    * to form the simulated word.
    *
    * @param board The current game board.
-   * @param move The move being evaluated.
+   * @param move  The move being evaluated.
    * @return A list of characters required from the rack.
    */
   private List<Character> getLettersFromRack(Board board, PlayableWord move) {
@@ -415,9 +426,11 @@ public class GameController {
     int hookIndex = move.getGaddagRepresentation().indexOf('>') - 1;
 
     int startX = move.getDirection() == Direction.HORIZONTAL
-        ? move.getHookX() - hookIndex : move.getHookX();
+        ? move.getHookX() - hookIndex
+        : move.getHookX();
     int startY = move.getDirection() == Direction.VERTICAL
-        ? move.getHookY() - hookIndex : move.getHookY();
+        ? move.getHookY() - hookIndex
+        : move.getHookY();
 
     for (int i = 0; i < word.length(); i++) {
       int x = startX + (move.getDirection() == Direction.HORIZONTAL ? i : 0);
@@ -437,7 +450,7 @@ public class GameController {
    * then removes it to maintain the board's original state.
    *
    * @param board The current game board.
-   * @param move The move to evaluate.
+   * @param move  The move to evaluate.
    * @return The calculated score for the move.
    */
   private int simulateScoreForHint(Board board, PlayableWord move) {
@@ -448,9 +461,11 @@ public class GameController {
     int hookIndex = move.getGaddagRepresentation().indexOf('>') - 1;
 
     int startX = move.getDirection() == Direction.HORIZONTAL
-        ? move.getHookX() - hookIndex : move.getHookX();
+        ? move.getHookX() - hookIndex
+        : move.getHookX();
     int startY = move.getDirection() == Direction.VERTICAL
-        ? move.getHookY() - hookIndex : move.getHookY();
+        ? move.getHookY() - hookIndex
+        : move.getHookY();
 
     for (int i = 0; i < word.length(); i++) {
       int x = startX + (move.getDirection() == Direction.HORIZONTAL ? i : 0);

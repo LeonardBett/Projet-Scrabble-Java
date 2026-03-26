@@ -4,8 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import fr.ubordeaux.scrabble.model.core.Board;
-import fr.ubordeaux.scrabble.model.core.Tile;
+import fr.ubordeaux.scrabble.model.dictionary.core.Board;
+import fr.ubordeaux.scrabble.model.dictionary.core.Tile;
 import fr.ubordeaux.scrabble.model.utils.Point;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

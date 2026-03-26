@@ -1,12 +1,12 @@
 package fr.ubordeaux.scrabble.model.ai;
 
-import fr.ubordeaux.scrabble.model.core.Game;
-import fr.ubordeaux.scrabble.model.core.Move;
-import fr.ubordeaux.scrabble.model.core.MoveGenerator;
-import fr.ubordeaux.scrabble.model.core.PlayableWord;
-import fr.ubordeaux.scrabble.model.core.Square;
-import fr.ubordeaux.scrabble.model.core.Tile;
 import fr.ubordeaux.scrabble.model.dictionary.Gaddag;
+import fr.ubordeaux.scrabble.model.dictionary.core.Game;
+import fr.ubordeaux.scrabble.model.dictionary.core.Move;
+import fr.ubordeaux.scrabble.model.dictionary.core.MoveGenerator;
+import fr.ubordeaux.scrabble.model.dictionary.core.PlayableWord;
+import fr.ubordeaux.scrabble.model.dictionary.core.Square;
+import fr.ubordeaux.scrabble.model.dictionary.core.Tile;
 import fr.ubordeaux.scrabble.model.enums.Direction;
 import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
@@ -16,7 +16,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Represents an artificial player (AI). Can be augmented with a Machine Learning agent (MlAgent) to
+ * Represents an artificial player (AI). Can be augmented with a Machine
+ * Learning agent (MlAgent) to
  * predict words.
  */
 public class AiPlayer extends Player {
@@ -28,10 +29,10 @@ public class AiPlayer extends Player {
   /**
    * Constructs an AI Player with a defined difficulty and time limit.
    *
-   * @param name The name of the player.
-   * @param difficultyLevel Defines the search depth.
+   * @param name             The name of the player.
+   * @param difficultyLevel  Defines the search depth.
    * @param timeLimitSeconds The time limit allocated for the AI to play.
-   * @param color The color assigned to the player.
+   * @param color            The color assigned to the player.
    */
   public AiPlayer(String name, int difficultyLevel, int timeLimitSeconds, PlayerColor color) {
     super(name, color);
@@ -86,10 +87,11 @@ public class AiPlayer extends Player {
   }
 
   /**
-   * Analyzes the game state and executes the best action for the current turn. Integrates a
+   * Analyzes the game state and executes the best action for the current turn.
+   * Integrates a
    * fallback mechanism if the ML agent is missing or fails.
    *
-   * @param game The current game instance.
+   * @param game   The current game instance.
    * @param gaddag The Gaddag dictionary used to validate moves.
    */
   @Override

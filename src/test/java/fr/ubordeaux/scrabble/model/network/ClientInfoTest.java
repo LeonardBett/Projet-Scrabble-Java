@@ -5,7 +5,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 /**
- * Unit tests for ClientInfo class. Verifies player stats and network string formatting.
+ * Unit tests for ClientInfo class. Verifies player stats and network string
+ * formatting.
  */
 class ClientInfoTest {
 

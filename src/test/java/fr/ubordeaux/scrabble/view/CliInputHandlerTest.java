@@ -6,9 +6,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import fr.ubordeaux.scrabble.model.core.HumanPlayer;
-import fr.ubordeaux.scrabble.model.core.Move;
-import fr.ubordeaux.scrabble.model.core.Tile;
+import fr.ubordeaux.scrabble.model.dictionary.core.HumanPlayer;
+import fr.ubordeaux.scrabble.model.dictionary.core.Move;
+import fr.ubordeaux.scrabble.model.dictionary.core.Tile;
 import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
 import fr.ubordeaux.scrabble.view.cli.CliInputHandler;

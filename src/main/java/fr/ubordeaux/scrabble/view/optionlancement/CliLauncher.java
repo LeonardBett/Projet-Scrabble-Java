@@ -2,9 +2,8 @@ package fr.ubordeaux.scrabble.view.optionlancement;
 
 import fr.ubordeaux.scrabble.controller.GameController;
 import fr.ubordeaux.scrabble.model.ai.AiPlayer;
-import fr.ubordeaux.scrabble.model.core.Game;
-import fr.ubordeaux.scrabble.model.core.HumanPlayer;
-import fr.ubordeaux.scrabble.model.enums.GameMode;
+import fr.ubordeaux.scrabble.model.dictionary.core.Game;
+import fr.ubordeaux.scrabble.model.dictionary.core.HumanPlayer;
 import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.view.cli.CliView;
 import java.time.Duration;
@@ -15,22 +14,26 @@ import java.util.List;
  */
 public class CliLauncher {
 
-  private CliLauncher() {}
+  private CliLauncher() {
+  }
 
   /**
    * Starts the game in CLI mode with the given configuration.
-   * 
-   * <p>If {@code players} is 0, the number of players is asked interactively. 
-   * If {@code blitzMode} is true, enables blitz mode with {@code blitzMinutes} per player.
    *
-   * @param players the total number of players (0 = ask, 2-4 = use directly)
-   * @param aiColors the list of colors that should be controlled by AI
-   * @param blitzMode true to enable blitz mode
-   * @param blitzMinutes time limit per player in minutes (only used when blitzMode is true)
-   * @param aiTime AI thinking time in seconds
+   * <p>If {@code players} is 0, the number of players is asked interactively.
+   * If {@code blitzMode} is true, enables blitz mode with {@code blitzMinutes}
+   * per player.
+   *
+   * @param players         the total number of players (0 = ask, 2-4 = use
+   *                        directly)
+   * @param aiColors        the list of colors that should be controlled by AI
+   * @param blitzMode       true to enable blitz mode
+   * @param blitzMinutes    time limit per player in minutes (only used when
+   *                        blitzMode is true)
+   * @param aiTime          AI thinking time in seconds
    * @param useExptiminimax true to enable the Expectiminimax algorithm
-   * @param useMl true to enable the Machine Learning agent
-   * @param lang the dictionary language ("en" or "fr")
+   * @param useMl           true to enable the Machine Learning agent
+   * @param lang            the dictionary language ("en" or "fr")
    */
   public static void launch(int players, List<String> aiColors, boolean blitzMode, int blitzMinutes,
       int aiTime, boolean useExptiminimax, boolean useMl, String lang) {
@@ -64,7 +67,8 @@ public class CliLauncher {
       }
 
       if (isAi) {
-        // Le temps de réflexion 'aiTime' est maintenant correctement injecté au lieu du 5
+        // Le temps de réflexion 'aiTime' est maintenant correctement injecté au lieu du
+        // 5
         game.addPlayer(new AiPlayer("IA-" + color.name(), 3, aiTime, color));
       } else {
         game.addPlayer(new HumanPlayer("Player" + humanCount, color));

@@ -10,7 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Main entry point of the application. Parses command-line arguments and launches the appropriate
+ * Main entry point of the application. Parses command-line arguments and
+ * launches the appropriate
  * interface.
  */
 public class App {
@@ -61,7 +62,8 @@ public class App {
   }
 
   /**
-   * Starts the application and routes to CLI or GUI mode based on command-line options.
+   * Starts the application and routes to CLI or GUI mode based on command-line
+   * options.
    *
    * @param args Application command-line arguments.
    */
@@ -168,14 +170,16 @@ public class App {
   /**
    * Launches the Command Line Interface (CLI) mode.
    *
-   * @param players the number of players (0 = ask interactively)
-   * @param aiColors colors controlled by AI players
-   * @param blitzMode True if blitz mode is enabled.
-   * @param blitzMinutes Time limit per player in minutes (used only when blitzMode is true).
-   * @param aiTime The thinking time allocated for the AI in seconds.
+   * @param players         the number of players (0 = ask interactively)
+   * @param aiColors        colors controlled by AI players
+   * @param blitzMode       True if blitz mode is enabled.
+   * @param blitzMinutes    Time limit per player in minutes (used only when
+   *                        blitzMode is true).
+   * @param aiTime          The thinking time allocated for the AI in seconds.
    * @param useExptiminimax True if the AI should use the Exptiminimax algorithm.
-   * @param useMl True if the AI should use Machine Learning for word search.
-   * @param lang The language of the dictionary to load ("en" or "fr").
+   * @param useMl           True if the AI should use Machine Learning for word
+   *                        search.
+   * @param lang            The language of the dictionary to load ("en" or "fr").
    */
 
   private static void launchCli(int players, List<String> aiColors, boolean blitzMode,
@@ -184,19 +188,20 @@ public class App {
         useExptiminimax, useMl, lang);
   }
 
-
   /**
    * Launches the Graphical User Interface (GUI) mode.
    *
-   * @param args Application command-line arguments passed to JavaFX.
-   * @param players the number of players (0 = use default of 2)
-   * @param aiColors colors controlled by AI players
-   * @param blitzMode True if blitz mode is enabled.
-   * @param blitzMinutes Time limit per player in minutes (used only when blitzMode is true).
-   * @param aiTime The thinking time allocated for the AI in seconds.
+   * @param args            Application command-line arguments passed to JavaFX.
+   * @param players         the number of players (0 = use default of 2)
+   * @param aiColors        colors controlled by AI players
+   * @param blitzMode       True if blitz mode is enabled.
+   * @param blitzMinutes    Time limit per player in minutes (used only when
+   *                        blitzMode is true).
+   * @param aiTime          The thinking time allocated for the AI in seconds.
    * @param useExptiminimax True if the AI should use the Exptiminimax algorithm.
-   * @param useMl True if the AI should use Machine Learning for word search.
-   * @param lang The language of the dictionary to load ("en" or "fr").
+   * @param useMl           True if the AI should use Machine Learning for word
+   *                        search.
+   * @param lang            The language of the dictionary to load ("en" or "fr").
    */
   private static void launchGui(String[] args, int players, List<String> aiColors,
       boolean blitzMode, int blitzMinutes, int aiTime, boolean useExptiminimax, boolean useMl,
@@ -204,6 +209,5 @@ public class App {
     guiLauncherHandler.launch(args, players, aiColors, blitzMode, blitzMinutes, aiTime,
         useExptiminimax, useMl, lang);
   }
-
 
 }

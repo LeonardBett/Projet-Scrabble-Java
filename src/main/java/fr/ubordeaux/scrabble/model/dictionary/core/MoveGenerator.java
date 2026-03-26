@@ -1,4 +1,4 @@
-package fr.ubordeaux.scrabble.model.core;
+package fr.ubordeaux.scrabble.model.dictionary.core;
 
 import fr.ubordeaux.scrabble.model.dictionary.Gaddag;
 import fr.ubordeaux.scrabble.model.enums.Direction;
@@ -20,10 +20,11 @@ public class MoveGenerator {
   }
 
   /**
-   * Original method used by the game. It extracts the player's rack and delegates to the overloaded
+   * Original method used by the game. It extracts the player's rack and delegates
+   * to the overloaded
    * method.
    *
-   * @param game current game.
+   * @param game   current game.
    * @param gaddag dictionary structure used for lookups.
    * @return list of playable words for the current player.
    */
@@ -38,9 +39,9 @@ public class MoveGenerator {
   /**
    * Overloaded method used by the AI to simulate moves.
    *
-   * @param board board snapshot to evaluate.
+   * @param board     board snapshot to evaluate.
    * @param rackChars rack letters available for placement.
-   * @param gaddag dictionary structure used for lookups.
+   * @param gaddag    dictionary structure used for lookups.
    * @return list of playable words.
    */
   public List<PlayableWord> getPlayableWordsList(Board board, Character[] rackChars,
@@ -102,7 +103,8 @@ public class MoveGenerator {
   }
 
   /**
-   * Checks if the word fits, if the AI has the letters, AND if it doesn't create invalid
+   * Checks if the word fits, if the AI has the letters, AND if it doesn't create
+   * invalid
    * cross-words.
    */
   private boolean isPlayable(String word, String gaddagPath, int hookX, int hookY, Direction dir,
@@ -182,12 +184,13 @@ public class MoveGenerator {
   }
 
   /**
-   * Verifies that placing a new letter creates a valid perpendicular word on the board.
+   * Verifies that placing a new letter creates a valid perpendicular word on the
+   * board.
    */
   private boolean isValidCrossWord(Board board, int x, int y, char placedLetter, Direction mainDir,
       Gaddag gaddag) {
-    Direction crossDir =
-        (mainDir == Direction.HORIZONTAL) ? Direction.VERTICAL : Direction.HORIZONTAL;
+    Direction crossDir = (mainDir == Direction.HORIZONTAL)
+        ? Direction.VERTICAL : Direction.HORIZONTAL;
 
     // Find start of cross word
     int startX = x;
@@ -238,7 +241,8 @@ public class MoveGenerator {
   }
 
   /**
-   * Converts a player's rack into an array of characters, properly preserving blanks.
+   * Converts a player's rack into an array of characters, properly preserving
+   * blanks.
    */
   private Character[] rackToCharArray(Player player) {
     List<Tile> tiles = player.getRack().getTiles();

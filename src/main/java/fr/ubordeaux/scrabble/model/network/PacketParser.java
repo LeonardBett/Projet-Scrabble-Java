@@ -20,7 +20,8 @@ public class PacketParser {
   private final List<Map<String, String>> entries = new ArrayList<>();
 
   /**
-   * Create an instance of the PacketParser class It will be parsed automatically, no need to call a
+   * Create an instance of the PacketParser class It will be parsed automatically,
+   * no need to call a
    * method for that.
    *
    * @param rawMessage the raw message receive by the client form the server

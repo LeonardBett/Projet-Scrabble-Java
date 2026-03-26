@@ -11,7 +11,8 @@ import org.junit.jupiter.api.Test;
 class NodeTest {
 
   /**
-   * Test that a node is correctly initialized with a character and is not finite by default.
+   * Test that a node is correctly initialized with a character and is not finite
+   * by default.
    */
   @Test
   void nodeShouldInitializeCorrectly() {

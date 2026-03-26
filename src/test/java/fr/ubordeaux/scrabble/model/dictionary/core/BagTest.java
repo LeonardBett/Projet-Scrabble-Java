@@ -1,4 +1,4 @@
-package fr.ubordeaux.scrabble.model.core;
+package fr.ubordeaux.scrabble.model.dictionary.core;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -12,7 +12,8 @@ import org.junit.jupiter.api.Test;
 class BagTest {
 
   /**
-   * Test that the Bag constructor initializes with 102 tiles, which is the standard French Scrabble
+   * Test that the Bag constructor initializes with 102 tiles, which is the
+   * standard French Scrabble
    * tile distribution.
    */
   @Test
@@ -24,7 +25,8 @@ class BagTest {
   }
 
   /**
-   * Test that drawing a tile decreases the bag size and returns null when attempting to draw from
+   * Test that drawing a tile decreases the bag size and returns null when
+   * attempting to draw from
    * an empty bag.
    */
   @Test
@@ -44,7 +46,8 @@ class BagTest {
   }
 
   /**
-   * Test that putting tiles back into the bag correctly increases the bag size by the number of
+   * Test that putting tiles back into the bag correctly increases the bag size by
+   * the number of
    * tiles returned.
    */
   @Test
@@ -60,7 +63,8 @@ class BagTest {
   }
 
   /**
-   * Test that removing a specific tile from the bag returns true when the tile exists and false
+   * Test that removing a specific tile from the bag returns true when the tile
+   * exists and false
    * when the tile is not in the bag.
    */
   @Test

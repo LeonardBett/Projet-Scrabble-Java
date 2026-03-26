@@ -10,9 +10,9 @@ public class ClientInfo {
   private String name;
 
   // Stats needed for scoreboard
-  private int wins;
-  private int losses;
-  private int gamesPlayed;
+  private final int wins;
+  private final int losses;
+  private final int gamesPlayed;
 
   // Status of this player
   private PlayerStatus status;

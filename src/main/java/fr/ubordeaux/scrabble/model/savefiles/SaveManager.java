@@ -1,9 +1,9 @@
 package fr.ubordeaux.scrabble.model.savefiles;
 
-import fr.ubordeaux.scrabble.model.core.Board;
-import fr.ubordeaux.scrabble.model.core.Game;
-import fr.ubordeaux.scrabble.model.core.Move;
-import fr.ubordeaux.scrabble.model.core.Square;
+import fr.ubordeaux.scrabble.model.dictionary.core.Board;
+import fr.ubordeaux.scrabble.model.dictionary.core.Game;
+import fr.ubordeaux.scrabble.model.dictionary.core.Move;
+import fr.ubordeaux.scrabble.model.dictionary.core.Square;
 import fr.ubordeaux.scrabble.model.enums.Direction;
 import fr.ubordeaux.scrabble.model.enums.MoveType;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
@@ -27,9 +27,10 @@ public class SaveManager {
   }
 
   /**
-   * Saves the current game state, including settings, board, and history, into a text file.
+   * Saves the current game state, including settings, board, and history, into a
+   * text file.
    *
-   * @param game The current game instance to be saved.
+   * @param game     The current game instance to be saved.
    * @param filePath The destination path of the save file.
    * @throws IOException If an error occurs during file writing.
    */
@@ -75,7 +76,7 @@ public class SaveManager {
    * Serializes the 15x15 board into the save file using characters and dashes.
    *
    * @param writer The PrintWriter used to write the board state.
-   * @param board The game board containing the squares and tiles.
+   * @param board  The game board containing the squares and tiles.
    */
   private void saveBoard(PrintWriter writer, Board board) {
     for (int y = 0; y < 15; y++) {
@@ -95,8 +96,8 @@ public class SaveManager {
   /**
    * Serializes the list of moves performed during the game into the save file.
    *
-   * @param writer The PrintWriter used to write the history.
-   * @param game The current game instance (used for player mapping).
+   * @param writer  The PrintWriter used to write the history.
+   * @param game    The current game instance (used for player mapping).
    * @param history The list of moves to record.
    */
   private void saveHistory(PrintWriter writer, Game game, List<Move> history) {
@@ -130,7 +131,8 @@ public class SaveManager {
   }
 
   /**
-   * Converts a logical Point (x, y) into Scrabble coordinate notation (e.g., a1, h8).
+   * Converts a logical Point (x, y) into Scrabble coordinate notation (e.g., a1,
+   * h8).
    *
    * @param p The Point to convert.
    * @return The coordinate string representing the point on the board.

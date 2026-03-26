@@ -1,8 +1,8 @@
 package fr.ubordeaux.scrabble.model.interfaces;
 
-import fr.ubordeaux.scrabble.model.core.Game;
-import fr.ubordeaux.scrabble.model.core.Rack;
 import fr.ubordeaux.scrabble.model.dictionary.Gaddag;
+import fr.ubordeaux.scrabble.model.dictionary.core.Game;
+import fr.ubordeaux.scrabble.model.dictionary.core.Rack;
 import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import java.time.Duration;
 
@@ -106,7 +106,7 @@ public abstract class Player {
   /**
    * Plays one autonomous turn.
    *
-   * @param game Current game state.
+   * @param game   Current game state.
    * @param gaddag Dictionary used for move search.
    */
   public void playTurn(Game game, Gaddag gaddag) {

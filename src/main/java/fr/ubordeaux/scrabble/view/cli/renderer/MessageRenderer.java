@@ -21,7 +21,6 @@ public class MessageRenderer {
     System.out.println("Error : " + message);
   }
 
-
   /**
    * Displays a success message in green format.
    *

@@ -17,7 +17,8 @@ import javafx.scene.text.FontWeight;
 /**
  * Dialog to configure the number of players before starting a new game.
  *
- * <p>Returns the chosen player count as an Integer. MVC: pure view, no knowledge of Game.
+ * <p>Returns the chosen player count as an Integer. MVC: pure view, no knowledge
+ * of Game.
  */
 public class PlayerSetup extends Dialog<Integer> {
 
@@ -66,7 +67,8 @@ public class PlayerSetup extends Dialog<Integer> {
   }
 
   /**
-   * Shows the dialog and returns the chosen number of players, or empty if cancelled.
+   * Shows the dialog and returns the chosen number of players, or empty if
+   * cancelled.
    *
    * @return an Optional containing the player count, or empty if cancelled
    */

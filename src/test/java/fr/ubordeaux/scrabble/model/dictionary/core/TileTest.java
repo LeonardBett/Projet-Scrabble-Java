@@ -1,4 +1,4 @@
-package fr.ubordeaux.scrabble.model.core;
+package fr.ubordeaux.scrabble.model.dictionary.core;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -8,7 +8,8 @@ import org.junit.jupiter.api.Test;
 class TileTest {
 
   /**
-   * Test that the Tile constructor correctly assigns the character and retrieves its standard point
+   * Test that the Tile constructor correctly assigns the character and retrieves
+   * its standard point
    * value from the scoring system.
    */
   @Test
@@ -20,7 +21,8 @@ class TileTest {
   }
 
   /**
-   * Test that getStandardValue returns the correct Scrabble point values for various letters,
+   * Test that getStandardValue returns the correct Scrabble point values for
+   * various letters,
    * including high-value letters (J, Z) and blanks.
    */
   @Test
@@ -36,7 +38,8 @@ class TileTest {
   }
 
   /**
-   * Test that equals and hashCode methods work correctly based on the tile's character and value,
+   * Test that equals and hashCode methods work correctly based on the tile's
+   * character and value,
    * ensuring proper behavior in collections.
    */
   @Test

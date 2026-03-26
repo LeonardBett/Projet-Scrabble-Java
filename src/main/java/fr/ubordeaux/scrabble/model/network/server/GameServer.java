@@ -12,7 +12,8 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Game server for multiplayer mode. Manages client connections and network games.
+ * Game server for multiplayer mode. Manages client connections and network
+ * games.
  */
 public class GameServer {
 
@@ -229,7 +230,8 @@ public class GameServer {
   }
 
   /**
-   * Starts a new game between the initiator and a list of target players. Supports multiplayer
+   * Starts a new game between the initiator and a list of target players.
+   * Supports multiplayer
    * sessions (2 to 4 players total).
    *
    * @param initiator The client who sent the "new" command

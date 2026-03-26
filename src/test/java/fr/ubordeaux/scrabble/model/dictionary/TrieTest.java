@@ -36,7 +36,7 @@ class TrieTest {
    */
   @Test
   void addAllShouldInsertMultipleWords() {
-    String[] words = {"CAT", "CAR", "DOG"};
+    String[] words = { "CAT", "CAR", "DOG" };
     trie.addAll(words);
 
     assertEquals(3, trie.getWordCount());

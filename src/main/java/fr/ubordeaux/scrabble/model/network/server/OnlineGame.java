@@ -1,9 +1,9 @@
 package fr.ubordeaux.scrabble.model.network.server;
 
-import fr.ubordeaux.scrabble.model.core.Game;
-import fr.ubordeaux.scrabble.model.core.Move;
-import fr.ubordeaux.scrabble.model.core.Square;
-import fr.ubordeaux.scrabble.model.core.Tile;
+import fr.ubordeaux.scrabble.model.dictionary.core.Game;
+import fr.ubordeaux.scrabble.model.dictionary.core.Move;
+import fr.ubordeaux.scrabble.model.dictionary.core.Square;
+import fr.ubordeaux.scrabble.model.dictionary.core.Tile;
 import fr.ubordeaux.scrabble.model.enums.Direction;
 import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
@@ -74,7 +74,8 @@ public class OnlineGame {
   }
 
   /**
-   * Create the GAME_START message with the data of all participating players, then broadcast it to
+   * Create the GAME_START message with the data of all participating players,
+   * then broadcast it to
    * them.
    */
   private void broadcastGameStart() {
@@ -97,7 +98,8 @@ public class OnlineGame {
   }
 
   /**
-   * Sends the current full rack to a specific player. This ensures the client is always
+   * Sends the current full rack to a specific player. This ensures the client is
+   * always
    * synchronized with the server's authoritative model.
    *
    * @param handler the handler
@@ -107,8 +109,9 @@ public class OnlineGame {
     List<Tile> tiles = player.getRack().getTiles();
 
     // We create a simple message of characters: "A,B,C,Q,Z,Y,X"
-    String tilesMessage =
-        tiles.stream().map(t -> String.valueOf(t.getCharacter())).collect(Collectors.joining(","));
+    String tilesMessage = tiles.stream()
+        .map(t -> String.valueOf(t.getCharacter()))
+        .collect(Collectors.joining(","));
 
     handler.sendMessage("SET_RACK:TILES=" + tilesMessage);
   }
@@ -245,7 +248,8 @@ public class OnlineGame {
   }
 
   /**
-   * Serializes the entire board into a single string for synchronization. Empty squares are
+   * Serializes the entire board into a single string for synchronization. Empty
+   * squares are
    * represented by a dot (.).
    */
   private String getSerializedBoard() {
@@ -260,9 +264,11 @@ public class OnlineGame {
   }
 
   /**
-   * Terminates the game, notifies remaining players and cleans up server references.
+   * Terminates the game, notifies remaining players and cleans up server
+   * references.
    *
-   * @param reason The reason why the game is ending (e.g., "A player disconnected")
+   * @param reason The reason why the game is ending (e.g., "A player
+   *               disconnected")
    */
   public void terminateGame(String reason) {
     // Notify all remaining connected players

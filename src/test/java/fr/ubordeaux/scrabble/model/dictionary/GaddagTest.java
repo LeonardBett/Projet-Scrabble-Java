@@ -21,7 +21,8 @@ class GaddagTest {
   }
 
   /**
-   * Test that containsWord correctly identifies valid words in the dictionary and rejects
+   * Test that containsWord correctly identifies valid words in the dictionary and
+   * rejects
    * non-existent ones.
    */
   @Test
@@ -35,7 +36,8 @@ class GaddagTest {
   }
 
   /**
-   * Test that the Gaddag internal structure creates the necessary rotated paths for a word to allow
+   * Test that the Gaddag internal structure creates the necessary rotated paths
+   * for a word to allow
    * bidirectional search.
    */
   @Test
@@ -48,7 +50,8 @@ class GaddagTest {
   }
 
   /**
-   * Test that findWordsWithRackAndHook returns the correct words that can be formed using a
+   * Test that findWordsWithRackAndHook returns the correct words that can be
+   * formed using a
    * specific rack and a mandatory hook tile on the board.
    */
   @Test
@@ -57,7 +60,7 @@ class GaddagTest {
     gaddag.add("CAR");
     gaddag.add("DOG");
 
-    Character[] rack = {'A', 'T', 'R'};
+    Character[] rack = { 'A', 'T', 'R' };
     char hook = 'C';
 
     HashSet<Gaddag.GaddagResult> results = gaddag.findWordsWithRackAndHook(rack, hook);
@@ -73,7 +76,8 @@ class GaddagTest {
   }
 
   /**
-   * Test that the search is case-insensitive by ensuring words added in lower case are found when
+   * Test that the search is case-insensitive by ensuring words added in lower
+   * case are found when
    * searched in upper case.
    */
   @Test
@@ -85,7 +89,8 @@ class GaddagTest {
   }
 
   /**
-   * Test that findWordsWithRackAndHook correctly handles an empty rack by only returning the hook
+   * Test that findWordsWithRackAndHook correctly handles an empty rack by only
+   * returning the hook
    * if it is a valid 1-letter word (if applicable).
    */
   @Test
@@ -99,7 +104,8 @@ class GaddagTest {
   }
 
   /**
-   * Test the equals and hashCode of GaddagResult to ensure that HashSet correctly handles duplicate
+   * Test the equals and hashCode of GaddagResult to ensure that HashSet correctly
+   * handles duplicate
    * results.
    */
   @Test

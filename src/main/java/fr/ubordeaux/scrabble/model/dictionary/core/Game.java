@@ -1,4 +1,4 @@
-package fr.ubordeaux.scrabble.model.core;
+package fr.ubordeaux.scrabble.model.dictionary.core;
 
 import fr.ubordeaux.scrabble.model.enums.GameMode;
 import fr.ubordeaux.scrabble.model.enums.MoveType;
@@ -10,7 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The main game engine. Manages the board, players, turns, and executes moves. This is where the
+ * The main game engine. Manages the board, players, turns, and executes moves.
+ * This is where the
  * "business logic" resides.
  */
 public class Game {
@@ -139,7 +140,8 @@ public class Game {
   }
 
   /**
-   * Executes a player's move. This method acts as the referee: it validates and applies the
+   * Executes a player's move. This method acts as the referee: it validates and
+   * applies the
    * changes.
    *
    * @param move The move to execute.
@@ -378,7 +380,8 @@ public class Game {
   }
 
   /**
-   * Alias dedicated to external layers (CLI/network) to check whether the game has ended.
+   * Alias dedicated to external layers (CLI/network) to check whether the game
+   * has ended.
    *
    * @return true when the game is finished.
    */
@@ -414,7 +417,8 @@ public class Game {
   }
 
   /**
-   * Undo the last move(s). If the current player is human, it undoes their last move and any
+   * Undo the last move(s). If the current player is human, it undoes their last
+   * move and any
    * subsequent AI moves.
    */
   public void undo() {
@@ -472,7 +476,8 @@ public class Game {
   }
 
   /**
-   * Debug function to display the board and player stats in the terminal. Will be removed
+   * Debug function to display the board and player stats in the terminal. Will be
+   * removed
    *
    * @param showBonusSquare whether bonus square codes should be displayed.
    * @param clientMode      whether to display online synchronized bag size.
@@ -556,7 +561,8 @@ public class Game {
   }
 
   /**
-   * Synchronizes a player's rack with a specific list of tiles. Used for updating local game in
+   * Synchronizes a player's rack with a specific list of tiles. Used for updating
+   * local game in
    * network play.
    *
    * @param playerName target player name.
@@ -579,7 +585,8 @@ public class Game {
   }
 
   /**
-   * Synchronizes the board with a full board state string from the server. Used for updating local
+   * Synchronizes the board with a full board state string from the server. Used
+   * for updating local
    * game in network play.
    *
    * @param boardData serialized board state (225 chars for 15x15).

@@ -13,8 +13,10 @@ import org.tensorflow.ndarray.Shape;
 import org.tensorflow.types.TFloat32;
 
 /**
- * Machine learning agent for word search using TensorFlow. This class loads a pre-trained model to
- * predict valid dictionary words based on the letters available in a player's rack.
+ * Machine learning agent for word search using TensorFlow. This class loads a
+ * pre-trained model to
+ * predict valid dictionary words based on the letters available in a player's
+ * rack.
  */
 public class MlAgent implements AutoCloseable {
 
@@ -26,7 +28,8 @@ public class MlAgent implements AutoCloseable {
    * Constructs the MlAgent and gracefully handles missing models.
    *
    * @param modelPath  The path to the directory containing the SavedModel.
-   * @param dictionary A list of all valid words, indexed to match the model's output classes.
+   * @param dictionary A list of all valid words, indexed to match the model's
+   *                   output classes.
    */
   public MlAgent(String modelPath, List<String> dictionary) {
     this.dictionary = dictionary;
@@ -58,10 +61,12 @@ public class MlAgent implements AutoCloseable {
   }
 
   /**
-   * Predicts the best words to form given a string representing the player's rack. Returns an empty
+   * Predicts the best words to form given a string representing the player's
+   * rack. Returns an empty
    * list if the model is not loaded.
    *
-   * @param rack A string containing the characters available in the player's rack.
+   * @param rack A string containing the characters available in the player's
+   *             rack.
    * @param topK The number of top predictions to return.
    * @return A list of predicted words, ordered by confidence.
    */
@@ -81,10 +86,11 @@ public class MlAgent implements AutoCloseable {
       ndArray.setFloat(inputVector[i], 0, i);
     }
 
-    // Try-with-resources ensures Tensors and Result are safely closed to avoid memory leaks
+    // Try-with-resources ensures Tensors and Result are safely closed to avoid
+    // memory leaks
     try (TFloat32 inputTensor = TFloat32.tensorOf(ndArray);
-         Result output = this.model.session().runner().feed("serving_default_input:0", inputTensor)
-             .fetch("StatefulPartitionedCall:0").run()) {
+        Result output = this.model.session().runner().feed("serving_default_input:0", inputTensor)
+            .fetch("StatefulPartitionedCall:0").run()) {
 
       try (TFloat32 outputTensor = (TFloat32) output.get(0)) {
         predictedWords = getTopPredictions(outputTensor, topK);
@@ -117,7 +123,8 @@ public class MlAgent implements AutoCloseable {
   }
 
   /**
-   * Extracts the top K words based on the probability distribution output by the model.
+   * Extracts the top K words based on the probability distribution output by the
+   * model.
    *
    * @param outputTensor The tensor output containing probabilities.
    * @param topK         The number of words to extract.

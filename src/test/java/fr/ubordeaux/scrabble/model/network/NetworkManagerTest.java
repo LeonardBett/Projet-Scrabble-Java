@@ -8,8 +8,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * Deep integration tests for NetworkManager. Covers lifecycle, server/client management, and
- * command delegation. Since it's only a facade to other methods, we don't go deep into commands
+ * Deep integration tests for NetworkManager. Covers lifecycle, server/client
+ * management, and
+ * command delegation. Since it's only a facade to other methods, we don't go
+ * deep into commands
  * testing
  */
 class NetworkManagerTest {

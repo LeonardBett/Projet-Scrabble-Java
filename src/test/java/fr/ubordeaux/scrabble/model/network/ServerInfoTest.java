@@ -5,7 +5,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 /**
- * Unit tests for ServerInfo class. Focuses on data integrity and the expiration logic.
+ * Unit tests for ServerInfo class. Focuses on data integrity and the expiration
+ * logic.
  */
 class ServerInfoTest {
 

@@ -6,8 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import fr.ubordeaux.scrabble.model.ai.AiPlayer;
-import fr.ubordeaux.scrabble.model.core.Game;
-import fr.ubordeaux.scrabble.model.core.HumanPlayer;
+import fr.ubordeaux.scrabble.model.dictionary.core.Game;
+import fr.ubordeaux.scrabble.model.dictionary.core.HumanPlayer;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
@@ -46,7 +46,7 @@ class GuiLauncherCoverageTest {
 
   @Test
   void launchShouldInvokeConfiguredLaunchHandler() {
-    final boolean[] called = {false};
+    final boolean[] called = { false };
     GuiLauncher.setLaunchHandlerForTests((appClass, args) -> called[0] = true);
 
     GuiLauncher.launch(new String[] {}, 2, List.of(), false, 30, 5, false, false, "en");

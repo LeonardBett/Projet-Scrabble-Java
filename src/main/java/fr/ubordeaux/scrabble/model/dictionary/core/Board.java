@@ -1,10 +1,11 @@
-package fr.ubordeaux.scrabble.model.core;
+package fr.ubordeaux.scrabble.model.dictionary.core;
 
 import fr.ubordeaux.scrabble.model.factories.StandardBoardFactory;
 import fr.ubordeaux.scrabble.model.utils.Point;
 
 /**
- * Represents the game board (grid of squares). Manages the placement of tiles and special squares
+ * Represents the game board (grid of squares). Manages the placement of tiles
+ * and special squares
  * (bonuses).
  */
 public class Board {
@@ -19,18 +20,21 @@ public class Board {
    * Custom constructor: initializes the board with a given grid.
    *
    * @param board The grid of squares to use.
-   * @throws IllegalArgumentException if the board is null or has invalid dimensions.
+   * @throws IllegalArgumentException if the board is null or has invalid
+   *                                  dimensions.
    */
   public Board(Square[][] board) {
     this(board, SIZE);
   }
 
   /**
-   * Custom constructor: initializes the board with a given grid and explicit side size.
+   * Custom constructor: initializes the board with a given grid and explicit side
+   * size.
    *
    * @param board The grid of squares to use.
-   * @param size The expected side size.
-   * @throws IllegalArgumentException if the board is null or has invalid dimensions.
+   * @param size  The expected side size.
+   * @throws IllegalArgumentException if the board is null or has invalid
+   *                                  dimensions.
    */
   public Board(Square[][] board, int size) {
     if (size <= 0) {

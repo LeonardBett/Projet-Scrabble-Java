@@ -1,4 +1,4 @@
-package fr.ubordeaux.scrabble.model.core;
+package fr.ubordeaux.scrabble.model.dictionary.core;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -34,8 +34,8 @@ class GameAdvancedTest {
     game.addPlayer(alice);
 
     alice.getRack().setTiles(new ArrayList<>(List.of(new Tile('a'))));
-    Move play =
-        Move.createPlay(alice, List.of(new Tile('a')), new Point(7, 7), Direction.HORIZONTAL);
+    Move play = Move.createPlay(alice, List.of(new Tile('a')),
+        new Point(7, 7), Direction.HORIZONTAL);
 
     game.executeMove(play);
     assertNotNull(game.getBoard().getSquare(new Point(7, 7)).getTile());

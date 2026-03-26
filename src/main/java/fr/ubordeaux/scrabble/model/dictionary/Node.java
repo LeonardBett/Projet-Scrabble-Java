@@ -13,13 +13,13 @@ public class Node implements Comparable<Node> {
    */
   public static char root = '~';
 
-  private char content;
+  private final char content;
   private boolean finite = false;
 
   /**
    * Map of child nodes indexed by their character content.
    */
-  public TreeMap<Character, Node> children = new TreeMap<Character, Node>();
+  public TreeMap<Character, Node> children = new TreeMap<>();
 
   /**
    * Retrieves the character content of this node.
@@ -116,7 +116,8 @@ public class Node implements Comparable<Node> {
   }
 
   /**
-   * Compares this node with another object for equality based on character content.
+   * Compares this node with another object for equality based on character
+   * content.
    *
    * @param o the object to compare against.
    * @return true if the other object is a Node with the same character content.
@@ -127,7 +128,8 @@ public class Node implements Comparable<Node> {
   }
 
   /**
-   * Compares this node to another based on alphabetical order of their characters.
+   * Compares this node to another based on alphabetical order of their
+   * characters.
    *
    * @param o the other node to compare against.
    * @return a negative, zero, or positive integer based on comparison.

@@ -3,9 +3,9 @@ package fr.ubordeaux.scrabble.model.network.client;
 import static fr.ubordeaux.scrabble.model.network.NetworkManager.DEFAULT_ADDRESS;
 import static fr.ubordeaux.scrabble.model.network.NetworkManager.DEFAULT_TCP_PORT;
 
-import fr.ubordeaux.scrabble.model.core.Game;
-import fr.ubordeaux.scrabble.model.core.HumanPlayer;
-import fr.ubordeaux.scrabble.model.core.Tile;
+import fr.ubordeaux.scrabble.model.dictionary.core.Game;
+import fr.ubordeaux.scrabble.model.dictionary.core.HumanPlayer;
+import fr.ubordeaux.scrabble.model.dictionary.core.Tile;
 import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
 import fr.ubordeaux.scrabble.model.network.NetworkObserver;
@@ -115,7 +115,7 @@ public class GameClient {
         PacketParser packetParser = new PacketParser(serverMessage);
 
         switch (packetParser.getCommand()) {
-          case "WELCOME":
+          case "WELCOME" -> {
             // The server send us our ID when connecting for the first time
             if (!packetParser.getEntries().isEmpty()) {
               this.myId = Integer.parseInt(packetParser.getEntries().getFirst().get("ID"));
@@ -124,35 +124,34 @@ public class GameClient {
                 obs.messageUpdate("Client : Connected to server, my ID on it is " + myId);
               }
             }
-            break;
+          }
 
-          case "PONG":
+          case "PONG" -> {
             long pingEndTime = System.currentTimeMillis();
             // System.out.println("Client : PONG TIME=" + (pingEndTime - pingStartTime) +
             // "ms");
             for (NetworkObserver obs : observers) {
               obs.messageUpdate("Client : PONG TIME=" + (pingEndTime - pingStartTime) + "ms");
             }
-            break;
+          }
 
-          case "PONGS":
-            break;
+          case "PONGS" -> {
+          }
 
-          case "SERVER_STATUS":
-            if (packetParser.getEntries().isEmpty()) {
-              break;
+          case "SERVER_STATUS" -> {
+            if (!packetParser.getEntries().isEmpty()) {
+              Map<String, String> info = packetParser.getEntries().getFirst();
+              // System.out.println("\n--- Remote Server Status ---");
+              // System.out.println("Port : " + info.get("PORT"));
+              // System.out.println("Clients connected : " + info.get("CLIENTS"));
+              // System.out.println("Games in progress : " + info.get("GAMES"));
+              for (NetworkObserver obs : observers) {
+                obs.serverStatusUpdate(info);
+              }
             }
-            Map<String, String> info = packetParser.getEntries().getFirst();
-            // System.out.println("\n--- Remote Server Status ---");
-            // System.out.println("Port : " + info.get("PORT"));
-            // System.out.println("Clients connected : " + info.get("CLIENTS"));
-            // System.out.println("Games in progress : " + info.get("GAMES"));
-            for (NetworkObserver obs : observers) {
-              obs.serverStatusUpdate(info);
-            }
-            break;
+          }
 
-          case "PLAYERS":
+          case "PLAYERS" -> {
             // System.out.println("\n--- Connected Players ---");
             // for (Map<String, String> player : packetParser.getEntries()) {
             // System.out.println(
@@ -167,9 +166,9 @@ public class GameClient {
             for (NetworkObserver obs : observers) {
               obs.playersUpdate(packetParser.getEntries());
             }
-            break;
+          }
 
-          case "SCOREBOARD":
+          case "SCOREBOARD" -> {
             // System.out.println("\n--- Server Scoreboard ---");
             // Iterate through the scoreboard and display stats (F39)
             // for (Map<String, String> stats : packetParser.getEntries()) {
@@ -185,9 +184,9 @@ public class GameClient {
             for (NetworkObserver obs : observers) {
               obs.scoreboardUpdate(packetParser.getEntries());
             }
-            break;
+          }
 
-          case "GAME_START":
+          case "GAME_START" -> {
             // System.out.println("\n--- Game Started ---");
             // We create a local model, which will only be updated with server data
             localGame = new Game();
@@ -210,10 +209,9 @@ public class GameClient {
             for (NetworkObserver obs : observers) {
               obs.localModelUpdate();
             }
+          }
 
-            break;
-
-          case "SET_RACK":
+          case "SET_RACK" -> {
             if (localGame != null && !packetParser.getEntries().isEmpty()) {
               String tilesStr = packetParser.getEntries().getFirst().get("TILES");
               if (tilesStr != null) {
@@ -251,56 +249,52 @@ public class GameClient {
                 }
               }
             }
-            break;
+          }
 
-          case "OPPONENT_MOVE":
+          case "OPPONENT_MOVE" -> {
             Map<String, String> move = packetParser.getEntries().getFirst();
             String type = move.get("TYPE");
 
             // We extract and get a Player objet from the move
             String playerName = move.get("PLAYER");
             Player player = localGame.getPlayerFromName(playerName);
-            if (player == null) {
-              // System.err.println("Player " + playerName + " not found");
-              break;
-            }
+            if (player != null) {
+              if ("PLAY".equals(type)) {
+                // We extract and sync the new board to the local model
+                String boardData = move.get("BOARD");
+                if (boardData != null) {
+                  localGame.syncBoard(boardData);
+                }
 
-            if ("PLAY".equals(type)) {
-              // We extract and sync the new board to the local model
-              String boardData = move.get("BOARD");
-              if (boardData != null) {
-                localGame.syncBoard(boardData);
+                // We extract and sync new score to the local model
+                int score = Integer.parseInt(move.get("SCORE"));
+                player.setScore(score);
+
+                // We extract and sync new bag size to the local model
+                int bagSizes = Integer.parseInt(move.get("BAG"));
+                localGame.getBag().setOnlineSize(bagSizes);
               }
 
-              // We extract and sync new score to the local model
-              int score = Integer.parseInt(move.get("SCORE"));
-              player.setScore(score);
+              // Change the turn of the local model
+              localGame.nextTurn();
 
-              // We extract and sync new bag size to the local model
-              int bagSizes = Integer.parseInt(move.get("BAG"));
-              localGame.getBag().setOnlineSize(bagSizes);
+              // Debug: print the board client side if it was not our play move
+              // if (!(playerName.equals("Player-" + myId) && ("PLAY".equals(type)))) {
+              // localGame.printDebugState(false, true);
+              // }
+
+              for (NetworkObserver obs : observers) {
+                obs.localModelUpdate();
+              }
             }
+          }
 
-            // Change the turn of the local model
-            localGame.nextTurn();
-
-            // Debug: print the board client side if it was not our play move
-            // if (!(playerName.equals("Player-" + myId) && ("PLAY".equals(type)))) {
-            // localGame.printDebugState(false, true);
-            // }
-
-            for (NetworkObserver obs : observers) {
-              obs.localModelUpdate();
-            }
-
-            break;
-
-          default:
+          default -> {
             // System.out.println("Client : Received: " + serverMessage);
             for (NetworkObserver obs : observers) {
               obs.messageUpdate(serverMessage);
             }
-            break;
+          }
         }
       }
     } catch (SocketException e) {
@@ -356,7 +350,6 @@ public class GameClient {
       out.println(message);
     } else {
       // System.err.println("Client : Client is not running/connected");
-      return;
     }
   }
 
@@ -425,8 +418,8 @@ public class GameClient {
    * @param playerId3 the target id of the player 3
    */
   public void sendNew(int playerId1, int playerId2, int playerId3) {
-    String message =
-        String.format("NEW:PLAYER1=%d;PLAYER2=%d;PLAYER3=%d", playerId1, playerId2, playerId3);
+    String message = String.format(
+        "NEW:PLAYER1=%d;PLAYER2=%d;PLAYER3=%d", playerId1, playerId2, playerId3);
     sendMessage(message);
   }
 
@@ -440,8 +433,8 @@ public class GameClient {
    */
   public void sendPlayMove(int x, int y, String direction, String tile) {
     // Format: MOVE:TYPE=PLAY;X=7;Y=7;DIR=H;WORD=CHAT
-    String message =
-        String.format("MOVE:TYPE=PLAY;X=%d;Y=%d;DIR=%s;TILES=%s", x, y, direction, tile);
+    String message = String.format(
+        "MOVE:TYPE=PLAY;X=%d;Y=%d;DIR=%s;TILES=%s", x, y, direction, tile);
     sendMessage(message);
   }
 
@@ -499,7 +492,6 @@ public class GameClient {
     if (!observers.remove(observer)) {
       // System.err.println("User : Observer not found, can't remove it from the
       // list");
-      return;
     }
   }
 

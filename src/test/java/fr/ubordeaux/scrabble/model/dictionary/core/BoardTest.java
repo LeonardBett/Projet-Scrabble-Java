@@ -1,4 +1,4 @@
-package fr.ubordeaux.scrabble.model.core;
+package fr.ubordeaux.scrabble.model.dictionary.core;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -12,7 +12,8 @@ import org.junit.jupiter.api.Test;
 class BoardTest {
 
   /**
-   * Test that the Board constructor rejects invalid inputs such as null grids or grids with
+   * Test that the Board constructor rejects invalid inputs such as null grids or
+   * grids with
    * incorrect dimensions.
    */
   @Test
@@ -24,7 +25,8 @@ class BoardTest {
   }
 
   /**
-   * Test that getSquare returns the correct square for valid coordinates and null for coordinates
+   * Test that getSquare returns the correct square for valid coordinates and null
+   * for coordinates
    * outside the board boundaries.
    */
   @Test
@@ -40,7 +42,8 @@ class BoardTest {
   }
 
   /**
-   * Test that the default Board constructor creates a standard Scrabble board with the correct
+   * Test that the default Board constructor creates a standard Scrabble board
+   * with the correct
    * special square types (triple word, double word, etc.).
    */
   @Test

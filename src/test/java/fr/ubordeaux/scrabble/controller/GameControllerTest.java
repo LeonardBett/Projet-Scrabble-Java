@@ -9,12 +9,12 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import fr.ubordeaux.scrabble.model.ai.AiPlayer;
-import fr.ubordeaux.scrabble.model.core.Game;
-import fr.ubordeaux.scrabble.model.core.HumanPlayer;
-import fr.ubordeaux.scrabble.model.core.Move;
-import fr.ubordeaux.scrabble.model.core.PlayableWord;
-import fr.ubordeaux.scrabble.model.core.Tile;
 import fr.ubordeaux.scrabble.model.dictionary.Gaddag;
+import fr.ubordeaux.scrabble.model.dictionary.core.Game;
+import fr.ubordeaux.scrabble.model.dictionary.core.HumanPlayer;
+import fr.ubordeaux.scrabble.model.dictionary.core.Move;
+import fr.ubordeaux.scrabble.model.dictionary.core.PlayableWord;
+import fr.ubordeaux.scrabble.model.dictionary.core.Tile;
 import fr.ubordeaux.scrabble.model.enums.Direction;
 import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.model.utils.Point;
@@ -112,11 +112,11 @@ class GameControllerTest {
     dictionary.add("ART");
     setDictionary(controller, dictionary);
 
-    Move move =
-        Move.createPlay(alice, List.of(new Tile('R')), new Point(7, 7), Direction.HORIZONTAL);
+    Move move = Move.createPlay(alice, List.of(new Tile('R')),
+        new Point(7, 7), Direction.HORIZONTAL);
 
-    RuntimeException error =
-        assertThrows(RuntimeException.class, () -> controller.handlePlayerMove(move));
+    RuntimeException error = assertThrows(RuntimeException.class,
+        () -> controller.handlePlayerMove(move));
     assertTrue(error.getMessage().contains("ZR"));
   }
 
@@ -149,9 +149,10 @@ class GameControllerTest {
 
     controller.setLang("en");
 
-    Move move =
-        Move.createPlay(alice, List.of(new Tile('R'), new Tile('U'), new Tile('E'), new Tile('S')),
-            new Point(7, 7), Direction.HORIZONTAL);
+    Move move = Move.createPlay(alice,
+        List.of(new Tile('R'), new Tile('U'),
+            new Tile('E'), new Tile('S')),
+        new Point(7, 7), Direction.HORIZONTAL);
 
     assertDoesNotThrow(() -> controller.handlePlayerMove(move));
     assertEquals(1, view.refreshCount);
@@ -444,11 +445,11 @@ class GameControllerTest {
     controller.setLang("en");
 
     @SuppressWarnings("unchecked")
-    List<String> firstLoad =
-        (List<String>) invokePrivateMethod(controller, "getOrLoadDictionaryList");
+    List<String> firstLoad = (List<String>) invokePrivateMethod(
+        controller, "getOrLoadDictionaryList");
     @SuppressWarnings("unchecked")
-    List<String> secondLoad =
-        (List<String>) invokePrivateMethod(controller, "getOrLoadDictionaryList");
+    List<String> secondLoad = (List<String>) invokePrivateMethod(
+        controller, "getOrLoadDictionaryList");
 
     assertNotNull(firstLoad);
     assertTrue(firstLoad.size() > 1000);
@@ -468,14 +469,20 @@ class GameControllerTest {
     PlayableWord move = new PlayableWord(7, 7, "AB", Direction.HORIZONTAL, "A>B");
 
     @SuppressWarnings("unchecked")
-    List<Character> letters = (List<Character>) invokePrivateMethod(controller,
-        "getLettersFromRack", new Class<?>[] {fr.ubordeaux.scrabble.model.core.Board.class,
-            PlayableWord.class}, game.getBoard(), move);
+    List<Character> letters = (List<Character>) invokePrivateMethod(
+        controller, "getLettersFromRack",
+        new Class<?>[] {
+            fr.ubordeaux.scrabble.model.dictionary.core.Board.class,
+            PlayableWord.class },
+        game.getBoard(), move);
 
     assertEquals(List.of('A', 'B'), letters);
 
-    int score = (int) invokePrivateMethod(controller, "simulateScoreForHint",
-        new Class<?>[] {fr.ubordeaux.scrabble.model.core.Board.class, PlayableWord.class},
+    int score = (int) invokePrivateMethod(controller,
+        "simulateScoreForHint",
+        new Class<?>[] {
+            fr.ubordeaux.scrabble.model.dictionary.core.Board.class,
+            PlayableWord.class },
         game.getBoard(), move);
     assertTrue(score >= 0);
     assertTrue(game.getBoard().getSquare(new Point(7, 7)).isEmpty());
@@ -499,7 +506,7 @@ class GameControllerTest {
     }));
 
     invokePrivateMethod(controller, "handleBlitzExpiry",
-        new Class<?>[] {fr.ubordeaux.scrabble.model.interfaces.Player.class, CliView.class},
+        new Class<?>[] { fr.ubordeaux.scrabble.model.interfaces.Player.class, CliView.class },
         alice, view);
 
     assertTrue(game.isGameOver());
@@ -537,7 +544,7 @@ class GameControllerTest {
     CliView view = new CliView(game);
     GameController controller = new GameController(game, view);
 
-    invokePrivateMethod(controller, "startBlitzWatcher", new Class<?>[] {CliView.class}, view);
+    invokePrivateMethod(controller, "startBlitzWatcher", new Class<?>[] { CliView.class }, view);
 
     Thread.sleep(1200);
 
@@ -562,8 +569,8 @@ class GameControllerTest {
     Thread.sleep(30);
 
     Object elapsed = invokePrivateAuxMethod(aux, "isBlitzTimeElapsed",
-        new Class<?>[] {fr.ubordeaux.scrabble.model.interfaces.Player.class, CliView.class,
-            boolean.class},
+        new Class<?>[] { fr.ubordeaux.scrabble.model.interfaces.Player.class, CliView.class,
+            boolean.class },
         game.getCurrentPlayer(), view, true);
     assertEquals(true, elapsed);
 
@@ -571,7 +578,7 @@ class GameControllerTest {
     GameController emptyController = new GameController(emptyGame, new CliView(emptyGame));
     GameControllerAux emptyAux = new GameControllerAux(emptyController);
     assertDoesNotThrow(() -> invokePrivateAuxMethod(emptyAux, "displayWinner",
-        new Class<?>[] {CliView.class}, new CliView(emptyGame)));
+        new Class<?>[] { CliView.class }, new CliView(emptyGame)));
   }
 
   @Test

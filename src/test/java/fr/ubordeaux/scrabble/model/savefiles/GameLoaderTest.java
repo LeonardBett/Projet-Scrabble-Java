@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import fr.ubordeaux.scrabble.model.core.Game;
+import fr.ubordeaux.scrabble.model.dictionary.core.Game;
 import fr.ubordeaux.scrabble.model.utils.Point;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -29,17 +29,38 @@ class GameLoaderTest {
   }
 
   /**
-   * Tests that a valid file correctly restores board and player states[cite: 207].
+   * Tests that a valid file correctly restores board and player states[cite:
+   * 207].
    */
   @Test
   void loadGameShouldRestoreStateCorrectly() throws Exception {
-    String content = "[settings]\nblitz true\n\n"
-        + "[game]\n1\n"
-        + "---------------\n".repeat(7)
-        + "-------A-------\n" // Row 8, Col 8 (h8)
-        + "---------------\n".repeat(7)
-        + "rack-1: XYZ\nscore-1: 10\n\n"
-        + "[history]\n1 h8h A";
+    // Row 8, Col 8 (h8) has tile 'A'
+    String content = """
+        [settings]
+        blitz true
+
+        [game]
+        1
+        ---------------
+        ---------------
+        ---------------
+        ---------------
+        ---------------
+        ---------------
+        ---------------
+        -------A-------
+        ---------------
+        ---------------
+        ---------------
+        ---------------
+        ---------------
+        ---------------
+        ---------------
+        rack-1: XYZ
+        score-1: 10
+
+        [history]
+        1 h8h A""";
 
     Path path = tempDir.resolve("valid.scrabble");
     Files.writeString(path, content);
@@ -52,15 +73,33 @@ class GameLoaderTest {
   }
 
   /**
-   * Verifies that single-line and multi-line comments are ignored[cite: 211, 212].
+   * Verifies that single-line and multi-line comments are ignored[cite: 211,
+   * 212].
    */
   @Test
   void loadGameShouldHandleCommentsCorrectly() throws Exception {
-    String content = "{ Block \n Comment }\n"
-        + "[settings] # Line comment\n"
-        + "blitz true\n"
-        + "[game]\n"
-        + "---------------\n".repeat(15);
+    String content = """
+        { Block\s
+         Comment }
+        [settings] # Line comment
+        blitz true
+        [game]
+        ---------------
+        ---------------
+        ---------------
+        ---------------
+        ---------------
+        ---------------
+        ---------------
+        ---------------
+        ---------------
+        ---------------
+        ---------------
+        ---------------
+        ---------------
+        ---------------
+        ---------------
+        """;
 
     Path path = tempDir.resolve("comments.scrabble");
     Files.writeString(path, content);
@@ -74,9 +113,11 @@ class GameLoaderTest {
    */
   @Test
   void loadGameShouldThrowExceptionWithLineNumberOnFormatError() throws Exception {
-    String content = "[settings]\n"
-        + "[invalid_section]\n" // Error on line 2
-        + "data";
+    // Error expected on line 2
+    String content = """
+        [settings]
+        [invalid_section]
+        data""";
 
     Path path = tempDir.resolve("error.scrabble");
     Files.writeString(path, content);

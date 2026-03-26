@@ -1,11 +1,12 @@
 package fr.ubordeaux.scrabble.view.gui;
 
-import fr.ubordeaux.scrabble.model.core.Game;
+import fr.ubordeaux.scrabble.model.dictionary.core.Game;
 import fr.ubordeaux.scrabble.view.UserInterface;
 import javafx.application.Platform;
 
 /**
- * JavaFX view implementing UserInterface and delegating rendering to ScrabbleGui.
+ * JavaFX view implementing UserInterface and delegating rendering to
+ * ScrabbleGui.
  */
 public class JavaFxView implements UserInterface {
 
@@ -31,7 +32,8 @@ public class JavaFxView implements UserInterface {
   }
 
   /**
-   * Refreshes all GUI panels (board, rack, scores) and triggers AI check. Always runs on the JavaFX
+   * Refreshes all GUI panels (board, rack, scores) and triggers AI check. Always
+   * runs on the JavaFX
    * thread.
    */
   @Override

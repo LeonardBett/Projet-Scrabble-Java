@@ -16,7 +16,8 @@ import org.junit.jupiter.api.Test;
 /**
  * Tests unitaires pour ControlPanel.
  *
- * <p>Les tests vérifient que tous les boutons sont créés et correctement configurés
+ * <p>Les tests vérifient que tous les boutons sont créés et correctement
+ * configurés
  * sans lancer l'interface graphique complète.
  */
 class ControlPanelTest {
@@ -24,7 +25,8 @@ class ControlPanelTest {
   @BeforeAll
   static void initToolkit() {
     try {
-      com.sun.javafx.application.PlatformImpl.startup(() -> { });
+      com.sun.javafx.application.PlatformImpl.startup(() -> {
+      });
     } catch (Exception e) {
       // Toolkit already initialized or not available in this environment
     }

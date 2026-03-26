@@ -17,7 +17,8 @@ class DawgTest {
   }
 
   /**
-   * Test that words added in alphabetical order are correctly stored and can be retrieved using
+   * Test that words added in alphabetical order are correctly stored and can be
+   * retrieved using
    * contains.
    */
   @Test
@@ -34,7 +35,8 @@ class DawgTest {
   }
 
   /**
-   * Test that findWordsWithRackAndHook finds all valid words formable from a set of letters.
+   * Test that findWordsWithRackAndHook finds all valid words formable from a set
+   * of letters.
    */
   @Test
   void findWordsWithRackShouldReturnAllFormableWords() {
@@ -43,7 +45,7 @@ class DawgTest {
     dawg.add("DOG");
     dawg.finish();
 
-    Character[] rack = {'A', 'T', 'C', 'R'};
+    Character[] rack = { 'A', 'T', 'C', 'R' };
     Set<String> results = dawg.findWordsWithRackAndHook(rack, ' ');
 
     assertTrue(results.contains("CAT"));
@@ -52,7 +54,8 @@ class DawgTest {
   }
 
   /**
-   * Test that the hook constraint is respected: only words containing the hook letter should be
+   * Test that the hook constraint is respected: only words containing the hook
+   * letter should be
    * returned.
    */
   @Test
@@ -62,7 +65,7 @@ class DawgTest {
     dawg.add("BAT");
     dawg.finish();
 
-    Character[] rack = {'A', 'T'};
+    Character[] rack = { 'A', 'T' };
     char hook = 'C';
 
     Set<String> results = dawg.findWordsWithRackAndHook(rack, hook);
@@ -73,7 +76,8 @@ class DawgTest {
   }
 
   /**
-   * Test that the Joker (represented by a space ' ') can replace any letter to form words.
+   * Test that the Joker (represented by a space ' ') can replace any letter to
+   * form words.
    */
   @Test
   void findWordsWithJokerShouldSubstituteAnyLetter() {
@@ -81,7 +85,7 @@ class DawgTest {
     dawg.finish();
 
     // Rack has 'C', 'A', 'K' and a Joker ' '
-    Character[] rack = {'C', 'A', 'K', ' '};
+    Character[] rack = { 'C', 'A', 'K', ' ' };
     Set<String> results = dawg.findWordsWithRackAndHook(rack, ' ');
 
     assertTrue(results.contains("CAKE")); // Joker became 'E'

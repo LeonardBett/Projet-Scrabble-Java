@@ -3,10 +3,10 @@ package fr.ubordeaux.scrabble.model.savefiles;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import fr.ubordeaux.scrabble.model.core.Game;
-import fr.ubordeaux.scrabble.model.core.HumanPlayer;
-import fr.ubordeaux.scrabble.model.core.Move;
-import fr.ubordeaux.scrabble.model.core.Tile;
+import fr.ubordeaux.scrabble.model.dictionary.core.Game;
+import fr.ubordeaux.scrabble.model.dictionary.core.HumanPlayer;
+import fr.ubordeaux.scrabble.model.dictionary.core.Move;
+import fr.ubordeaux.scrabble.model.dictionary.core.Tile;
 import fr.ubordeaux.scrabble.model.enums.Direction;
 import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.model.utils.Point;
@@ -20,7 +20,8 @@ import org.junit.jupiter.api.io.TempDir;
 
 /**
  * Unit tests for the SaveManager class.
- * Ensures correct serialization of the board, racks, scores, and history[cite: 205, 210].
+ * Ensures correct serialization of the board, racks, scores, and history[cite:
+ * 205, 210].
  */
 class SaveManagerTest {
 

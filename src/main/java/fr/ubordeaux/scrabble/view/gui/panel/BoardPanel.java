@@ -1,7 +1,7 @@
 package fr.ubordeaux.scrabble.view.gui.panel;
 
-import fr.ubordeaux.scrabble.model.core.Board;
-import fr.ubordeaux.scrabble.model.core.Square;
+import fr.ubordeaux.scrabble.model.dictionary.core.Board;
+import fr.ubordeaux.scrabble.model.dictionary.core.Square;
 import fr.ubordeaux.scrabble.model.enums.SquareType;
 import fr.ubordeaux.scrabble.model.utils.Point;
 import java.util.function.BiConsumer;
@@ -193,7 +193,8 @@ public class BoardPanel extends VBox {
    * @param row    the row index
    * @param col    the column index
    * @param letter the letter to display
-   * @param value  the tile point value (unused visually, kept for API consistency)
+   * @param value  the tile point value (unused visually, kept for API
+   *               consistency)
    */
   public void placeTile(int row, int col, char letter, int value) {
     if (row < 0 || row >= gridSize || col < 0 || col >= gridSize) {

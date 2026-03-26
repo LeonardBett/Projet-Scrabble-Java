@@ -14,7 +14,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests for DiscoveryService, adapted for Windows/Linux/Mac cross-compatibility.
+ * Tests for DiscoveryService, adapted for Windows/Linux/Mac
+ * cross-compatibility.
  */
 class DiscoveryServiceTest {
 

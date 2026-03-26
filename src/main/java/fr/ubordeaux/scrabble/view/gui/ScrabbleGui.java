@@ -2,16 +2,15 @@ package fr.ubordeaux.scrabble.view.gui;
 
 import fr.ubordeaux.scrabble.controller.GameController;
 import fr.ubordeaux.scrabble.model.ai.AiPlayer;
-import fr.ubordeaux.scrabble.model.core.Game;
-import fr.ubordeaux.scrabble.model.core.HumanPlayer;
-import fr.ubordeaux.scrabble.model.core.Move;
-import fr.ubordeaux.scrabble.model.core.Rack;
-import fr.ubordeaux.scrabble.model.core.Tile;
 import fr.ubordeaux.scrabble.model.dictionary.Gaddag;
+import fr.ubordeaux.scrabble.model.dictionary.core.Game;
+import fr.ubordeaux.scrabble.model.dictionary.core.HumanPlayer;
+import fr.ubordeaux.scrabble.model.dictionary.core.Move;
+import fr.ubordeaux.scrabble.model.dictionary.core.Rack;
+import fr.ubordeaux.scrabble.model.dictionary.core.Tile;
 import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
 import fr.ubordeaux.scrabble.model.network.NetworkManager;
-import fr.ubordeaux.scrabble.model.utils.GameLogger;
 import fr.ubordeaux.scrabble.model.utils.Point;
 import fr.ubordeaux.scrabble.view.gui.panel.BoardPanel;
 import fr.ubordeaux.scrabble.view.gui.panel.ControlPanel;
@@ -197,8 +196,7 @@ public class ScrabbleGui extends Application {
         controller.redo();
       }
     });
-    controlPanel.getHelpButton().setOnAction(e ->
-        showInfo(helpDialogTitle(), helpDialogMessage()));
+    controlPanel.getHelpButton().setOnAction(e -> showInfo(helpDialogTitle(), helpDialogMessage()));
 
     newGameMenuItem.setOnAction(e -> handleNewGame());
     onlineMenuItem.setOnAction(e -> openNetworkLobby());
@@ -294,8 +292,8 @@ public class ScrabbleGui extends Application {
   private void loadDictionary() {
     gaddag = new Gaddag();
     System.out.println("Chargement du Gaddag pour l'interface graphique...");
-    try (InputStream is =
-            getClass().getClassLoader().getResourceAsStream("dictionaries/lexicon_en.txt")) {
+    try (InputStream is = getClass().getClassLoader()
+        .getResourceAsStream("dictionaries/lexicon_en.txt")) {
       if (is != null) {
         try (BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
           String line;
@@ -444,7 +442,8 @@ public class ScrabbleGui extends Application {
   }
 
   /**
-   * Refreshes all GUI panels: board, rack, scores, and checks if it is the AI's turn.
+   * Refreshes all GUI panels: board, rack, scores, and checks if it is the AI's
+   * turn.
    */
   public void refreshAll() {
     refreshBoard();
@@ -518,7 +517,7 @@ public class ScrabbleGui extends Application {
     VBox left = new VBox(leftMenuSpacing(), menuLabel, appMenuButton);
     left.setAlignment(Pos.TOP_LEFT);
     left.setPadding(new Insets(leftMenuTopPadding(), leftMenuRightPadding(),
-          leftMenuBottomPadding(), leftMenuLeftPadding()));
+        leftMenuBottomPadding(), leftMenuLeftPadding()));
     return left;
   }
 
@@ -558,7 +557,7 @@ public class ScrabbleGui extends Application {
   /**
    * Displays an informational dialog.
    *
-   * @param title the dialog title
+   * @param title   the dialog title
    * @param message the message to display
    */
   public void showInfo(String title, String message) {

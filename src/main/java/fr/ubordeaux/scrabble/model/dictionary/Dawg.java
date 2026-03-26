@@ -1,6 +1,5 @@
 package fr.ubordeaux.scrabble.model.dictionary;
 
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -10,7 +9,8 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Directed Acyclic Word Graph (DAWG) implementation for space-efficient dictionary storage.
+ * Directed Acyclic Word Graph (DAWG) implementation for space-efficient
+ * dictionary storage.
  * It optimizes memory by merging nodes with identical suffixes.
  * An alternative of GADDAG.
  */
@@ -19,11 +19,11 @@ public class Dawg {
   private String lastWord = "";
 
   // List of nodes not yet minimized for the current word being processed
-  private List<DawgNode> uncheckedNodes = new ArrayList<>();
+  private final List<DawgNode> uncheckedNodes = new ArrayList<>();
 
   // Registry of unique minimized nodes (the heart of the Dawg's memory
   // efficiency)
-  private Map<DawgNode, DawgNode> minimizedNodes = new HashMap<>();
+  private final Map<DawgNode, DawgNode> minimizedNodes = new HashMap<>();
 
   /**
    * Initializes a new Dawg structure with an empty root node.
@@ -113,7 +113,8 @@ public class Dawg {
   }
 
   /**
-   * Finds all valid words formable from a set of letters and a required anchor letter.
+   * Finds all valid words formable from a set of letters and a required anchor
+   * letter.
    *
    * @param rack The player's available letters.
    * @param hook The mandatory letter already present on the board.
@@ -144,7 +145,8 @@ public class Dawg {
   }
 
   /**
-   * Recursively explores the graph using backtracking to find constructible words.
+   * Recursively explores the graph using backtracking to find constructible
+   * words.
    *
    * @param node        The current graph node.
    * @param currentWord The prefix built so far.
@@ -152,7 +154,7 @@ public class Dawg {
    * @param results     The collection of valid words found.
    */
   private void backtrack(DawgNode node, String currentWord, List<Character> rack,
-                         Set<String> results) {
+      Set<String> results) {
     if (node.getFinite()) {
       results.add(currentWord);
     }

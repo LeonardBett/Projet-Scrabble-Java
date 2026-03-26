@@ -11,7 +11,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * Deep integration test for GameClient and GameServer. Validates the complete network protocol,
+ * Deep integration test for GameClient and GameServer. Validates the complete
+ * network protocol,
  * data serialization, and thread management.
  */
 class ClientServerTest {

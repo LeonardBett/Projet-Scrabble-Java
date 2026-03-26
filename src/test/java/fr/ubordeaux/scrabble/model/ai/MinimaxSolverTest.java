@@ -6,12 +6,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import fr.ubordeaux.scrabble.model.core.Board;
-import fr.ubordeaux.scrabble.model.core.Game;
-import fr.ubordeaux.scrabble.model.core.HumanPlayer;
-import fr.ubordeaux.scrabble.model.core.PlayableWord;
-import fr.ubordeaux.scrabble.model.core.Tile;
 import fr.ubordeaux.scrabble.model.dictionary.Gaddag;
+import fr.ubordeaux.scrabble.model.dictionary.core.Game;
+import fr.ubordeaux.scrabble.model.dictionary.core.HumanPlayer;
+import fr.ubordeaux.scrabble.model.dictionary.core.PlayableWord;
+import fr.ubordeaux.scrabble.model.dictionary.core.Tile;
 import fr.ubordeaux.scrabble.model.enums.Direction;
 import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import java.lang.reflect.Method;
@@ -65,8 +64,7 @@ class MinimaxSolverTest {
     game.startGame();
 
     game.getCurrentPlayer().getRack().setTiles(new ArrayList<>(List.of(
-        new Tile('A'), new Tile('R'), new Tile('T')
-    )));
+        new Tile('A'), new Tile('R'), new Tile('T'))));
 
     Gaddag dict = new Gaddag();
     dict.add("ART");
@@ -83,8 +81,7 @@ class MinimaxSolverTest {
     game.startGame();
 
     game.getCurrentPlayer().getRack().setTiles(new ArrayList<>(List.of(
-        new Tile('B'), new Tile('O'), new Tile('Y')
-    )));
+        new Tile('B'), new Tile('O'), new Tile('Y'))));
 
     Gaddag dict = new Gaddag();
     dict.add("BOY");
@@ -104,8 +101,7 @@ class MinimaxSolverTest {
     game.startGame();
 
     game.getCurrentPlayer().getRack().setTiles(new ArrayList<>(List.of(
-        new Tile('B'), new Tile('O'), new Tile('Y')
-    )));
+        new Tile('B'), new Tile('O'), new Tile('Y'))));
 
     Gaddag dict = new Gaddag();
     dict.add("BOY");
@@ -121,8 +117,8 @@ class MinimaxSolverTest {
 
   @Test
   void testDrawRandomRackNormal() throws Exception {
-    Method drawMethod =
-        MinimaxSolver.class.getDeclaredMethod("drawRandomRack", List.class, int.class);
+    Method drawMethod = MinimaxSolver.class.getDeclaredMethod(
+        "drawRandomRack", List.class, int.class);
     drawMethod.setAccessible(true);
 
     List<Character> unseen = Arrays.asList('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I');
@@ -133,8 +129,8 @@ class MinimaxSolverTest {
 
   @Test
   void testDrawRandomRackNotEnoughTiles() throws Exception {
-    Method drawMethod =
-        MinimaxSolver.class.getDeclaredMethod("drawRandomRack", List.class, int.class);
+    Method drawMethod = MinimaxSolver.class.getDeclaredMethod(
+        "drawRandomRack", List.class, int.class);
     drawMethod.setAccessible(true);
 
     List<Character> unseen = Arrays.asList('X', 'Y', 'Z');
@@ -151,8 +147,7 @@ class MinimaxSolverTest {
     game.startGame();
 
     game.getCurrentPlayer().getRack().setTiles(new ArrayList<>(List.of(
-        new Tile('A'), new Tile('R'), new Tile('T')
-    )));
+        new Tile('A'), new Tile('R'), new Tile('T'))));
 
     Gaddag dict = new Gaddag();
     dict.add("ART");
@@ -181,13 +176,13 @@ class MinimaxSolverTest {
 
     // Provides the remaining letters for "BOY" in the rack.
     game.getCurrentPlayer().getRack().setTiles(new ArrayList<>(List.of(
-        new Tile('O'), new Tile('Y')
-    )));
+        new Tile('O'), new Tile('Y'))));
 
     Gaddag dict = new Gaddag();
     dict.add("BOY");
 
-    // Requires depth 2 to trigger the getUnseenTiles and expectiminimax/minimax logic.
+    // Requires depth 2 to trigger the getUnseenTiles and expectiminimax/minimax
+    // logic.
     MinimaxSolver deepSolver = new MinimaxSolver(2, 5);
     PlayableWord bestMove = deepSolver.findBestMove(game, dict);
 
@@ -203,11 +198,11 @@ class MinimaxSolverTest {
     game.startGame();
 
     // Provides a rack designed to trigger specific rack leave heuristic branches:
-    // 'S' (bonus), ' ' (huge bonus), 'Z' (penalty), 'V' (penalty), 'A', 'E' (vowels).
+    // 'S' (bonus), ' ' (huge bonus), 'Z' (penalty), 'V' (penalty), 'A', 'E'
+    // (vowels).
     game.getCurrentPlayer().getRack().setTiles(new ArrayList<>(List.of(
         new Tile('S'), new Tile(' ', true), new Tile('Z'),
-        new Tile('V'), new Tile('A'), new Tile('E'), new Tile('T')
-    )));
+        new Tile('V'), new Tile('A'), new Tile('E'), new Tile('T'))));
 
     Gaddag dict = new Gaddag();
     dict.add("TEA"); // Will leave S, Blank, Z, V in the rack.
@@ -229,8 +224,7 @@ class MinimaxSolverTest {
 
     // Provides a rack with only vowels to trigger the imbalance penalty (-12.0)
     game.getCurrentPlayer().getRack().setTiles(new ArrayList<>(List.of(
-        new Tile('A'), new Tile('E'), new Tile('I'), new Tile('O'), new Tile('U'), new Tile('Y')
-    )));
+        new Tile('A'), new Tile('E'), new Tile('I'), new Tile('O'), new Tile('U'), new Tile('Y'))));
 
     Gaddag dict = new Gaddag();
     dict.add("AE"); // Will leave I, O, U, Y in the rack (0 consonants, 4 vowels).
@@ -250,8 +244,7 @@ class MinimaxSolverTest {
 
     // Provides a rack with perfect balance (e.g., 2 vowels, 2 consonants left)
     game.getCurrentPlayer().getRack().setTiles(new ArrayList<>(List.of(
-        new Tile('A'), new Tile('E'), new Tile('B'), new Tile('C'), new Tile('D')
-    )));
+        new Tile('A'), new Tile('E'), new Tile('B'), new Tile('C'), new Tile('D'))));
 
     Gaddag dict = new Gaddag();
     dict.add("A"); // Leaves E, B, C, D (1 vowel, 3 consonants -> difference > 1, no bonus).
@@ -270,7 +263,8 @@ class MinimaxSolverTest {
     game.addPlayer(new HumanPlayer("P1", PlayerColor.BLUE));
     game.startGame();
 
-    // Places the word completely out of bounds (100, 100) to force board.getSquare()
+    // Places the word completely out of bounds (100, 100) to force
+    // board.getSquare()
     // to return null. This will trigger a NullPointerException inside the Scoring
     // calculation, which is exactly what we want to test the catch block.
     PlayableWord faultyMove = new PlayableWord(100, 100, "TEST",
@@ -278,8 +272,10 @@ class MinimaxSolverTest {
 
     // Accesses the private method via reflection.
     java.lang.reflect.Method simulateMethod =
-        MinimaxSolver.class.getDeclaredMethod("simulateAndScoreWord",
-            fr.ubordeaux.scrabble.model.core.Board.class, PlayableWord.class);
+        MinimaxSolver.class.getDeclaredMethod(
+            "simulateAndScoreWord",
+            fr.ubordeaux.scrabble.model.dictionary.core.Board.class,
+            PlayableWord.class);
     simulateMethod.setAccessible(true);
 
     // The exception should be safely caught internally, returning a score of 0.

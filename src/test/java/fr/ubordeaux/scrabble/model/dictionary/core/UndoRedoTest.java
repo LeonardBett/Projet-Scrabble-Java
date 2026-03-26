@@ -1,4 +1,4 @@
-package fr.ubordeaux.scrabble.model.core;
+package fr.ubordeaux.scrabble.model.dictionary.core;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -11,7 +11,8 @@ import org.junit.jupiter.api.Test;
 class UndoRedoTest {
 
   /**
-   * Test that the undo/redo mechanism correctly manages history stacks, allowing moves to be undone
+   * Test that the undo/redo mechanism correctly manages history stacks, allowing
+   * moves to be undone
    * and redone in proper order.
    */
   @Test
@@ -36,7 +37,8 @@ class UndoRedoTest {
   }
 
   /**
-   * Test that adding a new move after undoing clears the redo stack, preventing invalid redo
+   * Test that adding a new move after undoing clears the redo stack, preventing
+   * invalid redo
    * operations on an alternate history branch.
    */
   @Test
@@ -54,7 +56,8 @@ class UndoRedoTest {
   }
 
   /**
-   * Test that undo and redo operations return null when there are no moves available to undo or
+   * Test that undo and redo operations return null when there are no moves
+   * available to undo or
    * redo.
    */
   @Test

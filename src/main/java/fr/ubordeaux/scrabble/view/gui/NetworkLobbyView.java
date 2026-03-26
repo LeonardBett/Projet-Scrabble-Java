@@ -27,9 +27,11 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 /**
- * Fenetre de lobby reseau (JavaFX) pour heberger et rejoindre des parties en ligne.
+ * Fenetre de lobby reseau (JavaFX) pour heberger et rejoindre des parties en
+ * ligne.
  *
- * <p>Les serveurs sont decouverts automatiquement via UDP. Le bouton "Lancer la partie" est visible
+ * <p>Les serveurs sont decouverts automatiquement via UDP. Le bouton "Lancer la
+ * partie" est visible
  * uniquement pour l'hote et s'active quand au moins 2 joueurs sont connectes.
  */
 public class NetworkLobbyView extends Stage {
@@ -65,7 +67,10 @@ public class NetworkLobbyView extends Stage {
   private boolean serverRunning = false;
   private boolean clientConnected = false;
 
-  /** Number of players currently in the host lobby (updated via onPlayersReceived). */
+  /**
+   * Number of players currently in the host lobby (updated via
+   * onPlayersReceived).
+   */
   private int lobbyPlayerCount = 0;
 
   /**
@@ -132,10 +137,9 @@ public class NetworkLobbyView extends Stage {
     content.setPadding(new Insets(tabContentPadding()));
     content.setStyle(tabContentBackgroundStyle());
 
-    Label desc =
-        styledLabel(
-            "Démarrez un serveur. Les joueurs sur le réseau local vous verront automatiquement.",
-            Color.LIGHTGRAY);
+    Label desc = styledLabel(
+        "Démarrez un serveur. Les joueurs sur le réseau local vous verront automatiquement.",
+        Color.LIGHTGRAY);
     desc.setWrapText(true);
 
     HBox portRow = new HBox(rowSpacing());
@@ -160,8 +164,7 @@ public class NetworkLobbyView extends Stage {
     startGameButton.setOnAction(e -> onStartGame());
 
     // Liste des joueurs dans le lobby (mis à jour auto)
-    final Label playersTitle =
-        styledLabel("Joueurs connectés au salon :", Color.WHITE, 13, true);
+    final Label playersTitle = styledLabel("Joueurs connectés au salon :", Color.WHITE, 13, true);
     lobbyPlayerListView = new ListView<>();
     lobbyPlayerListView.setPrefHeight(130);
     lobbyPlayerListView.setStyle(listViewStyle());
@@ -218,8 +221,7 @@ public class NetworkLobbyView extends Stage {
     connectButton.setOnAction(e -> onConnect());
     disconnectButton.setOnAction(e -> onDisconnect());
 
-    final Label autoTitle =
-        styledLabel(autoServersTitleText(), Color.WHITE, 13, true);
+    final Label autoTitle = styledLabel(autoServersTitleText(), Color.WHITE, 13, true);
     final Label manualTitle = styledLabel(manualConnectionTitleText(), Color.WHITE, 13, true);
 
     content
@@ -310,7 +312,8 @@ public class NetworkLobbyView extends Stage {
   }
 
   /**
-   * Called by the host to start the game with all currently connected players. Sends NEW commands
+   * Called by the host to start the game with all currently connected players.
+   * Sends NEW commands
    * targeting each connected player ID.
    */
   private void onStartGame() {
@@ -379,8 +382,10 @@ public class NetworkLobbyView extends Stage {
   }
 
   /**
-   * Called when the player list is received from the server. Updates both the host lobby list and
-   * the client salon list. If the host has >= 2 players, activates the start button and
+   * Called when the player list is received from the server. Updates both the
+   * host lobby list and
+   * the client salon list. If the host has >= 2 players, activates the start
+   * button and
    * auto-launches.
    *
    * @param players the list of player info maps

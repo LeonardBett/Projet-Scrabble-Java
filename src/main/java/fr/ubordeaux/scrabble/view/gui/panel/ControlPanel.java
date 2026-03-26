@@ -13,7 +13,8 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
 /**
- * JavaFX panel containing all game action buttons (play, pass, exchange, undo, etc.).
+ * JavaFX panel containing all game action buttons (play, pass, exchange, undo,
+ * etc.).
  */
 public class ControlPanel extends VBox {
 

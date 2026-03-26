@@ -4,8 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
-import fr.ubordeaux.scrabble.model.core.Game;
-import fr.ubordeaux.scrabble.model.core.HumanPlayer;
+import fr.ubordeaux.scrabble.model.dictionary.core.Game;
+import fr.ubordeaux.scrabble.model.dictionary.core.HumanPlayer;
 import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.view.gui.JavaFxView;
 import javafx.application.Platform;
@@ -28,7 +28,8 @@ class JavaFxViewTest {
     try {
       // Force le démarrage du Toolkit JavaFX pour éviter l'IllegalStateException
       // lors des appels à Platform.runLater() dans JavaFxView.
-      Platform.startup(() -> {});
+      Platform.startup(() -> {
+      });
     } catch (IllegalStateException e) {
       // Le Toolkit est déjà initialisé par un autre test, on ignore l'erreur.
     }

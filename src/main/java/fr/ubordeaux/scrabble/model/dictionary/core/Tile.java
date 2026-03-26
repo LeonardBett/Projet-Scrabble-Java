@@ -1,4 +1,4 @@
-package fr.ubordeaux.scrabble.model.core;
+package fr.ubordeaux.scrabble.model.dictionary.core;
 
 import java.util.Objects;
 
@@ -22,11 +22,12 @@ public class Tile {
   }
 
   /**
-   * NEW CONSTRUCTOR: Creates a tile acting as a Joker. It displays the chosen letter, but is worth
+   * NEW CONSTRUCTOR: Creates a tile acting as a Joker. It displays the chosen
+   * letter, but is worth
    * 0 points.
    *
    * @param character the character represented by this tile
-   * @param isJoker true if this tile is a joker; false otherwise
+   * @param isJoker   true if this tile is a joker; false otherwise
    */
   public Tile(char character, boolean isJoker) {
     this.character = character;

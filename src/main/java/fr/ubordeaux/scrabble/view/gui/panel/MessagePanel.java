@@ -6,7 +6,8 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 
 /**
- * Utility class for displaying JavaFX alert dialogs (info, error, warning, confirmation).
+ * Utility class for displaying JavaFX alert dialogs (info, error, warning,
+ * confirmation).
  */
 public class MessagePanel {
 

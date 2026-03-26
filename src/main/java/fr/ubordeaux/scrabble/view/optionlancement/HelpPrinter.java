@@ -1,7 +1,8 @@
 package fr.ubordeaux.scrabble.view.optionlancement;
 
 /**
- * Displays the help and version information of the program. SRP: Single Responsibility Principle —
+ * Displays the help and version information of the program. SRP: Single
+ * Responsibility Principle —
  * all help text is centralized here.
  */
 public class HelpPrinter {
@@ -16,7 +17,8 @@ public class HelpPrinter {
    */
   public static final String APP_NAME = "Scrabble U-Bordeaux";
 
-  private HelpPrinter() {}
+  private HelpPrinter() {
+  }
 
   /**
    * Prints the help message to standard output.

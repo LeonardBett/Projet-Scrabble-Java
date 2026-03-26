@@ -5,8 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import fr.ubordeaux.scrabble.model.core.Rack;
-import fr.ubordeaux.scrabble.model.core.Tile;
+import fr.ubordeaux.scrabble.model.dictionary.core.Rack;
+import fr.ubordeaux.scrabble.model.dictionary.core.Tile;
 import fr.ubordeaux.scrabble.view.gui.panel.RackPanel;
 import java.lang.reflect.Field;
 import javafx.scene.Node;
@@ -27,7 +27,8 @@ class RackPanelTest {
   @BeforeAll
   static void initToolkit() {
     try {
-      com.sun.javafx.application.PlatformImpl.startup(() -> { });
+      com.sun.javafx.application.PlatformImpl.startup(() -> {
+      });
     } catch (Exception e) {
       // Toolkit already initialized or not available in this environment
     }
@@ -78,7 +79,7 @@ class RackPanelTest {
 
   @Test
   void updateDisplayShouldNotThrowWithFullRack() {
-    for (char c : new char[]{ 'A', 'B', 'C', 'D', 'E', 'F', 'G' }) {
+    for (char c : new char[] { 'A', 'B', 'C', 'D', 'E', 'F', 'G' }) {
       rack.addTile(new Tile(c));
     }
     rackPanel.updateDisplay();
@@ -86,7 +87,8 @@ class RackPanelTest {
 
   @Test
   void setOnTileDraggedShouldNotThrow() {
-    rackPanel.setOnTileDragged(tile -> {});
+    rackPanel.setOnTileDragged(tile -> {
+    });
   }
 
   @Test

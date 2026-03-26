@@ -81,7 +81,7 @@ public class ScorePanel extends VBox {
    * Updates the score list with the given player names and scores.
    *
    * @param playerNames the player display names
-   * @param scores the corresponding scores
+   * @param scores      the corresponding scores
    */
   public void updateScores(String[] playerNames, int[] scores) {
     playerList.getItems().clear();
@@ -103,7 +103,7 @@ public class ScorePanel extends VBox {
    * Highlights the current player in the list and updates the turn label.
    *
    * @param playerIndex the index of the current player in the list
-   * @param playerName the name of the current player
+   * @param playerName  the name of the current player
    */
   public void highlightCurrentPlayer(int playerIndex, String playerName) {
     if (playerIndex >= 0 && playerIndex < playerList.getItems().size()) {
@@ -113,11 +113,13 @@ public class ScorePanel extends VBox {
   }
 
   /**
-   * Starts the blitz timer display. Refreshes every second and shows remaining time
+   * Starts the blitz timer display. Refreshes every second and shows remaining
+   * time
    * for each player. Calls {@code onTimeExpired} when any player reaches zero.
    *
-   * @param players the list of players with blitz clocks enabled
-   * @param timeExpiredCallback called on the JavaFX thread when a player's time runs out
+   * @param players             the list of players with blitz clocks enabled
+   * @param timeExpiredCallback called on the JavaFX thread when a player's time
+   *                            runs out
    */
   public void startBlitzTimers(List<Player> players, Runnable timeExpiredCallback) {
     stopBlitzTimers();

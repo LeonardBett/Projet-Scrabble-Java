@@ -1,9 +1,10 @@
-package fr.ubordeaux.scrabble.model.core;
+package fr.ubordeaux.scrabble.model.dictionary.core;
 
 import java.util.Stack;
 
 /**
- * Manages the history of moves for undo/redo functionality. Only HumanPlayers can initiate
+ * Manages the history of moves for undo/redo functionality. Only HumanPlayers
+ * can initiate
  * undo/redo.
  */
 public class UndoRedo {
@@ -19,7 +20,8 @@ public class UndoRedo {
   }
 
   /**
-   * Adds a move to the history. Clears the redo stack because a new branch of history is created.
+   * Adds a move to the history. Clears the redo stack because a new branch of
+   * history is created.
    *
    * @param move The move to add.
    */

@@ -1,4 +1,4 @@
-package fr.ubordeaux.scrabble.model.core;
+package fr.ubordeaux.scrabble.model.dictionary.core;
 
 import fr.ubordeaux.scrabble.model.enums.Direction;
 import fr.ubordeaux.scrabble.model.enums.MoveType;
@@ -10,7 +10,8 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Represents an action from a player (during their turn). This class is immutable to ensure thread
+ * Represents an action from a player (during their turn). This class is
+ * immutable to ensure thread
  * safety and consistency.
  */
 public class Move {
@@ -35,7 +36,7 @@ public class Move {
    * Private constructor. Use factory methods to create instances.
    */
   private Move(Player player, MoveType type, List<Tile> tiles, Point startPosition,
-               Direction direction) {
+      Direction direction) {
     this.player = Objects.requireNonNull(player, "Player cannot be null");
     this.type = Objects.requireNonNull(type, "MoveType cannot be null");
     this.tiles = tiles != null ? new ArrayList<>(tiles) : Collections.emptyList();
@@ -74,14 +75,15 @@ public class Move {
    * Creates a PLAY move (placing a word).
    *
    * @param player        player performing the play.
-   * @param word          The list of tiles forming the word (including existing ones,
+   * @param word          The list of tiles forming the word (including existing
+   *                      ones,
    *                      or just new ones, depending on engine logic).
    * @param startPosition first target square for the play.
    * @param direction     play direction.
    * @return immutable play move.
    */
   public static Move createPlay(Player player, List<Tile> word, Point startPosition,
-                                Direction direction) {
+      Direction direction) {
     if (word == null || word.isEmpty()) {
       throw new IllegalArgumentException("Word cannot be empty");
     }
@@ -113,7 +115,8 @@ public class Move {
   }
 
   /**
-   * Returns the tiles associated with the move. For PLAY: The tiles forming the word. For EXCHANGE:
+   * Returns the tiles associated with the move. For PLAY: The tiles forming the
+   * word. For EXCHANGE:
    * The tiles to be exchanged.
    *
    * @return an unmodifiable list of tiles in this move
@@ -137,8 +140,8 @@ public class Move {
    * @param placedPositions placed coordinates.
    */
   public void setPlacedPositions(List<Point> placedPositions) {
-    this.placedPositions =
-        placedPositions != null ? new ArrayList<>(placedPositions) : new ArrayList<>();
+    this.placedPositions = placedPositions != null
+        ? new ArrayList<>(placedPositions) : new ArrayList<>();
   }
 
   /**

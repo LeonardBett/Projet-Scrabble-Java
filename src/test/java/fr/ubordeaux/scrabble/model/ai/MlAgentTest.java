@@ -13,7 +13,8 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 /**
- * Comprehensive unit tests for the MlAgent class. Focuses on mathematical data preparation and
+ * Comprehensive unit tests for the MlAgent class. Focuses on mathematical data
+ * preparation and
  * graceful failure handling.
  */
 class MlAgentTest {

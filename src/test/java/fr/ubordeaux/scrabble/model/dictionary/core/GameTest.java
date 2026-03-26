@@ -1,4 +1,4 @@
-package fr.ubordeaux.scrabble.model.core;
+package fr.ubordeaux.scrabble.model.dictionary.core;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -17,7 +17,8 @@ import org.junit.jupiter.api.Test;
 class GameTest {
 
   /**
-   * Test that attempting to start a game without any players throws an IllegalStateException.
+   * Test that attempting to start a game without any players throws an
+   * IllegalStateException.
    */
   @Test
   void startGameShouldFailWhenNoPlayersExist() {
@@ -33,7 +34,8 @@ class GameTest {
   }
 
   /**
-   * Test that starting a game correctly fills each player's rack with the maximum number of tiles
+   * Test that starting a game correctly fills each player's rack with the maximum
+   * number of tiles
    * from the bag.
    */
   @Test
@@ -54,7 +56,8 @@ class GameTest {
   }
 
   /**
-   * Test that executing a move for a player who is not the current player throws an
+   * Test that executing a move for a player who is not the current player throws
+   * an
    * IllegalArgumentException.
    */
   @Test
@@ -71,7 +74,8 @@ class GameTest {
   }
 
   /**
-   * Test that executing a pass move advances the turn to the next player and adds the move to the
+   * Test that executing a pass move advances the turn to the next player and adds
+   * the move to the
    * game's history.
    */
   @Test
@@ -89,7 +93,8 @@ class GameTest {
   }
 
   /**
-   * Test that determining the winner returns the player with the highest score, or null if there
+   * Test that determining the winner returns the player with the highest score,
+   * or null if there
    * are no players in the game.
    */
   @Test
@@ -109,7 +114,8 @@ class GameTest {
   }
 
   /**
-   * Test that refilling a player's rack draws tiles from the bag until the rack is full or the bag
+   * Test that refilling a player's rack draws tiles from the bag until the rack
+   * is full or the bag
    * is empty.
    */
   @Test
@@ -195,8 +201,8 @@ class GameTest {
 
     int bobRackPoints = Tile.getStandardValue('B') + Tile.getStandardValue('C');
 
-    Move move =
-        Move.createPlay(alice, List.of(new Tile(' ')), new Point(7, 7), Direction.HORIZONTAL);
+    Move move = Move.createPlay(alice, List.of(new Tile(' ')),
+        new Point(7, 7), Direction.HORIZONTAL);
     game.executeMove(move);
 
     assertTrue(game.isGameOver());

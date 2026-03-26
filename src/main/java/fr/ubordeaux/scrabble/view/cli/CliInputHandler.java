@@ -1,7 +1,7 @@
 package fr.ubordeaux.scrabble.view.cli;
 
-import fr.ubordeaux.scrabble.model.core.Move;
-import fr.ubordeaux.scrabble.model.core.Tile;
+import fr.ubordeaux.scrabble.model.dictionary.core.Move;
+import fr.ubordeaux.scrabble.model.dictionary.core.Tile;
 import fr.ubordeaux.scrabble.model.enums.Direction;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
 import fr.ubordeaux.scrabble.model.utils.Point;
@@ -62,7 +62,8 @@ public class CliInputHandler {
       int y;
 
       if (posInput[0].matches("[a-oA-O]")) {
-        String[] rows = {"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o"};
+        String[] rows = { "a", "b", "c", "d", "e", "f", "g",
+            "h", "i", "j", "k", "l", "m", "n", "o" };
         String row = posInput[0].toLowerCase();
         int rowIndex = -1;
         for (int i = 0; i < rows.length; i++) {
@@ -119,7 +120,7 @@ public class CliInputHandler {
 
       return Move.createPlay(player, tiles, startPoint, direction);
 
-    } catch (Exception e) {
+    } catch (IllegalArgumentException | IllegalStateException e) {
       messageRenderer.error("Invalid format ! " + e.getMessage());
       return null;
     }

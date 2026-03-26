@@ -1,6 +1,6 @@
 package fr.ubordeaux.scrabble.view.gui;
 
-import fr.ubordeaux.scrabble.model.core.Game;
+import fr.ubordeaux.scrabble.model.dictionary.core.Game;
 import fr.ubordeaux.scrabble.model.network.NetworkManager;
 import fr.ubordeaux.scrabble.model.network.NetworkObserver;
 import fr.ubordeaux.scrabble.model.network.server.ServerInfo;
@@ -58,8 +58,10 @@ public class NetworkGameBridge implements NetworkObserver {
   // ─── NetworkObserver ──────────────────────────────────────────────────────
 
   /**
-   * Appelé quand le modèle local (board, rack, scores) est mis à jour par le serveur. Si c'est le
-   * premier update (GAME_START), bascule la GUI sur le modèle réseau. Sinon, rafraîchit simplement
+   * Appelé quand le modèle local (board, rack, scores) est mis à jour par le
+   * serveur. Si c'est le
+   * premier update (GAME_START), bascule la GUI sur le modèle réseau. Sinon,
+   * rafraîchit simplement
    * l'affichage.
    */
   @Override
@@ -114,7 +116,8 @@ public class NetworkGameBridge implements NetworkObserver {
   private boolean pendingGameStart = false;
 
   /**
-   * Appelé par le lobby quand l'hôte clique sur "Lancer la partie". Déclenche la récupération de la
+   * Appelé par le lobby quand l'hôte clique sur "Lancer la partie". Déclenche la
+   * récupération de la
    * liste des joueurs puis envoie NEW.
    */
   public void requestGameStart() {
@@ -123,7 +126,8 @@ public class NetworkGameBridge implements NetworkObserver {
   }
 
   /**
-   * Appelé en réponse à la commande PLAYERS. Met à jour le lobby et, si l'hôte a explicitement
+   * Appelé en réponse à la commande PLAYERS. Met à jour le lobby et, si l'hôte a
+   * explicitement
    * demandé le lancement, envoie la commande NEW.
    */
   @Override
@@ -137,19 +141,18 @@ public class NetworkGameBridge implements NetworkObserver {
           if (pendingGameStart && players.size() >= 2) {
             pendingGameStart = false;
 
-            int[] ids =
-                players.stream()
-                    .mapToInt(
-                        p -> {
-                          try {
-                            return Integer.parseInt(p.getOrDefault("ID", "0"));
-                          } catch (NumberFormatException ex) {
-                            return 0;
-                          }
-                        })
-                    .filter(id -> id > 0)
-                    .sorted()
-                    .toArray();
+            int[] ids = players.stream()
+                .mapToInt(
+                    p -> {
+                      try {
+                        return Integer.parseInt(p.getOrDefault("ID", "0"));
+                      } catch (NumberFormatException ex) {
+                        return 0;
+                      }
+                    })
+                .filter(id -> id > 0)
+                .sorted()
+                .toArray();
 
             if (ids.length == 2) {
               networkManager.newPlayerId(ids[1]);

@@ -1,7 +1,7 @@
 package fr.ubordeaux.scrabble.view.gui.panel;
 
-import fr.ubordeaux.scrabble.model.core.Rack;
-import fr.ubordeaux.scrabble.model.core.Tile;
+import fr.ubordeaux.scrabble.model.dictionary.core.Rack;
+import fr.ubordeaux.scrabble.model.dictionary.core.Tile;
 import java.util.List;
 import java.util.function.Consumer;
 import javafx.geometry.Insets;
@@ -56,7 +56,8 @@ public class RackPanel extends VBox {
   }
 
   /**
-   * Définit le callback appelé lorsqu'une tuile commence à être glissée depuis le chevalet.
+   * Définit le callback appelé lorsqu'une tuile commence à être glissée depuis le
+   * chevalet.
    *
    * @param callback le consommateur recevant la tuile glissée
    */

@@ -1,13 +1,13 @@
 package fr.ubordeaux.scrabble.model.ai;
 
-import fr.ubordeaux.scrabble.model.core.Board;
-import fr.ubordeaux.scrabble.model.core.Game;
-import fr.ubordeaux.scrabble.model.core.MoveGenerator;
-import fr.ubordeaux.scrabble.model.core.PlayableWord;
-import fr.ubordeaux.scrabble.model.core.Scoring;
-import fr.ubordeaux.scrabble.model.core.Square;
-import fr.ubordeaux.scrabble.model.core.Tile;
 import fr.ubordeaux.scrabble.model.dictionary.Gaddag;
+import fr.ubordeaux.scrabble.model.dictionary.core.Board;
+import fr.ubordeaux.scrabble.model.dictionary.core.Game;
+import fr.ubordeaux.scrabble.model.dictionary.core.MoveGenerator;
+import fr.ubordeaux.scrabble.model.dictionary.core.PlayableWord;
+import fr.ubordeaux.scrabble.model.dictionary.core.Scoring;
+import fr.ubordeaux.scrabble.model.dictionary.core.Square;
+import fr.ubordeaux.scrabble.model.dictionary.core.Tile;
 import fr.ubordeaux.scrabble.model.enums.Direction;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
 import fr.ubordeaux.scrabble.model.utils.GameLogger;
@@ -20,7 +20,8 @@ import java.util.Map;
 import java.util.Random;
 
 /**
- * Implements realistic Minimax and Expectiminimax algorithms for AI decision-making. Performs deep
+ * Implements realistic Minimax and Expectiminimax algorithms for AI
+ * decision-making. Performs deep
  * simulation by generating opponent moves from sampled remaining tiles.
  */
 public class MinimaxSolver {
@@ -51,7 +52,8 @@ public class MinimaxSolver {
   /**
    * Toggles the use of the Expectiminimax algorithm.
    *
-   * @param useExpectiminimax True to enable Expectiminimax, false to use standard Minimax.
+   * @param useExpectiminimax True to enable Expectiminimax, false to use standard
+   *                          Minimax.
    */
   public void setUseExpectiminimax(boolean useExpectiminimax) {
     this.useExpectiminimax = useExpectiminimax;
@@ -129,17 +131,19 @@ public class MinimaxSolver {
   }
 
   /**
-   * Executes the Expectiminimax algorithm through realistic Monte-Carlo simulation. Generates
+   * Executes the Expectiminimax algorithm through realistic Monte-Carlo
+   * simulation. Generates
    * probable racks and averages the best response.
    *
    * @param board     The current board state.
-   * @param unseen    The list of letters not currently on the board or in the AI's rack.
+   * @param unseen    The list of letters not currently on the board or in the
+   *                  AI's rack.
    * @param gaddag    The Gaddag dictionary.
    * @param startTime The timestamp when the move search began.
    * @return The average expected opponent score.
    */
   private double expectiminimax(Board board, List<Character> unseen, Gaddag gaddag,
-                                long startTime) {
+      long startTime) {
     double totalExpectedOpponentScore = 0.0;
     int samplesEvaluated = 0;
 
@@ -161,11 +165,13 @@ public class MinimaxSolver {
   }
 
   /**
-   * Executes the Minimax algorithm by evaluating the worst-case scenario. Among the drawn racks,
+   * Executes the Minimax algorithm by evaluating the worst-case scenario. Among
+   * the drawn racks,
    * keeps the one that deals the highest damage.
    *
    * @param board     The current board state.
-   * @param unseen    The list of letters not currently on the board or in the AI's rack.
+   * @param unseen    The list of letters not currently on the board or in the
+   *                  AI's rack.
    * @param gaddag    The Gaddag dictionary.
    * @param startTime The timestamp when the move search began.
    * @return The highest possible opponent score from the simulated samples.
@@ -217,7 +223,8 @@ public class MinimaxSolver {
   private List<Character> getUnseenTiles(Game game) {
     Map<Character, Integer> counts = new HashMap<>();
     char[] letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ ".toCharArray();
-    int[] qty = {9, 2, 2, 3, 15, 2, 2, 2, 8, 1, 1, 5, 3, 6, 6, 2, 1, 6, 6, 6, 6, 2, 1, 1, 1, 1, 2};
+    int[] qty = { 9, 2, 2, 3, 15, 2, 2, 2, 8, 1, 1, 5, 3,
+        6, 6, 2, 1, 6, 6, 6, 6, 2, 1, 1, 1, 1, 2 };
 
     for (int i = 0; i < letters.length; i++) {
       counts.put(letters[i], qty[i]);
@@ -370,7 +377,8 @@ public class MinimaxSolver {
   }
 
   /**
-   * Evaluates the strategic value of the tiles left in the rack after a potential move.
+   * Evaluates the strategic value of the tiles left in the rack after a potential
+   * move.
    *
    * @param game The current game state.
    * @param move The simulated move.

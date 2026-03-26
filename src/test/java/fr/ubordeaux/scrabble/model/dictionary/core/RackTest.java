@@ -1,4 +1,4 @@
-package fr.ubordeaux.scrabble.model.core;
+package fr.ubordeaux.scrabble.model.dictionary.core;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -10,7 +10,8 @@ import org.junit.jupiter.api.Test;
 class RackTest {
 
   /**
-   * Test that tiles can be added to a rack until it reaches maximum capacity, after which
+   * Test that tiles can be added to a rack until it reaches maximum capacity,
+   * after which
    * additional tiles cannot be added.
    */
   @Test
@@ -27,7 +28,8 @@ class RackTest {
   }
 
   /**
-   * Test that removing a tile returns true when the tile exists in the rack and false when
+   * Test that removing a tile returns true when the tile exists in the rack and
+   * false when
    * attempting to remove a non-existent tile.
    */
   @Test
@@ -42,7 +44,8 @@ class RackTest {
   }
 
   /**
-   * Test that getTiles returns a defensive copy of the tiles list, preventing external modification
+   * Test that getTiles returns a defensive copy of the tiles list, preventing
+   * external modification
    * of the rack's internal state.
    */
   @Test

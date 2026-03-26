@@ -10,7 +10,8 @@ import org.junit.jupiter.api.Test;
 class DawgNodeTest {
 
   /**
-   * Test that a DawgNode is correctly initialized with its character and is not finite by default.
+   * Test that a DawgNode is correctly initialized with its character and is not
+   * finite by default.
    */
   @Test
   void constructorShouldInitializeCorrectly() {
@@ -30,7 +31,8 @@ class DawgNodeTest {
   }
 
   /**
-   * Test that two nodes are considered equal if they have the same content, same finite status, and
+   * Test that two nodes are considered equal if they have the same content, same
+   * finite status, and
    * identical children. This is critical for Dawg minimization.
    */
   @Test

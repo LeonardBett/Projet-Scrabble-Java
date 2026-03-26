@@ -1,6 +1,6 @@
 package fr.ubordeaux.scrabble.view.cli;
 
-import fr.ubordeaux.scrabble.model.core.Game;
+import fr.ubordeaux.scrabble.model.dictionary.core.Game;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
 import fr.ubordeaux.scrabble.view.UserInterface;
 import fr.ubordeaux.scrabble.view.cli.renderer.BoardRenderer;

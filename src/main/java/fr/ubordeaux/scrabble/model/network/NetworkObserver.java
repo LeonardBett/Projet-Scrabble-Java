@@ -5,7 +5,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Observer interface that is use in CLI/GUI. We use a different methods for each type of event
+ * Observer interface that is use in CLI/GUI. We use a different methods for
+ * each type of event
  */
 public interface NetworkObserver {
 

@@ -54,7 +54,8 @@ public class DawgNode {
 
   /**
    * Identifies identical structures for graph minimization.
-   * Two nodes are equal if they share the same content, finite status, and children.
+   * Two nodes are equal if they share the same content, finite status, and
+   * children.
    *
    * @param o The object to compare with.
    * @return True if the nodes are structurally identical, false otherwise.

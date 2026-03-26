@@ -20,18 +20,24 @@ class PlayerSetupTest {
   @Test
   void shouldExposeShowDialogStaticMethod() {
     assertDoesNotThrow(() -> {
-      Method method = PlayerSetup.class.getDeclaredMethod("showDialog");
+      Method method = PlayerSetup.class
+          .getDeclaredMethod("showDialog");
       assertNotNull(method);
     });
   }
 
   @Test
   void helperTextsShouldBeDefined() {
-    assertFalse(((String) invokeStatic("dialogTitle")).isBlank());
-    assertFalse(((String) invokeStatic("playersLabelText")).isBlank());
-    assertFalse(((String) invokeStatic("dialogHeaderTitle")).isBlank());
-    assertFalse(((String) invokeStatic("startButtonText")).isBlank());
-    assertFalse(((String) invokeStatic("cancelButtonText")).isBlank());
+    assertFalse(((String) invokeStatic(
+        "dialogTitle")).isBlank());
+    assertFalse(((String) invokeStatic(
+        "playersLabelText")).isBlank());
+    assertFalse(((String) invokeStatic(
+        "dialogHeaderTitle")).isBlank());
+    assertFalse(((String) invokeStatic(
+        "startButtonText")).isBlank());
+    assertFalse(((String) invokeStatic(
+        "cancelButtonText")).isBlank());
   }
 
   @Test
@@ -44,16 +50,21 @@ class PlayerSetupTest {
     assertEquals(18.0, invokeStatic("contentSpacing"));
     assertEquals(20.0, invokeStatic("contentPadding"));
     assertEquals(320.0, invokeStatic("contentPrefWidth"));
-    assertEquals("#115829", invokeStatic("dialogHeaderColor"));
-    assertEquals("setup-dialog", invokeStatic("dialogStyleClass"));
+    assertEquals("#115829",
+        invokeStatic("dialogHeaderColor"));
+    assertEquals("setup-dialog",
+        invokeStatic("dialogStyleClass"));
   }
 
   private Object invokeStatic(String methodName) {
     try {
-      Method method = PlayerSetup.class.getDeclaredMethod(methodName);
+      Method method = PlayerSetup.class
+          .getDeclaredMethod(methodName);
       method.setAccessible(true);
       return method.invoke(null);
-    } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+    } catch (NoSuchMethodException
+        | IllegalAccessException
+        | InvocationTargetException e) {
       throw new RuntimeException(e);
     }
   }

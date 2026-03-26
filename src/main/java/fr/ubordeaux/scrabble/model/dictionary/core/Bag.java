@@ -1,4 +1,4 @@
-package fr.ubordeaux.scrabble.model.core;
+package fr.ubordeaux.scrabble.model.dictionary.core;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -6,7 +6,8 @@ import java.util.List;
 import java.util.Random;
 
 /**
- * Represents the bag of tiles in the game. Manages the stock of letters and random distribution.
+ * Represents the bag of tiles in the game. Manages the stock of letters and
+ * random distribution.
  */
 public class Bag {
   private final List<Tile> tiles;
@@ -84,7 +85,8 @@ public class Bag {
   }
 
   /**
-   * Puts a list of tiles back into the bag and shuffles it. Used for the "Exchange" move.
+   * Puts a list of tiles back into the bag and shuffles it. Used for the
+   * "Exchange" move.
    *
    * @param tilesToReturn The tiles to put back.
    */

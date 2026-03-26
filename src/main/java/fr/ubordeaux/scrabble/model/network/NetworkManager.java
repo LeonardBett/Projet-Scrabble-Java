@@ -1,6 +1,6 @@
 package fr.ubordeaux.scrabble.model.network;
 
-import fr.ubordeaux.scrabble.model.core.Game;
+import fr.ubordeaux.scrabble.model.dictionary.core.Game;
 import fr.ubordeaux.scrabble.model.network.client.GameClient;
 import fr.ubordeaux.scrabble.model.network.server.GameServer;
 import fr.ubordeaux.scrabble.model.network.server.ServerInfo;
@@ -76,7 +76,8 @@ public class NetworkManager {
   }
 
   /**
-   * Add an observer to the list. Since NetworkManager observer list is the one who rules, we apply
+   * Add an observer to the list. Since NetworkManager observer list is the one
+   * who rules, we apply
    * change on gameClient and discoveryService
    *
    * @param observer the new observer to add
@@ -90,7 +91,8 @@ public class NetworkManager {
   }
 
   /**
-   * Remove an observer to the list. Since NetworkManager observer list is the one who rules, we
+   * Remove an observer to the list. Since NetworkManager observer list is the one
+   * who rules, we
    * apply change on gameClient and discoveryService
    *
    * @param observer the new observer to remove
@@ -99,7 +101,6 @@ public class NetworkManager {
     if (!observers.remove(observer)) {
       // System.err.println("User : Observer not found, can't remove it from the
       // list");
-      return;
     } else {
       discoveryService.removeObserver(observer);
       if (gameClient != null) {
@@ -117,9 +118,12 @@ public class NetworkManager {
   // -----F38-----
 
   /**
-   * COMMAND server list: Displays the list of game servers available on the local network. Servers
-   * periodically broadcast (every 10 seconds) their presence via a UDP message on port 12346
-   * containing the server name and TCP port. A server is removed from the list if no message is
+   * COMMAND server list: Displays the list of game servers available on the local
+   * network. Servers
+   * periodically broadcast (every 10 seconds) their presence via a UDP message on
+   * port 12346
+   * containing the server name and TCP port. A server is removed from the list if
+   * no message is
    * received for 30 seconds.
    *
    * @return the list
@@ -129,9 +133,12 @@ public class NetworkManager {
   }
 
   /**
-   * COMMAND server start [PORT]: Starts a simple game server on specified TCP port default 12345.
-   * The server must be able to accept one client connection at a time. Once started, the server
-   * broadcasts its presence on the network via UDP broadcast. If the port is already in use,
+   * COMMAND server start [PORT]: Starts a simple game server on specified TCP
+   * port default 12345.
+   * The server must be able to accept one client connection at a time. Once
+   * started, the server
+   * broadcasts its presence on the network via UDP broadcast. If the port is
+   * already in use,
    * display an error message.
    *
    * @param port the port
@@ -164,7 +171,8 @@ public class NetworkManager {
   }
 
   /**
-   * COMMAND server stop: Stops the game server. The connected client is notified of the shutdown
+   * COMMAND server stop: Stops the game server. The connected client is notified
+   * of the shutdown
    * and disconnected.
    */
   public void serverStop() {
@@ -180,8 +188,10 @@ public class NetworkManager {
   }
 
   /**
-   * COMMAND join [IP[:PORT]]: Connects to the server at the specified IP address and port (default
-   * localhost:12345). Once connected, the program switches to client mode. If the connection fails,
+   * COMMAND join [IP[:PORT]]: Connects to the server at the specified IP address
+   * and port (default
+   * localhost:12345). Once connected, the program switches to client mode. If the
+   * connection fails,
    * display an explicit error message.
    *
    * @param address the address
@@ -203,8 +213,10 @@ public class NetworkManager {
   }
 
   /**
-   * COMMAND join [IP[:PORT]]: Connects to the server at the specified IP address and port (default
-   * localhost:12345). Once connected, the program switches to client mode. If the connection fails,
+   * COMMAND join [IP[:PORT]]: Connects to the server at the specified IP address
+   * and port (default
+   * localhost:12345). Once connected, the program switches to client mode. If the
+   * connection fails,
    * display an explicit error message.
    *
    * @param address the address
@@ -228,7 +240,8 @@ public class NetworkManager {
   }
 
   /**
-   * COMMAND ping: Sends a ping message to the server. The server responds with a pong and the
+   * COMMAND ping: Sends a ping message to the server. The server responds with a
+   * pong and the
    * response time is displayed. This command allows testing the connection.
    */
   public void ping() {
@@ -242,7 +255,8 @@ public class NetworkManager {
   // -----F39-----
 
   /**
-   * COMMAND server status: Displays the server status. Listening port, number of connected clients,
+   * COMMAND server status: Displays the server status. Listening port, number of
+   * connected clients,
    * number of ongoing games
    */
   public void serverStatus() {
@@ -255,7 +269,8 @@ public class NetworkManager {
   }
 
   /**
-   * COMMAND players : Show server connected players with their id, name and status (idle, ingame).
+   * COMMAND players : Show server connected players with their id, name and
+   * status (idle, ingame).
    */
   public void players() {
     if (gameClient == null) {
@@ -266,7 +281,8 @@ public class NetworkManager {
   }
 
   /**
-   * COMMAND scoreboard : Show player scoreboard for this server, with number of win, loose and
+   * COMMAND scoreboard : Show player scoreboard for this server, with number of
+   * win, loose and
    * games played.
    */
   public void scoreboard() {
@@ -278,9 +294,12 @@ public class NetworkManager {
   }
 
   /**
-   * COMMAND new PLAYER_ID : Starts a new game with the specified player if they are IDLE. If the
-   * player does not exist or is unavailable, display an error message. If the game supports more
-   * than two players, simply provide multiple player IDs as arguments to the command.
+   * COMMAND new PLAYER_ID : Starts a new game with the specified player if they
+   * are IDLE. If the
+   * player does not exist or is unavailable, display an error message. If the
+   * game supports more
+   * than two players, simply provide multiple player IDs as arguments to the
+   * command.
    *
    * @param targetId the target id
    */
@@ -293,9 +312,12 @@ public class NetworkManager {
   }
 
   /**
-   * COMMAND new PLAYER_ID : Starts a new game with the specified player if they are IDLE. If the
-   * player does not exist or is unavailable, display an error message. If the game supports more
-   * than two players, simply provide multiple player IDs as arguments to the command.
+   * COMMAND new PLAYER_ID : Starts a new game with the specified player if they
+   * are IDLE. If the
+   * player does not exist or is unavailable, display an error message. If the
+   * game supports more
+   * than two players, simply provide multiple player IDs as arguments to the
+   * command.
    *
    * @param targetId1 the target id of the player 1
    * @param targetId2 the target id of the player 2
@@ -309,9 +331,12 @@ public class NetworkManager {
   }
 
   /**
-   * COMMAND new PLAYER_ID : Starts a new game with the specified player if they are IDLE. If the
-   * player does not exist or is unavailable, display an error message. If the game supports more
-   * than two players, simply provide multiple player IDs as arguments to the command.
+   * COMMAND new PLAYER_ID : Starts a new game with the specified player if they
+   * are IDLE. If the
+   * player does not exist or is unavailable, display an error message. If the
+   * game supports more
+   * than two players, simply provide multiple player IDs as arguments to the
+   * command.
    *
    * @param targetId1 the target id of the player 1
    * @param targetId2 the target id of the player 2
@@ -326,7 +351,8 @@ public class NetworkManager {
   }
 
   /**
-   * COMMAND move PLAY: Plays a word on the board at the specified coordinates and direction.
+   * COMMAND move PLAY: Plays a word on the board at the specified coordinates and
+   * direction.
    *
    * @param x         the x coordinate (column)
    * @param y         the y coordinate (row)
@@ -342,7 +368,8 @@ public class NetworkManager {
   }
 
   /**
-   * COMMAND move EXCHANGE: Exchanges specified tiles from the player's rack with new ones from bag.
+   * COMMAND move EXCHANGE: Exchanges specified tiles from the player's rack with
+   * new ones from bag.
    *
    * @param tiles the tiles to exchange (ex: "A,B,C")
    */

@@ -9,7 +9,8 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 /**
- * Unit tests for the PacketParser class. Verifies command extraction and payload data splitting.
+ * Unit tests for the PacketParser class. Verifies command extraction and
+ * payload data splitting.
  */
 class PacketParserTest {
 
@@ -47,8 +48,9 @@ class PacketParserTest {
   @Test
   void testCommandWithMultipleEntities() {
     // Test multiple entities separated by '|' (e.g., players list) [cite: 17, 325]
-    PacketParser parser =
-        new PacketParser("PLAYERS:ID=1;NAME=Alice;STATUS=IDLE|ID=2;NAME=Bob;STATUS=INGAME");
+    PacketParser parser = new PacketParser(
+        "PLAYERS:ID=1;NAME=Alice;STATUS=IDLE"
+            + "|ID=2;NAME=Bob;STATUS=INGAME");
 
     assertEquals("PLAYERS", parser.getCommand());
     List<Map<String, String>> entries = parser.getEntries();

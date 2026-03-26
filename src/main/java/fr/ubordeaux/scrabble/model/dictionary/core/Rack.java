@@ -1,4 +1,4 @@
-package fr.ubordeaux.scrabble.model.core;
+package fr.ubordeaux.scrabble.model.dictionary.core;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -77,7 +77,8 @@ public class Rack {
   }
 
   /**
-   * Replaces all rack tiles with the provided list. Primarily used by networking synchronization.
+   * Replaces all rack tiles with the provided list. Primarily used by networking
+   * synchronization.
    *
    * @param tiles new rack content.
    */

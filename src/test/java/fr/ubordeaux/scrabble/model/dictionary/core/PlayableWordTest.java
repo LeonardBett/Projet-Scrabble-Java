@@ -1,4 +1,4 @@
-package fr.ubordeaux.scrabble.model.core;
+package fr.ubordeaux.scrabble.model.dictionary.core;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -9,7 +9,8 @@ import org.junit.jupiter.api.Test;
 class PlayableWordTest {
 
   /**
-   * Test that the PlayableWord constructor correctly initializes all fields (position, word,
+   * Test that the PlayableWord constructor correctly initializes all fields
+   * (position, word,
    * direction, Gaddag representation) and allows score updates.
    */
   @Test
@@ -28,7 +29,8 @@ class PlayableWordTest {
   }
 
   /**
-   * Test that the toString method produces a string containing the main information about the
+   * Test that the toString method produces a string containing the main
+   * information about the
    * playable word (word, position, score).
    */
   @Test

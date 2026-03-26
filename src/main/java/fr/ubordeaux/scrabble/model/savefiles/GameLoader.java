@@ -1,9 +1,9 @@
 package fr.ubordeaux.scrabble.model.savefiles;
 
-import fr.ubordeaux.scrabble.model.core.Game;
-import fr.ubordeaux.scrabble.model.core.HumanPlayer;
-import fr.ubordeaux.scrabble.model.core.Move;
-import fr.ubordeaux.scrabble.model.core.Tile;
+import fr.ubordeaux.scrabble.model.dictionary.core.Game;
+import fr.ubordeaux.scrabble.model.dictionary.core.HumanPlayer;
+import fr.ubordeaux.scrabble.model.dictionary.core.Move;
+import fr.ubordeaux.scrabble.model.dictionary.core.Tile;
 import fr.ubordeaux.scrabble.model.enums.Direction;
 import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
@@ -63,19 +63,13 @@ public class GameLoader {
           }
 
           switch (section) {
-            case "[settings]":
-              parseSettings(game, line);
-              break;
-            case "[game]":
-              boardRow = parseGameState(game, line, boardRow);
-              break;
-            case "[history]":
-              parseHistory(game, line);
-              break;
-            default:
-              throw new IllegalStateException("Data found before any valid section header.");
+            case "[settings]" -> parseSettings(game, line);
+            case "[game]" -> boardRow = parseGameState(game, line, boardRow);
+            case "[history]" -> parseHistory(game, line);
+            default -> throw new IllegalStateException(
+                "Data found before any valid section header.");
           }
-        } catch (Exception e) {
+        } catch (IllegalArgumentException | IllegalStateException e) {
           throw new Exception("Format error at line " + lineCount + ": " + e.getMessage());
         }
       }
@@ -84,7 +78,8 @@ public class GameLoader {
   }
 
   /**
-   * Cleans an input line by removing single-line (#) and multi-line ({}) comments.
+   * Cleans an input line by removing single-line (#) and multi-line ({})
+   * comments.
    *
    * @param line The raw line from the save file.
    * @return The cleaned line without comments.
@@ -112,7 +107,8 @@ public class GameLoader {
   }
 
   /**
-   * Parses global game settings such as Blitz mode from the configuration section.
+   * Parses global game settings such as Blitz mode from the configuration
+   * section.
    *
    * @param game The game instance to update.
    * @param line The current line containing setting data.
@@ -204,7 +200,8 @@ public class GameLoader {
   }
 
   /**
-   * Ensures that a player exists in the game instance, creating a new player if necessary.
+   * Ensures that a player exists in the game instance, creating a new player if
+   * necessary.
    *
    * @param game  The game instance to check.
    * @param index The index of the player to verify.

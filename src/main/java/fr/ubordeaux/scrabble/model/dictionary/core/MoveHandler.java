@@ -1,4 +1,4 @@
-package fr.ubordeaux.scrabble.model.core;
+package fr.ubordeaux.scrabble.model.dictionary.core;
 
 import fr.ubordeaux.scrabble.model.enums.Direction;
 import fr.ubordeaux.scrabble.model.enums.MoveType;
@@ -9,7 +9,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Handles the execution of moves in the game. This class encapsulates the logic for processing
+ * Handles the execution of moves in the game. This class encapsulates the logic
+ * for processing
  * PLAY, EXCHANGE, and PASS moves.
  */
 public class MoveHandler {
@@ -25,13 +26,15 @@ public class MoveHandler {
   }
 
   /**
-   * Extracts the complete word string formed by placing tiles at the given position. This includes
+   * Extracts the complete word string formed by placing tiles at the given
+   * position. This includes
    * existing tiles on the board (prefix and suffix) combined with new tiles.
    *
    * @param startPosition Starting position of the word.
    * @param direction     Direction of the word (HORIZONTAL or VERTICAL).
    * @param tiles         Tiles to be placed.
-   * @return The complete word as a String (including existing tiles from the board).
+   * @return The complete word as a String (including existing tiles from the
+   *         board).
    */
   public String getCompleteWord(Point startPosition, Direction direction, List<Tile> tiles) {
     List<String> formedWords = getFormedWords(startPosition, direction, tiles);
@@ -39,7 +42,8 @@ public class MoveHandler {
   }
 
   /**
-   * Extracts all words formed by placing the tiles at the given position. The main word is returned
+   * Extracts all words formed by placing the tiles at the given position. The
+   * main word is returned
    * first, followed by any perpendicular words created.
    *
    * @param startPosition starting position of the move.
@@ -61,8 +65,8 @@ public class MoveHandler {
     formedWords.add(buildWord(wordSquares, newlyPlacedSquares, newlyPlacedTiles));
 
     for (int i = 0; i < newlyPlacedPositions.size(); i++) {
-      String crossWord =
-          buildPerpendicularWord(newlyPlacedPositions.get(i), direction, newlyPlacedTiles.get(i));
+      String crossWord = buildPerpendicularWord(
+          newlyPlacedPositions.get(i), direction, newlyPlacedTiles.get(i));
       if (crossWord.length() > 1) {
         formedWords.add(crossWord);
       }
@@ -72,7 +76,7 @@ public class MoveHandler {
   }
 
   private String buildWord(List<Square> wordSquares, List<Square> newlyPlacedSquares,
-                           List<Tile> newlyPlacedTiles) {
+      List<Tile> newlyPlacedTiles) {
     StringBuilder word = new StringBuilder();
     for (Square square : wordSquares) {
       if (!square.isEmpty()) {
@@ -202,7 +206,8 @@ public class MoveHandler {
   }
 
   /**
-   * Applies an EXCHANGE move by returning selected tiles to the bag and drawing new ones.
+   * Applies an EXCHANGE move by returning selected tiles to the bag and drawing
+   * new ones.
    *
    * @param move move to apply.
    */
@@ -305,14 +310,16 @@ public class MoveHandler {
   }
 
   /**
-   * Build the full word on the board (including existing prefix/suffix), record newly placed
-   * squares/positions and validate first-move/adjacency rules. Throws IllegalArgumentException on
+   * Build the full word on the board (including existing prefix/suffix), record
+   * newly placed
+   * squares/positions and validate first-move/adjacency rules. Throws
+   * IllegalArgumentException on
    * invalid placements.
    */
   private void buildWordForMove(Point startPosition, Direction direction, List<Tile> tiles,
-                                List<Square> wordSquares, List<Point> wordPositions,
-                                List<Square> newlyPlacedSquares,
-                                List<Point> newlyPlacedPositions, List<Tile> newlyPlacedTiles) {
+      List<Square> wordSquares, List<Point> wordPositions,
+      List<Square> newlyPlacedSquares,
+      List<Point> newlyPlacedPositions, List<Tile> newlyPlacedTiles) {
 
     int x = startPosition.getX();
     int y = startPosition.getY();
@@ -421,7 +428,8 @@ public class MoveHandler {
   }
 
   /**
-   * Returns the list of squares forming the perpendicular word that includes the square at `pos`.
+   * Returns the list of squares forming the perpendicular word that includes the
+   * square at `pos`.
    * The order is from the start of that perpendicular word to its end.
    */
   private List<Square> getPerpendicularWordSquares(Point pos, Direction mainDirection) {

@@ -2,7 +2,7 @@ package fr.ubordeaux.scrabble.view;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import fr.ubordeaux.scrabble.model.core.HumanPlayer;
+import fr.ubordeaux.scrabble.model.dictionary.core.HumanPlayer;
 import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.view.cli.renderer.RackRenderer;
 import java.io.ByteArrayOutputStream;

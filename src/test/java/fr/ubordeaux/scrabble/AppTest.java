@@ -25,10 +25,10 @@ class AppTest {
     });
     App.setCliDelegateForTests((players, aiColors, blitzMode, blitzMinutes, aiTime,
         useExptiminimax, useMl, lang) -> cliCall = new CliLaunchCall(players, aiColors, blitzMode,
-        blitzMinutes, aiTime, useExptiminimax, useMl, lang));
+            blitzMinutes, aiTime, useExptiminimax, useMl, lang));
     App.setGuiDelegateForTests((args, players, aiColors, blitzMode, blitzMinutes, aiTime,
         useExptiminimax, useMl, lang) -> guiCall = new GuiLaunchCall(args, players, aiColors,
-        blitzMode, blitzMinutes, aiTime, useExptiminimax, useMl, lang));
+            blitzMode, blitzMinutes, aiTime, useExptiminimax, useMl, lang));
   }
 
   @AfterEach
@@ -58,8 +58,8 @@ class AppTest {
 
   @Test
   void mainShouldLaunchGuiAndPropagateParsedOptions() {
-    App.main(new String[] {"-g", "-s", "-b", "-t", "12", "-ai-exptiminimax", "--ai-ml", "-a",
-        "blue", "-p", "3", "-l", "fr", "-ai-time", "7", "-v", "-d"});
+    App.main(new String[] { "-g", "-s", "-b", "-t", "12", "-ai-exptiminimax", "--ai-ml", "-a",
+        "blue", "-p", "3", "-l", "fr", "-ai-time", "7", "-v", "-d" });
 
     assertNotNull(guiCall);
     assertNull(cliCall);
@@ -75,7 +75,7 @@ class AppTest {
 
   @Test
   void mainShouldKeepDefaultLanguageWhenUnsupported() {
-    App.main(new String[] {"-l", "es"});
+    App.main(new String[] { "-l", "es" });
 
     assertNotNull(cliCall);
     assertEquals("en", cliCall.lang);
@@ -83,7 +83,7 @@ class AppTest {
 
   @Test
   void mainShouldKeepDefaultLanguageWhenMissingValue() {
-    App.main(new String[] {"-l"});
+    App.main(new String[] { "-l" });
 
     assertNotNull(cliCall);
     assertEquals("en", cliCall.lang);
@@ -91,7 +91,7 @@ class AppTest {
 
   @Test
   void mainShouldEnableBlitzWithDefaultMinutesWhenInvalidValue() {
-    App.main(new String[] {"-b", "-t", "not-a-number"});
+    App.main(new String[] { "-b", "-t", "not-a-number" });
 
     assertNotNull(cliCall);
     assertTrue(cliCall.blitzMode);
@@ -100,7 +100,7 @@ class AppTest {
 
   @Test
   void mainShouldKeepDefaultAiTimeWhenMissingValue() {
-    App.main(new String[] {"-ai-time"});
+    App.main(new String[] { "-ai-time" });
 
     assertNotNull(cliCall);
     assertEquals(5, cliCall.aiTime);
@@ -108,7 +108,7 @@ class AppTest {
 
   @Test
   void mainShouldKeepDefaultAiTimeWhenInvalidValue() {
-    App.main(new String[] {"-ai-time", "oops"});
+    App.main(new String[] { "-ai-time", "oops" });
 
     assertNotNull(cliCall);
     assertEquals(5, cliCall.aiTime);
@@ -116,32 +116,32 @@ class AppTest {
 
   @Test
   void mainShouldExitOnUnknownOption() {
-    ExitCalledException ex =
-        assertThrows(ExitCalledException.class, () -> App.main(new String[] {"--nope"}));
+    ExitCalledException ex = assertThrows(ExitCalledException.class,
+        () -> App.main(new String[] { "--nope" }));
 
     assertEquals(1, ex.status);
   }
 
   @Test
   void mainShouldExitWhenAiColorValueMissing() {
-    ExitCalledException ex =
-        assertThrows(ExitCalledException.class, () -> App.main(new String[] {"-a"}));
+    ExitCalledException ex = assertThrows(ExitCalledException.class,
+        () -> App.main(new String[] { "-a" }));
 
     assertEquals(1, ex.status);
   }
 
   @Test
   void mainShouldExitWhenPlayersValueMissing() {
-    ExitCalledException ex =
-        assertThrows(ExitCalledException.class, () -> App.main(new String[] {"-p"}));
+    ExitCalledException ex = assertThrows(ExitCalledException.class,
+        () -> App.main(new String[] { "-p" }));
 
     assertEquals(1, ex.status);
   }
 
   @Test
   void mainShouldExitWhenBlitzTimeFlagHasNoValue() {
-    ExitCalledException ex =
-        assertThrows(ExitCalledException.class, () -> App.main(new String[] {"-b", "-t"}));
+    ExitCalledException ex = assertThrows(ExitCalledException.class,
+        () -> App.main(new String[] { "-b", "-t" }));
 
     assertEquals(1, ex.status);
   }

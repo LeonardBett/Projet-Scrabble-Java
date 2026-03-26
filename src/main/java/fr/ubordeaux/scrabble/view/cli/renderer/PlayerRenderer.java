@@ -30,14 +30,14 @@ public class PlayerRenderer {
   }
 
   private void renderPlayerScore(Player player) {
-    String timerPart =
-        player.isBlitzClockEnabled() ? " | " + player.getRemainingTimeDisplay() : "";
+    String timerPart = player.isBlitzClockEnabled() ? " | " + player.getRemainingTimeDisplay() : "";
     System.out.printf("║ %-18s Score: %4d pts%-11s ║%n",
         player.getName(), player.getScore(), timerPart);
   }
 
   /**
-   * Affiche le nom du joueur dont c'est le tour, avec son temps si le mode blitz est actif.
+   * Affiche le nom du joueur dont c'est le tour, avec son temps si le mode blitz
+   * est actif.
    *
    * @param player le joueur courant
    */

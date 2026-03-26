@@ -4,8 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import fr.ubordeaux.scrabble.model.core.Game;
-import fr.ubordeaux.scrabble.model.core.HumanPlayer;
+import fr.ubordeaux.scrabble.model.dictionary.core.Game;
+import fr.ubordeaux.scrabble.model.dictionary.core.HumanPlayer;
 import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.view.FakePanels.FakeBoardPanel;
 import fr.ubordeaux.scrabble.view.FakePanels.FakeControlPanel;
@@ -17,7 +17,8 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Integration tests for fake GUI panels.
- * Validates that fake panels work correctly for tracking method calls without JavaFX runtime.
+ * Validates that fake panels work correctly for tracking method calls without
+ * JavaFX runtime.
  */
 class ScrabbleGuiIntegrationTest {
   private Game game;

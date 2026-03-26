@@ -3,8 +3,8 @@ package fr.ubordeaux.scrabble.view.gui.panel;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
-import fr.ubordeaux.scrabble.model.core.Rack;
-import fr.ubordeaux.scrabble.model.core.Tile;
+import fr.ubordeaux.scrabble.model.dictionary.core.Rack;
+import fr.ubordeaux.scrabble.model.dictionary.core.Tile;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

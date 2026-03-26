@@ -75,7 +75,7 @@ public class DiscoveryService {
     // Can be put in an external methode
     broadCastThread = new Thread(() -> {
       try (DatagramSocket broadcastSocket =
-               new DatagramSocket(new java.net.InetSocketAddress(localIp, 0))) {
+          new DatagramSocket(new java.net.InetSocketAddress(localIp, 0))) {
         // We have to set the broadcast to true to be able to send broadcast message
         broadcastSocket.setBroadcast(true);
 
@@ -286,7 +286,6 @@ public class DiscoveryService {
     if (!observers.remove(observer)) {
       // System.err.println("User : Observer not found, can't remove it from the
       // list");
-      return;
     }
   }
 

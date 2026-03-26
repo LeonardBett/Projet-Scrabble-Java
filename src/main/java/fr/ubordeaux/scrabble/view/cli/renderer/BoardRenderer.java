@@ -1,7 +1,7 @@
 package fr.ubordeaux.scrabble.view.cli.renderer;
 
-import fr.ubordeaux.scrabble.model.core.Board;
-import fr.ubordeaux.scrabble.model.core.Square;
+import fr.ubordeaux.scrabble.model.dictionary.core.Board;
+import fr.ubordeaux.scrabble.model.dictionary.core.Square;
 import fr.ubordeaux.scrabble.model.enums.SquareType;
 import fr.ubordeaux.scrabble.model.utils.Point;
 

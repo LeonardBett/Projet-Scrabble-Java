@@ -32,7 +32,7 @@ public class ClientHandler implements Runnable {
   private PrintWriter out;
 
   // Useful player information
-  private ClientInfo clientInfo;
+  private final ClientInfo clientInfo;
 
   // Active game for this client
   // null if no current game
@@ -122,7 +122,6 @@ public class ClientHandler implements Runnable {
       out.println(message);
     } else {
       // System.err.println("Client is not connected");
-      return;
     }
   }
 

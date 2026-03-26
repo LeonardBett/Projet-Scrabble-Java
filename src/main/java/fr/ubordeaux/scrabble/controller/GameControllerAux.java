@@ -2,10 +2,10 @@ package fr.ubordeaux.scrabble.controller;
 
 import fr.ubordeaux.scrabble.model.ai.AiPlayer;
 import fr.ubordeaux.scrabble.model.ai.MlAgent;
-import fr.ubordeaux.scrabble.model.core.Game;
-import fr.ubordeaux.scrabble.model.core.HumanPlayer;
-import fr.ubordeaux.scrabble.model.core.Move;
 import fr.ubordeaux.scrabble.model.dictionary.Gaddag;
+import fr.ubordeaux.scrabble.model.dictionary.core.Game;
+import fr.ubordeaux.scrabble.model.dictionary.core.HumanPlayer;
+import fr.ubordeaux.scrabble.model.dictionary.core.Move;
 import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
 import fr.ubordeaux.scrabble.view.cli.CliInputHandler;
@@ -13,7 +13,8 @@ import fr.ubordeaux.scrabble.view.cli.CliView;
 import java.util.List;
 
 /**
- * CLI-specific orchestration extracted from GameController to keep the main controller smaller.
+ * CLI-specific orchestration extracted from GameController to keep the main
+ * controller smaller.
  */
 class GameControllerAux {
   private final GameController controller;
@@ -52,19 +53,14 @@ class GameControllerAux {
     MlAgent sharedMlAgent = new MlAgent(modelPath, dictList);
 
     final MlAgent finalAgent = sharedMlAgent;
-    Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-      if (finalAgent != null) {
-        finalAgent.close();
-      }
-    }));
+    Runtime.getRuntime().addShutdownHook(new Thread(() -> finalAgent.close()));
 
     return sharedMlAgent;
   }
 
   private void configureExistingAiPlayers(MlAgent sharedMlAgent) {
     for (Player p : controller.internalGame().getPlayers()) {
-      if (p instanceof AiPlayer) {
-        AiPlayer bot = (AiPlayer) p;
+      if (p instanceof AiPlayer bot) {
         bot.setExpectiminimaxMode(controller.isExpectiminimaxEnabled());
         if (sharedMlAgent != null) {
           bot.setMlAgent(sharedMlAgent);
@@ -160,7 +156,7 @@ class GameControllerAux {
     try {
       player.playTurn(controller.internalGame(), currentGaddag);
       Thread.sleep(2000);
-    } catch (Exception e) {
+    } catch (RuntimeException | InterruptedException e) {
       cliView.displayError("Error during AI's turn: " + e.getMessage());
       e.printStackTrace();
       controller.handlePlayerMove(Move.createPass(player));
@@ -183,15 +179,15 @@ class GameControllerAux {
       CliInputHandler input,
       CliView cliView) {
     switch (action) {
-      case "1": {
+      case "1" -> {
         executeMoveAction(input.askPlayMove(current), cliView, "Move done.");
         return true;
       }
-      case "2": {
+      case "2" -> {
         executeMoveAction(input.askExchangeMove(current), cliView, "Letters exchanged.");
         return true;
       }
-      case "3": {
+      case "3" -> {
         try {
           controller.handlePlayerMove(Move.createPass(current));
           cliView.displayMessage(current.getName() + " skips his turn.");
@@ -200,23 +196,25 @@ class GameControllerAux {
         }
         return true;
       }
-      case "4": {
+      case "4" -> {
         controller.undo();
         return true;
       }
-      case "5": {
+      case "5" -> {
         controller.redo();
         return true;
       }
-      case "6":
+      case "6" -> {
         return !input.askConfirmation("Do you really want to quit ?");
-      case "7": {
+      }
+      case "7" -> {
         controller.provideHint();
         return true;
       }
-      default:
+      default -> {
         cliView.displayError("Invalid choice.");
         return true;
+      }
     }
   }
 

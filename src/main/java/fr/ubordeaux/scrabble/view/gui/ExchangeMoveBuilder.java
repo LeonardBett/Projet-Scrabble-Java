@@ -1,7 +1,7 @@
 package fr.ubordeaux.scrabble.view.gui;
 
-import fr.ubordeaux.scrabble.model.core.Move;
-import fr.ubordeaux.scrabble.model.core.Tile;
+import fr.ubordeaux.scrabble.model.dictionary.core.Move;
+import fr.ubordeaux.scrabble.model.dictionary.core.Tile;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
 import java.util.ArrayList;
 import java.util.List;

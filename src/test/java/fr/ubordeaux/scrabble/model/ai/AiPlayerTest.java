@@ -5,9 +5,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import fr.ubordeaux.scrabble.model.core.Game;
-import fr.ubordeaux.scrabble.model.core.Tile;
 import fr.ubordeaux.scrabble.model.dictionary.Gaddag;
+import fr.ubordeaux.scrabble.model.dictionary.core.Game;
+import fr.ubordeaux.scrabble.model.dictionary.core.Tile;
 import fr.ubordeaux.scrabble.model.enums.MoveType;
 import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import java.lang.reflect.Method;
@@ -17,7 +17,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * Comprehensive unit tests for the AiPlayer class. Verifies player configuration, delegation to the
+ * Comprehensive unit tests for the AiPlayer class. Verifies player
+ * configuration, delegation to the
  * solver, and internal rack parsing and turn playing logic.
  */
 class AiPlayerTest {
@@ -97,8 +98,7 @@ class AiPlayerTest {
 
     // Give a specific rack
     aiPlayer.getRack().setTiles(new ArrayList<>(List.of(
-        new Tile('C'), new Tile('A'), new Tile('T')
-    )));
+        new Tile('C'), new Tile('A'), new Tile('T'))));
 
     // Create a dictionary containing only our target word
     Gaddag dict = new Gaddag();
@@ -119,8 +119,7 @@ class AiPlayerTest {
     game.startGame();
 
     aiPlayer.getRack().setTiles(new ArrayList<>(List.of(
-        new Tile('B'), new Tile('A'), new Tile('T')
-    )));
+        new Tile('B'), new Tile('A'), new Tile('T'))));
 
     // Injects an ML agent that will fail to load (invalid path).
     MlAgent invalidAgent = new MlAgent("invalid/path", new ArrayList<>());
@@ -144,13 +143,13 @@ class AiPlayerTest {
     game.startGame();
 
     aiPlayer.getRack().setTiles(new ArrayList<>(List.of(
-        new Tile('V'), new Tile('E'), new Tile('R'), new Tile('T')
-    )));
+        new Tile('V'), new Tile('E'), new Tile('R'), new Tile('T'))));
 
     Gaddag dict = new Gaddag();
     dict.add("VERT");
 
-    // Forces a vertical play by artificially placing a tile and setting up a constraint
+    // Forces a vertical play by artificially placing a tile and setting up a
+    // constraint
     // if your MoveGenerator allows it, or we simply verify that vertical words
     // don't crash the coordinate calculation.
     aiPlayer.playTurn(game, dict);
@@ -167,8 +166,7 @@ class AiPlayerTest {
 
     // Give a rack with impossible letters (e.g., only W, X, Y, Z without vowels)
     aiPlayer.getRack().setTiles(new ArrayList<>(List.of(
-        new Tile('W'), new Tile('X'), new Tile('Y'), new Tile('Z')
-    )));
+        new Tile('W'), new Tile('X'), new Tile('Y'), new Tile('Z'))));
 
     Gaddag emptyDict = new Gaddag();
 
@@ -182,25 +180,29 @@ class AiPlayerTest {
     assertEquals(MoveType.PASS, game.getUndoRedo().getHistory().getFirst().getType());
   }
 
-  /* Joker is not yet implemented
-  @Test
-  void testPlayTurnWithJoker() {
-    Game game = new Game();
-    game.addPlayer(aiPlayer);
-    game.startGame();
-
-    // Give a specific rack containing a blank tile (Joker)
-    aiPlayer.getRack().setTiles(new ArrayList<>(List.of(
-        new Tile('D'), new Tile('O'), new Tile(' ', true)
-    )));
-
-    Gaddag dict = new Gaddag();
-    dict.add("DOG");
-
-    aiPlayer.playTurn(game, dict);
-
-    // AI should use the joker as 'G' to play DOG
-    assertTrue(game.isFirstMoveDone());
-    assertEquals(MoveType.PLAY, game.getUndoRedo().getHistory().getFirst().getType());
-  } */
+  /*
+   * Joker is not yet implemented
+   * 
+   * @Test
+   * void testPlayTurnWithJoker() {
+   * Game game = new Game();
+   * game.addPlayer(aiPlayer);
+   * game.startGame();
+   * 
+   * // Give a specific rack containing a blank tile (Joker)
+   * aiPlayer.getRack().setTiles(new ArrayList<>(List.of(
+   * new Tile('D'), new Tile('O'), new Tile(' ', true)
+   * )));
+   * 
+   * Gaddag dict = new Gaddag();
+   * dict.add("DOG");
+   * 
+   * aiPlayer.playTurn(game, dict);
+   * 
+   * // AI should use the joker as 'G' to play DOG
+   * assertTrue(game.isFirstMoveDone());
+   * assertEquals(MoveType.PLAY,
+   * game.getUndoRedo().getHistory().getFirst().getType());
+   * }
+   */
 }

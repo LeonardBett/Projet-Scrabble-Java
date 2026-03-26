@@ -1,10 +1,11 @@
-package fr.ubordeaux.scrabble.model.core;
+package fr.ubordeaux.scrabble.model.dictionary.core;
 
 import fr.ubordeaux.scrabble.model.enums.SquareType;
 import fr.ubordeaux.scrabble.model.utils.Point;
 
 /**
- * Represents a single square on the board. Can contain a tile and have an associated bonus.
+ * Represents a single square on the board. Can contain a tile and have an
+ * associated bonus.
  */
 public class Square {
   /**
@@ -25,7 +26,7 @@ public class Square {
   /**
    * Constructor for an empty square at the start of the game.
    *
-   * @param position The coordinates of the square.
+   * @param position   The coordinates of the square.
    * @param squareType The bonus type of the square.
    */
   public Square(Point position, SquareType squareType) {

@@ -1,13 +1,14 @@
 package fr.ubordeaux.scrabble.view;
 
-import fr.ubordeaux.scrabble.model.core.Tile;
+import fr.ubordeaux.scrabble.model.dictionary.core.Tile;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
 /**
  * Fake implementations of GUI panels for testing without JavaFX dependency.
- * Uses composition pattern (no inheritance) to avoid JavaFX constructor initialization.
+ * Uses composition pattern (no inheritance) to avoid JavaFX constructor
+ * initialization.
  */
 public class FakePanels {
 

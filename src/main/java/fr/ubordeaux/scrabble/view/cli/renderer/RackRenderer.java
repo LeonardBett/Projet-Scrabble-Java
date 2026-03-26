@@ -1,7 +1,7 @@
 package fr.ubordeaux.scrabble.view.cli.renderer;
 
-import fr.ubordeaux.scrabble.model.core.Rack;
-import fr.ubordeaux.scrabble.model.core.Tile;
+import fr.ubordeaux.scrabble.model.dictionary.core.Rack;
+import fr.ubordeaux.scrabble.model.dictionary.core.Tile;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
 import java.util.List;
 

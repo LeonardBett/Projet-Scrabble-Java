@@ -1,4 +1,4 @@
-package fr.ubordeaux.scrabble.model.core;
+package fr.ubordeaux.scrabble.model.dictionary.core;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -15,7 +15,8 @@ import org.junit.jupiter.api.Test;
 class MoveTest {
 
   /**
-   * Test that the createPass factory method correctly creates a PASS move with the specified player
+   * Test that the createPass factory method correctly creates a PASS move with
+   * the specified player
    * and empty tiles list.
    */
   @Test
@@ -29,7 +30,8 @@ class MoveTest {
   }
 
   /**
-   * Test that the createExchange factory method rejects invalid input (null or empty tile list) by
+   * Test that the createExchange factory method rejects invalid input (null or
+   * empty tile list) by
    * throwing IllegalArgumentException.
    */
   @Test
@@ -41,7 +43,8 @@ class MoveTest {
   }
 
   /**
-   * Test that the createPlay factory method validates all required fields (tiles, position,
+   * Test that the createPlay factory method validates all required fields (tiles,
+   * position,
    * direction) and throws exceptions for invalid inputs.
    */
   @Test
@@ -58,14 +61,15 @@ class MoveTest {
   }
 
   /**
-   * Test that Move provides defensive copies to prevent external modification of internal
+   * Test that Move provides defensive copies to prevent external modification of
+   * internal
    * collections (tiles, placed positions, placed tiles).
    */
   @Test
   void moveShouldExposeUnmodifiableTilesAndDefensiveCopiesForPlacedData() {
     HumanPlayer player = new HumanPlayer("Dan", PlayerColor.BLUE);
-    Move move =
-        Move.createPlay(player, List.of(new Tile('D')), new Point(7, 7), Direction.HORIZONTAL);
+    Move move = Move.createPlay(player, List.of(new Tile('D')),
+        new Point(7, 7), Direction.HORIZONTAL);
 
     assertThrows(UnsupportedOperationException.class, () -> move.getTiles().add(new Tile('E')));
 

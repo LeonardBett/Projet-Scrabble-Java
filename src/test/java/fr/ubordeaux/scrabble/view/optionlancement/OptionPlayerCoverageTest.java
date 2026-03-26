@@ -28,7 +28,7 @@ class OptionPlayerCoverageTest {
     PrintStream originalErr = System.err;
     System.setErr(new PrintStream(err));
 
-    final int[] status = {-1};
+    final int[] status = { -1 };
     OptionPlayer.setExitHandlerForTests(code -> {
       status[0] = code;
       throw new RuntimeException("exit-called");
@@ -52,7 +52,7 @@ class OptionPlayerCoverageTest {
     PrintStream originalErr = System.err;
     System.setErr(new PrintStream(err));
 
-    final int[] status = {-1};
+    final int[] status = { -1 };
     OptionPlayer.setExitHandlerForTests(code -> {
       status[0] = code;
       throw new RuntimeException("exit-called");

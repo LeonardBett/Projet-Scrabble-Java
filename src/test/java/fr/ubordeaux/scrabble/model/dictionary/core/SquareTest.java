@@ -1,4 +1,4 @@
-package fr.ubordeaux.scrabble.model.core;
+package fr.ubordeaux.scrabble.model.dictionary.core;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -11,7 +11,8 @@ import org.junit.jupiter.api.Test;
 class SquareTest {
 
   /**
-   * Test that creating a Square without a tile results in an empty square with the correct position
+   * Test that creating a Square without a tile results in an empty square with
+   * the correct position
    * and type.
    */
   @Test
@@ -25,7 +26,8 @@ class SquareTest {
   }
 
   /**
-   * Test that setting and removing tiles on a square correctly updates the square's occupancy
+   * Test that setting and removing tiles on a square correctly updates the
+   * square's occupancy
    * status.
    */
   @Test

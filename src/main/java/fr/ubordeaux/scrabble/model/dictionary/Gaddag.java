@@ -7,7 +7,8 @@ import java.util.Objects;
 
 /**
  * Implementation of a GADDAG data structure for Scrabble word generation.
- * It stores word rotations in a Trie to allow searching for words from any anchor point.
+ * It stores word rotations in a Trie to allow searching for words from any
+ * anchor point.
  */
 public class Gaddag extends Trie {
   private static final char separator = '>';
@@ -36,7 +37,7 @@ public class Gaddag extends Trie {
     /**
      * Creates a result entry for a found word.
      *
-     * @param word The literal word found.
+     * @param word       The literal word found.
      * @param gaddagPath The specific path used to find it in the graph.
      */
     public GaddagResult(String word, String gaddagPath) {
@@ -68,7 +69,8 @@ public class Gaddag extends Trie {
   }
 
   /**
-   * Adds a word to the GADDAG by inserting all its necessary rotations into the underlying Trie.
+   * Adds a word to the GADDAG by inserting all its necessary rotations into the
+   * underlying Trie.
    *
    * @param word The word to add to the dictionary.
    */
@@ -108,7 +110,8 @@ public class Gaddag extends Trie {
   }
 
   /**
-   * Finds all words that can be formed using the provided rack letters and a specific hook tile.
+   * Finds all words that can be formed using the provided rack letters and a
+   * specific hook tile.
    *
    * @param rack The player's available letters.
    * @param hook The mandatory anchor letter on the board (use ' ' if no hook).
@@ -132,18 +135,20 @@ public class Gaddag extends Trie {
   }
 
   /**
-   * Recursively explores the GADDAG to build words based on the current rack and direction.
+   * Recursively explores the GADDAG to build words based on the current rack and
+   * direction.
    *
-   * @param words The collection of results being populated.
-   * @param word The word string built so far.
+   * @param words      The collection of results being populated.
+   * @param word       The word string built so far.
    * @param gaddagPath The path traversed in the graph.
-   * @param rack The remaining available letters.
-   * @param hook The current character to match in the graph.
-   * @param cur The current node in the Trie.
-   * @param direction The current building direction (true for prefix/left, false for suffix/right).
+   * @param rack       The remaining available letters.
+   * @param hook       The current character to match in the graph.
+   * @param cur        The current node in the Trie.
+   * @param direction  The current building direction (true for prefix/left, false
+   *                   for suffix/right).
    */
   private void findWordsRecurse(HashSet<GaddagResult> words, String word, String gaddagPath,
-                                ArrayList<Character> rack, char hook, Node cur, boolean direction) {
+      ArrayList<Character> rack, char hook, Node cur, boolean direction) {
     Node hookNode = cur.getChild(hook);
 
     if (hookNode == null) {
@@ -185,8 +190,7 @@ public class Gaddag extends Trie {
     String upperWord = word.toUpperCase();
     char firstLetter = upperWord.charAt(0);
 
-    String gaddagPath =
-        String.valueOf(firstLetter) + separator + upperWord.substring(1);
+    String gaddagPath = String.valueOf(firstLetter) + separator + upperWord.substring(1);
 
     return this.contains(gaddagPath);
   }
