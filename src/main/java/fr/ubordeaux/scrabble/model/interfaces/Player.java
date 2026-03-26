@@ -1,6 +1,8 @@
 package fr.ubordeaux.scrabble.model.interfaces;
 
+import fr.ubordeaux.scrabble.model.core.Game;
 import fr.ubordeaux.scrabble.model.core.Rack;
+import fr.ubordeaux.scrabble.model.dictionary.Gaddag;
 import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import java.time.Duration;
 
@@ -89,6 +91,27 @@ public abstract class Player {
    */
   public Rack getRack() {
     return rack;
+  }
+
+  /**
+   * Indicates whether this player is autonomous (AI-controlled) and should play
+   * without interactive user input.
+   *
+   * @return True for autonomous players, false for human-driven players.
+   */
+  public boolean isAutonomous() {
+    return false;
+  }
+
+  /**
+   * Plays one autonomous turn.
+   *
+   * @param game Current game state.
+   * @param gaddag Dictionary used for move search.
+   */
+  public void playTurn(Game game, Gaddag gaddag) {
+    throw new UnsupportedOperationException(
+        "This player type does not support autonomous turns.");
   }
 
   /**

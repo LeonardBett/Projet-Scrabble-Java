@@ -15,10 +15,49 @@ import java.util.List;
  */
 public class App {
 
+  @FunctionalInterface
+  interface ExitHandler {
+    void exit(int status);
+  }
+
+  @FunctionalInterface
+  interface CliLauncherHandler {
+    void launch(int players, List<String> aiColors, boolean blitzMode, int blitzMinutes, int aiTime,
+        boolean useExptiminimax, boolean useMl, String lang);
+  }
+
+  @FunctionalInterface
+  interface GuiLauncherHandler {
+    void launch(String[] args, int players, List<String> aiColors, boolean blitzMode,
+        int blitzMinutes, int aiTime, boolean useExptiminimax, boolean useMl, String lang);
+  }
+
+  private static ExitHandler exitHandler = System::exit;
+  private static CliLauncherHandler cliLauncherHandler = CliLauncher::launch;
+  private static GuiLauncherHandler guiLauncherHandler = GuiLauncher::launch;
+
   /**
    * Default constructor for App. Should not be instantiated directly.
    */
   public App() {
+  }
+
+  static void setExitHandlerForTests(ExitHandler handler) {
+    exitHandler = handler;
+  }
+
+  static void setCliDelegateForTests(CliLauncherHandler handler) {
+    cliLauncherHandler = handler;
+  }
+
+  static void setGuiDelegateForTests(GuiLauncherHandler handler) {
+    guiLauncherHandler = handler;
+  }
+
+  static void resetHandlersForTests() {
+    exitHandler = System::exit;
+    cliLauncherHandler = CliLauncher::launch;
+    guiLauncherHandler = GuiLauncher::launch;
   }
 
   /**
@@ -72,14 +111,14 @@ public class App {
         case "-a", "--ai" -> {
           if (i + 1 >= args.length) {
             System.err.println("'-a' attend une couleur (ex: -a BLUE).");
-            System.exit(1);
+            exitHandler.exit(1);
           }
           aiColors.add(args[++i].toUpperCase());
         }
         case "-p", "--players" -> {
           if (i + 1 >= args.length) {
             System.err.println("'-p' attend un nombre (ex: -p 3).");
-            System.exit(1);
+            exitHandler.exit(1);
           }
           players = OptionPlayer.parsePlayers(args[++i]);
         }
@@ -108,12 +147,15 @@ public class App {
         default -> {
           System.err.println("Option inconnue : " + args[i]);
           System.err.println("Utilisez -h ou --help pour afficher l'aide.");
-          System.exit(1);
+          exitHandler.exit(1);
         }
       }
     }
 
     GameMode mode = superMode ? GameMode.SUPER : GameMode.STANDARD;
+    if (mode == null) {
+      throw new IllegalStateException("Game mode should never be null.");
+    }
 
     if (guiMode) {
       launchGui(args, players, aiColors, blitzMode, blitzMinutes, aiTime, useExptiminimax, useMl,
@@ -138,8 +180,8 @@ public class App {
 
   private static void launchCli(int players, List<String> aiColors, boolean blitzMode,
       int blitzMinutes, int aiTime, boolean useExptiminimax, boolean useMl, String lang) {
-    CliLauncher.launch(players, aiColors, blitzMode, blitzMinutes, aiTime, useExptiminimax, useMl,
-        lang);
+    cliLauncherHandler.launch(players, aiColors, blitzMode, blitzMinutes, aiTime,
+        useExptiminimax, useMl, lang);
   }
 
 
@@ -159,8 +201,8 @@ public class App {
   private static void launchGui(String[] args, int players, List<String> aiColors,
       boolean blitzMode, int blitzMinutes, int aiTime, boolean useExptiminimax, boolean useMl,
       String lang) {
-    GuiLauncher.launch(args, players, aiColors, blitzMode, blitzMinutes, aiTime, useExptiminimax,
-        useMl, lang);
+    guiLauncherHandler.launch(args, players, aiColors, blitzMode, blitzMinutes, aiTime,
+        useExptiminimax, useMl, lang);
   }
 
 
