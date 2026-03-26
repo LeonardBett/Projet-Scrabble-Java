@@ -25,6 +25,7 @@ public class HelpPrinter {
    */
   public static void printHelp() {
 <<<<<<< HEAD
+<<<<<<< HEAD
     System.out.println("""
 <<<<<<< HEAD
           Usage : scrabble [OPTION]
@@ -74,12 +75,17 @@ public class HelpPrinter {
         """);
 >>>>>>> c984150 (feat: Enhance game configuration and blitz mode functionality)
 =======
+=======
+>>>>>>> 80eb4dd275121a2ebeee7238584257f4cce5f53f
     if (I18n.isFrench()) {
       System.out.println(I18n.tr("help.text.fr"));
       return;
     }
     System.out.println(I18n.tr("help.text.en"));
+<<<<<<< HEAD
 >>>>>>> 80eb4dd (Add internationalization support for GUI and CLI components)
+=======
+>>>>>>> 80eb4dd275121a2ebeee7238584257f4cce5f53f
   }
 
   /**

@@ -1,11 +1,15 @@
 package fr.ubordeaux.scrabble;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 import fr.ubordeaux.scrabble.model.enums.GameMode;
 import fr.ubordeaux.scrabble.model.utils.GameLogger;
 =======
 import fr.ubordeaux.scrabble.i18n.I18n;
 >>>>>>> 80eb4dd (Add internationalization support for GUI and CLI components)
+=======
+import fr.ubordeaux.scrabble.i18n.I18n;
+>>>>>>> 80eb4dd275121a2ebeee7238584257f4cce5f53f
 import fr.ubordeaux.scrabble.view.optionlancement.CliLauncher;
 import fr.ubordeaux.scrabble.view.optionlancement.GuiLauncher;
 import fr.ubordeaux.scrabble.view.optionlancement.HelpPrinter;
@@ -80,9 +84,12 @@ public class App {
     boolean useMl = false;
     String lang = resolveInitialLanguage(args);
     I18n.setLanguage(lang);
+<<<<<<< HEAD
 
     // List to store the colors of players that should be controlled by AI
     List<String> aiColors = new ArrayList<>();
+=======
+>>>>>>> 80eb4dd275121a2ebeee7238584257f4cce5f53f
 
     for (int i = 0; i < args.length; i++) {
       switch (args[i]) {
@@ -90,9 +97,12 @@ public class App {
         case "-V", "--version" -> HelpPrinter.printVersion();
         case "-g", "--gui" -> guiMode = true;
 <<<<<<< HEAD
+<<<<<<< HEAD
         case "-s", "--super" -> superMode = true;
 =======
 >>>>>>> c984150 (feat: Enhance game configuration and blitz mode functionality)
+=======
+>>>>>>> 80eb4dd275121a2ebeee7238584257f4cce5f53f
         case "-b", "--blitz" -> {
           if (i + 1 < args.length && (args[i + 1].equals("-t") || args[i + 1].equals("--time"))) {
             if (i + 2 >= args.length) {
@@ -126,9 +136,12 @@ public class App {
         case "-p", "--players" -> {
           if (i + 1 >= args.length) {
 <<<<<<< HEAD
+<<<<<<< HEAD
             System.err.println("'-p' attend un nombre (ex: -p 3).");
             exitHandler.exit(1);
 =======
+=======
+>>>>>>> 80eb4dd275121a2ebeee7238584257f4cce5f53f
             System.err.println(I18n.tr("app.err.playersMissing"));
             System.exit(1);
 >>>>>>> 80eb4dd (Add internationalization support for GUI and CLI components)
@@ -160,10 +173,13 @@ public class App {
         }
         default -> {
 <<<<<<< HEAD
+<<<<<<< HEAD
           System.err.println("Option inconnue : " + args[i]);
           System.err.println("Utilisez -h ou --help pour afficher l'aide.");
           exitHandler.exit(1);
 =======
+=======
+>>>>>>> 80eb4dd275121a2ebeee7238584257f4cce5f53f
           System.err.println(I18n.tr("app.err.unknownOption", args[i]));
           System.err.println(I18n.tr("app.err.useHelp"));
           System.exit(1);
@@ -172,6 +188,7 @@ public class App {
       }
     }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
     GameMode mode = superMode ? GameMode.SUPER : GameMode.STANDARD;
     if (mode == null) {
@@ -197,6 +214,17 @@ public class App {
     }
   }
 
+=======
+    I18n.setLanguage(lang);
+
+    if (guiMode) {
+      launchGui(args, players, blitzMode, blitzMinutes, aiTime, useExptiminimax, useMl, lang);
+    } else {
+      launchCli(players, blitzMode, blitzMinutes, aiTime, useExptiminimax, useMl, lang);
+    }
+  }
+
+>>>>>>> 80eb4dd275121a2ebeee7238584257f4cce5f53f
   private static String resolveInitialLanguage(String[] args) {
     for (int i = 0; i < args.length - 1; i++) {
       if ("-l".equals(args[i]) || "--lang".equals(args[i])) {
@@ -210,15 +238,21 @@ public class App {
   }
 
   
+<<<<<<< HEAD
 >>>>>>> c984150 (feat: Enhance game configuration and blitz mode functionality)
+=======
+>>>>>>> 80eb4dd275121a2ebeee7238584257f4cce5f53f
   /**
    * Launches the Command Line Interface (CLI) mode.
    *
    * @param players the number of players (0 = ask interactively)
 <<<<<<< HEAD
+<<<<<<< HEAD
    * @param aiColors colors controlled by AI players
 =======
 >>>>>>> c984150 (feat: Enhance game configuration and blitz mode functionality)
+=======
+>>>>>>> 80eb4dd275121a2ebeee7238584257f4cce5f53f
    * @param blitzMode True if blitz mode is enabled.
    * @param blitzMinutes Time limit per player in minutes (used only when blitzMode is true).
    * @param aiTime The thinking time allocated for the AI in seconds.
@@ -226,6 +260,7 @@ public class App {
    * @param useMl True if the AI should use Machine Learning for word search.
    * @param lang The language of the dictionary to load ("en" or "fr").
    */
+<<<<<<< HEAD
 <<<<<<< HEAD
 
   private static void launchCli(int players, List<String> aiColors, boolean blitzMode,
@@ -237,6 +272,11 @@ public class App {
       boolean useExptiminimax, boolean useMl, String lang) {
     CliLauncher.launch(players, blitzMode, blitzMinutes, aiTime, useExptiminimax, useMl, lang);
 >>>>>>> c984150 (feat: Enhance game configuration and blitz mode functionality)
+=======
+  private static void launchCli(int players, boolean blitzMode, int blitzMinutes, int aiTime,
+      boolean useExptiminimax, boolean useMl, String lang) {
+    CliLauncher.launch(players, blitzMode, blitzMinutes, aiTime, useExptiminimax, useMl, lang);
+>>>>>>> 80eb4dd275121a2ebeee7238584257f4cce5f53f
   }
 
 
@@ -246,9 +286,12 @@ public class App {
    * @param args Application command-line arguments passed to JavaFX.
    * @param players the number of players (0 = use default of 2)
 <<<<<<< HEAD
+<<<<<<< HEAD
    * @param aiColors colors controlled by AI players
 =======
 >>>>>>> c984150 (feat: Enhance game configuration and blitz mode functionality)
+=======
+>>>>>>> 80eb4dd275121a2ebeee7238584257f4cce5f53f
    * @param blitzMode True if blitz mode is enabled.
    * @param blitzMinutes Time limit per player in minutes (used only when blitzMode is true).
    * @param aiTime The thinking time allocated for the AI in seconds.
@@ -256,6 +299,7 @@ public class App {
    * @param useMl True if the AI should use Machine Learning for word search.
    * @param lang The language of the dictionary to load ("en" or "fr").
    */
+<<<<<<< HEAD
 <<<<<<< HEAD
   private static void launchGui(String[] args, int players, List<String> aiColors,
       boolean blitzMode, int blitzMinutes, int aiTime, boolean useExptiminimax, boolean useMl,
@@ -272,6 +316,12 @@ public class App {
     GuiLauncher.launch(args, players, blitzMode, blitzMinutes, aiTime, useExptiminimax, useMl,
         lang);
 >>>>>>> 80eb4dd (Add internationalization support for GUI and CLI components)
+=======
+  private static void launchGui(String[] args, int players, boolean blitzMode, int blitzMinutes,
+      int aiTime, boolean useExptiminimax, boolean useMl, String lang) {
+    GuiLauncher.launch(args, players, blitzMode, blitzMinutes, aiTime, useExptiminimax, useMl,
+        lang);
+>>>>>>> 80eb4dd275121a2ebeee7238584257f4cce5f53f
   }
 
 

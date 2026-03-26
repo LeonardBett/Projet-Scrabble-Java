@@ -34,6 +34,7 @@ public class CliInputHandler {
    */
   public String askAction() {
 <<<<<<< HEAD
+<<<<<<< HEAD
     messageRenderer.sectionTitle("CHOSE AN ACTION");
     System.out.println("1. Play a word");
     System.out.println("2. Exchange letters");
@@ -44,6 +45,8 @@ public class CliInputHandler {
     System.out.println("7. Ask for an hint");
     System.out.print("\nYour choice (1-7) : ");
 =======
+=======
+>>>>>>> 80eb4dd275121a2ebeee7238584257f4cce5f53f
     messageRenderer.sectionTitle(I18n.tr("cli.input.actionTitle"));
     System.out.println(I18n.tr("cli.input.action1"));
     System.out.println(I18n.tr("cli.input.action2"));
@@ -52,7 +55,10 @@ public class CliInputHandler {
     System.out.println(I18n.tr("cli.input.action5"));
     System.out.println(I18n.tr("cli.input.action6"));
     System.out.print(I18n.tr("cli.input.choicePrompt"));
+<<<<<<< HEAD
 >>>>>>> 80eb4dd (Add internationalization support for GUI and CLI components)
+=======
+>>>>>>> 80eb4dd275121a2ebeee7238584257f4cce5f53f
     return scanner.nextLine().trim();
   }
 
@@ -65,6 +71,7 @@ public class CliInputHandler {
   public Move askPlayMove(Player player) {
     try {
 <<<<<<< HEAD
+<<<<<<< HEAD
       System.out.print("\nStart position (format: h 8 ou 8 8) : ");
       String[] posInput = scanner.nextLine().trim().split("\\s+");
       if (posInput.length < 2) {
@@ -75,6 +82,12 @@ public class CliInputHandler {
       if (posInput.length < 2) {
         throw new IllegalArgumentException(I18n.tr("cli.input.twoValues"));
 >>>>>>> 80eb4dd (Add internationalization support for GUI and CLI components)
+=======
+      System.out.print(I18n.tr("cli.input.startPosition"));
+      String[] posInput = scanner.nextLine().trim().split("\\s+");
+      if (posInput.length < 2) {
+        throw new IllegalArgumentException(I18n.tr("cli.input.twoValues"));
+>>>>>>> 80eb4dd275121a2ebeee7238584257f4cce5f53f
       }
 
       int x;
@@ -103,6 +116,7 @@ public class CliInputHandler {
       final Point startPoint = new Point(x, y);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
       System.out.print("Direction (H for horizontal, V for vertical) : ");
       String dirInput = scanner.nextLine().trim().toUpperCase();
       Direction direction = dirInput.equals("H") ? Direction.HORIZONTAL : Direction.VERTICAL;
@@ -115,6 +129,13 @@ public class CliInputHandler {
 
       System.out.print(I18n.tr("cli.input.lettersToPlay"));
 >>>>>>> 80eb4dd (Add internationalization support for GUI and CLI components)
+=======
+      System.out.print(I18n.tr("cli.input.direction"));
+      String dirInput = scanner.nextLine().trim().toUpperCase();
+      Direction direction = dirInput.equals("H") ? Direction.HORIZONTAL : Direction.VERTICAL;
+
+      System.out.print(I18n.tr("cli.input.lettersToPlay"));
+>>>>>>> 80eb4dd275121a2ebeee7238584257f4cce5f53f
       String lettersInput = scanner.nextLine().trim().toUpperCase();
 
       List<Tile> tiles = new ArrayList<>();
@@ -140,10 +161,14 @@ public class CliInputHandler {
         }
         if (!found) {
 <<<<<<< HEAD
+<<<<<<< HEAD
           messageRenderer.error("The letter '" + letter + "' is not in your rack !");
 =======
           messageRenderer.error(I18n.tr("cli.input.tileNotInRack", letter));
 >>>>>>> 80eb4dd (Add internationalization support for GUI and CLI components)
+=======
+          messageRenderer.error(I18n.tr("cli.input.tileNotInRack", letter));
+>>>>>>> 80eb4dd275121a2ebeee7238584257f4cce5f53f
           return null;
         }
       }
@@ -152,10 +177,14 @@ public class CliInputHandler {
 
     } catch (Exception e) {
 <<<<<<< HEAD
+<<<<<<< HEAD
       messageRenderer.error("Invalid format ! " + e.getMessage());
 =======
       messageRenderer.error(I18n.tr("cli.input.invalidFormat", e.getMessage()));
 >>>>>>> 80eb4dd (Add internationalization support for GUI and CLI components)
+=======
+      messageRenderer.error(I18n.tr("cli.input.invalidFormat", e.getMessage()));
+>>>>>>> 80eb4dd275121a2ebeee7238584257f4cce5f53f
       return null;
     }
   }
@@ -169,10 +198,14 @@ public class CliInputHandler {
   public Move askExchangeMove(Player player) {
     try {
 <<<<<<< HEAD
+<<<<<<< HEAD
       System.out.print("\nLetters to exchange (ex: ABC) : ");
 =======
       System.out.print(I18n.tr("cli.input.lettersToExchange"));
 >>>>>>> 80eb4dd (Add internationalization support for GUI and CLI components)
+=======
+      System.out.print(I18n.tr("cli.input.lettersToExchange"));
+>>>>>>> 80eb4dd275121a2ebeee7238584257f4cce5f53f
       String lettersInput = scanner.nextLine().trim().toUpperCase();
 
       List<Tile> tiles = new ArrayList<>();
@@ -218,15 +251,20 @@ public class CliInputHandler {
   public int askNumberOfPlayers() {
     while (true) {
 <<<<<<< HEAD
+<<<<<<< HEAD
       System.out.print("\nNumbers of players (2-4) : ");
 =======
       System.out.print(I18n.tr("cli.input.playersPrompt"));
 >>>>>>> 80eb4dd (Add internationalization support for GUI and CLI components)
+=======
+      System.out.print(I18n.tr("cli.input.playersPrompt"));
+>>>>>>> 80eb4dd275121a2ebeee7238584257f4cce5f53f
       try {
         int num = Integer.parseInt(scanner.nextLine().trim());
         if (num >= 2 && num <= 4) {
           return num;
         }
+<<<<<<< HEAD
 <<<<<<< HEAD
         messageRenderer.warning("The numbers of player must be between 2 and 4.");
       } catch (NumberFormatException e) {
@@ -236,6 +274,11 @@ public class CliInputHandler {
       } catch (NumberFormatException e) {
         messageRenderer.error(I18n.tr("cli.input.playersValidNumber"));
 >>>>>>> 80eb4dd (Add internationalization support for GUI and CLI components)
+=======
+        messageRenderer.warning(I18n.tr("cli.input.playersRange"));
+      } catch (NumberFormatException e) {
+        messageRenderer.error(I18n.tr("cli.input.playersValidNumber"));
+>>>>>>> 80eb4dd275121a2ebeee7238584257f4cce5f53f
       }
     }
   }
@@ -248,10 +291,14 @@ public class CliInputHandler {
    */
   public String askPlayerName(int playerNumber) {
 <<<<<<< HEAD
+<<<<<<< HEAD
     System.out.print("Player's name " + playerNumber + " : ");
 =======
     System.out.print(I18n.tr("cli.input.playerNamePrompt", playerNumber));
 >>>>>>> 80eb4dd (Add internationalization support for GUI and CLI components)
+=======
+    System.out.print(I18n.tr("cli.input.playerNamePrompt", playerNumber));
+>>>>>>> 80eb4dd275121a2ebeee7238584257f4cce5f53f
     return scanner.nextLine().trim();
   }
 

@@ -23,10 +23,14 @@ public class PlayerRenderer {
   public void renderPlayerList(List<Player> players) {
     System.out.println("╔════════════════════════════════════════════════╗");
 <<<<<<< HEAD
+<<<<<<< HEAD
     System.out.println("║                   PLAYERS                      ║");
 =======
     System.out.printf("║%1$-48s║%n", center(I18n.tr("cli.msg.playersTitle"), 48));
 >>>>>>> 80eb4dd (Add internationalization support for GUI and CLI components)
+=======
+    System.out.printf("║%1$-48s║%n", center(I18n.tr("cli.msg.playersTitle"), 48));
+>>>>>>> 80eb4dd275121a2ebeee7238584257f4cce5f53f
     System.out.println("╠════════════════════════════════════════════════╣");
     for (Player player : players) {
       renderPlayerScore(player);

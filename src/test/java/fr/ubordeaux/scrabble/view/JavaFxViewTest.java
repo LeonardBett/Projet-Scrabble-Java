@@ -6,10 +6,14 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 
 import fr.ubordeaux.scrabble.model.core.Game;
 import fr.ubordeaux.scrabble.model.core.HumanPlayer;
+<<<<<<< HEAD
 import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.view.gui.JavaFxView;
 import javafx.application.Platform;
 import org.junit.jupiter.api.BeforeAll;
+=======
+import fr.ubordeaux.scrabble.view.gui.JavaFxView;
+>>>>>>> 80eb4dd275121a2ebeee7238584257f4cce5f53f
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -23,6 +27,7 @@ class JavaFxViewTest {
   private Game game;
   private JavaFxView view;
 
+<<<<<<< HEAD
   @BeforeAll
   static void initJfx() {
     try {
@@ -39,6 +44,13 @@ class JavaFxViewTest {
     game = new Game();
     game.addPlayer(new HumanPlayer("Alice", PlayerColor.BLUE));
     game.addPlayer(new HumanPlayer("Bob", PlayerColor.RED));
+=======
+  @BeforeEach
+  void setUp() {
+    game = new Game();
+    game.addPlayer(new HumanPlayer("Alice"));
+    game.addPlayer(new HumanPlayer("Bob"));
+>>>>>>> 80eb4dd275121a2ebeee7238584257f4cce5f53f
     view = new JavaFxView(game);
   }
 

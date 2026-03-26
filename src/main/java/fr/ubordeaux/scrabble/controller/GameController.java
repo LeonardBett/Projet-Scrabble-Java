@@ -1,8 +1,11 @@
 package fr.ubordeaux.scrabble.controller;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 import fr.ubordeaux.scrabble.model.core.Board;
 =======
+=======
+>>>>>>> 80eb4dd275121a2ebeee7238584257f4cce5f53f
 import fr.ubordeaux.scrabble.i18n.I18n;
 import fr.ubordeaux.scrabble.model.ai.AiPlayer;
 import fr.ubordeaux.scrabble.model.ai.MlAgent;
@@ -50,6 +53,7 @@ public class GameController {
   private int playerCount = 0;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   /**
    * Constructor for GameController.
    *
@@ -58,6 +62,8 @@ public class GameController {
    */
 =======
 >>>>>>> c984150 (feat: Enhance game configuration and blitz mode functionality)
+=======
+>>>>>>> 80eb4dd275121a2ebeee7238584257f4cce5f53f
   public GameController(Game game, UserInterface view) {
     this.game = game;
     this.view = view;
@@ -253,6 +259,18 @@ public class GameController {
         break;
       }
 
+<<<<<<< HEAD
+=======
+      // Tour humain
+      String action = input.askAction();
+
+      // Re-vérifier le temps après la saisie (le joueur a peut-être pris trop longtemps)
+      if (game.isBlitzModeEnabled() && current.isOutOfTime()) {
+        handleBlitzExpiry(current, cliView);
+        break;
+      }
+
+>>>>>>> 80eb4dd275121a2ebeee7238584257f4cce5f53f
       switch (action) {
         case "1": {
           Move move = input.askPlayMove(current);
@@ -323,6 +341,8 @@ public class GameController {
 =======
     stopBlitzWatcher();
 
+    stopBlitzWatcher();
+
     Player winner = game.determineWinner();
     if (winner != null) {
       cliView.displaySuccess(I18n.tr("controller.msg.gameOverWinner", winner.getName(),
@@ -331,6 +351,80 @@ public class GameController {
 
     input.close();
 >>>>>>> c984150 (feat: Enhance game configuration and blitz mode functionality)
+  }
+
+  /** Thread de surveillance blitz — affiche un avertissement toutes les minutes. */
+  private volatile Thread blitzWatcherThread;
+
+  /**
+   * Starts a background thread that checks blitz time every second and warns the player
+   * at 5 minutes, 2 minutes and 1 minute remaining.
+   *
+   * @param cliView the CLI view used to display warnings
+   */
+  private void startBlitzWatcher(CliView cliView) {
+    blitzWatcherThread = new Thread(() -> {
+      final long[] warnedAt = {5 * 60_000L, 2 * 60_000L, 60_000L};
+      boolean[] warned = new boolean[warnedAt.length];
+
+      while (!Thread.currentThread().isInterrupted() && !game.isGameOver()) {
+        Player current = game.getCurrentPlayer();
+        if (current != null && current.isBlitzClockEnabled()) {
+          long remaining = current.getRemainingTimeMillis();
+
+          // Avertissements à 5 min, 2 min, 1 min
+          for (int i = 0; i < warnedAt.length; i++) {
+            if (!warned[i] && remaining <= warnedAt[i] && remaining > 0) {
+              warned[i] = true;
+              long minutes = warnedAt[i] / 60_000L;
+              System.out.println(I18n.tr("controller.msg.blitzWarning", current.getName(),
+                  minutes));
+            }
+          }
+
+          // Temps expiré
+          if (current.isOutOfTime() && !game.isGameOver()) {
+            handleBlitzExpiry(current, cliView);
+            break;
+          }
+
+          // Réinitialiser les avertissements au changement de joueur
+          Player newCurrent = game.getCurrentPlayer();
+          if (newCurrent != current) {
+            warned = new boolean[warnedAt.length];
+          }
+        }
+
+        try {
+          Thread.sleep(1000);
+        } catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
+        }
+      }
+    });
+    blitzWatcherThread.setDaemon(true);
+    blitzWatcherThread.start();
+  }
+
+  /** Stops the blitz watcher thread if running. */
+  private void stopBlitzWatcher() {
+    if (blitzWatcherThread != null) {
+      blitzWatcherThread.interrupt();
+      blitzWatcherThread = null;
+    }
+  }
+
+  /**
+   * Handles blitz time expiry for the given player: sets game over and notifies.
+   *
+   * @param expired the player who ran out of time
+   * @param cliView the CLI view for output
+   */
+  private void handleBlitzExpiry(Player expired, CliView cliView) {
+    game.setGameOver(true);
+    stopBlitzWatcher();
+    cliView.displayError(I18n.tr("controller.msg.blitzExpired", expired.getName()));
+    cliView.displayMessage(I18n.tr("controller.msg.gameFinished"));
   }
 
   /** Thread de surveillance blitz — affiche un avertissement toutes les minutes. */
@@ -465,10 +559,14 @@ public class GameController {
       }
     } catch (Exception e) {
 <<<<<<< HEAD
+<<<<<<< HEAD
       GameLogger.logError("Warning: Failed to load dictionary list for ML: " + e.getMessage(), e);
 =======
       System.err.println(I18n.tr("controller.warn.dictListLoad", e.getMessage()));
 >>>>>>> 80eb4dd (Add internationalization support for GUI and CLI components)
+=======
+      System.err.println(I18n.tr("controller.warn.dictListLoad", e.getMessage()));
+>>>>>>> 80eb4dd275121a2ebeee7238584257f4cce5f53f
     }
     return dictionaryList;
   }
@@ -486,10 +584,14 @@ public class GameController {
     gaddag = new Gaddag();
     String dictPath = "dictionaries/lexicon_" + this.lang + ".txt";
 <<<<<<< HEAD
+<<<<<<< HEAD
     GameLogger.logVerbose("\nLoading Gaddag dictionary (" + dictPath + ") please wait...");
 =======
     System.out.println(I18n.tr("controller.msg.loadingDict", dictPath));
 >>>>>>> 80eb4dd (Add internationalization support for GUI and CLI components)
+=======
+    System.out.println(I18n.tr("controller.msg.loadingDict", dictPath));
+>>>>>>> 80eb4dd275121a2ebeee7238584257f4cce5f53f
 
     try (InputStream is = getClass().getClassLoader().getResourceAsStream(dictPath)) {
       if (is == null) {
@@ -509,10 +611,14 @@ public class GameController {
       }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
       GameLogger.logVerbose("Dictionary successfully loaded! (" + wordCount + " words added).\n");
 =======
       System.out.println(I18n.tr("controller.msg.dictLoaded", wordCount));
 >>>>>>> 80eb4dd (Add internationalization support for GUI and CLI components)
+=======
+      System.out.println(I18n.tr("controller.msg.dictLoaded", wordCount));
+>>>>>>> 80eb4dd275121a2ebeee7238584257f4cce5f53f
       return gaddag;
     } catch (Exception e) {
       throw new IllegalStateException(I18n.tr("controller.err.dictLoad", e.getMessage()), e);
@@ -599,6 +705,7 @@ public class GameController {
   }
 
   /**
+<<<<<<< HEAD
 <<<<<<< HEAD
    * Generates and displays a hint for the current human player without ending their turn.
    * Searches for the highest-scoring move that specifically uses fewer than 7 letters
@@ -721,6 +828,8 @@ public class GameController {
   /**
 =======
 >>>>>>> c984150 (feat: Enhance game configuration and blitz mode functionality)
+=======
+>>>>>>> 80eb4dd275121a2ebeee7238584257f4cce5f53f
    * Sets the number of players to use at launch (skips the interactive prompt).
    *
    * @param count the number of players (2‑4)
@@ -729,7 +838,11 @@ public class GameController {
     this.playerCount = count;
   }
 <<<<<<< HEAD
+<<<<<<< HEAD
 }
 =======
 }
 >>>>>>> c984150 (feat: Enhance game configuration and blitz mode functionality)
+=======
+}
+>>>>>>> 80eb4dd275121a2ebeee7238584257f4cce5f53f

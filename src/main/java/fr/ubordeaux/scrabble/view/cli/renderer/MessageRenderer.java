@@ -16,7 +16,10 @@ public class MessageRenderer {
 =======
   public void error(String message) {
     System.out.println(I18n.tr("cli.msg.errorPrefix") + message);
+<<<<<<< HEAD
 >>>>>>> 80eb4dd (Add internationalization support for GUI and CLI components)
+=======
+>>>>>>> 80eb4dd275121a2ebeee7238584257f4cce5f53f
   }
 
   /**
@@ -43,10 +46,14 @@ public class MessageRenderer {
    */
   public void welcome() {
 <<<<<<< HEAD
+<<<<<<< HEAD
     System.out.println("Welcome to the Scrabble CLI!");
 =======
     System.out.println(I18n.tr("cli.msg.welcome"));
 >>>>>>> 80eb4dd (Add internationalization support for GUI and CLI components)
+=======
+    System.out.println(I18n.tr("cli.msg.welcome"));
+>>>>>>> 80eb4dd275121a2ebeee7238584257f4cce5f53f
   }
 
   /**
@@ -81,9 +88,13 @@ public class MessageRenderer {
    */
   public void warning(String message) {
 <<<<<<< HEAD
+<<<<<<< HEAD
     System.out.println("Warning : " + message);
 =======
     System.out.println(I18n.tr("cli.msg.warningPrefix") + message);
 >>>>>>> 80eb4dd (Add internationalization support for GUI and CLI components)
+=======
+    System.out.println(I18n.tr("cli.msg.warningPrefix") + message);
+>>>>>>> 80eb4dd275121a2ebeee7238584257f4cce5f53f
   }
 }

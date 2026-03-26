@@ -27,12 +27,16 @@ import java.util.Arrays;
 import java.util.HashMap;
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 import java.util.HashMap;
 =======
 >>>>>>> 615b204 (fix bug)
 =======
 import java.util.HashSet;
 >>>>>>> 80eb4dd (Add internationalization support for GUI and CLI components)
+=======
+import java.util.HashSet;
+>>>>>>> 80eb4dd275121a2ebeee7238584257f4cce5f53f
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -93,6 +97,7 @@ public class ScrabbleGui extends Application {
   private MenuItem quitMenuItem;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   /**
    * Sets the game instance for static access.
    *
@@ -100,6 +105,8 @@ public class ScrabbleGui extends Application {
    */
 =======
 >>>>>>> c984150 (feat: Enhance game configuration and blitz mode functionality)
+=======
+>>>>>>> 80eb4dd275121a2ebeee7238584257f4cce5f53f
   public static void setGame(Game game) {
     gameInstance = game;
   }
@@ -470,6 +477,7 @@ public class ScrabbleGui extends Application {
     for (int i = 1; i <= count; i++) {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
       PlayerColor color = PlayerColor.fromIndex(i - 1);
       gameInstance.addPlayer(new HumanPlayer("Joueur" + i, color));
 =======
@@ -478,6 +486,9 @@ public class ScrabbleGui extends Application {
 =======
       gameInstance.addPlayer(new HumanPlayer(I18n.tr("player.defaultName") + i));
 >>>>>>> 80eb4dd (Add internationalization support for GUI and CLI components)
+=======
+      gameInstance.addPlayer(new HumanPlayer(I18n.tr("player.defaultName") + i));
+>>>>>>> 80eb4dd275121a2ebeee7238584257f4cce5f53f
     }
 
     viewInstance = new JavaFxView(gameInstance);
@@ -485,6 +496,7 @@ public class ScrabbleGui extends Application {
     controller = new GameController(gameInstance, viewInstance);
     controller.setLang(currentLangCode());
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
     setGameplayControlsDisabled(false);
@@ -495,6 +507,9 @@ public class ScrabbleGui extends Application {
 =======
     setGameplayControlsDisabled(false);
 >>>>>>> c984150 (feat: Enhance game configuration and blitz mode functionality)
+=======
+    setGameplayControlsDisabled(false);
+>>>>>>> 80eb4dd275121a2ebeee7238584257f4cce5f53f
 
     boardPanel.clearAllPending();
     pendingTiles.clear();
@@ -504,26 +519,35 @@ public class ScrabbleGui extends Application {
     controller.startGame();
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c984150 (feat: Enhance game configuration and blitz mode functionality)
+=======
+>>>>>>> 80eb4dd275121a2ebeee7238584257f4cce5f53f
     if (gameInstance.isBlitzModeEnabled()) {
       scorePanel.startBlitzTimers(gameInstance.getPlayers(), this::onBlitzTimeExpired);
     } else {
       scorePanel.stopBlitzTimers();
     }
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 615b204 (fix bug)
 =======
 >>>>>>> c984150 (feat: Enhance game configuration and blitz mode functionality)
+=======
+>>>>>>> 80eb4dd275121a2ebeee7238584257f4cce5f53f
     refreshAll();
   }
 
   /**
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c984150 (feat: Enhance game configuration and blitz mode functionality)
+=======
+>>>>>>> 80eb4dd275121a2ebeee7238584257f4cce5f53f
    * Called when a player's blitz time has expired.
    * Ends the game and notifies the players.
    */
@@ -541,10 +565,13 @@ public class ScrabbleGui extends Application {
 
   /**
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 615b204 (fix bug)
 =======
 >>>>>>> c984150 (feat: Enhance game configuration and blitz mode functionality)
+=======
+>>>>>>> 80eb4dd275121a2ebeee7238584257f4cce5f53f
    * Refreshes all GUI panels: board, rack, scores, and checks if it is the AI's turn.
    */
   public void refreshAll() {
