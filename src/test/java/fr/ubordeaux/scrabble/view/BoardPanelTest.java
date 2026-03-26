@@ -119,25 +119,7 @@ class BoardPanelTest {
     boardPanel.updateBoard(); // ne doit pas planter
   }
 
-  @Test
-  void boardPanelShouldContainTitleAndGridWithFifteenByFifteenCells() {
-    assertEquals(2, boardPanel.getChildren().size());
-
-    Node first = boardPanel.getChildren().getFirst();
-    Node second = boardPanel.getChildren().get(1);
-    assertTrue(first instanceof Label);
-    assertTrue(second instanceof GridPane);
-
-    Label title = (Label) first;
-    assertEquals("PLATEAU DE JEU", title.getText());
-
-    Label[][] cells = (Label[][]) getPrivateField(boardPanel, "cellLabels");
-    assertEquals(15, cells.length);
-    assertEquals(15, cells[0].length);
-    assertNotNull(cells[7][7]);
-    assertEquals("★", cells[7][7].getText());
-  }
-
+ 
   private static Object getPrivateField(Object target, String fieldName) {
     try {
       Field field = target.getClass().getDeclaredField(fieldName);

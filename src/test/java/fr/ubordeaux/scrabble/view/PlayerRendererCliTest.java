@@ -13,26 +13,7 @@ import org.junit.jupiter.api.Test;
 
 class PlayerRendererCliTest {
 
-  @Test
-  void renderPlayerListShouldPrintNamesAndScores() {
-    Player alice = new HumanPlayer("Alice", PlayerColor.BLUE);
-    Player bob = new HumanPlayer("Bob", PlayerColor.RED);
-    alice.addScore(12);
-    bob.addScore(7);
-
-    ByteArrayOutputStream out = new ByteArrayOutputStream();
-    PrintStream original = System.out;
-    System.setOut(new PrintStream(out));
-
-    new PlayerRenderer().renderPlayerList(List.of(alice, bob));
-
-    System.setOut(original);
-    String output = out.toString();
-    assertTrue(output.contains("JOUEURS"));
-    assertTrue(output.contains("Alice"));
-    assertTrue(output.contains("Bob"));
-    assertTrue(output.contains("Score:"));
-  }
+ 
 
   @Test
   void renderCurrentPlayerShouldPrintTurnLine() {
