@@ -196,8 +196,11 @@ public class ScrabbleGui extends Application {
         controller.redo();
       }
     });
-    controlPanel.getHelpButton().setOnAction(e ->
-        showInfo("Help", "Fonction non implémentée pour le moment."));
+    controlPanel.getHelpButton().setOnAction(e -> {
+      if (!onlineMode && !gameInstance.isGameOver()) {
+        controller.provideHint();
+      }
+    });
 
     newGameMenuItem.setOnAction(e -> handleNewGame());
     onlineMenuItem.setOnAction(e -> openNetworkLobby());
