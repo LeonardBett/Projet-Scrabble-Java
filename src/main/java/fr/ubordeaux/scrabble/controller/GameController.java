@@ -368,7 +368,7 @@ public class GameController {
    * Searches for the highest-scoring move that specifically uses fewer than 7 letters
    * from the rack to avoid giving away a bingo/scrabble.
    */
-  void provideHint() {
+  public void provideHint() {
     MoveGenerator moveGen = new MoveGenerator();
     List<PlayableWord> possibleMoves = moveGen.getPlayableWordsList(game, getOrLoadGaddag());
 
