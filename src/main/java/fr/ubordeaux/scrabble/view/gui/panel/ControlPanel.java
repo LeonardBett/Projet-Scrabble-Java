@@ -23,7 +23,7 @@ public class ControlPanel extends VBox {
   private final Button cancelPlacementButton;
   private final Button undoButton;
   private final Button redoButton;
-  private final Button helpButton;
+  private final Button hintButton;
 
   /**
    * Creates the ControlPanel and initializes all buttons.
@@ -35,8 +35,8 @@ public class ControlPanel extends VBox {
     cancelPlacementButton = createButton("↩  Annuler placement", "#795548");
     undoButton = createButton("↶  Annuler coup", "#9E9E9E");
     redoButton = createButton("↷  Refaire coup", "#9E9E9E");
-    helpButton = createButton("❓ Help", "#1E88E5");
-    helpButton.setPrefWidth(96);
+    hintButton = createButton("❓ Indice", "#1E88E5");
+    hintButton.setPrefWidth(96);
     initializeUi();
   }
 
@@ -55,7 +55,7 @@ public class ControlPanel extends VBox {
     titleBar.setAlignment(Pos.CENTER_LEFT);
     Region spacer = new Region();
     HBox.setHgrow(spacer, Priority.ALWAYS);
-    titleBar.getChildren().addAll(title, spacer, helpButton);
+    titleBar.getChildren().addAll(title, spacer, hintButton);
     titleBar.setPadding(new Insets(0, 0, 8, 0));
 
     this.getChildren().addAll(titleBar, playButton, passButton, exchangeButton,
@@ -135,12 +135,12 @@ public class ControlPanel extends VBox {
   }
 
   /**
-   * Returns the help button.
+   * Returns the hint button.
    *
-   * @return the help button.
+   * @return the hint button.
    */
-  public Button getHelpButton() {
-    return helpButton;
+  public Button getHintButton() {
+    return hintButton;
   }
 
   /**
