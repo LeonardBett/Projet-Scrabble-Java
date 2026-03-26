@@ -121,6 +121,16 @@ class DiscoveryServiceTest {
       public void playerStatusUpdate(String status) {
 
       }
+
+      @Override
+      public void clientDisconnectedUpdate(String reason) {
+
+      }
+
+      @Override
+      public void connectionFailedUpdate(String reason) {
+
+      }
     };
 
     discoveryService.addObserver(observer);

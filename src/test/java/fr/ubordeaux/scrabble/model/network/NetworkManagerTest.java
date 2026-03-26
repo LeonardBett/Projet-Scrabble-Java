@@ -61,6 +61,16 @@ class NetworkManagerTest {
 
           @Override
           public void playerStatusUpdate(String status) {}
+
+            @Override
+            public void clientDisconnectedUpdate(String reason) {
+
+            }
+
+            @Override
+            public void connectionFailedUpdate(String reason) {
+
+            }
         };
   }
 

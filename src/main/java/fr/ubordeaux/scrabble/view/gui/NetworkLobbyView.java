@@ -51,6 +51,7 @@ public class NetworkLobbyView extends Stage {
   private TextField joinPortField;
   private Button connectButton;
   private Button disconnectButton;
+  private Button joinSelectedButton;
   private ListView<String> serverListView;
   private final ObservableList<ServerInfo> discoveredServers = FXCollections.observableArrayList();
 
@@ -178,7 +179,7 @@ public class NetworkLobbyView extends Stage {
     serverListView.setPrefHeight(140);
     serverListView.setStyle("-fx-control-inner-background: #1a2a3a; -fx-text-fill: white;");
 
-    Button joinSelectedButton = createBtn("Join Selected Server", "#4CAF50");
+    joinSelectedButton = createBtn("Join Selected Server", "#4CAF50");
     joinSelectedButton.setOnAction(e -> onJoinSelected());
 
     HBox ipRow = new HBox(10);
@@ -336,17 +337,46 @@ public class NetworkLobbyView extends Stage {
 
   private void onDisconnect() {
     networkManager.quit();
+  }
+
+  /**
+   * Called when the client is disconnected (manually or by server shutdown).
+   *
+   * @param reason the reason for disconnection
+   */
+  public void onClientDisconnected(String reason) {
     clientConnected = false;
-    log("Disconnected from server.");
+    log("Disconnected : " + reason);
+
+    // We empty gui items
     playersListView.getItems().clear();
     scoreboardListView.getItems().clear();
     resetInviteButtons();
-    updateButtonStates();
 
+    // We reset away button
     isAway = false;
     toggleStatusButton.setText("Passer en mode Absent (AWAY)");
     toggleStatusButton.setStyle(
         "-fx-background-color: #607D8B; -fx-text-fill: white; -fx-cursor: hand;");
+
+    updateButtonStates();
+  }
+
+  /**
+   * Called when the connection attempt fails.
+   *
+   * @param reason the failure reason.
+   */
+  public void onConnectionFailed(String reason) {
+    this.clientConnected = false;
+    log("Echec de connexion : " + reason);
+    updateButtonStates(); // Re-enable buttons for a new attempt
+
+    Alert alert = new Alert(Alert.AlertType.ERROR);
+    alert.setTitle("Erreur reseau");
+    alert.setHeaderText("Connexion impossible");
+    alert.setContentText(reason);
+    alert.show();
   }
 
   private void onRefreshScoreboard() {
@@ -632,10 +662,19 @@ public class NetworkLobbyView extends Stage {
 
   /** Updates the enabled/disabled state of UI buttons based on connection status. */
   private void updateButtonStates() {
+    // Host
+    portField.setDisable(serverRunning);
     startServerButton.setDisable(serverRunning);
     stopServerButton.setDisable(!serverRunning);
+
+    // Connect
+    ipField.setDisable(clientConnected);
+    joinPortField.setDisable(clientConnected);
     connectButton.setDisable(clientConnected);
+    joinSelectedButton.setDisable(clientConnected);
     disconnectButton.setDisable(!clientConnected);
+
+    // Lobby
     refreshScoreboardButton.setDisable(!clientConnected);
     refreshPlayersButton.setDisable(!clientConnected);
     inviteButton.setDisable(!clientConnected);
@@ -661,6 +700,7 @@ public class NetworkLobbyView extends Stage {
         "-fx-background-color: "
             + color
             + "; -fx-text-fill: white; -fx-background-radius: 5; -fx-cursor: hand;");
+
     btn.setOnMouseEntered(e -> btn.setOpacity(0.8));
     btn.setOnMouseExited(e -> btn.setOpacity(1.0));
     return btn;

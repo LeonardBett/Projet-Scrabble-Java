@@ -263,6 +263,38 @@ public class NetworkGameBridge implements NetworkObserver {
     // Not explicitly used in the current GUI implementation
   }
 
+  @Override
+  public void clientDisconnectedUpdate(String reason) {
+    Platform.runLater(
+        () -> {
+          // We update networkManager for destroying GameServer and GameClient instance
+          networkManager.quit();
+
+          // If we are in gui, we exit online mode
+          if (gui != null) {
+            gui.exitOnlineMode();
+            gui.showInfo("Disconnected", reason);
+          }
+          // We reset lobby
+          if (lobbyView != null) {
+            lobbyView.onClientDisconnected(reason);
+          }
+        });
+  }
+
+  @Override
+  public void connectionFailedUpdate(String reason) {
+    Platform.runLater(
+        () -> {
+          // Clean up the manager to allow future connection attempts
+          networkManager.quit();
+
+          if (lobbyView != null) {
+            lobbyView.onConnectionFailed(reason);
+          }
+        });
+  }
+
   // ─── Cleanup ──────────────────────────────────────────────────────────────
 
   /**

@@ -603,5 +603,15 @@ class ClientServerTest {
     public void playerStatusUpdate(String status) {
       this.lastPlayerStatus = status;
     }
+
+    @Override
+    public void clientDisconnectedUpdate(String reason) {
+
+    }
+
+    @Override
+    public void connectionFailedUpdate(String reason) {
+
+    }
   }
 }

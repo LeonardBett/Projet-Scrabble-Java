@@ -27,11 +27,8 @@ import java.util.Map;
  */
 public class GameClient {
 
-  /**
-   * Default constructor for GameClient.
-   */
-  public GameClient() {
-  }
+  /** Default constructor for GameClient. */
+  public GameClient() {}
 
   // List of observers
   private final List<NetworkObserver> observers = new ArrayList<>();
@@ -97,6 +94,9 @@ public class GameClient {
 
     } catch (IOException e) {
       System.err.println("Client Error: Could not connect to server " + e.getMessage());
+      for (NetworkObserver obs : new java.util.ArrayList<>(observers)) {
+        obs.connectionFailedUpdate("Can't connect to server : " + e.getMessage());
+      }
     }
   }
 
@@ -207,8 +207,7 @@ public class GameClient {
             for (Map<String, String> playerData : packetParser.getEntries()) {
               String name = playerData.get("NAME");
               if (name != null) {
-                this.localGame.addPlayer(
-                    new HumanPlayer(name, PlayerColor.fromIndex(playerIndex)));
+                this.localGame.addPlayer(new HumanPlayer(name, PlayerColor.fromIndex(playerIndex)));
                 playerIndex++;
               }
             }
@@ -412,6 +411,11 @@ public class GameClient {
     // Stop the heartbeat Thread
     if (heartbeatThread != null) {
       heartbeatThread.interrupt();
+    }
+
+    List<NetworkObserver> observersCopy = new ArrayList<>(observers);
+    for (NetworkObserver obs : observersCopy) {
+      obs.clientDisconnectedUpdate("Connection to server closed.");
     }
   }
 

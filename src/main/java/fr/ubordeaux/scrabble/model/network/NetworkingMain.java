@@ -230,6 +230,16 @@ public class NetworkingMain {
           public void playerStatusUpdate(String status) {
             System.out.println("\n[OBSERVER] -> Nouveau statut confirmé : " + status);
           }
+
+          @Override
+          public void clientDisconnectedUpdate(String reason) {
+
+          }
+
+          @Override
+          public void connectionFailedUpdate(String reason) {
+
+          }
         };
 
     nm.addObserver(consoleObserver);

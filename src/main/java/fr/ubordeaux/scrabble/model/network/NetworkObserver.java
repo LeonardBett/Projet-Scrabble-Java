@@ -9,9 +9,7 @@ public interface NetworkObserver {
 
   // -----Local model update-----
 
-  /**
-   * Call when the local model of the client is modified.
-   */
+  /** Call when the local model of the client is modified. */
   void localModelUpdate();
 
   /**
@@ -103,4 +101,20 @@ public interface NetworkObserver {
    * @param status the new status
    */
   void playerStatusUpdate(String status);
+
+  // -----Connexion / disconnection update-----
+
+  /**
+   * Call when the client is disconnected from the server.
+   *
+   * @param reason the reason of the disconnection
+   */
+  void clientDisconnectedUpdate(String reason);
+
+  /**
+   * Call when a connection attempt to a server fails.
+   *
+   * @param reason the error message
+   */
+  void connectionFailedUpdate(String reason);
 }
