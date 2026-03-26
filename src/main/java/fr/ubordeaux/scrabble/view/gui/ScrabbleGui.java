@@ -12,6 +12,8 @@ import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
 import fr.ubordeaux.scrabble.model.network.NetworkManager;
 import fr.ubordeaux.scrabble.model.utils.GameLogger;
+import fr.ubordeaux.scrabble.model.savefiles.SaveManager;
+import fr.ubordeaux.scrabble.model.savefiles.GameLoader;
 import fr.ubordeaux.scrabble.model.utils.Point;
 import fr.ubordeaux.scrabble.view.gui.panel.BoardPanel;
 import fr.ubordeaux.scrabble.view.gui.panel.ControlPanel;
@@ -196,7 +198,7 @@ public class ScrabbleGui extends Application {
         controller.redo();
       }
     });
-    controlPanel.getHelpButton().setOnAction(e -> {
+    controlPanel.getHintButton().setOnAction(e -> {
       if (!onlineMode && !gameInstance.isGameOver()) {
         controller.provideHint();
       }
@@ -204,8 +206,72 @@ public class ScrabbleGui extends Application {
 
     newGameMenuItem.setOnAction(e -> handleNewGame());
     onlineMenuItem.setOnAction(e -> openNetworkLobby());
-    saveMenuItem.setOnAction(e -> showInfo("À venir", "Sauvegarde bientôt disponible."));
-    loadMenuItem.setOnAction(e -> showInfo("À venir", "Chargement bientôt disponible."));
+    saveMenuItem.setOnAction(e -> {
+      if (gameInstance.isGameOver()) {
+        showError("Impossible de sauvegarder une partie terminée.");
+        return;
+      }
+
+      javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
+      chooser.setTitle("Enregistrer la partie");
+      chooser.getExtensionFilters().add(
+          new javafx.stage.FileChooser.ExtensionFilter("Fichiers save", "*.save", "*.txt"));
+      chooser.setInitialFileName("scrabble.save");
+
+      java.io.File file = chooser.showSaveDialog(appMenuButton.getScene().getWindow());
+      if (file == null) {
+        return; // utilisateur a annulé
+      }
+
+      try {
+        new fr.ubordeaux.scrabble.model.savefiles.SaveManager()
+            .saveGame(gameInstance, file.getAbsolutePath());
+        showInfo("Sauvegarde réussie", "Partie sauvegardée dans : " + file.getAbsolutePath());
+      } catch (java.io.IOException ex) {
+        showError("Erreur lors de la sauvegarde : " + ex.getMessage());
+      }
+    });
+
+    loadMenuItem.setOnAction(e -> {
+      javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
+      chooser.setTitle("Charger une partie");
+      chooser.getExtensionFilters().add(
+          new javafx.stage.FileChooser.ExtensionFilter("Fichiers save", "*.save", "*.txt"));
+
+      java.io.File file = chooser.showOpenDialog(appMenuButton.getScene().getWindow());
+      if (file == null) {
+        return; // utilisateur a annulé
+      }
+      Game loadedGame;
+      try {
+        loadedGame = new GameLoader().loadGame(file.getAbsolutePath());
+      } catch (Exception ex) {
+        showError("Impossible de charger la partie : " + ex.getMessage());
+        return;
+      }
+      if (loadedGame != null) {
+        gameInstance = loadedGame;
+
+        // Plus sûr de recréer la vue que d'appeler setGame() si la méthode n'existe pas
+        viewInstance = new JavaFxView(gameInstance);
+        viewInstance.setGui(this);
+
+        controller = new GameController(gameInstance, viewInstance);
+        boardPanel.setBoard(gameInstance.getBoard());
+        pendingTiles.clear();
+
+        if (gameInstance.isBlitzModeEnabled()) {
+          scorePanel.startBlitzTimers(gameInstance.getPlayers(), this::onBlitzTimeExpired);
+        } else {
+          scorePanel.stopBlitzTimers();
+        }
+
+        refreshAll();
+        showInfo("Chargement réussi", "Partie chargée depuis : " + file.getAbsolutePath());
+      } else {
+        showError("Impossible de charger la partie.");
+      }
+    });
     quitMenuItem.setOnAction(e -> {
       if (messagePanel.showConfirmation("Voulez-vous vraiment quitter ?")) {
         networkBridge.dispose();
