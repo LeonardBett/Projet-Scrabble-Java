@@ -134,13 +134,13 @@ public class NetworkGameBridge implements NetworkObserver {
             lobbyView.onPlayersReceived(players);
           }
 
-      if (shouldDispatchGameStart(pendingGameStart, players.size())) {
-        pendingGameStart = false;
+          if (shouldDispatchGameStart(pendingGameStart, players.size())) {
+            pendingGameStart = false;
 
-        int[] ids = extractPositivePlayerIds(players);
-        dispatchNewGame(networkManager, ids);
-      }
-    });
+            int[] ids = extractPositivePlayerIds(players);
+            dispatchNewGame(networkManager, ids);
+          }
+        });
   }
 
   /** Appelé en réponse à la commande SCOREBOARD. */
