@@ -1,7 +1,5 @@
 package fr.ubordeaux.scrabble.view;
 
-
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -35,7 +33,8 @@ class LauncherTest {
   // la configuration des launchers est cohérente avec OptionPlayer.
   @Test
   void cliLauncherAndOptionPlayerShouldShareMinPlayers() {
-    // CliLauncher n'expose pas de constantes propres, mais s'appuie sur OptionPlayer
+    // CliLauncher n'expose pas de constantes propres, mais s'appuie sur
+    // OptionPlayer
     assertEquals(2, fr.ubordeaux.scrabble.view.optionlancement.OptionPlayer.MIN);
   }
 

@@ -16,7 +16,47 @@ import javafx.application.Application;
  */
 public class GuiLauncher {
 
+  @FunctionalInterface
+  interface LaunchHandler {
+    void launch(Class<? extends Application> appClass, String[] args);
+  }
+
+  private static LaunchHandler launchHandler = Application::launch;
+
   private GuiLauncher() {}
+
+  static void setLaunchHandlerForTests(LaunchHandler handler) {
+    launchHandler = handler;
+  }
+
+  static void resetLaunchHandlerForTests() {
+    launchHandler = Application::launch;
+  }
+
+  static Game createConfiguredGame(int players, List<String> aiColors, boolean blitzMode,
+      int blitzMinutes, int aiTime, boolean useExptiminimax) {
+    int count = players > 0 ? players : OptionPlayer.DEFAULT;
+    Game game = new Game();
+    if (blitzMode) {
+      game.enableBlitzMode(Duration.ofMinutes(blitzMinutes));
+    }
+    int humanCount = 1;
+    for (int i = 1; i <= count; i++) {
+      PlayerColor color = PlayerColor.fromIndex(i - 1);
+      boolean isAi =
+          aiColors != null && aiColors.stream().anyMatch(c -> c.equalsIgnoreCase(color.name()));
+
+      if (isAi) {
+        AiPlayer ai = new AiPlayer("IA-" + color.name(), 3, aiTime, color);
+        ai.setExpectiminimaxMode(useExptiminimax);
+        game.addPlayer(ai);
+      } else {
+        game.addPlayer(new HumanPlayer("Player" + humanCount, color));
+        humanCount++;
+      }
+    }
+    return game;
+  }
 
   /**
    * Starts the game in GUI mode with the given configuration.
@@ -36,27 +76,8 @@ public class GuiLauncher {
    */
   public static void launch(String[] args, int players, List<String> aiColors, boolean blitzMode,
       int blitzMinutes, int aiTime, boolean useExptiminimax, boolean useMl, String lang) {
-    int count = players > 0 ? players : OptionPlayer.DEFAULT;
-    Game game = new Game();
-    if (blitzMode) {
-      game.enableBlitzMode(Duration.ofMinutes(blitzMinutes));
-    }
-    int humanCount = 1;
-    for (int i = 1; i <= count; i++) {
-      PlayerColor color = PlayerColor.fromIndex(i - 1);
-      boolean isAi =
-          aiColors != null && aiColors.stream().anyMatch(c -> c.equalsIgnoreCase(color.name()));
-
-      if (isAi) {
-        AiPlayer ai = new AiPlayer("IA-" + color.name(), 3, aiTime, color);
-        ai.setExpectiminimaxMode(useExptiminimax);
-        // ML configuration is not wired in GUI yet.
-        game.addPlayer(ai);
-      } else {
-        game.addPlayer(new HumanPlayer("Player" + humanCount, color));
-        humanCount++;
-      }
-    }
+    Game game = createConfiguredGame(players, aiColors, blitzMode, blitzMinutes, aiTime,
+        useExptiminimax);
 
     JavaFxView view = new JavaFxView(game);
     ScrabbleGui.setGame(game);

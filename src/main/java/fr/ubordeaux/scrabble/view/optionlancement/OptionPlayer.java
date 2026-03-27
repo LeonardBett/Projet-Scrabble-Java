@@ -7,6 +7,11 @@ import fr.ubordeaux.scrabble.i18n.I18n;
  */
 public class OptionPlayer {
 
+  @FunctionalInterface
+  interface ExitHandler {
+    void exit(int status);
+  }
+
   /**
    * Minimum number of players allowed.
    */
@@ -22,7 +27,17 @@ public class OptionPlayer {
    */
   public static final int DEFAULT = 2;
 
+  private static ExitHandler exitHandler = System::exit;
+
   private OptionPlayer() {
+  }
+
+  static void setExitHandlerForTests(ExitHandler handler) {
+    exitHandler = handler;
+  }
+
+  static void resetExitHandlerForTests() {
+    exitHandler = System::exit;
   }
 
   /**

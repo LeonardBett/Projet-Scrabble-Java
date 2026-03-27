@@ -691,6 +691,362 @@ public class ScrabbleGui extends Application {
     return p != null ? p.getRack() : new Rack();
   }
 
+  private static boolean isOccupiedOrPending(Game game, Map<Point, Tile> pending, Point point) {
+    return !game.getBoard().getSquare(point).isEmpty() || pending.containsKey(point);
+  }
+
+  private static String normalizeExchangeLetters(String input) {
+    return input == null ? "" : input.trim().toUpperCase();
+  }
+
+  private static boolean shouldSkipExchange(String letters) {
+    return letters == null || letters.isEmpty();
+  }
+
+  private static boolean shouldIgnoreGameplayAction(boolean gameOver) {
+    return gameOver;
+  }
+
+  private static boolean shouldPassThroughNetwork(boolean onlineMode) {
+    return onlineMode;
+  }
+
+  private static boolean canUseUndoRedo(boolean onlineMode, boolean gameOver) {
+    return !onlineMode && !gameOver;
+  }
+
+  private static boolean shouldIgnoreTileDrop(Tile tile, boolean gameOver) {
+    return tile == null || gameOver;
+  }
+
+  private static boolean shouldRunAiTurn(Player current, boolean gameOver) {
+    return current instanceof AiPlayer && !gameOver;
+  }
+
+  private static boolean shouldKeepGameplayDisabledAfterAi(boolean gameOver) {
+    return gameOver;
+  }
+
+  private static boolean shouldOpenNetworkLobby(NetworkLobbyView lobby) {
+    return lobby == null;
+  }
+
+  private static String normalizedDictionaryLine(String line) {
+    return line == null ? "" : line.trim();
+  }
+
+  private static boolean shouldAddDictionaryEntry(String line) {
+    return line != null && !line.isEmpty();
+  }
+
+  private static boolean shouldLoadDictionaryForAi(Gaddag currentGaddag) {
+    return currentGaddag == null;
+  }
+
+  private static boolean shouldSkipScoreRefresh(List<Player> players) {
+    return players == null || players.isEmpty();
+  }
+
+  private static boolean shouldHighlightScoreIndex(int index) {
+    return index >= 0;
+  }
+
+  private static boolean shouldRejectSubmitWhenNoPending(Map<Point, Tile> pending) {
+    return pending == null || pending.isEmpty();
+  }
+
+  private static boolean shouldRejectSubmitWhenMoveNull(Move move) {
+    return move == null;
+  }
+
+  private static boolean shouldBlockExchangeWhilePending(Map<Point, Tile> pending) {
+    return pending != null && !pending.isEmpty();
+  }
+
+  private static boolean shouldCancelWhenPendingEmpty(Map<Point, Tile> pending) {
+    return pending == null || pending.isEmpty();
+  }
+
+  private static boolean shouldStartBlitz(boolean blitzEnabled) {
+    return blitzEnabled;
+  }
+
+  private static String[] toPlayerNames(List<Player> players) {
+    if (players == null || players.isEmpty()) {
+      return new String[0];
+    }
+    return players.stream().map(Player::getName).toArray(String[]::new);
+  }
+
+  private static int[] toPlayerScores(List<Player> players) {
+    if (players == null || players.isEmpty()) {
+      return new int[0];
+    }
+    return players.stream().mapToInt(Player::getScore).toArray();
+  }
+
+  private static int indexOfCurrentPlayer(List<Player> players, Player current) {
+    if (players == null || current == null) {
+      return -1;
+    }
+    return players.indexOf(current);
+  }
+
+  private static String buildBlitzTimeoutMessage(String playerName) {
+    return playerName + " a épuisé son temps. La partie est terminée !";
+  }
+
+  private static String blitzTimeoutTitle() {
+    return "⏱ Temps écoulé !";
+  }
+
+  private static List<HumanPlayer> createDefaultPlayers(int count) {
+    List<HumanPlayer> players = new java.util.ArrayList<>();
+    for (int i = 1; i <= count; i++) {
+      players.add(new HumanPlayer(defaultPlayerName(i), PlayerColor.fromIndex(i - 1)));
+    }
+    return players;
+  }
+
+  private static Optional<String> findOutOfTimePlayerName(List<Player> players) {
+    return players.stream()
+        .filter(p -> p.isBlitzClockEnabled() && p.isOutOfTime())
+        .map(Player::getName)
+        .findFirst();
+  }
+
+  private static String buildPlayedWord(Move move) {
+    if (move == null || move.getTiles() == null) {
+      return "";
+    }
+    return move.getTiles().stream().map(t -> String.valueOf(t.getCharacter())).reduce("",
+        String::concat);
+  }
+
+  private static int moveOriginX(Move move) {
+    return move.getStartPosition().getX();
+  }
+
+  private static int moveOriginY(Move move) {
+    return move.getStartPosition().getY();
+  }
+
+  private static String moveDirectionToken(Move move) {
+    return move.getDirection().name().substring(0, 1);
+  }
+
+  private static boolean shouldAbortNewGame(boolean confirmed) {
+    return !confirmed;
+  }
+
+  private static boolean shouldAbortWhenMissingPlayerCount(Optional<Integer> countOpt) {
+    return countOpt == null || countOpt.isEmpty();
+  }
+
+  private static boolean shouldReinitializeNetworkForNewGame(boolean onlineMode) {
+    return onlineMode;
+  }
+
+  private static int selectedPlayerCount(Optional<Integer> countOpt) {
+    return countOpt.orElse(0);
+  }
+
+  private static boolean shouldLoadGaddag(Gaddag currentGaddag) {
+    return currentGaddag == null;
+  }
+
+  private static String defaultPlayerName(int index) {
+    return "Joueur" + index;
+  }
+
+  private static String menuTitleText() {
+    return "MENU";
+  }
+
+  private static int windowWidth() {
+    return 1200;
+  }
+
+  private static int windowHeight() {
+    return 800;
+  }
+
+  private static String helpDialogTitle() {
+    return "Aide";
+  }
+
+  private static String helpDialogMessage() {
+    return "Consultez les règles du Scrabble pour jouer.";
+  }
+
+  private static String occupiedCellMessage() {
+    return "Cette case est déjà occupée !";
+  }
+
+  private static String placeAtLeastOneTileMessage() {
+    return "Placez au moins une tuile avant de valider !";
+  }
+
+  private static String invalidAlignmentMessage() {
+    return "Les tuiles doivent être alignées horizontalement ou verticalement !";
+  }
+
+  private static String exchangeDialogTitle() {
+    return "Échanger des lettres";
+  }
+
+  private static String exchangeDialogHeaderText() {
+    return "Lettres de votre chevalet à échanger";
+  }
+
+  private static String exchangeDialogContentText() {
+    return "Lettres (ex: ABC) :";
+  }
+
+  private static String onlineStartedTitle() {
+    return "Partie en ligne";
+  }
+
+  private static String onlineStartedMessage() {
+    return "La partie a commencé ! Bonne chance 🎮";
+  }
+
+  private static String saveComingSoonMessage() {
+    return "Sauvegarde bientôt disponible";
+  }
+
+  private static String loadComingSoonMessage() {
+    return "Chargement bientôt disponible";
+  }
+
+  private static String comingSoonTitle() {
+    return "Bientôt";
+  }
+
+  private static String appMenuButtonText() {
+    return "☰ Jeu";
+  }
+
+  private static String newGameMenuText() {
+    return "Nouvelle partie";
+  }
+
+  private static String multiplayerMenuText() {
+    return "Multijoueur";
+  }
+
+  private static String saveMenuText() {
+    return "Sauvegarder";
+  }
+
+  private static String loadMenuText() {
+    return "Charger";
+  }
+
+  private static String quitMenuText() {
+    return "Quitter";
+  }
+
+  private static String rootBackgroundStyle() {
+    return "-fx-background-color: #115829;";
+  }
+
+  private static String appMenuButtonStyle() {
+    return "-fx-background-color: #0B3D1D; -fx-text-fill: white;";
+  }
+
+  private static double rootPadding() {
+    return 10.0;
+  }
+
+  private static double rightPanelSpacing() {
+    return 15.0;
+  }
+
+  private static double appMenuButtonWidth() {
+    return 190.0;
+  }
+
+  private static String menuLabelFontFamily() {
+    return "Arial";
+  }
+
+  private static int menuLabelFontSize() {
+    return 14;
+  }
+
+  private static String dictionaryLoadErrorMessage(String details) {
+    return "Impossible de charger le dictionnaire : " + details;
+  }
+
+  private static String invalidMoveMessage(String details) {
+    return "Coup invalide : " + details;
+  }
+
+  private static String cancelTilesBeforeExchangeMessage() {
+    return "Annulez d'abord les tuiles placées (bouton ↩).";
+  }
+
+  private static String exchangeLettersNotInRackMessage() {
+    return "Certaines lettres ne sont pas dans votre chevalet !";
+  }
+
+  private static String newGameConfirmationMessage() {
+    return "Abandonner la partie en cours et recommencer ?";
+  }
+
+  private static String quitConfirmationMessage() {
+    return "Voulez-vous vraiment quitter ?";
+  }
+
+  private static String missingGameErrorMessage() {
+    return "Appelez ScrabbleGui.setGame() avant de lancer.";
+  }
+
+  private static String aiErrorMessage(String details) {
+    return "Erreur IA : " + details;
+  }
+
+  private static String windowTitleText() {
+    return "Scrabble U-Bordeaux";
+  }
+
+  private static double rightTopPadding() {
+    return 0.0;
+  }
+
+  private static double rightRightPadding() {
+    return 0.0;
+  }
+
+  private static double rightBottomPadding() {
+    return 0.0;
+  }
+
+  private static double rightLeftPadding() {
+    return 15.0;
+  }
+
+  private static double leftMenuSpacing() {
+    return 8.0;
+  }
+
+  private static double leftMenuTopPadding() {
+    return 8.0;
+  }
+
+  private static double leftMenuRightPadding() {
+    return 15.0;
+  }
+
+  private static double leftMenuBottomPadding() {
+    return 0.0;
+  }
+
+  private static double leftMenuLeftPadding() {
+    return 0.0;
+  }
+
   /**
    * Configure global keyboard shortcuts.
    *

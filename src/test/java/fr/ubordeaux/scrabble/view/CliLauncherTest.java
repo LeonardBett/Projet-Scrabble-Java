@@ -18,8 +18,7 @@ class CliLauncherTest {
       String input = "6\no\n";
       System.setIn(new ByteArrayInputStream(input.getBytes(StandardCharsets.UTF_8)));
 
-      assertDoesNotThrow(() ->
-          CliLauncher.launch(2, List.of(), false, 30, 2, false, false, "en"));
+      assertDoesNotThrow(() -> CliLauncher.launch(2, List.of(), false, 30, 2, false, false, "en"));
     } finally {
       System.setIn(originalIn);
     }
