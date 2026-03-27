@@ -83,7 +83,7 @@ public class GuiLauncher {
     ScrabbleGui.setGame(game);
     ScrabbleGui.setView(view);
     ScrabbleGui.setLanguage(lang);
-    Application.launch(ScrabbleGui.class, args);
+    launchHandler.launch(ScrabbleGui.class, args);
   }
 
   /**
