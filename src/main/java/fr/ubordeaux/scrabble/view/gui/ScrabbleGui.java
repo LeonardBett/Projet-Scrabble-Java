@@ -215,8 +215,8 @@ public class ScrabbleGui extends Application {
       javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
       chooser.setTitle("Enregistrer la partie");
       chooser.getExtensionFilters().add(
-          new javafx.stage.FileChooser.ExtensionFilter("Fichiers save", "*.save", "*.txt"));
-      chooser.setInitialFileName("scrabble.save");
+          new javafx.stage.FileChooser.ExtensionFilter("Fichiers save", "*.scrabble", "*.txt"));
+      chooser.setInitialFileName("scrabble.scrabble");
 
       java.io.File file = chooser.showSaveDialog(appMenuButton.getScene().getWindow());
       if (file == null) {
@@ -236,7 +236,7 @@ public class ScrabbleGui extends Application {
       javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
       chooser.setTitle("Charger une partie");
       chooser.getExtensionFilters().add(
-          new javafx.stage.FileChooser.ExtensionFilter("Fichiers save", "*.save", "*.txt"));
+          new javafx.stage.FileChooser.ExtensionFilter("Fichiers save", "*.scrabble", "*.txt"));
 
       java.io.File file = chooser.showOpenDialog(appMenuButton.getScene().getWindow());
       if (file == null) {
