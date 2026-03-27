@@ -52,12 +52,12 @@ public class OptionPlayer {
       int n = Integer.parseInt(value);
       if (n < MIN || n > MAX) {
         System.err.println(I18n.translate("optionplayer.err.invalidCount", n, MIN, MAX));
-        System.exit(1);
+        exitHandler.exit(1);
       }
       return n;
     } catch (NumberFormatException e) {
       System.err.println(I18n.translate("optionplayer.err.notInteger", value));
-      System.exit(1);
+      exitHandler.exit(1);
       return DEFAULT;
     }
   }
