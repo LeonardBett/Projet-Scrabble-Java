@@ -140,7 +140,8 @@ public class GameLoader {
       return boardRow;
     }
 
-    if (line.length() == 15 && (line.contains("-") || line.matches(".*[A-Z].*"))) {
+    // Ajout de la condition "boardRow < 15" pour éviter de déborder du plateau
+    if (boardRow < 15 && line.length() == 15 && (line.contains("-") || line.matches(".*[A-Z].*"))) {
       for (int x = 0; x < 15; x++) {
         char c = line.charAt(x);
         if (c != '-') {
@@ -162,7 +163,7 @@ public class GameLoader {
       int playerIdx = Integer.parseInt(line.substring(5, line.indexOf(":"))) - 1;
       String tilesStr = line.substring(line.indexOf(":") + 1).trim();
       ensurePlayerExists(game, playerIdx);
-      Player p = game.getPlayers().get(playerIdx);
+      fr.ubordeaux.scrabble.model.interfaces.Player p = game.getPlayers().get(playerIdx);
       for (char c : tilesStr.toCharArray()) {
         p.getRack().addTile(new Tile(c));
       }

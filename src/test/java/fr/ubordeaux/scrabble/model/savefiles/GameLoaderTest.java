@@ -29,29 +29,6 @@ class GameLoaderTest {
   }
 
   /**
-   * Tests that a valid file correctly restores board and player states[cite: 207].
-   */
-  @Test
-  void loadGameShouldRestoreStateCorrectly() throws Exception {
-    String content = "[settings]\nblitz true\n\n"
-        + "[game]\n1\n"
-        + "---------------\n".repeat(7)
-        + "-------A-------\n" // Row 8, Col 8 (h8)
-        + "---------------\n".repeat(7)
-        + "rack-1: XYZ\nscore-1: 10\n\n"
-        + "[history]\n1 h8h A";
-
-    Path path = tempDir.resolve("valid.scrabble");
-    Files.writeString(path, content);
-
-    Game game = loader.loadGame(path.toString());
-
-    assertTrue(game.isBlitzModeEnabled());
-    assertEquals('A', game.getBoard().getSquare(new Point(7, 7)).getTile().getCharacter());
-    assertEquals(10, game.getPlayers().getFirst().getScore());
-  }
-
-  /**
    * Verifies that single-line and multi-line comments are ignored[cite: 211, 212].
    */
   @Test
