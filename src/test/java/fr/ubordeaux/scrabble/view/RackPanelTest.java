@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import fr.ubordeaux.scrabble.i18n.I18n;
 import fr.ubordeaux.scrabble.model.core.Rack;
 import fr.ubordeaux.scrabble.model.core.Tile;
 import fr.ubordeaux.scrabble.view.gui.panel.RackPanel;
@@ -12,6 +13,7 @@ import java.lang.reflect.Field;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -36,8 +38,14 @@ class RackPanelTest {
 
   @BeforeEach
   void setUp() {
+    I18n.setLanguage("fr");
     rack = new Rack();
     rackPanel = new RackPanel(rack);
+  }
+
+  @AfterEach
+  void tearDown() {
+    I18n.setLanguage("en");
   }
 
   @Test
@@ -128,7 +136,7 @@ class RackPanelTest {
     assertTrue(second instanceof HBox);
 
     Label title = (Label) first;
-    assertEquals("CHEVALET DU JOUEUR", title.getText());
+    assertEquals("Chevalet du joueur 1", title.getText());
 
     Object[] slots = (Object[]) getPrivateField(rackPanel, "tileContainers");
     assertEquals(7, slots.length);

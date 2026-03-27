@@ -1,5 +1,6 @@
 package fr.ubordeaux.scrabble.view.gui.panel;
 
+import fr.ubordeaux.scrabble.i18n.I18n;
 import fr.ubordeaux.scrabble.model.core.Rack;
 import fr.ubordeaux.scrabble.model.core.Tile;
 import java.util.List;
@@ -28,6 +29,7 @@ public class RackPanel extends VBox {
 
   private final HBox tilesBox;
   private final StackPane[] tileContainers;
+  private final Label titleLabel;
   private Rack rack;
 
   /**
@@ -44,6 +46,7 @@ public class RackPanel extends VBox {
     this.rack = rack;
     this.tileContainers = new StackPane[MAX_TILES];
     this.tilesBox = new HBox(10);
+    this.titleLabel = new Label();
     initializeUi();
     updateDisplay();
   }
@@ -66,10 +69,10 @@ public class RackPanel extends VBox {
   }
 
   private void initializeUi() {
-    Label title = new Label("CHEVALET DU JOUEUR");
-    title.setFont(Font.font("Arial", FontWeight.BOLD, 14));
-    title.setTextFill(Color.WHITE);
-    title.setPadding(new Insets(0, 0, 10, 0));
+    setCurrentPlayerNumber(1);
+    titleLabel.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+    titleLabel.setTextFill(Color.WHITE);
+    titleLabel.setPadding(new Insets(0, 0, 10, 0));
 
     tilesBox.setAlignment(Pos.CENTER);
     tilesBox.setPadding(new Insets(10));
@@ -84,7 +87,16 @@ public class RackPanel extends VBox {
     }
 
     this.setAlignment(Pos.CENTER);
-    this.getChildren().addAll(title, tilesBox);
+    this.getChildren().addAll(titleLabel, tilesBox);
+  }
+
+  /**
+   * Updates the rack title with the current player's index.
+   *
+   * @param playerNumber 1-based player index
+   */
+  public void setCurrentPlayerNumber(int playerNumber) {
+    titleLabel.setText(I18n.translate("rack.currentPlayerTitle", playerNumber));
   }
 
   private StackPane createEmptySlot() {
