@@ -13,8 +13,6 @@ import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
 import fr.ubordeaux.scrabble.model.network.NetworkManager;
 import fr.ubordeaux.scrabble.model.savefiles.GameLoader;
-import fr.ubordeaux.scrabble.model.savefiles.SaveManager;
-import fr.ubordeaux.scrabble.model.utils.GameLogger;
 import fr.ubordeaux.scrabble.model.utils.Point;
 import fr.ubordeaux.scrabble.view.gui.panel.BoardPanel;
 import fr.ubordeaux.scrabble.view.gui.panel.ControlPanel;
