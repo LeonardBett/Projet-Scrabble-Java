@@ -1,5 +1,7 @@
 package fr.ubordeaux.scrabble.view.cli.renderer;
 
+import fr.ubordeaux.scrabble.i18n.I18n;
+
 /**
  * Responsable de l'affichage des messages système dans la console CLI
  * (erreurs, succès, informations, avertissements, séparateurs).
@@ -18,7 +20,7 @@ public class MessageRenderer {
    * @param message The error message to display.
    */
   public void error(String message) {
-    System.out.println("Error : " + message);
+    System.out.println(I18n.translate("cli.message.errorPrefix") + message);
   }
 
 
@@ -28,14 +30,14 @@ public class MessageRenderer {
    * @param message The success message to display.
    */
   public void success(String message) {
-    System.out.println("OK : " + message);
+    System.out.println(I18n.translate("cli.message.successPrefix") + message);
   }
 
   /**
    * Displays a welcome message.
    */
   public void welcome() {
-    System.out.println("Welcome to the Scrabble CLI!");
+    System.out.println(I18n.translate("cli.message.welcome"));
   }
 
   /**
@@ -44,7 +46,7 @@ public class MessageRenderer {
    * @param message The information message to display.
    */
   public void info(String message) {
-    System.out.println("Info : " + message);
+    System.out.println(I18n.translate("cli.message.infoPrefix") + message);
   }
 
   /**
@@ -69,6 +71,6 @@ public class MessageRenderer {
    * @param message the warning message to display
    */
   public void warning(String message) {
-    System.out.println("Warning : " + message);
+    System.out.println(I18n.translate("cli.message.warningPrefix") + message);
   }
 }

@@ -1,5 +1,6 @@
 package fr.ubordeaux.scrabble.view.gui.panel;
 
+import fr.ubordeaux.scrabble.i18n.I18n;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -29,13 +30,13 @@ public class ControlPanel extends VBox {
    * Creates the ControlPanel and initializes all buttons.
    */
   public ControlPanel() {
-    playButton = createButton("▶  Jouer", "#4CAF50");
-    passButton = createButton("⏭  Passer", "#FF9800");
-    exchangeButton = createButton("🔄 Échanger", "#2196F3");
-    cancelPlacementButton = createButton("↩  Annuler placement", "#795548");
-    undoButton = createButton("↶  Annuler coup", "#9E9E9E");
-    redoButton = createButton("↷  Refaire coup", "#9E9E9E");
-    hintButton = createButton("❓ Indice", "#1E88E5");
+    playButton = createButton(I18n.translate("control.play"), "#4CAF50");
+    passButton = createButton(I18n.translate("control.pass"), "#FF9800");
+    exchangeButton = createButton(I18n.translate("control.exchange"), "#2196F3");
+    cancelPlacementButton = createButton(I18n.translate("control.cancelPlacement"), "#795548");
+    undoButton = createButton(I18n.translate("control.undo"), "#9E9E9E");
+    redoButton = createButton(I18n.translate("control.redo"), "#9E9E9E");
+    hintButton = createButton(I18n.translate("control.hint"), "#1E88E5");
     hintButton.setPrefWidth(96);
     initializeUi();
   }
@@ -47,7 +48,7 @@ public class ControlPanel extends VBox {
     this.setStyle("-fx-background-color: rgba(0,0,0,0.4); -fx-background-radius: 10;");
     this.setPrefWidth(250);
 
-    Label title = new Label("ACTIONS");
+    Label title = new Label(I18n.translate("control.title"));
     title.setFont(Font.font("Arial", FontWeight.BOLD, 16));
     title.setTextFill(Color.WHITE);
 
