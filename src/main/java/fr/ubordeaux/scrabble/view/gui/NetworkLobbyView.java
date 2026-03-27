@@ -817,6 +817,7 @@ public class NetworkLobbyView extends Stage {
 
   private void onToggleStatus() {
     if (!clientConnected) {
+      log(notConnectedMessage());
       return;
     }
 
@@ -1000,8 +1001,8 @@ public class NetworkLobbyView extends Stage {
       startGameButton.setDisable(lobbyPlayerCount < 2);
 
       // Auto-launch when exactly 2 players are ready (host + 1 client)
-      if (lobbyPlayerCount >= 2) {
-        log(I18n.translate("lobby.playersReady", lobbyPlayerCount));
+      if (shouldLogPlayersReady(lobbyPlayerCount)) {
+        log(playersReadyMessage(lobbyPlayerCount));
       }
     }
 
