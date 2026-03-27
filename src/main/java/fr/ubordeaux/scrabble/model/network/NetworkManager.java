@@ -119,27 +119,39 @@ public class NetworkManager {
    *
    * @param port the port
    */
-  public void serverStart(int port) {
+  public boolean serverStart(int port) {
     // We check if the server is not already running
     if (gameServer != null) {
       // System.err.println("User : Server is already running, can't start it");
-      return;
+      return false;
     }
-    gameServer = new GameServer();
 
-    // We start the server in a Thread for not blocking this function with the while(true)
-    new Thread(() -> gameServer.start(port)).start();
+    // We check if the port is valid
+    if (port < 0 || port > 65535) {
+      return false;
+    }
 
-    // Since servers need to have a name but the command don't tell about it, I use for now the
-    // System user's name
-    // I will ask teachers about this next session
-    String defaultName = "Server-" + System.getProperty("user.name");
-    discoveryService.startBroadcasting(defaultName, port, gameServer.getLocalNetworkIp());
+    try {
+      gameServer = new GameServer();
+
+      // We start the server in a Thread for not blocking this function with the while(true)
+      gameServer.start(port);
+
+      // Since servers need to have a name but the command don't tell about it, I use for now the
+      // System user's name
+      // I will ask teachers about this next session
+      String defaultName = "Server-" + System.getProperty("user.name");
+      discoveryService.startBroadcasting(defaultName, port, gameServer.getLocalNetworkIp());
+      return true;
+    } catch (Exception e) {
+      gameServer = null;
+      return false;
+    }
   }
 
   /** COMMAND server start : start with default port. */
-  public void serverStart() {
-    serverStart(DEFAULT_TCP_PORT);
+  public boolean serverStart() {
+    return serverStart(DEFAULT_TCP_PORT);
   }
 
   /**

@@ -50,7 +50,7 @@ public class GameServer {
       Collections.synchronizedList(new ArrayList<>());
 
   /** Start the server on the default port. */
-  public void start() {
+  public void start() throws IOException {
     start(DEFAULT_TCP_PORT);
   }
 
@@ -59,79 +59,84 @@ public class GameServer {
    *
    * @param port the port
    */
-  public void start(int port) {
+  public void start(int port) throws java.io.IOException {
     // System.out.println("Server : Server Starting...");
     isRunning = true;
-    try {
-      serverSocket = new ServerSocket(port);
+    serverSocket = new ServerSocket(port);
 
-      String ipAddress = getLocalNetworkIp();
-      // Replace because we use ";" for parsing, so a player name can't contain this
-      // character
-      String serverName = "Server-" + System.getProperty("user.name").replace(";", "_");
-      serverInfo = new ServerInfo(ipAddress, port, serverName);
+    String ipAddress = getLocalNetworkIp();
+    // Replace because we use ";" for parsing, so a player name can't contain this
+    // character
+    String serverName = "Server-" + System.getProperty("user.name").replace(";", "_");
+    serverInfo = new ServerInfo(ipAddress, port, serverName);
 
-      // Thread de nettoyage des invitations expirées
-      new Thread(
-              () -> {
-                while (isRunning) {
-                  try {
-                    Thread.sleep(10000);
-                    long now = System.currentTimeMillis();
-                    synchronized (activeInvitations) {
-                      activeInvitations.removeIf(
-                          inv -> {
-                            if (inv.isExpired(now)) {
-                              for (ClientHandler p : inv.getAcceptedPlayers()) {
-                                p.getClientInfo().setStatus(PlayerStatus.IDLE);
-                                p.sendMessage("STATUS_UPDATE:STATUS=IDLE");
-                                p.sendMessage("INVITATION_CANCELLED:REASON=Timeout (5 minutes)");
-                              }
-
-                              for (ClientHandler p : inv.getPendingPlayers()) {
-                                p.getClientInfo().setStatus(PlayerStatus.IDLE);
-                                p.sendMessage("STATUS_UPDATE:STATUS=IDLE");
-                                p.sendMessage("INVITATION_CANCELLED:REASON=Timeout (5 minutes)");
-                              }
-                              return true;
+    // Thread to clean expired invitations
+    new Thread(
+            () -> {
+              while (isRunning) {
+                try {
+                  Thread.sleep(10000);
+                  long now = System.currentTimeMillis();
+                  synchronized (activeInvitations) {
+                    activeInvitations.removeIf(
+                        inv -> {
+                          if (inv.isExpired(now)) {
+                            for (ClientHandler p : inv.getAcceptedPlayers()) {
+                              p.getClientInfo().setStatus(PlayerStatus.IDLE);
+                              p.sendMessage("STATUS_UPDATE:STATUS=IDLE");
+                              p.sendMessage("INVITATION_CANCELLED:REASON=Timeout (5 minutes)");
                             }
-                            return false;
-                          });
-                    }
-                  } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
+
+                            for (ClientHandler p : inv.getPendingPlayers()) {
+                              p.getClientInfo().setStatus(PlayerStatus.IDLE);
+                              p.sendMessage("STATUS_UPDATE:STATUS=IDLE");
+                              p.sendMessage("INVITATION_CANCELLED:REASON=Timeout (5 minutes)");
+                            }
+                            return true;
+                          }
+                          return false;
+                        });
                   }
+                } catch (InterruptedException e) {
+                  Thread.currentThread().interrupt();
                 }
-              })
-          .start();
+              }
+            })
+        .start();
 
-      // Infinite loop for accepting connexion
-      while (isRunning) {
-        Socket clientSocket = serverSocket.accept();
-        // System.out.println("Server : Client connected: " +
-        // clientSocket.getInetAddress());
+    // Thread to accept client
+    new Thread(
+            () -> {
+              try {
+                // Infinite loop for accepting connexion
+                while (isRunning) {
+                  Socket clientSocket = serverSocket.accept();
+                  // System.out.println("Server : Client connected: " +
+                  // clientSocket.getInetAddress());
 
-        // We are going to give this socket to a thread
-        ClientHandler handler = new ClientHandler(clientSocket, this, idCounter++);
-        addClient(handler);
-        new Thread(handler).start();
-      }
-    } catch (java.net.BindException e) {
-      // System.err.println("Server Error: Port " + port + " is already in use.");
-      isRunning = false;
-    } catch (SocketException e) {
-      if (isRunning) {
-        System.err.println("Server Error: Socket exception - " + e.getMessage());
-      }
-      // If isRunning is false, it means we called stop(), so we just exit the loop
-    } catch (IOException e) {
-      System.err.println("Server Error: IO exception - " + e.getMessage());
-    } finally {
-      // Only call stop if it's still running to avoid double call message
-      if (isRunning) {
-        stop();
-      }
-    }
+                  // We are going to give this socket to a thread
+                  ClientHandler handler = new ClientHandler(clientSocket, this, idCounter++);
+                  addClient(handler);
+                  new Thread(handler).start();
+                }
+              } catch (java.net.BindException e) {
+                // System.err.println("Server Error: Port " + port + " is already in use.");
+                isRunning = false;
+              } catch (SocketException e) {
+                if (isRunning) {
+                  System.err.println("Server Error: Socket exception - " + e.getMessage());
+                }
+                // If isRunning is false, it means we called stop(), so we just exit the loop
+              } catch (IOException e) {
+                System.err.println("Server Error: IO exception - " + e.getMessage());
+              } finally {
+                // Only call stop if it's still running to avoid double call message
+                if (isRunning) {
+                  stop();
+                }
+              }
+            })
+        .start();
   }
 
   /** Stop the server. */
@@ -263,6 +268,7 @@ public class GameServer {
    */
   public synchronized String createNewGame(ClientHandler initiator, List<Integer> targetIds) {
     if (initiator.getClientInfo().getStatus() != PlayerStatus.IDLE) {
+      initiator.sendMessage("INVITATION_FAILED:REASON=You are not available");
       return "ERROR: You are not available";
     }
 
@@ -277,23 +283,27 @@ public class GameServer {
           }
         }
         if (target == null) {
+          initiator.sendMessage("INVITATION_FAILED:REASON=Player " + id + " not found");
           return "ERROR: Player " + id + " not found";
         }
         if (target == initiator) {
+          initiator.sendMessage("INVITATION_FAILED:REASON=You cannot play against yourself");
           return "ERROR: You cannot play against yourself";
         }
         if (target.getClientInfo().getStatus() != PlayerStatus.IDLE) {
+          initiator.sendMessage(
+              "INVITATION_FAILED:REASON=Player " + target.getClientInfo().getName() + " is busy");
           return "ERROR: Player " + target.getClientInfo().getName() + " is busy";
         }
         targets.add(target);
       }
     }
 
-    // Création de l'invitation
+    // We create the invitation
     PendingInvitation invitation = new PendingInvitation(initiator, targets);
     activeInvitations.add(invitation);
 
-    // Mise à jour des statuts et notifications
+    // We update status of initiator and targets
     initiator.getClientInfo().setStatus(PlayerStatus.WAITGAME);
     initiator.sendMessage("STATUS_UPDATE:STATUS=WAITGAME");
     for (ClientHandler t : targets) {
@@ -357,6 +367,7 @@ public class GameServer {
           p.getClientInfo().setStatus(PlayerStatus.IDLE);
           p.sendMessage("STATUS_UPDATE:STATUS=IDLE");
         }
+        currentInv.getHost().sendMessage("INVITATION_FAILED:REASON=Not enough players accepted");
         currentInv.getHost().sendMessage("ERROR: Not enough players accepted to start the game.");
       }
     }
@@ -405,7 +416,7 @@ public class GameServer {
   public void processCancel(ClientHandler player) {
     PendingInvitation currentInv = null;
 
-    // On cherche l'invitation dont ce joueur est le créateur
+    // We look for the current invitation
     synchronized (activeInvitations) {
       for (PendingInvitation inv : activeInvitations) {
         if (inv.getHost() == player) {
@@ -420,18 +431,18 @@ public class GameServer {
       return;
     }
 
-    // On la supprime de la liste active
+    // We delete her
     synchronized (activeInvitations) {
       activeInvitations.remove(currentInv);
     }
 
-    // On libère les joueurs qui avaient déjà accepté (ce qui inclut le Host lui-même)
+    // We update all player from this invitation
     for (ClientHandler p : currentInv.getAcceptedPlayers()) {
       p.getClientInfo().setStatus(PlayerStatus.IDLE);
       p.sendMessage("STATUS_UPDATE:STATUS=IDLE");
 
       if (p == player) {
-        p.sendMessage("Invitation successfully cancelled."); // Confirmation pour le Host
+        p.sendMessage("Invitation successfully cancelled.");
       } else {
         p.sendMessage("INVITATION_CANCELLED:REASON=Host cancelled");
       }

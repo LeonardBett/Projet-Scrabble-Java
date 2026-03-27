@@ -71,6 +71,11 @@ public class GameClient {
    */
   public void connect(String address, int port) {
     try {
+      // Check if the port is valid
+      if (port < 0 || port > 65535) {
+        throw new IllegalArgumentException("Port out of range: " + port);
+      }
+
       // Try to connect to a server
       socket = new Socket(address, port);
 
@@ -122,6 +127,7 @@ public class GameClient {
               this.myId = Integer.parseInt(packetParser.getEntries().getFirst().get("ID"));
               // System.out.println("Client : My ID is " + myId);
               for (NetworkObserver obs : observers) {
+                obs.serverWelcomeUpdate(myId);
                 obs.messageUpdate("Client : Connected to server, my ID on it is " + myId);
               }
             }
@@ -359,6 +365,27 @@ public class GameClient {
               for (NetworkObserver obs : observers) {
                 obs.invitationCancelledUpdate(reason);
               }
+            }
+            break;
+
+          case "GAME_INTERRUPTED":
+            String reason = packetParser.getEntries().getFirst().get("REASON");
+            for (NetworkObserver obs : new ArrayList<>(observers)) {
+              obs.gameInterruptedUpdate(reason);
+            }
+            break;
+
+          case "GAME_ENDED":
+            List<Map<String, String>> finalScore = packetParser.getEntries();
+            for (NetworkObserver obs : new ArrayList<>(observers)) {
+              obs.gameEndedUpdate(finalScore);
+            }
+            break;
+
+          case "INVITATION_FAILED":
+            String invitationFailedReason = packetParser.getEntries().getFirst().get("REASON");
+            for (NetworkObserver obs : observers) {
+              obs.invitationFailedUpdate(invitationFailedReason);
             }
             break;
 
@@ -616,5 +643,9 @@ public class GameClient {
    */
   public Game getLocalGame() {
     return localGame;
+  }
+
+  public int getMyId() {
+    return myId;
   }
 }

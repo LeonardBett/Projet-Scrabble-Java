@@ -137,7 +137,7 @@ public class ClientHandler implements Runnable {
     isRunning = false;
 
     if (onlineGame != null) {
-      onlineGame.terminateGame(clientInfo.getName() + " disconnected");
+      onlineGame.interruptGame(clientInfo.getName() + " disconnected");
     }
 
     // We cancel invitation with this player in it

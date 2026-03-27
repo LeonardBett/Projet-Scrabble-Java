@@ -65,6 +65,7 @@ public class NetworkLobbyView extends Stage {
   private Button toggleStatusButton;
   private boolean isAway = false;
   private Button viewPlayerDetailsButton;
+  private Label myIdLabel;
 
   // Keeps track of the currently displayed invitation dialog to avoid duplicates
   private Alert currentInvitationDialog = null;
@@ -104,6 +105,13 @@ public class NetworkLobbyView extends Stage {
     title.setFont(Font.font("Arial", FontWeight.BOLD, 20));
     title.setTextFill(Color.WHITE);
 
+    myIdLabel = new Label("");
+    myIdLabel.setFont(Font.font("Arial", FontWeight.NORMAL, 14));
+    myIdLabel.setTextFill(Color.LIGHTBLUE);
+    root.getChildren()
+        .addFirst(
+            new HBox(20, styledLabel("", Color.WHITE, 20, true), myIdLabel));
+
     tabPane = new TabPane();
     tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
     tabPane.setStyle("-fx-background-color: #243447;");
@@ -111,7 +119,7 @@ public class NetworkLobbyView extends Stage {
 
     consoleArea = new TextArea();
     consoleArea.setEditable(false);
-    consoleArea.setPrefHeight(100);
+    consoleArea.setPrefHeight(200);
     consoleArea.setStyle(
         "-fx-control-inner-background: #0d1b2a; -fx-text-fill: #00ff88; "
             + "-fx-font-family: monospace; -fx-font-size: 11;");
@@ -280,13 +288,29 @@ public class NetworkLobbyView extends Stage {
   private void onStartServer() {
     try {
       int port = Integer.parseInt(portField.getText().trim());
-      networkManager.startOnlinePlay();
-      networkManager.serverStart(port);
-      serverRunning = true;
-      serverStatusLabel.setText("Server running on port " + port);
-      serverStatusLabel.setTextFill(Color.LIMEGREEN);
-      log("Server started on port " + port);
-      updateButtonStates();
+
+      if (port < 0 || port > 65535) {
+        log("Erreur : Le port doit etre compris entre 0 et 65535.");
+        return;
+      }
+
+      // We check if the server start is a success
+      boolean success = networkManager.serverStart(port);
+
+      if (success) {
+        serverRunning = true;
+        serverStatusLabel.setText("Server running on port " + port);
+        serverStatusLabel.setTextFill(Color.LIMEGREEN);
+        log("Server started on port " + port);
+        updateButtonStates();
+      } else {
+        log("Echec : Le port " + port + " est invalide ou dejà utilise.");
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Erreur serveur");
+        alert.setHeaderText("Impossible de démarrer le serveur");
+        alert.setContentText("Le port " + port + " est probablement déjà utilisé ou invalide.");
+        alert.show();
+      }
     } catch (NumberFormatException ex) {
       log("Invalid port format.");
     }
@@ -311,9 +335,17 @@ public class NetworkLobbyView extends Stage {
 
   private void onConnect() {
     try {
-      doConnect(ipField.getText().trim(), Integer.parseInt(joinPortField.getText().trim()));
+      int port = Integer.parseInt(joinPortField.getText().trim());
+
+      // Check if the port is valid
+      if (port < 0 || port > 65535) {
+        log("Erreur : Le port doit etre compris entre 0 et 65535.");
+        return;
+      }
+
+      doConnect(ipField.getText().trim(), port);
     } catch (NumberFormatException e) {
-      log("Invalid port format.");
+      log("Port invalide.");
     }
   }
 
@@ -324,7 +356,6 @@ public class NetworkLobbyView extends Stage {
    * @param port the server Port.
    */
   private void doConnect(String ip, int port) {
-    networkManager.startOnlinePlay();
     networkManager.join(ip, port);
     clientConnected = true;
     log("Connecting to " + ip + ":" + port + "...");
@@ -347,6 +378,8 @@ public class NetworkLobbyView extends Stage {
   public void onClientDisconnected(String reason) {
     clientConnected = false;
     log("Disconnected : " + reason);
+
+    myIdLabel.setText("");
 
     // We empty gui items
     playersListView.getItems().clear();
@@ -398,22 +431,9 @@ public class NetworkLobbyView extends Stage {
 
     if (!isAway) {
       networkManager.away();
-      isAway = true;
-      toggleStatusButton.setText("Revenir au en jeu (BACK)");
-      toggleStatusButton.setStyle(
-          "-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-cursor: hand;"); // Devient vert
-      log("Vous êtes maintenant Absent (AWAY).");
     } else {
-      networkManager.back(); // Envoie la commande BACK au serveur
-      isAway = false;
-      toggleStatusButton.setText("Passer en mode Absent (AWAY)");
-      toggleStatusButton.setStyle(
-          "-fx-background-color: #607D8B; -fx-text-fill: white; -fx-cursor: hand;");
-      log("Vous êtes de retour (IDLE).");
+      networkManager.back();
     }
-
-    // On actualise la liste des joueurs dans la foulée pour voir notre nouveau statut !
-    networkManager.players();
   }
 
   private void onViewPlayerDetails() {
@@ -496,11 +516,6 @@ public class NetworkLobbyView extends Stage {
    * @param from the name of the inviter.
    */
   public void onInvitationReceived(String from) {
-    // Ignore if a dialog is already currently showing
-    if (currentInvitationDialog != null && currentInvitationDialog.isShowing()) {
-      return;
-    }
-
     currentInvitationDialog = new Alert(Alert.AlertType.CONFIRMATION);
     currentInvitationDialog.setTitle("New Invitation");
     currentInvitationDialog.setHeaderText("Invitation from : " + from);
@@ -526,13 +541,13 @@ public class NetworkLobbyView extends Stage {
   }
 
   /**
-   * Called when an ongoing invitation is cancelled. Closes the dialog if it was open.
+   * Called when an ongoing invitation is canceled. Closes the dialog if it was open.
    *
    * @param reason the reason for cancellation.
    */
   public void onInvitationCancelled(String reason) {
     if (currentInvitationDialog != null && currentInvitationDialog.isShowing()) {
-      // Force close the dialog if the host cancelled while we were looking at it
+      // Force close the dialog if the host canceled while we were looking at it
       currentInvitationDialog.setResult(ButtonType.CANCEL);
       currentInvitationDialog.close();
       currentInvitationDialog = null;
@@ -540,7 +555,7 @@ public class NetworkLobbyView extends Stage {
     } else {
       log("Invitation cancelled : " + reason);
     }
-    // Also reset buttons in case we were the host who cancelled
+    // Also reset buttons in case we were the host who canceled
     resetInviteButtons();
   }
 
@@ -619,13 +634,46 @@ public class NetworkLobbyView extends Stage {
   }
 
   /**
+   * Open a popup with finals score of this finished game.
+   *
+   * @param finalScores list if map contenting players names and scores
+   */
+  public void onGameEnded(List<Map<String, String>> finalScores) {
+    resetInviteButtons();
+
+    // We build the score string with data from the finalScores list
+    StringBuilder sb = new StringBuilder();
+    sb.append("La partie est terminee. Voici les scores finaux :\n\n");
+    for (Map<String, String> scoreEntry : finalScores) {
+      String name = scoreEntry.getOrDefault("NAME", "Inconnu");
+      String score = scoreEntry.getOrDefault("SCORE", "0");
+      sb.append("- ").append(name).append(" : ").append(score).append(" points\n");
+    }
+
+    // We create and open the popup
+    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+    alert.setTitle("Fin de partie");
+    alert.setHeaderText("Resultats de la rencontre");
+    alert.setContentText(sb.toString());
+    alert.initOwner(this);
+    alert.show();
+
+    // We ask for the new scoreboard and player list
+    networkManager.scoreboard();
+    networkManager.players();
+  }
+
+  /**
    * Handles the end of a game by logging the reason and resetting the invitation UI.
    *
    * @param reason the string describing why the game ended
    */
-  public void onGameEnded(String reason) {
-    log("Game Over : " + reason);
+  public void onGameInterrupted(String reason) {
+    log("Partie terminee : " + reason);
     resetInviteButtons();
+
+    // We ask for the new player list
+    networkManager.players();
   }
 
   /**
@@ -656,6 +704,44 @@ public class NetworkLobbyView extends Stage {
             + "Parties jouées : "
             + total);
     alert.show();
+  }
+
+  /**
+   * Update the away/back button.
+   *
+   * @param status The new client status
+   */
+  public void onPlayerStatusChanged(String status) {
+    if ("AWAY".equals(status)) {
+      isAway = true;
+      toggleStatusButton.setText("Revenir au clavier (BACK)");
+      toggleStatusButton.setStyle(
+          "-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-background-radius: 5;");
+    } else if ("IDLE".equals(status)) {
+      isAway = false;
+      toggleStatusButton.setText("Passer en mode Absent (AWAY)");
+      toggleStatusButton.setStyle(
+          "-fx-background-color: #607D8B; -fx-text-fill: white; -fx-background-radius: 5;");
+    }
+  }
+
+  /**
+   * Handled when an invitation failed. Logs the error and resets buttons.
+   *
+   * @param reason why it failed
+   */
+  public void onInvitationFailed(String reason) {
+    log("Invitation impossible : " + reason);
+    resetInviteButtons();
+  }
+
+  /**
+   * Handled when the server send the id to the client.
+   *
+   * @param id this client id
+   */
+  public void onWelcomeReceived(int id) {
+    myIdLabel.setText("Mon ID : #" + id);
   }
 
   // ─── Helpers ─────────────────────────────────────────────────────────────

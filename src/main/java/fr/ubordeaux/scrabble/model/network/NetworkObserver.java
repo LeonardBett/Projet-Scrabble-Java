@@ -13,13 +13,20 @@ public interface NetworkObserver {
   void localModelUpdate();
 
   /**
-   * Call when the game is ended or interrupted.
+   * Call when the game is finished.
    *
-   * @param reason the reason of the game ending
+   * @param finalScore the final score of the finished game
    */
-  void gameEndedUpdate(String reason);
+  void gameEndedUpdate(List<Map<String, String>> finalScore);
 
   // -----Server commands update-----
+
+  /**
+   * Call when the server send hello to this client.
+   *
+   * @param myId map containing server information (PORT, CLIENTS, GAMES)
+   */
+  void serverWelcomeUpdate(int myId);
 
   /**
    * Call when the server status command response is received.
@@ -112,9 +119,23 @@ public interface NetworkObserver {
   void clientDisconnectedUpdate(String reason);
 
   /**
+   * Call when the game is interrupted.
+   *
+   * @param reason the reason of the interruption
+   */
+  void gameInterruptedUpdate(String reason);
+
+  /**
    * Call when a connection attempt to a server fails.
    *
    * @param reason the error message
    */
   void connectionFailedUpdate(String reason);
+
+  /**
+   * Call when an invitation attempt fails.
+   *
+   * @param reason the error message
+   */
+  void invitationFailedUpdate(String reason);
 }

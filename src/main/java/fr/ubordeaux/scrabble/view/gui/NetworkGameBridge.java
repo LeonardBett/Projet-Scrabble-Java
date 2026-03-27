@@ -88,18 +88,27 @@ public class NetworkGameBridge implements NetworkObserver {
   /**
    * Triggered when the game ends (win, draw, or disconnection).
    *
-   * @param reason the string describing why the game ended.
+   * @param finalScore the array of maps containing the result.
    */
   @Override
-  public void gameEndedUpdate(String reason) {
+  public void gameEndedUpdate(List<Map<String, String>> finalScore) {
     Platform.runLater(
         () -> {
           if (gui != null) {
             gui.exitOnlineMode();
-            gui.showInfo("Partie terminee", reason);
           }
           if (lobbyView != null) {
-            lobbyView.onGameEnded(reason);
+            lobbyView.onGameEnded(finalScore);
+          }
+        });
+  }
+
+  @Override
+  public void serverWelcomeUpdate(int myId) {
+    Platform.runLater(
+        () -> {
+          if (lobbyView != null) {
+            lobbyView.onWelcomeReceived(myId);
           }
         });
   }
@@ -260,7 +269,12 @@ public class NetworkGameBridge implements NetworkObserver {
 
   @Override
   public void playerStatusUpdate(String status) {
-    // Not explicitly used in the current GUI implementation
+    Platform.runLater(
+        () -> {
+          if (lobbyView != null) {
+            lobbyView.onPlayerStatusChanged(status);
+          }
+        });
   }
 
   @Override
@@ -291,6 +305,30 @@ public class NetworkGameBridge implements NetworkObserver {
 
           if (lobbyView != null) {
             lobbyView.onConnectionFailed(reason);
+          }
+        });
+  }
+
+  @Override
+  public void invitationFailedUpdate(String reason) {
+    Platform.runLater(
+        () -> {
+          if (lobbyView != null) {
+            lobbyView.onInvitationFailed(reason);
+          }
+        });
+  }
+
+  @Override
+  public void gameInterruptedUpdate(String reason) {
+    Platform.runLater(
+        () -> {
+          if (gui != null) {
+            gui.exitOnlineMode();
+            gui.showInfo("Partie interrompue", reason);
+          }
+          if (lobbyView != null) {
+            lobbyView.onGameInterrupted(reason);
           }
         });
   }

@@ -15,9 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/**
- * This class represent an outgoing online game on the server.
- */
+/** This class represent an outgoing online game on the server. */
 public class OnlineGame {
 
   // Game main model, in opposite of client local model
@@ -38,8 +36,7 @@ public class OnlineGame {
     for (int i = 0; i < handlers.size(); i++) {
       // We create a player for this client
       ClientHandler handler = handlers.get(i);
-      Player player = new Player(handler.getClientInfo().getName(), PlayerColor.fromIndex(i)) {
-      };
+      Player player = new Player(handler.getClientInfo().getName(), PlayerColor.fromIndex(i)) {};
       // We add it to the game
       this.game.addPlayer(player);
 
@@ -59,7 +56,7 @@ public class OnlineGame {
     }
 
     // Debug: print the board server side
-    game.printDebugState(false, false);
+    // game.printDebugState(false, false);
   }
 
   /**
@@ -101,7 +98,7 @@ public class OnlineGame {
    * synchronized with the server's authoritative model.
    *
    * @param handler the handler
-   * @param player  the player
+   * @param player the player
    */
   public void sendRack(ClientHandler handler, Player player) {
     List<Tile> tiles = player.getRack().getTiles();
@@ -116,7 +113,7 @@ public class OnlineGame {
   /**
    * Processes a move command from a client and updates the game state.
    *
-   * @param sender       the client handler who sent the move
+   * @param sender the client handler who sent the move
    * @param packetParser the parsed move packetParser
    */
   public synchronized void processMove(ClientHandler sender, PacketParser packetParser) {
@@ -148,9 +145,7 @@ public class OnlineGame {
     }
   }
 
-  /**
-   * Handles the logic for placing a word on the board.
-   */
+  /** Handles the logic for placing a word on the board. */
   private void handlePlay(ClientHandler sender, Map<String, String> data, Player player) {
     // We get the start position of the word
     int x = Integer.parseInt(data.get("X"));
@@ -183,6 +178,11 @@ public class OnlineGame {
     // + ":"
     // + y);
 
+    if (game.isGameOver()) {
+      finishGame();
+      return;
+    }
+
     // We notify and update players with new board/score/bag
     broadcast(
         String.format(
@@ -196,12 +196,10 @@ public class OnlineGame {
     sendRack(sender, player);
 
     // Debug: print the board server side
-    game.printDebugState(false, false);
+    // game.printDebugState(false, false);
   }
 
-  /**
-   * Handles the exchange of tiles.
-   */
+  /** Handles the exchange of tiles. */
   private void handleExchange(ClientHandler sender, Map<String, String> data, Player player) {
     // We extract, clean and create a list of tiles to exchange
     String tilesStr = data.get("TILES");
@@ -214,6 +212,11 @@ public class OnlineGame {
     // We create and execute a move with these data
     Move exchangeMove = Move.createExchange(player, tilesToExchange);
     game.executeMove(exchangeMove);
+
+    if (game.isGameOver()) {
+      finishGame();
+      return;
+    }
 
     // System.out.println("Server : " + sender.getClientInfo().getName() + " plays "
     // + tilesStr);
@@ -228,12 +231,10 @@ public class OnlineGame {
     sendRack(sender, player);
 
     // Debug: print the board server side
-    game.printDebugState(false, false);
+    // game.printDebugState(false, false);
   }
 
-  /**
-   * Handles skipping a turn.
-   */
+  /** Handles skipping a turn. */
   private void handlePass(ClientHandler sender, Player player) {
     // We create and execute a move with these data
     Move passMove = Move.createPass(player);
@@ -245,7 +246,7 @@ public class OnlineGame {
     broadcast(String.format("OPPONENT_MOVE:PLAYER=%s;TYPE=PASS", sender.getClientInfo().getName()));
 
     // Debug: print the board server side
-    game.printDebugState(false, false);
+    // game.printDebugState(false, false);
   }
 
   /**
@@ -263,12 +264,51 @@ public class OnlineGame {
     return sb.toString();
   }
 
+  /** Terminates the finished game, notifies players and cleans up server references. */
+  public void finishGame() {
+    // We build the packet message with all players scores
+    StringBuilder sb = new StringBuilder("GAME_ENDED:");
+    List<Player> players = game.getPlayers();
+    for (int i = 0; i < handlers.size(); i++) {
+      String name = handlers.get(i).getClientInfo().getName();
+      int score = players.get(i).getScore();
+      sb.append("NAME=").append(name).append(";SCORE=").append(score);
+      if (i < handlers.size() - 1) {
+        sb.append("|");
+      }
+    }
+    String scoreMessage = sb.toString();
+
+    // We update clients stats
+    Player winner = game.determineWinner();
+    for (ClientHandler handler : handlers) {
+      if (handler.getClientInfo().getName().equals(winner.getName())) {
+        handler.getClientInfo().addWin();
+      } else {
+        handler.getClientInfo().addLoose();
+      }
+    }
+
+    // We notify and reset all clients
+    for (ClientHandler handler : handlers) {
+      handler.getClientInfo().setStatus(PlayerStatus.IDLE);
+      handler.sendMessage("STATUS_UPDATE:STATUS=IDLE");
+
+      handler.sendMessage(scoreMessage);
+
+      handler.setOnlineGame(null);
+    }
+
+    // Remove this game from the server's list
+    handlers.getFirst().getServer().removeOnlineGame(this);
+  }
+
   /**
-   * Terminates the game, notifies remaining players and cleans up server references.
+   * Terminates the interrupt game, notifies remaining players and cleans up server references.
    *
    * @param reason The reason why the game is ending (e.g., "A player disconnected")
    */
-  public void terminateGame(String reason) {
+  public void interruptGame(String reason) {
     // Reset player status so they can play again
     for (ClientHandler handler : handlers) {
       handler.getClientInfo().setStatus(PlayerStatus.IDLE);
@@ -277,7 +317,7 @@ public class OnlineGame {
     }
 
     // Notify all remaining connected players
-    broadcast("ERROR: Game terminated - " + reason);
+    broadcast("GAME_INTERRUPTED:REASON=" + reason);
 
     // Remove this game from the server's list
     handlers.getFirst().getServer().removeOnlineGame(this);

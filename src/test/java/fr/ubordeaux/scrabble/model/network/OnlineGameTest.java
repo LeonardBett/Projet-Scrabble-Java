@@ -111,10 +111,10 @@ class OnlineGameTest {
   }
 
   @Test
-  void testTerminateGame() {
-    onlineGame.terminateGame("Test termination");
+  void testInterruptGame() {
+    onlineGame.interruptGame("Test termination");
 
-    assertTrue(player1.lastMessage.contains("ERROR: Game terminated"));
+    assertTrue(player1.lastMessage.contains("GAME_INTERRUPTED:REASON=Test termination"));
     assertNull(player1.getOnlineGame());
   }
 

@@ -2,9 +2,7 @@ package fr.ubordeaux.scrabble.model.network.server;
 
 import fr.ubordeaux.scrabble.model.network.PlayerStatus;
 
-/**
- * Store all information for a client (an online player). Use in ClientHandler
- */
+/** Store all information for a client (an online player). Use in ClientHandler */
 public class ClientInfo {
   private final int id; // Unique id for this player
   private String name;
@@ -46,8 +44,8 @@ public class ClientInfo {
    * @return the player score info
    */
   public String getScoreboardLine() {
-    return String.format("ID=%d;NAME=%s;WINS=%d;LOSSES=%d;TOTAL=%d", id, name, wins, losses,
-        gamesPlayed);
+    return String.format(
+        "ID=%d;NAME=%s;WINS=%d;LOSSES=%d;TOTAL=%d", id, name, wins, losses, gamesPlayed);
   }
 
   /**
@@ -93,5 +91,17 @@ public class ClientInfo {
    */
   public void setName(String name) {
     this.name = name;
+  }
+
+  /** Add a win to this client. */
+  public void addWin() {
+    this.wins++;
+    this.gamesPlayed++;
+  }
+
+  /** Add a win to this client. */
+  public void addLoose() {
+    this.losses++;
+    this.gamesPlayed++;
   }
 }

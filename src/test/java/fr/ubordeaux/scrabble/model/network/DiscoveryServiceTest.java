@@ -84,9 +84,14 @@ class DiscoveryServiceTest {
       public void localModelUpdate() {}
 
           @Override
-          public void gameEndedUpdate(String r) {}
+          public void gameEndedUpdate(List<Map<String, String>> players) {}
 
-          @Override
+      @Override
+      public void serverWelcomeUpdate(int myId) {
+
+      }
+
+      @Override
           public void serverStatusUpdate(java.util.Map<String, String> i) {}
 
           @Override
@@ -128,7 +133,17 @@ class DiscoveryServiceTest {
       }
 
       @Override
+      public void gameInterruptedUpdate(String reason) {
+
+      }
+
+      @Override
       public void connectionFailedUpdate(String reason) {
+
+      }
+
+      @Override
+      public void invitationFailedUpdate(String reason) {
 
       }
     };

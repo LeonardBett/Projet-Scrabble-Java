@@ -3,6 +3,7 @@ package fr.ubordeaux.scrabble.model.network;
 import fr.ubordeaux.scrabble.model.network.client.GameClient;
 import fr.ubordeaux.scrabble.model.network.server.GameServer;
 import fr.ubordeaux.scrabble.model.network.server.ServerInfo;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
@@ -26,13 +27,13 @@ class ClientServerTest {
   private TestObserver spyObserver;
 
   @BeforeEach
-  void setUp() throws InterruptedException {
+  void setUp() throws InterruptedException, IOException {
     // 1. Define a new port for this specific test
     currentTestPort = portCounter++;
 
-    // 2. Start the server in a separate background thread
+    // 2. Start the server
     server = new GameServer();
-    new Thread(() -> server.start(currentTestPort)).start();
+    server.start(currentTestPort);
 
     // Slightly increased delay to allow the OS to bind the socket
     Thread.sleep(1500);
@@ -571,7 +572,12 @@ class ClientServerTest {
     }
 
     @Override
-    public void gameEndedUpdate(String reason) {}
+    public void gameEndedUpdate(List<Map<String, String>> players) {}
+
+    @Override
+    public void serverWelcomeUpdate(int myId) {
+
+    }
 
     @Override
     public void serverListUpdate(List<ServerInfo> activeServers) {}
@@ -605,12 +611,16 @@ class ClientServerTest {
     }
 
     @Override
-    public void clientDisconnectedUpdate(String reason) {
-
-    }
+    public void clientDisconnectedUpdate(String reason) {}
 
     @Override
-    public void connectionFailedUpdate(String reason) {
+    public void gameInterruptedUpdate(String reason) {}
+
+    @Override
+    public void connectionFailedUpdate(String reason) {}
+
+    @Override
+    public void invitationFailedUpdate(String reason) {
 
     }
   }
