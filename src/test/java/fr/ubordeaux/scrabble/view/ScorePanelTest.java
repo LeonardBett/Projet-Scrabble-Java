@@ -6,8 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import fr.ubordeaux.scrabble.i18n.I18n;
-
-import fr.ubordeaux.scrabble.i18n.I18n;
 import fr.ubordeaux.scrabble.model.core.HumanPlayer;
 import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.view.gui.panel.ScorePanel;
@@ -16,7 +14,6 @@ import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javafx.scene.control.Label;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -114,7 +111,7 @@ class ScorePanelTest {
     Label bagInfo = (Label) getPrivateField(scorePanel, "bagInfoLabel");
     Label currentPlayer = (Label) getPrivateField(scorePanel, "currentPlayerLabel");
     assertEquals("Lettres restantes : 102", bagInfo.getText());
-    assertEquals("🎯 Tour de : —", currentPlayer.getText());
+    assertEquals("Tour de : —", currentPlayer.getText());
   }
 
   @Test

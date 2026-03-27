@@ -542,7 +542,7 @@ public class NetworkLobbyView extends Stage {
   }
 
   private Tab buildJoinTab() {
-    final Tab tab = new Tab(joinTabTitleText());
+    final Tab tab = new Tab("🔍 Rejoindre");
 
     VBox content = new VBox(tabContentSpacing());
     content.setPadding(new Insets(tabContentPadding()));

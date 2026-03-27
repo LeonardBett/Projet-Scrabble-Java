@@ -13,7 +13,6 @@ import java.lang.reflect.Field;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -136,7 +135,7 @@ class RackPanelTest {
     assertTrue(second instanceof HBox);
 
     Label title = (Label) first;
-    assertEquals("Chevalet du joueur 1", title.getText());
+    assertEquals("CHEVALET DU JOUEUR", title.getText());
 
     Object[] slots = (Object[]) getPrivateField(rackPanel, "tileContainers");
     assertEquals(7, slots.length);
