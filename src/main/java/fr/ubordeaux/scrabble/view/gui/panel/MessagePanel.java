@@ -1,5 +1,6 @@
 package fr.ubordeaux.scrabble.view.gui.panel;
 
+import fr.ubordeaux.scrabble.i18n.I18n;
 import java.util.Optional;
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
@@ -37,7 +38,7 @@ public class MessagePanel {
    */
   public void showError(String message) {
     Alert alert = new Alert(Alert.AlertType.ERROR);
-    alert.setTitle("Erreur");
+    alert.setTitle(I18n.translate("message.errorTitle"));
     alert.setHeaderText(null);
     alert.setContentText(message);
     showNonBlocking(alert);
@@ -65,7 +66,7 @@ public class MessagePanel {
    */
   public boolean showConfirmation(String message) {
     Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-    alert.setTitle("Confirmation");
+    alert.setTitle(I18n.translate("message.confirmationTitle"));
     alert.setHeaderText(null);
     alert.setContentText(message);
     Optional<ButtonType> result = alert.showAndWait();

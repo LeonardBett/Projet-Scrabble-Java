@@ -1,5 +1,6 @@
 package fr.ubordeaux.scrabble.controller;
 
+import fr.ubordeaux.scrabble.i18n.I18n;
 import fr.ubordeaux.scrabble.model.ai.AiPlayer;
 import fr.ubordeaux.scrabble.model.ai.MlAgent;
 import fr.ubordeaux.scrabble.model.core.Game;
@@ -104,8 +105,10 @@ class GameControllerAux {
 
     if (sharedMlAgent != null) {
       bot.setMlAgent(sharedMlAgent);
-      cliView.displayMessage(
-          "-> ML Agent activated for " + name + " (" + controller.configuredLanguage() + ")");
+      cliView.displayMessage(I18n.translate(
+          "cli.game.mlActivated",
+          name,
+          controller.configuredLanguage()));
     }
 
     controller.addPlayer(bot);
@@ -115,8 +118,9 @@ class GameControllerAux {
     controller.startGame();
 
     if (controller.internalGame().isBlitzModeEnabled()) {
-      cliView.displayMessage("⏱  Mode blitz activated — time per player : "
-          + controller.internalGame().getPlayers().get(0).getRemainingTimeDisplay());
+      cliView.displayMessage(I18n.translate(
+          "cli.game.blitzActivated",
+          controller.internalGame().getPlayers().get(0).getRemainingTimeDisplay()));
       controller.startBlitzWatcher(cliView);
     }
   }
@@ -149,19 +153,18 @@ class GameControllerAux {
     controller.handleBlitzExpiry(current, cliView);
     if (showEndGameError) {
       game.setGameOver(true);
-      controller.internalView().displayError(
-          "Time's up for " + current.getName() + ". Game is over.");
+      controller.internalView().displayError(I18n.translate("cli.game.timeUp", current.getName()));
     }
     return true;
   }
 
   private void playAutonomousTurn(Player player, Gaddag currentGaddag, CliView cliView) {
-    cliView.displayMessage("\n--- It's AI (" + player.getName() + ") turn ---");
+    cliView.displayMessage(I18n.translate("cli.game.aiTurn", player.getName()));
     try {
       player.playTurn(controller.internalGame(), currentGaddag);
       Thread.sleep(2000);
     } catch (Exception e) {
-      cliView.displayError("Error during AI's turn: " + e.getMessage());
+      cliView.displayError(I18n.translate("cli.game.aiTurnError", e.getMessage()));
       e.printStackTrace();
       controller.handlePlayerMove(Move.createPass(player));
     }
@@ -184,17 +187,20 @@ class GameControllerAux {
       CliView cliView) {
     switch (action) {
       case "1": {
-        executeMoveAction(input.askPlayMove(current), cliView, "Move done.");
+        executeMoveAction(input.askPlayMove(current), cliView, I18n.translate("cli.game.moveDone"));
         return true;
       }
       case "2": {
-        executeMoveAction(input.askExchangeMove(current), cliView, "Letters exchanged.");
+        executeMoveAction(
+            input.askExchangeMove(current),
+            cliView,
+            I18n.translate("cli.game.lettersExchanged"));
         return true;
       }
       case "3": {
         try {
           controller.handlePlayerMove(Move.createPass(current));
-          cliView.displayMessage(current.getName() + " skips his turn.");
+          cliView.displayMessage(I18n.translate("cli.game.playerSkips", current.getName()));
         } catch (RuntimeException e) {
           cliView.displayError(e.getMessage());
         }
@@ -209,13 +215,13 @@ class GameControllerAux {
         return true;
       }
       case "6":
-        return !input.askConfirmation("Do you really want to quit ?");
+        return !input.askConfirmation(I18n.translate("scrabble.quitConfirmation"));
       case "7": {
         controller.provideHint();
         return true;
       }
       default:
-        cliView.displayError("Invalid choice.");
+        cliView.displayError(I18n.translate("cli.action.invalidChoice"));
         return true;
     }
   }
@@ -236,8 +242,8 @@ class GameControllerAux {
   private void displayWinner(CliView cliView) {
     Player winner = controller.internalGame().determineWinner();
     if (winner != null) {
-      cliView.displaySuccess("Game over. Winnenr: " + winner.getName()
-          + " (" + winner.getScore() + " pts)");
+      cliView.displaySuccess(
+          I18n.translate("cli.game.winner", winner.getName(), winner.getScore()));
     }
   }
 }

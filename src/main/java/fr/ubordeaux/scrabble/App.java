@@ -1,5 +1,6 @@
 package fr.ubordeaux.scrabble;
 
+import fr.ubordeaux.scrabble.i18n.I18n;
 import fr.ubordeaux.scrabble.model.enums.GameMode;
 import fr.ubordeaux.scrabble.model.network.NetworkManager;
 import fr.ubordeaux.scrabble.model.utils.GameLogger;
@@ -15,6 +16,8 @@ import java.util.List;
  * interface.
  */
 public class App {
+
+  private static final String DEFAULT_LANG = "en";
 
   @FunctionalInterface
   interface ExitHandler {
@@ -73,6 +76,50 @@ public class App {
     guiLauncherHandler = GuiLauncher::launch;
   }
 
+  private static String normalizeLanguageOrDefault(String rawLang) {
+    if (rawLang == null || rawLang.isBlank()) {
+      return DEFAULT_LANG;
+    }
+
+    String normalized = rawLang.trim().toLowerCase();
+    int dotIndex = normalized.indexOf('.');
+    if (dotIndex >= 0) {
+      normalized = normalized.substring(0, dotIndex);
+    }
+    int atIndex = normalized.indexOf('@');
+    if (atIndex >= 0) {
+      normalized = normalized.substring(0, atIndex);
+    }
+    int underscoreIndex = normalized.indexOf('_');
+    if (underscoreIndex >= 0) {
+      normalized = normalized.substring(0, underscoreIndex);
+    }
+
+    if (normalized.equals("c") || normalized.equals("posix")) {
+      return DEFAULT_LANG;
+    }
+
+    if (!normalized.equals("fr") && !normalized.equals("en")) {
+      System.err.println(I18n.translate("app.warn.unsupportedLanguage", rawLang));
+      return DEFAULT_LANG;
+    }
+    return normalized;
+  }
+
+  private static String languageFromEnvironment() {
+    String lcAll = System.getenv("LC_ALL");
+    if (lcAll != null && !lcAll.isBlank()) {
+      return normalizeLanguageOrDefault(lcAll);
+    }
+
+    String lang = System.getenv("LANG");
+    if (lang != null && !lang.isBlank()) {
+      return normalizeLanguageOrDefault(lang);
+    }
+
+    return DEFAULT_LANG;
+  }
+
   /**
    * Starts the application and routes to CLI or GUI mode based on command-line options.
    *
@@ -87,7 +134,8 @@ public class App {
     int aiTime = 5;
     boolean useExptiminimax = false;
     boolean useMl = false;
-    String lang = "en";
+    String lang = languageFromEnvironment();
+    I18n.setLanguage(lang);
 
     // Network arguments
     boolean startServer = false; // Server mode
@@ -129,27 +177,24 @@ public class App {
         case "--ai-ml" -> useMl = true;
         case "-a", "--ai" -> {
           if (i + 1 >= args.length) {
-            System.err.println("'-a' attend une couleur (ex: -a BLUE).");
+            System.err.println(I18n.translate("app.err.missingAiColor"));
             exitHandler.exit(1);
           }
           aiColors.add(args[++i].toUpperCase());
         }
         case "-p", "--players" -> {
           if (i + 1 >= args.length) {
-            System.err.println("'-p' attend un nombre (ex: -p 3).");
+            System.err.println(I18n.translate("app.err.missingPlayers"));
             exitHandler.exit(1);
           }
           players = OptionPlayer.parsePlayers(args[++i]);
         }
         case "-l", "--lang" -> {
           if (i + 1 >= args.length) {
-            System.err.println("Missing value for language. Using default 'en'.");
+            System.err.println(I18n.translate("app.warn.missingLanguageValue"));
           } else {
-            lang = args[++i].toLowerCase();
-            if (!lang.equals("fr") && !lang.equals("en")) {
-              System.err.println("Unsupported language: " + lang + ". Falling back to 'en'.");
-              lang = "en";
-            }
+            lang = normalizeLanguageOrDefault(args[++i]);
+            I18n.setLanguage(lang);
           }
         }
         case "-ai-time", "--ai-time" -> {
@@ -192,8 +237,8 @@ public class App {
         }
 
         default -> {
-          System.err.println("Option inconnue : " + args[i]);
-          System.err.println("Utilisez -h ou --help pour afficher l'aide.");
+          System.err.println(I18n.translate("app.err.unknownOption", args[i]));
+          System.err.println(I18n.translate("app.err.helpHint"));
           exitHandler.exit(1);
         }
       }
@@ -219,6 +264,8 @@ public class App {
         return;
       }
     }
+
+    I18n.setLanguage(lang);
 
     GameMode mode = superMode ? GameMode.SUPER : GameMode.STANDARD;
     if (mode == null) {
