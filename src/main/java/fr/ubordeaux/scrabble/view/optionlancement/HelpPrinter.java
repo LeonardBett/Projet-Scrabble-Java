@@ -1,5 +1,7 @@
 package fr.ubordeaux.scrabble.view.optionlancement;
 
+import fr.ubordeaux.scrabble.i18n.I18n;
+
 /**
  * Displays the help and version information of the program. SRP: Single Responsibility Principle —
  * all help text is centralized here.
@@ -22,38 +24,7 @@ public class HelpPrinter {
    * Prints the help message to standard output.
    */
   public static void printHelp() {
-    System.out.println(
-        """
-          Usage : scrabble [OPTION]
-
-          Options :
-            -h, --help            Displays this help message and exits
-            -V, --version         Displays the program version and exits
-            -g, --gui             Launches the Graphical User Interface (JavaFX)
-            -s, --super           Launches Super Scrabble mode with a 21x21 board
-            -p N, --players N     Number of players: 2, 3 or 4 (default: 2)
-            -b, --blitz           Launches the game in blitz mode
-            -t TIME, --time TIME  Time limit per player in minutes in blitz mode (default: 30)
-            -l, --lang LANG       Sets the dictionary language: 'en' or 'fr' (default: 'en')
-
-          AI Options :
-            -ai-time TIME         Specifies the AI thinking time in seconds (default: 5)
-            -ai-exptiminimax      Enables the Expectiminimax algorithm for the best move search
-            --ai-ml               Enables the Machine Learning algorithm for word search
-
-          Network Options :
-            -S [PORT], --server [PORT]  Launches directly in server mode on the indicated port
-            -D, --daemon Launches the server in headless mode (without UI)
-
-          Without any options, the game starts in terminal mode (CLI) with default parameters.
-
-          Examples :
-            java -jar scrabble.jar -l fr             Launches CLI with French dictionary
-            java -jar scrabble.jar -b -t 20          Launches CLI blitz (20 min/player)
-            java -jar scrabble.jar -g -b -t 10       Launches GUI blitz mode (10 min per player)
-            java -jar scrabble.jar --ai-ml -l en     Launches CLI + ML with English models
-            java -jar scrabble.jar -D -S 8080        Launches a headless server on port 8080
-        """);
+    System.out.println(I18n.translate("help.text"));
   }
 
   /**

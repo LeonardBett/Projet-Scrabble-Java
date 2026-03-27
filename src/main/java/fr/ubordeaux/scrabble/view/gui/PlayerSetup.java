@@ -1,5 +1,6 @@
 package fr.ubordeaux.scrabble.view.gui;
 
+import fr.ubordeaux.scrabble.i18n.I18n;
 import java.util.Optional;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -29,20 +30,20 @@ public class PlayerSetup extends Dialog<Integer> {
 
   /** Creates the player-count dialog. */
   public PlayerSetup() {
-    setTitle("Scrabble U-Bordeaux");
+    setTitle(I18n.translate("playersetup.title"));
     setHeaderText(null);
     setResizable(false);
 
     playerCountSpinner.setEditable(false);
     playerCountSpinner.setPrefWidth(80);
 
-    Label spinnerLabel = new Label("Nombre de joueurs :");
+    Label spinnerLabel = new Label(I18n.translate("playersetup.label"));
     spinnerLabel.setFont(Font.font("Arial", FontWeight.BOLD, 13));
 
     HBox spinnerRow = new HBox(12, spinnerLabel, playerCountSpinner);
     spinnerRow.setAlignment(Pos.CENTER_LEFT);
 
-    Label title = new Label("🎮  Nouvelle Partie");
+    Label title = new Label(I18n.translate("playersetup.header"));
     title.setFont(Font.font("Arial", FontWeight.BOLD, 20));
     title.setTextFill(Color.web("#115829"));
 
@@ -53,8 +54,10 @@ public class PlayerSetup extends Dialog<Integer> {
     getDialogPane().setContent(content);
     getDialogPane().getStyleClass().add("setup-dialog");
 
-    ButtonType startType = new ButtonType("Commencer !", ButtonBar.ButtonData.OK_DONE);
-    ButtonType cancelType = new ButtonType("Annuler", ButtonBar.ButtonData.CANCEL_CLOSE);
+    ButtonType startType = new ButtonType(I18n.translate("playersetup.start"),
+        ButtonBar.ButtonData.OK_DONE);
+    ButtonType cancelType = new ButtonType(I18n.translate("playersetup.cancel"),
+        ButtonBar.ButtonData.CANCEL_CLOSE);
     getDialogPane().getButtonTypes().addAll(startType, cancelType);
 
     setResultConverter(buttonType -> {
