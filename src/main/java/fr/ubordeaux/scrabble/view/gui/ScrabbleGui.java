@@ -32,11 +32,13 @@ import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -136,14 +138,14 @@ public class ScrabbleGui extends Application {
     rackPanel.setOnTileDragged(this::onTileDragged);
 
     controller = new GameController(gameInstance, viewInstance);
-    VBox leftMenu = buildLeftMenu();
-
     BorderPane root = new BorderPane();
     root.setPadding(new Insets(10));
     root.setStyle("-fx-background-color: #115829;");
     root.setCenter(boardPanel);
-    root.setLeft(leftMenu);
 
+    final VBox menuPanel = buildLeftMenu();
+    root.setLeft(menuPanel);
+    BorderPane.setAlignment(menuPanel, Pos.TOP_LEFT);
     connectButtons();
 
     VBox right = new VBox(15);
@@ -228,7 +230,7 @@ public class ScrabbleGui extends Application {
               "*.scrabble", "*.txt"));
       chooser.setInitialFileName(I18n.translate("scrabble.saveDefaultFile"));
 
-      java.io.File file = chooser.showSaveDialog(appMenuButton.getScene().getWindow());
+      java.io.File file = chooser.showSaveDialog(controlPanel.getScene().getWindow());
       if (file == null) {
         return; // utilisateur a annulé
       }
@@ -250,7 +252,7 @@ public class ScrabbleGui extends Application {
           new javafx.stage.FileChooser.ExtensionFilter(I18n.translate("scrabble.loadFileFilter"),
               "*.scrabble", "*.txt"));
 
-      java.io.File file = chooser.showOpenDialog(appMenuButton.getScene().getWindow());
+      java.io.File file = chooser.showOpenDialog(controlPanel.getScene().getWindow());
       if (file == null) {
         return; // utilisateur a annulé
       }
@@ -619,10 +621,37 @@ public class ScrabbleGui extends Application {
     appMenuButton.setPrefWidth(190);
     appMenuButton.setStyle("-fx-background-color: #0B3D1D; -fx-text-fill: white;");
 
-    VBox left = new VBox(8, menuLabel, appMenuButton);
-    left.setAlignment(Pos.TOP_LEFT);
-    left.setPadding(new Insets(8, 15, 0, 0));
-    return left;
+    Button newGameButton = createMenuActionButton(newGameMenuItem.getText());
+    newGameButton.setOnAction(e -> newGameMenuItem.fire());
+    Button onlineButton = createMenuActionButton(onlineMenuItem.getText());
+    onlineButton.setOnAction(e -> onlineMenuItem.fire());
+    Button saveButton = createMenuActionButton(saveMenuItem.getText());
+    saveButton.setOnAction(e -> saveMenuItem.fire());
+    Button loadButton = createMenuActionButton(loadMenuItem.getText());
+    loadButton.setOnAction(e -> loadMenuItem.fire());
+    Button quitButton = createMenuActionButton(quitMenuItem.getText());
+    quitButton.setOnAction(e -> quitMenuItem.fire());
+
+    VBox panel = new VBox(8, menuLabel, newGameButton, onlineButton, saveButton, loadButton,
+        quitButton);
+    panel.setAlignment(Pos.TOP_CENTER);
+    panel.setPadding(new Insets(15, 10, 10, 10));
+    panel.setStyle("-fx-background-color: rgba(0,0,0,0.4); -fx-background-radius: 10;");
+    panel.setPrefWidth(250);
+    panel.setMaxHeight(Region.USE_PREF_SIZE);
+    return panel;
+  }
+
+  private Button createMenuActionButton(String text) {
+    Button button = new Button(text);
+    button.setPrefWidth(220);
+    button.setPrefHeight(38);
+    button.setFont(Font.font("Arial", FontWeight.BOLD, 13));
+    button.setStyle("-fx-background-color: #0B3D1D;" + "-fx-text-fill: white;"
+        + "-fx-background-radius: 5;" + "-fx-cursor: hand;");
+    button.setOnMouseEntered(e -> button.setOpacity(0.8));
+    button.setOnMouseExited(e -> button.setOpacity(1.0));
+    return button;
   }
 
   /**
@@ -638,6 +667,13 @@ public class ScrabbleGui extends Application {
   public void refreshRack() {
     rackPanel.setRack(getCurrentRack());
     rackPanel.setOnTileDragged(this::onTileDragged);
+    Player current = gameInstance.getCurrentPlayer();
+    if (current != null) {
+      int idx = gameInstance.getPlayers().indexOf(current);
+      if (idx >= 0) {
+        rackPanel.setCurrentPlayerNumber(idx + 1);
+      }
+    }
   }
 
   /**
