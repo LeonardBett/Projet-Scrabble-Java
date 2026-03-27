@@ -77,6 +77,7 @@ public class NetworkGameBridge implements NetworkObserver {
             return;
           }
 
+          lobbyView.onInvitationCancel();
           if (!gui.isOnlineMode()) {
             gui.switchToOnlineGame(onlineGame);
           } else {
@@ -314,7 +315,7 @@ public class NetworkGameBridge implements NetworkObserver {
     Platform.runLater(
         () -> {
           if (lobbyView != null) {
-            lobbyView.onInvitationFailed(reason);
+            lobbyView.onInvitationCancel();
           }
         });
   }

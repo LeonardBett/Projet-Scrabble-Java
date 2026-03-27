@@ -108,9 +108,7 @@ public class NetworkLobbyView extends Stage {
     myIdLabel = new Label("");
     myIdLabel.setFont(Font.font("Arial", FontWeight.NORMAL, 14));
     myIdLabel.setTextFill(Color.LIGHTBLUE);
-    root.getChildren()
-        .addFirst(
-            new HBox(20, styledLabel("", Color.WHITE, 20, true), myIdLabel));
+    root.getChildren().addFirst(new HBox(20, styledLabel("", Color.WHITE, 20, true), myIdLabel));
 
     tabPane = new TabPane();
     tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
@@ -725,13 +723,8 @@ public class NetworkLobbyView extends Stage {
     }
   }
 
-  /**
-   * Handled when an invitation failed. Logs the error and resets buttons.
-   *
-   * @param reason why it failed
-   */
-  public void onInvitationFailed(String reason) {
-    log("Invitation impossible : " + reason);
+  /** Handled when an invitation failed. Logs the error and resets buttons. */
+  public void onInvitationCancel() {
     resetInviteButtons();
   }
 
