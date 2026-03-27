@@ -1,18 +1,23 @@
 package fr.ubordeaux.scrabble.view;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import fr.ubordeaux.scrabble.view.gui.panel.ControlPanel;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 /**
  * Tests unitaires pour ControlPanel.
  *
- * <p>Les tests vérifient que tous les boutons sont créés et correctement configurés
+ * <p>Les tests vérifient que tous les boutons sont créés et correctement
+ * configurés
  * sans lancer l'interface graphique complète.
  */
 class ControlPanelTest {
@@ -20,7 +25,8 @@ class ControlPanelTest {
   @BeforeAll
   static void initToolkit() {
     try {
-      com.sun.javafx.application.PlatformImpl.startup(() -> { });
+      com.sun.javafx.application.PlatformImpl.startup(() -> {
+      });
     } catch (Exception e) {
       // Toolkit already initialized or not available in this environment
     }
@@ -71,7 +77,7 @@ class ControlPanelTest {
   @Test
   void newGameButtonShouldNotBeNull() {
     ControlPanel panel = new ControlPanel();
-    assertNotNull(panel.getHintButton());
+    assertNotNull(panel.getHelpButton());
   }
 
   @Test
@@ -119,7 +125,7 @@ class ControlPanelTest {
   @Test
   void quitButtonShouldContainQuitText() {
     ControlPanel panel = new ControlPanel();
-    Button btn = panel.getHintButton();
+    Button btn = panel.getHelpButton();
     assertNotNull(btn.getText());
     assertFalse(btn.getText().isBlank());
   }
@@ -158,7 +164,7 @@ class ControlPanelTest {
     ControlPanel panel = new ControlPanel();
     assertTrue(panel.getPlayButton().getPrefWidth() > 0);
     assertTrue(panel.getPassButton().getPrefWidth() > 0);
-    assertTrue(panel.getHintButton().getPrefWidth() > 0);
+    assertTrue(panel.getHelpButton().getPrefWidth() > 0);
   }
 
   @Test
@@ -168,6 +174,26 @@ class ControlPanelTest {
     panel.setGameplayButtonsDisabled(true);
     assertTrue(panel.getPlayButton().isDisable());
     assertTrue(panel.getPassButton().isDisable());
-    assertFalse(panel.getHintButton().isDisable());
+    assertFalse(panel.getHelpButton().isDisable());
+  }
+
+  @Test
+  void controlPanelShouldContainExpectedTitleBarAndButtonTexts() {
+    ControlPanel panel = new ControlPanel();
+    assertTrue(panel.getChildren().getFirst() instanceof HBox);
+
+    HBox titleBar = (HBox) panel.getChildren().getFirst();
+    assertEquals(3, titleBar.getChildren().size());
+    assertTrue(titleBar.getChildren().get(0) instanceof Label);
+    assertTrue(titleBar.getChildren().get(1) instanceof Region);
+    assertTrue(titleBar.getChildren().get(2) instanceof Button);
+
+    Label title = (Label) titleBar.getChildren().get(0);
+    Button help = (Button) titleBar.getChildren().get(2);
+    assertEquals("ACTIONS", title.getText());
+    assertEquals("❓ Help", help.getText());
+    assertEquals("▶  Jouer", panel.getPlayButton().getText());
+    assertEquals("⏭  Passer", panel.getPassButton().getText());
+    assertEquals("🔄 Échanger", panel.getExchangeButton().getText());
   }
 }

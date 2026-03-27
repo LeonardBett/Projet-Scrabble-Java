@@ -114,6 +114,42 @@ public class NetworkGameBridge implements NetworkObserver {
   // Flag activé uniquement quand l'hôte clique "Lancer la partie"
   private boolean pendingGameStart = false;
 
+  private static boolean shouldDispatchGameStart(boolean pending, int playerCount) {
+    return pending && playerCount >= 2;
+  }
+
+  private static int parsePlayerId(Map<String, String> player) {
+    try {
+      return Integer.parseInt(player.getOrDefault("ID", "0"));
+    } catch (NumberFormatException ex) {
+      return 0;
+    }
+  }
+
+  private static int[] extractPositivePlayerIds(List<Map<String, String>> players) {
+    return players.stream()
+        .mapToInt(NetworkGameBridge::parsePlayerId)
+        .filter(id -> id > 0)
+        .sorted()
+        .toArray();
+  }
+
+  private static int dispatchNewGame(NetworkManager manager, int[] ids) {
+    if (ids.length == 2) {
+      manager.newPlayerId(ids[1]);
+      return 1;
+    }
+    if (ids.length == 3) {
+      manager.newPlayerId(ids[1], ids[2]);
+      return 2;
+    }
+    if (ids.length >= 4) {
+      manager.newPlayerId(ids[1], ids[2], ids[3]);
+      return 3;
+    }
+    return 0;
+  }
+
   /**
    * Appelé par le lobby quand l'hôte clique sur "Lancer la partie". Déclenche la récupération de la
    * liste des joueurs puis envoie NEW.
@@ -135,30 +171,10 @@ public class NetworkGameBridge implements NetworkObserver {
             lobbyView.onPlayersReceived(players);
           }
 
-          if (pendingGameStart && players.size() >= 2) {
+          if (shouldDispatchGameStart(pendingGameStart, players.size())) {
             pendingGameStart = false;
-
-            int[] ids =
-                players.stream()
-                    .mapToInt(
-                        p -> {
-                          try {
-                            return Integer.parseInt(p.getOrDefault("ID", "0"));
-                          } catch (NumberFormatException ex) {
-                            return 0;
-                          }
-                        })
-                    .filter(id -> id > 0)
-                    .sorted()
-                    .toArray();
-
-            if (ids.length == 2) {
-              networkManager.newPlayerId(ids[1]);
-            } else if (ids.length == 3) {
-              networkManager.newPlayerId(ids[1], ids[2]);
-            } else if (ids.length >= 4) {
-              networkManager.newPlayerId(ids[1], ids[2], ids[3]);
-            }
+            int[] ids = extractPositivePlayerIds(players);
+            dispatchNewGame(networkManager, ids);
           }
         });
   }

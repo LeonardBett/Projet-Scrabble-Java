@@ -25,8 +25,68 @@ public class PlayerSetup extends Dialog<Integer> {
   private static final int MIN_PLAYERS = 2;
   private static final int MAX_PLAYERS = 4;
 
+  private static String dialogTitle() {
+    return "Scrabble U-Bordeaux";
+  }
+
+  private static String playersLabelText() {
+    return "Nombre de joueurs :";
+  }
+
+  private static String dialogHeaderTitle() {
+    return "🎮  Nouvelle Partie";
+  }
+
+  private static String startButtonText() {
+    return "Commencer !";
+  }
+
+  private static String cancelButtonText() {
+    return "Annuler";
+  }
+
+  private static int minPlayers() {
+    return MIN_PLAYERS;
+  }
+
+  private static int maxPlayers() {
+    return MAX_PLAYERS;
+  }
+
+  private static int defaultPlayers() {
+    return MIN_PLAYERS;
+  }
+
+  private static double spinnerPrefWidth() {
+    return 80.0;
+  }
+
+  private static double spinnerRowSpacing() {
+    return 12.0;
+  }
+
+  private static double contentSpacing() {
+    return 18.0;
+  }
+
+  private static double contentPadding() {
+    return 20.0;
+  }
+
+  private static double contentPrefWidth() {
+    return 320.0;
+  }
+
+  private static String dialogHeaderColor() {
+    return "#115829";
+  }
+
+  private static String dialogStyleClass() {
+    return "setup-dialog";
+  }
+
   private final Spinner<Integer> playerCountSpinner =
-      new Spinner<>(MIN_PLAYERS, MAX_PLAYERS, MIN_PLAYERS);
+      new Spinner<>(minPlayers(), maxPlayers(), defaultPlayers());
 
   /** Creates the player-count dialog. */
   public PlayerSetup() {
@@ -35,24 +95,24 @@ public class PlayerSetup extends Dialog<Integer> {
     setResizable(false);
 
     playerCountSpinner.setEditable(false);
-    playerCountSpinner.setPrefWidth(80);
+    playerCountSpinner.setPrefWidth(spinnerPrefWidth());
 
     Label spinnerLabel = new Label(I18n.translate("playersetup.label"));
     spinnerLabel.setFont(Font.font("Arial", FontWeight.BOLD, 13));
 
-    HBox spinnerRow = new HBox(12, spinnerLabel, playerCountSpinner);
+    HBox spinnerRow = new HBox(spinnerRowSpacing(), spinnerLabel, playerCountSpinner);
     spinnerRow.setAlignment(Pos.CENTER_LEFT);
 
     Label title = new Label(I18n.translate("playersetup.header"));
     title.setFont(Font.font("Arial", FontWeight.BOLD, 20));
-    title.setTextFill(Color.web("#115829"));
+    title.setTextFill(Color.web(dialogHeaderColor()));
 
-    VBox content = new VBox(18, title, spinnerRow);
-    content.setPadding(new Insets(20));
-    content.setPrefWidth(320);
+    VBox content = new VBox(contentSpacing(), title, spinnerRow);
+    content.setPadding(new Insets(contentPadding()));
+    content.setPrefWidth(contentPrefWidth());
 
     getDialogPane().setContent(content);
-    getDialogPane().getStyleClass().add("setup-dialog");
+    getDialogPane().getStyleClass().add(dialogStyleClass());
 
     ButtonType startType = new ButtonType(I18n.translate("playersetup.start"),
         ButtonBar.ButtonData.OK_DONE);
