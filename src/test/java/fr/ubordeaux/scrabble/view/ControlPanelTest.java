@@ -204,7 +204,7 @@ class ControlPanelTest {
     Label title = (Label) titleBar.getChildren().get(0);
     Button help = (Button) titleBar.getChildren().get(2);
     assertEquals("ACTIONS", title.getText());
-    assertEquals("❓ Help", help.getText());
+    assertEquals("❓ Indice", help.getText());
     assertEquals("▶  Jouer", panel.getPlayButton().getText());
     assertEquals("⏭  Passer", panel.getPassButton().getText());
     assertEquals("🔄 Échanger", panel.getExchangeButton().getText());
