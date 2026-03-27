@@ -1,5 +1,6 @@
 package fr.ubordeaux.scrabble.view.gui;
 
+import fr.ubordeaux.scrabble.i18n.I18n;
 import fr.ubordeaux.scrabble.model.core.Game;
 import fr.ubordeaux.scrabble.view.UserInterface;
 import javafx.application.Platform;
@@ -52,7 +53,7 @@ public class JavaFxView implements UserInterface {
   public void displayMessage(String message) {
     runOnFxThread(() -> {
       if (gui != null) {
-        gui.showInfo("Information", message);
+        gui.showInfo(I18n.translate("view.infoTitle"), message);
       }
     });
   }
@@ -80,7 +81,7 @@ public class JavaFxView implements UserInterface {
   public void displaySuccess(String message) {
     runOnFxThread(() -> {
       if (gui != null) {
-        gui.showInfo("Succès", message);
+        gui.showInfo(I18n.translate("view.successTitle"), message);
       }
     });
   }

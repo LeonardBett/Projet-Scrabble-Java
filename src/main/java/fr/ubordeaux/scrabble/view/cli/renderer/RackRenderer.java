@@ -1,5 +1,6 @@
 package fr.ubordeaux.scrabble.view.cli.renderer;
 
+import fr.ubordeaux.scrabble.i18n.I18n;
 import fr.ubordeaux.scrabble.model.core.Rack;
 import fr.ubordeaux.scrabble.model.core.Tile;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
@@ -25,7 +26,7 @@ public class RackRenderer {
     Rack rack = player.getRack();
     List<Tile> tiles = rack.getTiles();
 
-    System.out.print("Rack : [ ");
+    System.out.print(I18n.translate("cli.rack.label"));
     for (Tile tile : tiles) {
       renderTile(tile);
     }
