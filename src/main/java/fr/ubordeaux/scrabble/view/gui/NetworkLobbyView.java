@@ -483,7 +483,7 @@ public class NetworkLobbyView extends Stage {
 
     Label desc =
         styledLabel(
-        I18n.translate("lobby.hostDescription"),
+            "Démarrez un serveur. Les joueurs sur le réseau local vous verront automatiquement.",
             Color.LIGHTGRAY);
     desc.setWrapText(true);
 
@@ -537,7 +537,7 @@ public class NetworkLobbyView extends Stage {
   // ─── Onglet Rejoindre ────────────────────────────────────────────────────
 
   private Tab buildJoinTab() {
-    final Tab tab = new Tab(I18n.translate("lobby.joinTab"));
+    final Tab tab = new Tab("🔍 Rejoindre");
 
     VBox content = new VBox(tabContentSpacing());
     content.setPadding(new Insets(tabContentPadding()));
