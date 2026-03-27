@@ -35,7 +35,7 @@ public class ControlPanel extends VBox {
     cancelPlacementButton = createButton("↩  Annuler placement", "#795548");
     undoButton = createButton("↶  Annuler coup", "#9E9E9E");
     redoButton = createButton("↷  Refaire coup", "#9E9E9E");
-    hintButton = createButton("❓ Indice", "#1E88E5");
+    hintButton = createButton("❓ Help", "#1E88E5");
     hintButton.setPrefWidth(96);
     initializeUi();
   }
@@ -140,6 +140,15 @@ public class ControlPanel extends VBox {
    * @return the hint button.
    */
   public Button getHintButton() {
+    return hintButton;
+  }
+
+  /**
+   * Backward-compatible alias for the hint button.
+   *
+   * @return the hint/help button.
+   */
+  public Button getHelpButton() {
     return hintButton;
   }
 

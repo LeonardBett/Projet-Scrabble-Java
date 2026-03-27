@@ -5,6 +5,11 @@ package fr.ubordeaux.scrabble.view.optionlancement;
  */
 public class OptionPlayer {
 
+  @FunctionalInterface
+  interface ExitHandler {
+    void exit(int status);
+  }
+
   /**
    * Minimum number of players allowed.
    */
@@ -20,7 +25,17 @@ public class OptionPlayer {
    */
   public static final int DEFAULT = 2;
 
+  private static ExitHandler exitHandler = System::exit;
+
   private OptionPlayer() {
+  }
+
+  static void setExitHandlerForTests(ExitHandler handler) {
+    exitHandler = handler;
+  }
+
+  static void resetExitHandlerForTests() {
+    exitHandler = System::exit;
   }
 
   /**
@@ -36,12 +51,12 @@ public class OptionPlayer {
       if (n < MIN || n > MAX) {
         System.err.println("Nombre de joueurs invalide : " + n
             + " (valeurs acceptees : " + MIN + " a " + MAX + ").");
-        System.exit(1);
+        exitHandler.exit(1);
       }
       return n;
     } catch (NumberFormatException e) {
       System.err.println("'-p' attend un entier, recu : " + value);
-      System.exit(1);
+      exitHandler.exit(1);
       return DEFAULT;
     }
   }
