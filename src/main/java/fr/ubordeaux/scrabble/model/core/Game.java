@@ -360,6 +360,20 @@ public class Game {
   }
 
   /**
+   * Sets the index of the current player in turn order.
+   * This is primarily used when restoring a game state from a save file (F21).
+   *
+   * @param index The new current player index.
+   * @throws IllegalArgumentException if the index is out of bounds for the current player list.
+   */
+  public void setCurrentPlayerIndex(int index) {
+    if (index < 0 || (!players.isEmpty() && index >= players.size())) {
+      throw new IllegalArgumentException("Player index out of bounds: " + index);
+    }
+    this.currentPlayerIndex = index;
+  }
+
+  /**
    * Returns the game board.
    *
    * @return board instance.

@@ -30,13 +30,6 @@ public class GameLoader {
   }
 
   /**
-   * Constructs a new GameLoader instance.
-   */
-  public GameLoader() {
-    this.isInBlockComment = false;
-  }
-
-  /**
    * Loads a game state from an ASCII text file.
    *
    * @param filePath Path to the .scrabble save file.
@@ -151,6 +144,8 @@ public class GameLoader {
     }
 
     if (line.length() == 1 && Character.isDigit(line.charAt(0))) {
+      int currentPlayerIdx = Character.getNumericValue(line.charAt(0)) - 1;
+      game.setCurrentPlayerIndex(currentPlayerIdx); // <-- C'est cette ligne qui manque !
       return boardRow;
     }
 
