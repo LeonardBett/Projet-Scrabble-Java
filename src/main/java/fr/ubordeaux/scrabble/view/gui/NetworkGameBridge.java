@@ -20,6 +20,7 @@ public class NetworkGameBridge implements NetworkObserver {
   private final NetworkManager networkManager;
   private ScrabbleGui gui;
   private NetworkLobbyView lobbyView;
+  private boolean pendingGameStart;
 
   /**
    * Constructs the bridge and registers it as an observer to the NetworkManager.
@@ -78,7 +79,9 @@ public class NetworkGameBridge implements NetworkObserver {
             return;
           }
 
-          lobbyView.onInvitationCancel();
+          if (lobbyView != null) {
+            lobbyView.onInvitationCancel();
+          }
           if (!gui.isOnlineMode()) {
             gui.switchToOnlineGame(onlineGame);
           } else {
@@ -98,12 +101,40 @@ public class NetworkGameBridge implements NetworkObserver {
         () -> {
           if (gui != null) {
             gui.exitOnlineMode();
-            gui.showInfo(I18n.translate("view.gameEndedTitle"), reason);
+            gui.showInfo(I18n.translate("view.gameEndedTitle"),
+                I18n.translate("lobby.gameEnded", "Final scores available"));
           }
           if (lobbyView != null) {
             lobbyView.onGameEnded(finalScore);
           }
         });
+  }
+
+  /**
+   * Compatibility helper for callers that still signal game end with a plain reason.
+   *
+   * @param reason textual reason
+   */
+  public void gameEndedUpdate(String reason) {
+    Platform.runLater(
+        () -> {
+          if (gui != null) {
+            gui.exitOnlineMode();
+            gui.showInfo(I18n.translate("view.gameEndedTitle"),
+                I18n.translate("lobby.gameEnded", reason));
+          }
+          if (lobbyView != null) {
+            lobbyView.onGameEnded(reason);
+          }
+        });
+  }
+
+  /**
+   * Requests a game start from the host side by fetching player list first.
+   */
+  public void requestGameStart() {
+    pendingGameStart = true;
+    networkManager.players();
   }
 
   @Override
@@ -145,7 +176,47 @@ public class NetworkGameBridge implements NetworkObserver {
           if (lobbyView != null) {
             lobbyView.onPlayersReceived(players);
           }
+
+          int[] ids = extractPositivePlayerIds(players);
+          if (shouldDispatchGameStart(pendingGameStart, ids.length)) {
+            pendingGameStart = false;
+            dispatchNewGame(networkManager, ids);
+          }
         });
+  }
+
+  private static boolean shouldDispatchGameStart(boolean pending, int playersCount) {
+    return pending && playersCount >= 2;
+  }
+
+  private static int parsePlayerId(Map<String, String> player) {
+    String rawId = player.getOrDefault("ID", "0");
+    try {
+      return Integer.parseInt(rawId);
+    } catch (NumberFormatException ex) {
+      return 0;
+    }
+  }
+
+  private static int[] extractPositivePlayerIds(List<Map<String, String>> players) {
+    return players.stream().mapToInt(NetworkGameBridge::parsePlayerId).filter(id -> id > 0).sorted()
+        .toArray();
+  }
+
+  private static int dispatchNewGame(NetworkManager manager, int[] ids) {
+    if (ids.length < 2) {
+      return 0;
+    }
+    if (ids.length == 2) {
+      manager.newPlayerId(ids[1]);
+      return 1;
+    }
+    if (ids.length == 3) {
+      manager.newPlayerId(ids[1], ids[2]);
+      return 2;
+    }
+    manager.newPlayerId(ids[1], ids[2], ids[3]);
+    return 3;
   }
 
   /**
