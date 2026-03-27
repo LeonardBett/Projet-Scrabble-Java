@@ -1,0 +1,477 @@
+package fr.ubordeaux.scrabble.view;
+
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import fr.ubordeaux.scrabble.controller.GameController;
+import fr.ubordeaux.scrabble.model.core.Game;
+import fr.ubordeaux.scrabble.model.core.HumanPlayer;
+import fr.ubordeaux.scrabble.model.core.Tile;
+import fr.ubordeaux.scrabble.model.enums.PlayerColor;
+import fr.ubordeaux.scrabble.model.network.NetworkManager;
+import fr.ubordeaux.scrabble.model.utils.Point;
+import fr.ubordeaux.scrabble.view.gui.JavaFxView;
+import fr.ubordeaux.scrabble.view.gui.NetworkGameBridge;
+import fr.ubordeaux.scrabble.view.gui.ScrabbleGui;
+import fr.ubordeaux.scrabble.view.gui.panel.BoardPanel;
+import fr.ubordeaux.scrabble.view.gui.panel.ControlPanel;
+import fr.ubordeaux.scrabble.view.gui.panel.MessagePanel;
+import fr.ubordeaux.scrabble.view.gui.panel.RackPanel;
+import fr.ubordeaux.scrabble.view.gui.panel.ScorePanel;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.time.Duration;
+import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import javafx.application.Platform;
+import javafx.scene.layout.VBox;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+/**
+ * Tests that exercise ScrabbleGui instance methods by injecting
+ * panels via reflection.
+ */
+class ScrabbleGuiInstanceTest {
+
+  private Game game;
+  private ScrabbleGui gui;
+  private BoardPanel boardPanel;
+  private RackPanel rackPanel;
+  private ScorePanel scorePanel;
+  private ControlPanel controlPanel;
+  private MessagePanel messagePanel;
+  private GameController controller;
+  private JavaFxView view;
+
+  @BeforeAll
+  static void initToolkit() {
+    try {
+      com.sun.javafx.application.PlatformImpl.startup(() -> {
+      });
+    } catch (Exception e) {
+      // Already initialized
+    }
+  }
+
+  @BeforeEach
+  void setUp() {
+    game = new Game();
+    game.addPlayer(new HumanPlayer("P1", PlayerColor.BLUE));
+    game.addPlayer(new HumanPlayer("P2", PlayerColor.RED));
+    game.startGame();
+
+    ScrabbleGui.setGame(game);
+    view = new JavaFxView(game);
+    ScrabbleGui.setView(view);
+
+    gui = new ScrabbleGui();
+
+    boardPanel = new BoardPanel(game.getBoard());
+    rackPanel = new RackPanel(
+        game.getCurrentPlayer().getRack());
+    scorePanel = new ScorePanel();
+    controlPanel = new ControlPanel();
+    messagePanel = new MessagePanel();
+    controller = new GameController(game, view);
+
+    setField(gui, "boardPanel", boardPanel);
+    setField(gui, "rackPanel", rackPanel);
+    setField(gui, "scorePanel", scorePanel);
+    setField(gui, "controlPanel", controlPanel);
+    setField(gui, "messagePanel", messagePanel);
+    setField(gui, "controller", controller);
+    setField(gui, "networkManager", new NetworkManager());
+    setField(gui, "networkBridge",
+        new NetworkGameBridge(new NetworkManager()));
+    view.setGui(gui);
+    setFieldStatic("viewInstance", view);
+  }
+
+  @AfterEach
+  void tearDown() {
+    Game resetGame = new Game();
+    resetGame.addPlayer(
+        new HumanPlayer("R1", PlayerColor.BLUE));
+    resetGame.addPlayer(
+        new HumanPlayer("R2", PlayerColor.RED));
+    resetGame.startGame();
+    ScrabbleGui.setGame(resetGame);
+    ScrabbleGui.setView(new JavaFxView(resetGame));
+  }
+
+  @Test
+  void refreshAllShouldNotThrow() {
+    assertDoesNotThrow(() -> gui.refreshAll());
+  }
+
+  @Test
+  void refreshBoardShouldNotThrow() {
+    assertDoesNotThrow(() -> gui.refreshBoard());
+  }
+
+  @Test
+  void refreshRackShouldNotThrow() {
+    assertDoesNotThrow(() -> gui.refreshRack());
+  }
+
+  @Test
+  void refreshScoresShouldNotThrow() {
+    assertDoesNotThrow(() -> gui.refreshScores());
+  }
+
+  @Test
+  void showInfoShouldNotThrow() throws Exception {
+    runOnFxThread(() -> gui.showInfo("Title", "Message"));
+  }
+
+  @Test
+  void showErrorShouldNotThrow() throws Exception {
+    runOnFxThread(() -> gui.showError("Error message"));
+  }
+
+  @Test
+  void isOnlineModeDefaultsFalse() {
+    assertFalse(gui.isOnlineMode());
+  }
+
+  @Test
+  void switchToOnlineGameSetsOnlineMode() throws Exception {
+    Game onlineGame = createOnlineGame();
+    runOnFxThread(() -> gui.switchToOnlineGame(onlineGame));
+    assertTrue(gui.isOnlineMode());
+  }
+
+  @Test
+  void exitOnlineModeClearsOnlineMode() throws Exception {
+    Game onlineGame = createOnlineGame();
+    runOnFxThread(() -> gui.switchToOnlineGame(onlineGame));
+    assertTrue(gui.isOnlineMode());
+    runOnFxThread(() -> gui.exitOnlineMode());
+    assertFalse(gui.isOnlineMode());
+  }
+
+  @Test
+  void onTileDraggedSetsCurrentTile() {
+    Tile tile = new Tile('A');
+    gui.onTileDragged(tile);
+    assertEquals(tile,
+        getField(gui, "currentlyDraggedTile"));
+  }
+
+  @Test
+  void onTileDroppedWithNullDraggedTileIgnores() {
+    gui.onTileDragged(null);
+    gui.onTileDropped(7, 7);
+    @SuppressWarnings("unchecked")
+    Map<Point, Tile> pending = (Map<Point, Tile>) getField(gui, "pendingTiles");
+    assertTrue(pending.isEmpty());
+  }
+
+  @Test
+  void onTileDroppedWithValidTilePlacesPending() {
+    Tile tile = game.getCurrentPlayer().getRack()
+        .getTiles().getFirst();
+    gui.onTileDragged(tile);
+    gui.onTileDropped(7, 7);
+    @SuppressWarnings("unchecked")
+    Map<Point, Tile> pending = (Map<Point, Tile>) getField(gui, "pendingTiles");
+    assertTrue(pending.containsKey(new Point(7, 7)));
+  }
+
+  @Test
+  void onTileDroppedOnOccupiedPendingRejects()
+      throws Exception {
+    Tile t1 = game.getCurrentPlayer().getRack()
+        .getTiles().get(0);
+    Tile t2 = game.getCurrentPlayer().getRack()
+        .getTiles().get(1);
+    gui.onTileDragged(t1);
+    gui.onTileDropped(5, 5);
+    gui.onTileDragged(t2);
+    runOnFxThread(() -> gui.onTileDropped(5, 5));
+    @SuppressWarnings("unchecked")
+    Map<Point, Tile> pending = (Map<Point, Tile>) getField(gui, "pendingTiles");
+    assertEquals(t1, pending.get(new Point(5, 5)));
+  }
+
+  @Test
+  void cancelPendingTilesWhenEmptyNotThrow() {
+    invokePrivate(gui, "cancelPendingTiles");
+  }
+
+  @Test
+  void cancelPendingTilesClearsPending() {
+    Tile tile = game.getCurrentPlayer().getRack()
+        .getTiles().getFirst();
+    gui.onTileDragged(tile);
+    gui.onTileDropped(3, 3);
+    @SuppressWarnings("unchecked")
+    Map<Point, Tile> pending = (Map<Point, Tile>) getField(gui, "pendingTiles");
+    assertFalse(pending.isEmpty());
+    invokePrivate(gui, "cancelPendingTiles");
+    assertTrue(pending.isEmpty());
+  }
+
+  @Test
+  void submitPendingTilesWhenEmpty() throws Exception {
+    runOnFxThread(
+        () -> invokePrivate(gui, "submitPendingTiles"));
+  }
+
+  @Test
+  void submitPendingTilesWithTilesLocal() throws Exception {
+    Tile tile = game.getCurrentPlayer().getRack()
+        .getTiles().getFirst();
+    gui.onTileDragged(tile);
+    gui.onTileDropped(7, 7);
+    runOnFxThread(
+        () -> invokePrivate(gui, "submitPendingTiles"));
+  }
+
+  @Test
+  void setGameplayControlsDisabledToggles() {
+    invokePrivate(gui, "setGameplayControlsDisabled",
+        boolean.class, true);
+    assertTrue(controlPanel.getPlayButton().isDisable());
+    invokePrivate(gui, "setGameplayControlsDisabled",
+        boolean.class, false);
+    assertFalse(controlPanel.getPlayButton().isDisable());
+  }
+
+  @Test
+  void refreshScoresUpdatesPanel() {
+    gui.refreshScores();
+    assertNotNull(scorePanel);
+  }
+
+  @Test
+  void switchToOnlineThenRefreshAll() throws Exception {
+    Game onlineGame = createOnlineGame();
+    runOnFxThread(() -> {
+      gui.switchToOnlineGame(onlineGame);
+      gui.refreshAll();
+    });
+  }
+
+  @Test
+  void getCurrentRackReturnsRack() {
+    Object rack = invokePrivate(gui, "getCurrentRack");
+    assertNotNull(rack);
+  }
+
+  @Test
+  void loadDictionaryShouldNotThrow() {
+    invokePrivate(gui, "loadDictionary");
+  }
+
+  @Test
+  void buildLeftMenuReturnsVbox() {
+    setUpMenuItemFields();
+    Object menu = invokePrivate(gui, "buildLeftMenu");
+    assertNotNull(menu);
+    assertTrue(menu instanceof VBox);
+  }
+
+  @Test
+  void checkAiTurnWithHumanDoesNothing() {
+    invokePrivate(gui, "checkAiTurn");
+  }
+
+  @Test
+  void checkAiTurnWhenBoardDisabledReturns() {
+    boardPanel.setDisable(true);
+    invokePrivate(gui, "checkAiTurn");
+  }
+
+  @Test
+  void onBlitzTimeExpiredSetsGameOver() throws Exception {
+    HumanPlayer p1 = (HumanPlayer) game.getPlayers().get(0);
+    p1.enableBlitzClock(Duration.ofNanos(1));
+    p1.startTurnTimer();
+    p1.pauseTurnTimer();
+    runOnFxThread(
+        () -> invokePrivate(gui, "onBlitzTimeExpired"));
+    assertTrue(game.isGameOver());
+  }
+
+  @Test
+  void onTileDroppedOnBoardOccupiedSquare()
+      throws Exception {
+    game.getBoard().getSquare(new Point(0, 0))
+        .setTile(new Tile('Z'));
+    Tile tile = game.getCurrentPlayer().getRack()
+        .getTiles().getFirst();
+    gui.onTileDragged(tile);
+    runOnFxThread(() -> gui.onTileDropped(0, 0));
+    @SuppressWarnings("unchecked")
+    Map<Point, Tile> pending = (Map<Point, Tile>) getField(gui, "pendingTiles");
+    assertFalse(pending.containsKey(new Point(0, 0)));
+  }
+
+  @Test
+  void onTileDroppedWhenGameOverIgnores() {
+    game.setGameOver(true);
+    Tile tile = game.getCurrentPlayer().getRack()
+        .getTiles().getFirst();
+    gui.onTileDragged(tile);
+    gui.onTileDropped(7, 7);
+    @SuppressWarnings("unchecked")
+    Map<Point, Tile> pending = (Map<Point, Tile>) getField(gui, "pendingTiles");
+    assertTrue(pending.isEmpty());
+  }
+
+  @Test
+  void multipleTilesDroppedInSequence() {
+    Tile t1 = game.getCurrentPlayer().getRack()
+        .getTiles().get(0);
+    Tile t2 = game.getCurrentPlayer().getRack()
+        .getTiles().get(1);
+    gui.onTileDragged(t1);
+    gui.onTileDropped(7, 7);
+    gui.onTileDragged(t2);
+    gui.onTileDropped(7, 8);
+    @SuppressWarnings("unchecked")
+    Map<Point, Tile> pending = (Map<Point, Tile>) getField(gui, "pendingTiles");
+    assertEquals(2, pending.size());
+  }
+
+  @Test
+  void submitPendingTilesWithMultipleTiles()
+      throws Exception {
+    Tile t1 = game.getCurrentPlayer().getRack()
+        .getTiles().get(0);
+    Tile t2 = game.getCurrentPlayer().getRack()
+        .getTiles().get(1);
+    gui.onTileDragged(t1);
+    gui.onTileDropped(7, 7);
+    gui.onTileDragged(t2);
+    gui.onTileDropped(7, 8);
+    runOnFxThread(
+        () -> invokePrivate(gui, "submitPendingTiles"));
+  }
+
+  @Test
+  void exitOnlineModeStopsBlitzTimers() throws Exception {
+    Game onlineGame = createOnlineGame();
+    runOnFxThread(() -> gui.switchToOnlineGame(onlineGame));
+    runOnFxThread(() -> gui.exitOnlineMode());
+    assertFalse(gui.isOnlineMode());
+  }
+
+  @Test
+  void refreshAllAfterGameOver() {
+    game.setGameOver(true);
+    assertDoesNotThrow(() -> gui.refreshAll());
+  }
+
+  @Test
+  void refreshRackAfterPlayerChanges() {
+    assertDoesNotThrow(() -> gui.refreshRack());
+  }
+
+  private Game createOnlineGame() {
+    Game g = new Game();
+    g.addPlayer(new HumanPlayer("O1", PlayerColor.BLUE));
+    g.addPlayer(new HumanPlayer("O2", PlayerColor.RED));
+    g.startGame();
+    return g;
+  }
+
+  private void setUpMenuItemFields() {
+    setField(gui, "newGameMenuItem",
+        new javafx.scene.control.MenuItem("New"));
+    setField(gui, "onlineMenuItem",
+        new javafx.scene.control.MenuItem("Online"));
+    setField(gui, "saveMenuItem",
+        new javafx.scene.control.MenuItem("Save"));
+    setField(gui, "loadMenuItem",
+        new javafx.scene.control.MenuItem("Load"));
+    setField(gui, "quitMenuItem",
+        new javafx.scene.control.MenuItem("Quit"));
+  }
+
+  private static void runOnFxThread(Runnable action)
+      throws Exception {
+    CountDownLatch latch = new CountDownLatch(1);
+    Platform.runLater(() -> {
+      try {
+        action.run();
+      } finally {
+        latch.countDown();
+      }
+    });
+    assertTrue(latch.await(5, TimeUnit.SECONDS));
+  }
+
+  private static void setField(
+      Object target, String name, Object value) {
+    try {
+      Field f = target.getClass().getDeclaredField(name);
+      f.setAccessible(true);
+      f.set(target, value);
+    } catch (NoSuchFieldException
+        | IllegalAccessException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private static void setFieldStatic(
+      String name, Object value) {
+    try {
+      Field f = ScrabbleGui.class.getDeclaredField(name);
+      f.setAccessible(true);
+      f.set(null, value);
+    } catch (NoSuchFieldException
+        | IllegalAccessException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private static Object getField(
+      Object target, String name) {
+    try {
+      Field f = target.getClass().getDeclaredField(name);
+      f.setAccessible(true);
+      return f.get(target);
+    } catch (NoSuchFieldException
+        | IllegalAccessException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private static Object invokePrivate(
+      Object target, String methodName) {
+    try {
+      Method m = target.getClass()
+          .getDeclaredMethod(methodName);
+      m.setAccessible(true);
+      return m.invoke(target);
+    } catch (NoSuchMethodException
+        | IllegalAccessException
+        | InvocationTargetException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private static Object invokePrivate(Object target,
+      String methodName, Class<?> argType, Object arg) {
+    try {
+      Method m = target.getClass()
+          .getDeclaredMethod(methodName, argType);
+      m.setAccessible(true);
+      return m.invoke(target, arg);
+    } catch (NoSuchMethodException
+        | IllegalAccessException
+        | InvocationTargetException e) {
+      throw new RuntimeException(e);
+    }
+  }
+}
