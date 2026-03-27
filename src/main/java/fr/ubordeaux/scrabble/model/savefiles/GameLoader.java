@@ -31,13 +31,6 @@ public class GameLoader {
   private final Map<Integer, Map<String, String>> playerSettings = new HashMap<>();
 
   /**
-   * Constructs a new GameLoader instance.
-   */
-  public GameLoader() {
-    this.isInBlockComment = false;
-  }
-
-  /**
    * Loads a game state from an ASCII text file.
    *
    * @param filePath Path to the .scrabble save file.
