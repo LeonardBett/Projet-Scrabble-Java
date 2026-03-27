@@ -3,16 +3,24 @@ package fr.ubordeaux.scrabble.view.optionlancement;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import fr.ubordeaux.scrabble.i18n.I18n;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class OptionPlayerCoverageTest {
 
+  @BeforeEach
+  void setUp() {
+    I18n.setLanguage("fr");
+  }
+
   @AfterEach
   void tearDown() {
     OptionPlayer.resetExitHandlerForTests();
+    I18n.setLanguage("en");
   }
 
   @Test

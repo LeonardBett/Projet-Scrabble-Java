@@ -11,6 +11,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -203,7 +204,7 @@ class ControlPanelTest {
     Label title = (Label) titleBar.getChildren().get(0);
     Button help = (Button) titleBar.getChildren().get(2);
     assertEquals("ACTIONS", title.getText());
-    assertEquals("❓ Help", help.getText());
+    assertEquals("❓ Indice", help.getText());
     assertEquals("▶  Jouer", panel.getPlayButton().getText());
     assertEquals("⏭  Passer", panel.getPassButton().getText());
     assertEquals("🔄 Échanger", panel.getExchangeButton().getText());

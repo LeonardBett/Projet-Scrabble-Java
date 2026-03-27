@@ -27,7 +27,7 @@ class JavaFxViewTest {
     try {
       // Force le démarrage du Toolkit JavaFX pour éviter l'IllegalStateException
       // lors des appels à Platform.runLater() dans JavaFxView.
-      Platform.startup(() -> {
+      com.sun.javafx.application.PlatformImpl.startup(() -> {
       });
     } catch (IllegalStateException e) {
       // Le Toolkit est déjà initialisé par un autre test, on ignore l'erreur.
