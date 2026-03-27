@@ -5,12 +5,15 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import fr.ubordeaux.scrabble.i18n.I18n;
 import fr.ubordeaux.scrabble.view.gui.panel.ControlPanel;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -30,6 +33,16 @@ class ControlPanelTest {
     } catch (Exception e) {
       // Toolkit already initialized or not available in this environment
     }
+  }
+
+  @BeforeEach
+  void setUp() {
+    I18n.setLanguage("fr");
+  }
+
+  @AfterEach
+  void tearDown() {
+    I18n.setLanguage("en");
   }
 
   @Test
@@ -191,7 +204,7 @@ class ControlPanelTest {
     Label title = (Label) titleBar.getChildren().get(0);
     Button help = (Button) titleBar.getChildren().get(2);
     assertEquals("ACTIONS", title.getText());
-    assertEquals("❓ Help", help.getText());
+    assertEquals("❓ Indice", help.getText());
     assertEquals("▶  Jouer", panel.getPlayButton().getText());
     assertEquals("⏭  Passer", panel.getPassButton().getText());
     assertEquals("🔄 Échanger", panel.getExchangeButton().getText());
