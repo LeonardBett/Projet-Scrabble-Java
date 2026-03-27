@@ -811,7 +811,7 @@ public class NetworkLobbyView extends Stage {
 
   private void onToggleStatus() {
     if (!clientConnected) {
-      log(notConnectedMessage());
+      log(I18n.translate("lobby.notConnected"));
       return;
     }
 
@@ -982,8 +982,8 @@ public class NetworkLobbyView extends Stage {
       startGameButton.setDisable(lobbyPlayerCount < 2);
 
       // Auto-launch when exactly 2 players are ready (host + 1 client)
-      if (shouldLogPlayersReady(lobbyPlayerCount)) {
-        log(playersReadyMessage(lobbyPlayerCount));
+      if (lobbyPlayerCount >= 2) {
+        log(I18n.translate("lobby.playersReady", lobbyPlayerCount));
       }
     }
 
@@ -1006,10 +1006,10 @@ public class NetworkLobbyView extends Stage {
     int rank = 1;
     for (Map<String, String> entry : scoreboard) {
       String name = entry.getOrDefault("NAME", "?");
-      String w = entry.getOrDefault("WINS", "0");
-      String l = entry.getOrDefault("LOSSES", "0");
-      String t = entry.getOrDefault("TOTAL", "0");
-      items.add(String.format("%d. %-14s  W:%s  L:%s  T:%s", rank++, name, w, l, t));
+      String wins = entry.getOrDefault("WINS", "0");
+      String losses = entry.getOrDefault("LOSSES", "0");
+      String total = entry.getOrDefault("TOTAL", "0");
+      items.add(String.format("%d. %-14s  V:%s  D:%s  T:%s", rank++, name, wins, losses, total));
     }
     scoreboardListView.setItems(items);
   }
