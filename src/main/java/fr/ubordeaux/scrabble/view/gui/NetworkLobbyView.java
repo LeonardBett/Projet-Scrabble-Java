@@ -403,6 +403,9 @@ public class NetworkLobbyView extends Stage {
   private final ObservableList<ServerInfo> discoveredServers = FXCollections.observableArrayList();
 
   // Lobby Tab Controls (Visible to both host and clients)
+  private ListView<String> lobbyPlayerListView;
+  private Button startGameButton;
+  private int lobbyPlayerCount = 0;
   private ListView<String> playersListView;
   private ListView<String> scoreboardListView;
   private Button refreshScoreboardButton;
@@ -536,7 +539,10 @@ public class NetworkLobbyView extends Stage {
             portRow,
             startServerButton,
             stopServerButton,
-            serverStatusLabel);
+            serverStatusLabel,
+            startGameButton,
+            playersTitle,
+            lobbyPlayerListView);
     tab.setContent(content);
     return tab;
   }
@@ -552,7 +558,7 @@ public class NetworkLobbyView extends Stage {
     serverListView.setPrefHeight(140);
     serverListView.setStyle(listViewStyle());
 
-    Button joinSelectedButton = createBtn(I18n.translate("lobby.joinSelected"), "#4CAF50");
+    joinSelectedButton = createBtn(I18n.translate("lobby.joinSelected"), "#4CAF50");
     joinSelectedButton.setOnAction(e -> onJoinSelected());
 
     HBox ipRow = new HBox(rowSpacing());
@@ -990,6 +996,8 @@ public class NetworkLobbyView extends Stage {
       items.add(String.format("#%-4s %-16s [%s]", id, name, status));
     }
 
+    lobbyPlayerCount = players.size();
+
     // Update both views
     lobbyPlayerListView.setItems(FXCollections.observableArrayList(items));
     playersListView.setItems(FXCollections.observableArrayList(items));
@@ -998,9 +1006,8 @@ public class NetworkLobbyView extends Stage {
     if (serverRunning) {
       startGameButton.setDisable(lobbyPlayerCount < 2);
 
-      // Auto-launch when exactly 2 players are ready (host + 1 client)
-      if (shouldLogPlayersReady(lobbyPlayerCount)) {
-        log(playersReadyMessage(lobbyPlayerCount));
+      if (lobbyPlayerCount >= 2) {
+        log(I18n.translate("lobby.playersReady", lobbyPlayerCount));
       }
     }
 
@@ -1094,11 +1101,35 @@ public class NetworkLobbyView extends Stage {
     networkManager.scoreboard();
     networkManager.players();
   }
+
+  /**
+   * Called when the game ends with a textual reason.
+   *
+   * @param reason the end reason message
+   */
   public void onGameEnded(String reason) {
     log(I18n.translate("lobby.gameEnded", reason));
     clientConnected = false;
     lobbyPlayerCount = 0;
     updateButtonStates();
+  }
+
+  /**
+   * Returns whether this lobby is currently hosting a server.
+   *
+   * @return true when host mode is active
+   */
+  public boolean isHostMode() {
+    return serverRunning;
+  }
+
+  /**
+   * Returns the number of players currently present in the lobby.
+   *
+   * @return current lobby player count
+   */
+  public int getLobbyPlayerCount() {
+    return lobbyPlayerCount;
   }
 
   // ─── Helpers ─────────────────────────────────────────────────────────────
@@ -1196,6 +1227,7 @@ public class NetworkLobbyView extends Stage {
     disconnectButton.setDisable(!clientConnected);
 
     // Lobby
+    startGameButton.setDisable(!serverRunning || lobbyPlayerCount < 2);
     refreshScoreboardButton.setDisable(!clientConnected);
     refreshPlayersButton.setDisable(!clientConnected);
     inviteButton.setDisable(!clientConnected);
