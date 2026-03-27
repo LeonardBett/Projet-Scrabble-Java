@@ -98,6 +98,7 @@ public class NetworkGameBridge implements NetworkObserver {
         () -> {
           if (gui != null) {
             gui.exitOnlineMode();
+            gui.showInfo(I18n.translate("view.gameEndedTitle"), reason);
           }
           if (lobbyView != null) {
             lobbyView.onGameEnded(finalScore);

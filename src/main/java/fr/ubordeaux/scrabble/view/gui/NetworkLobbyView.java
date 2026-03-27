@@ -142,7 +142,8 @@ public class NetworkLobbyView extends Stage {
   // --- UI Builders for Tabs -------------------------------------------------
 
   private Tab buildHostTab() {
-    final Tab tab = new Tab("Host");
+    final Tab tab = new Tab(I18n.translate("lobby.hostTab"));
+
     VBox content = new VBox(5);
     content.setPadding(new Insets(20));
     content.setStyle("-fx-background-color: #243447;");
@@ -169,6 +170,18 @@ public class NetworkLobbyView extends Stage {
 
     startServerButton.setOnAction(e -> onStartServer());
     stopServerButton.setOnAction(e -> onStopServer());
+
+    // Bouton lancer la partie — actif quand >= 2 joueurs
+    startGameButton = createBtn(I18n.translate("lobby.startGame"), "#FF9800");
+    startGameButton.setDisable(true);
+    startGameButton.setOnAction(e -> onStartGame());
+
+    // Liste des joueurs dans le lobby (mis à jour auto)
+    final Label playersTitle = styledLabel(
+        I18n.translate("lobby.hostPlayersTitle"), Color.WHITE, 13, true);
+    lobbyPlayerListView = new ListView<>();
+    lobbyPlayerListView.setPrefHeight(130);
+    lobbyPlayerListView.setStyle("-fx-control-inner-background: #1a2a3a; -fx-text-fill: white;");
 
     content
         .getChildren()
@@ -215,6 +228,12 @@ public class NetworkLobbyView extends Stage {
     connectButton.setOnAction(e -> onConnect());
     disconnectButton.setOnAction(e -> onDisconnect());
 
+    final Label autoTitle =
+        styledLabel(I18n.translate("lobby.autoServersTitle"), Color.WHITE, 13, true);
+    final Label manualTitle =
+        styledLabel(
+        I18n.translate("lobby.manualTitle"), Color.WHITE, 13, true);
+
     content
         .getChildren()
         .addAll(
@@ -242,6 +261,8 @@ public class NetworkLobbyView extends Stage {
     playersListView.setMinHeight(40);
     playersListView.setStyle("-fx-control-inner-background: #1a2a3a; -fx-text-fill: white;");
 
+    Label waitLabel = styledLabel(I18n.translate("lobby.waitHost"), Color.LIGHTGRAY);
+    waitLabel.setWrapText(true);
     // Enable multiple selections (holding Ctrl allows selecting multiple opponents)
     playersListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
@@ -276,6 +297,10 @@ public class NetworkLobbyView extends Stage {
 
     viewPlayerDetailsButton = createBtn("View Player Details", "#009688"); // Vert canard (Teal)
     viewPlayerDetailsButton.setOnAction(e -> onViewPlayerDetails());
+    final Label playersTitle = styledLabel(
+        I18n.translate("lobby.roomPlayersTitle"), Color.WHITE, 13, true);
+    final Label sbTitle =
+        styledLabel(I18n.translate("lobby.scoreboardTitle"), Color.WHITE, 13, true);
 
     content
         .getChildren()
@@ -334,11 +359,21 @@ public class NetworkLobbyView extends Stage {
   private void onStopServer() {
     networkManager.serverStop();
     serverRunning = false;
-    serverStatusLabel.setText("Server stopped");
+    lobbyPlayerCount = 0;
+    serverStatusLabel.setText(I18n.translate("lobby.serverStopped"));
     serverStatusLabel.setTextFill(Color.GRAY);
 
     log(I18n.translate("lobby.serverStoppedLog"));
     updateButtonStates();
+  }
+
+  /**
+   * Called by the host to start the game with all currently connected players. Sends NEW commands
+   * targeting each connected player ID.
+   */
+  private void onStartGame() {
+    bridge.requestGameStart();
+    log(I18n.translate("lobby.startingGame"));
   }
 
   private void onJoinSelected() {
@@ -362,16 +397,10 @@ public class NetworkLobbyView extends Stage {
 
       doConnect(ipField.getText().trim(), port);
     } catch (NumberFormatException e) {
-      log("Invalid port.");
+      log(I18n.translate("lobby.invalidJoinPort"));
     }
   }
 
-  /**
-   * Connects the client to the specified IP and Port, then shifts UI focus to the Lobby tab.
-   *
-   * @param ip the server IP.
-   * @param port the server Port.
-   */
   private void doConnect(String ip, int port) {
     networkManager.join(ip, port);
     clientConnected = true;
@@ -392,7 +421,8 @@ public class NetworkLobbyView extends Stage {
    */
   public void onClientDisconnected(String reason) {
     clientConnected = false;
-    log("Disconnected: " + reason);
+    log(I18n.translate("lobby.disconnected"));
+    
 
     myIdLabel.setText("");
 
@@ -490,6 +520,7 @@ public class NetworkLobbyView extends Stage {
     ObservableList<String> selected = playersListView.getSelectionModel().getSelectedItems();
     if (selected.isEmpty()) {
       log("Please select at least one opponent from the list.");
+      log(I18n.translate("lobby.notConnected"));
       return;
     }
 
@@ -616,6 +647,27 @@ public class NetworkLobbyView extends Stage {
       String status = p.getOrDefault("STATUS", "?");
       items.add(String.format("#%-4s %-16s [%s]", id, name, status));
     }
+
+    // Update both views
+    lobbyPlayerListView.setItems(FXCollections.observableArrayList(items));
+    playersListView.setItems(FXCollections.observableArrayList(items));
+
+    // Enable start button for host if >= 2 players
+    if (serverRunning) {
+      startGameButton.setDisable(lobbyPlayerCount < 2);
+
+      // Auto-launch when exactly 2 players are ready (host + 1 client)
+      if (lobbyPlayerCount >= 2) {
+        log(I18n.translate("lobby.playersReady", lobbyPlayerCount));
+      }
+    }
+
+    // If this was triggered by onStartGame, now send the NEW command with all IDs
+    // This is handled via the playersUpdate callback from bridge
+  }
+
+  /**
+   * Called when the scoreboard is received.
     playersListView.setItems(items);
   }
 
@@ -700,6 +752,14 @@ public class NetworkLobbyView extends Stage {
     networkManager.scoreboard();
     networkManager.players();
   }
+  public void onGameEnded(String reason) {
+    log(I18n.translate("lobby.gameEnded", reason));
+    clientConnected = false;
+    lobbyPlayerCount = 0;
+    updateButtonStates();
+  }
+
+  // ─── Helpers ─────────────────────────────────────────────────────────────
 
   /**
    * Handles the end of a game by logging the reason and resetting the invitation UI.
@@ -731,7 +791,7 @@ public class NetworkLobbyView extends Stage {
     alert.setHeaderText("Profile of: " + name);
     alert.setContentText(
         "Current Status: ["
-            + status
+            + statusd
             + "]\n\n"
             + "Wins: "
             + wins
