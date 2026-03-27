@@ -494,7 +494,9 @@ public class NetworkLobbyView extends Stage {
     content.setStyle(tabContentBackgroundStyle());
 
     Label desc =
-        styledLabel(hostDescriptionText(), Color.LIGHTGRAY);
+        styledLabel(
+        I18n.translate("lobby.hostDescription"),
+            Color.LIGHTGRAY);
     desc.setWrapText(true);
 
     HBox portRow = new HBox(rowSpacing());
@@ -540,7 +542,7 @@ public class NetworkLobbyView extends Stage {
   }
 
   private Tab buildJoinTab() {
-    final Tab tab = new Tab(joinTabTitleText());
+    final Tab tab = new Tab(I18n.translate("lobby.joinTab"));
 
     VBox content = new VBox(tabContentSpacing());
     content.setPadding(new Insets(tabContentPadding()));
