@@ -8,6 +8,7 @@ import fr.ubordeaux.scrabble.model.core.Square;
 import fr.ubordeaux.scrabble.model.enums.Direction;
 import fr.ubordeaux.scrabble.model.enums.MoveType;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
+import fr.ubordeaux.scrabble.model.utils.GameLogger;
 import fr.ubordeaux.scrabble.model.utils.Point;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -39,11 +40,10 @@ public class SaveManager {
 
       writer.println("[settings] # Global game parameters");
       writer.println("blitz " + game.isBlitzModeEnabled());
-      writer.println("super-scrabble " + "TODO");
+      writer.println("super-scrabble " + (game.getBoard().getSize() == 21));
       writer.println("players-count " + game.getPlayers().size());
-      writer.println("turn-limit " + "TODO");
-      writer.println("debug " + "TODO");
-      writer.println("verbose " + "TODO");
+      writer.println("debug " + GameLogger.isDebug());
+      writer.println("verbose " + GameLogger.isVerbose());
       List<Player> allPlayers = game.getPlayers();
       for (int i = 0; i < allPlayers.size(); i++) {
         Player p = allPlayers.get(i);
@@ -95,9 +95,10 @@ public class SaveManager {
    * @param board  The game board containing the squares and tiles.
    */
   private void saveBoard(PrintWriter writer, Board board) {
-    for (int y = 0; y < 15; y++) {
+    int size = board.getSize();
+    for (int y = 0; y < size; y++) {
       StringBuilder line = new StringBuilder();
-      for (int x = 0; x < 15; x++) {
+      for (int x = 0; x < size; x++) {
         Square sq = board.getSquare(new Point(x, y));
         if (sq == null || sq.isEmpty()) {
           line.append("-");
@@ -159,7 +160,8 @@ public class SaveManager {
     int y = move.getStartPosition().getY();
     boolean horizontal = move.getDirection() == Direction.HORIZONTAL;
 
-    while (x < 15 && y < 15) {
+    int boardSize = board.getSize();
+    while (x < boardSize && y < boardSize) {
       Square sq = board.getSquare(new Point(x, y));
       if (sq == null || sq.isEmpty()) {
         break;
@@ -173,7 +175,7 @@ public class SaveManager {
     }
 
     // Fallback: if board read failed (e.g. move not yet applied), use rack tiles
-    return !word.isEmpty() ? word.toString() : move.getTiles().stream()
+    return word.length() > 0 ? word.toString() : move.getTiles().stream()
         .map(t -> String.valueOf(t.getCharacter()))
         .collect(Collectors.joining());
   }
