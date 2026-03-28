@@ -6,11 +6,14 @@ import fr.ubordeaux.scrabble.model.core.HumanPlayer;
 import fr.ubordeaux.scrabble.model.core.Move;
 import fr.ubordeaux.scrabble.model.core.Tile;
 import fr.ubordeaux.scrabble.model.enums.Direction;
+import fr.ubordeaux.scrabble.model.enums.GameMode;
 import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
+import fr.ubordeaux.scrabble.model.utils.GameLogger;
 import fr.ubordeaux.scrabble.model.utils.Point;
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -22,7 +25,9 @@ import java.util.Map;
  */
 public class GameLoader {
   private boolean isInBlockComment;
-  /** Stores AI settings keyed by player index (0-based): "type", "ai-mode", "name". */
+  /**
+   * Stores AI settings keyed by player index (0-based): "type", "ai-mode", "name".
+   */
   private final Map<Integer, Map<String, String>> playerSettings = new HashMap<>();
 
   /**
@@ -40,7 +45,7 @@ public class GameLoader {
    * @throws Exception if format is invalid, specifying the line number (F24).
    */
   public Game loadGame(String filePath) throws Exception {
-    Game game = new Game();
+    Game game = getGame(filePath);
     this.isInBlockComment = false;
     this.playerSettings.clear();
     int lineCount = 0;
@@ -86,6 +91,34 @@ public class GameLoader {
         }
       }
     }
+    return game;
+  }
+
+  private static Game getGame(String filePath) throws IOException {
+    boolean superScrabble = false;
+    try (BufferedReader preReader
+             = new BufferedReader(new FileReader(filePath))) {
+      String preLine;
+      boolean inSettings = false;
+      while ((preLine = preReader.readLine()) != null) {
+        preLine = preLine.replaceAll("#.*", "").trim();
+        if (preLine.equals("[settings]")) {
+          inSettings = true;
+          continue;
+        }
+        if (preLine.startsWith("[")) {
+          if (inSettings) {
+            break;
+          }
+          continue;
+        }
+        if (inSettings && preLine.startsWith("super-scrabble ")) {
+          superScrabble = preLine.substring("super-scrabble ".length()).trim().equals("true");
+          break;
+        }
+      }
+    }
+    Game game = superScrabble ? new Game(GameMode.SUPER) : new Game();
     return game;
   }
 
@@ -136,6 +169,23 @@ public class GameLoader {
       return;
     }
 
+    if (key.equals("debug")) {
+      GameLogger.setDebug(Boolean.parseBoolean(value));
+      return;
+    }
+
+    if (key.equals("super-scrabble") || key.equals("players-count")) {
+      return; // handled elsewhere
+    }
+
+    if (key.equals("verbose")) {
+      // debug mode already implies verbose; only set verbose if debug is not active
+      if (!GameLogger.isDebug()) {
+        GameLogger.setVerbose(Boolean.parseBoolean(value));
+      }
+      return;
+    }
+
     // player-X-type, player-X-ai-mode, player-X-name
     if (key.startsWith("player-")) {
       String[] keyParts = key.split("-", 3); // ["player", "X", "type|ai-mode|name"]
@@ -164,8 +214,10 @@ public class GameLoader {
     }
 
     // Ajout de la condition "boardRow < 15" pour éviter de déborder du plateau
-    if (boardRow < 15 && line.length() == 15 && (line.contains("-") || line.matches(".*[A-Z].*"))) {
-      for (int x = 0; x < 15; x++) {
+    int boardSize = game.getBoard().getSize();
+    if (boardRow < boardSize && line.length() == boardSize && (line.contains("-")
+        || line.matches(".*[A-Z].*"))) {
+      for (int x = 0; x < boardSize; x++) {
         char c = line.charAt(x);
         if (c != '-') {
           game.getBoard().getSquare(new Point(x, boardRow)).setTile(new Tile(c));
