@@ -45,4 +45,16 @@ class ClientInfoTest {
 
     Assertions.assertEquals(expected, client.getScoreboardLine());
   }
+
+  @Test
+  void testWinLoose() {
+    ClientInfo client = new ClientInfo(2);
+    client.addWin();
+    Assertions.assertEquals(1, client.getWins());
+    Assertions.assertEquals(1, client.getGamesPlayed());
+
+    client.addLoose();
+    Assertions.assertEquals(1, client.getLosses());
+    Assertions.assertEquals(2, client.getGamesPlayed());
+  }
 }

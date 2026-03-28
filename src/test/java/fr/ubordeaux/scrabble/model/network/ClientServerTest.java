@@ -3,6 +3,7 @@ package fr.ubordeaux.scrabble.model.network;
 import fr.ubordeaux.scrabble.model.network.client.GameClient;
 import fr.ubordeaux.scrabble.model.network.server.GameServer;
 import fr.ubordeaux.scrabble.model.network.server.ServerInfo;
+import fr.ubordeaux.scrabble.model.utils.GameLogger;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -53,6 +54,9 @@ class ClientServerTest {
       }
       Thread.sleep(50);
     }
+
+    GameLogger.setVerbose(false);
+    GameLogger.setDebug(false);
   }
 
   @AfterEach

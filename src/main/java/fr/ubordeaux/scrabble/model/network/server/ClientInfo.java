@@ -29,6 +29,9 @@ public class ClientInfo {
     this.status = PlayerStatus.IDLE;
   }
 
+  // =========================================================================
+  // UTILS CLIENTINFO METHODS
+
   /**
    * Gets player essential info in a string. Use for the command PLAYERS
    *
@@ -47,6 +50,9 @@ public class ClientInfo {
     return String.format(
         "ID=%d;NAME=%s;WINS=%d;LOSSES=%d;TOTAL=%d", id, name, wins, losses, gamesPlayed);
   }
+
+  // =========================================================================
+  // GETTER/SETTER
 
   /**
    * Gets id.
@@ -92,6 +98,21 @@ public class ClientInfo {
   public void setName(String name) {
     this.name = name;
   }
+
+  public int getWins() {
+    return wins;
+  }
+
+  public int getLosses() {
+    return losses;
+  }
+
+  public int getGamesPlayed() {
+    return gamesPlayed;
+  }
+
+  // =========================================================================
+  // WIN/LOOSE METHODS
 
   /** Add a win to this client. */
   public void addWin() {

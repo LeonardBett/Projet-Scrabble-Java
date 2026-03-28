@@ -118,6 +118,14 @@ class OnlineGameTest {
     assertNull(player1.getOnlineGame());
   }
 
+  @Test
+  void testFinishGame() {
+    onlineGame.finishGame();
+
+    assertTrue(player1.lastMessage.contains("GAME_ENDED:"));
+    assertNull(player1.getOnlineGame());
+  }
+
   /**
    * Inner helper class to simulate a ClientHandler without network complexity.
    */

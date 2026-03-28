@@ -1,6 +1,7 @@
 package fr.ubordeaux.scrabble;
 
 import fr.ubordeaux.scrabble.model.enums.GameMode;
+import fr.ubordeaux.scrabble.model.network.NetworkManager;
 import fr.ubordeaux.scrabble.model.utils.GameLogger;
 import fr.ubordeaux.scrabble.view.optionlancement.CliLauncher;
 import fr.ubordeaux.scrabble.view.optionlancement.GuiLauncher;
@@ -22,25 +23,37 @@ public class App {
 
   @FunctionalInterface
   interface CliLauncherHandler {
-    void launch(int players, List<String> aiColors, boolean blitzMode, int blitzMinutes, int aiTime,
-        boolean useExptiminimax, boolean useMl, String lang);
+    void launch(
+        int players,
+        List<String> aiColors,
+        boolean blitzMode,
+        int blitzMinutes,
+        int aiTime,
+        boolean useExptiminimax,
+        boolean useMl,
+        String lang);
   }
 
   @FunctionalInterface
   interface GuiLauncherHandler {
-    void launch(String[] args, int players, List<String> aiColors, boolean blitzMode,
-        int blitzMinutes, int aiTime, boolean useExptiminimax, boolean useMl, String lang);
+    void launch(
+        String[] args,
+        int players,
+        List<String> aiColors,
+        boolean blitzMode,
+        int blitzMinutes,
+        int aiTime,
+        boolean useExptiminimax,
+        boolean useMl,
+        String lang);
   }
 
   private static ExitHandler exitHandler = System::exit;
   private static CliLauncherHandler cliLauncherHandler = CliLauncher::launch;
   private static GuiLauncherHandler guiLauncherHandler = GuiLauncher::launch;
 
-  /**
-   * Default constructor for App. Should not be instantiated directly.
-   */
-  public App() {
-  }
+  /** Default constructor for App. Should not be instantiated directly. */
+  public App() {}
 
   static void setExitHandlerForTests(ExitHandler handler) {
     exitHandler = handler;
@@ -75,6 +88,12 @@ public class App {
     boolean useExptiminimax = false;
     boolean useMl = false;
     String lang = "en";
+
+    // Network arguments
+    boolean startServer = false; // Server mode
+    boolean daemonMode = false; // Headless mode
+    int serverPort =
+        NetworkManager.DEFAULT_TCP_PORT; // Server port, default value for headless start
 
     // List to store the colors of players that should be controlled by AI
     List<String> aiColors = new ArrayList<>();
@@ -144,11 +163,60 @@ public class App {
             }
           }
         }
+
+        // Upper S because there is already an -s option in the specifications
+        case "-S", "--server" -> {
+          startServer = true;
+          // We check that the next argument is a valid port number
+          if (i + 1 < args.length && !args[i + 1].startsWith("-")) {
+            try {
+              serverPort = Integer.parseInt(args[++i]);
+              if (serverPort < 0 || serverPort > 65535) {
+                System.err.println("-S / --server : The port number must be between 0 and 65535.");
+                exitHandler.exit(1);
+              }
+            } catch (NumberFormatException e) {
+              System.err.println("-S / --server : Invalid port argument.");
+              exitHandler.exit(1);
+            }
+          } else {
+            System.err.println("-S / --server : Missing port argument.");
+            exitHandler.exit(1);
+          }
+        }
+
+        // Upper D because there is already an -d option in the specifications
+        case "-D", "--daemon" -> {
+          daemonMode = true;
+          startServer = true;
+        }
+
         default -> {
           System.err.println("Option inconnue : " + args[i]);
           System.err.println("Utilisez -h ou --help pour afficher l'aide.");
           exitHandler.exit(1);
         }
+      }
+    }
+
+    // Check program start with server start
+    if (startServer) {
+      NetworkManager tempManager = new NetworkManager();
+      boolean success = tempManager.serverStart(serverPort);
+
+      if (!success) {
+        System.err.println(
+            "Critical error : Could not start server on port " + serverPort);
+        exitHandler.exit(1);
+        return;
+      }
+
+      System.out.println("Server start with success on port " + serverPort);
+
+      // In headless mode, the program stop here, and we do not launch GUI/CLI
+      if (daemonMode) {
+        System.out.println("Headless server start with success (daemon mode).");
+        return;
       }
     }
 
@@ -158,8 +226,8 @@ public class App {
     }
 
     if (guiMode) {
-      launchGui(args, players, aiColors, blitzMode, blitzMinutes, aiTime, useExptiminimax, useMl,
-          lang);
+      launchGui(
+          args, players, aiColors, blitzMode, blitzMinutes, aiTime, useExptiminimax, useMl, lang);
     } else {
       launchCli(players, aiColors, blitzMode, blitzMinutes, aiTime, useExptiminimax, useMl, lang);
     }
@@ -177,13 +245,18 @@ public class App {
    * @param useMl True if the AI should use Machine Learning for word search.
    * @param lang The language of the dictionary to load ("en" or "fr").
    */
-
-  private static void launchCli(int players, List<String> aiColors, boolean blitzMode,
-      int blitzMinutes, int aiTime, boolean useExptiminimax, boolean useMl, String lang) {
-    cliLauncherHandler.launch(players, aiColors, blitzMode, blitzMinutes, aiTime,
-        useExptiminimax, useMl, lang);
+  private static void launchCli(
+      int players,
+      List<String> aiColors,
+      boolean blitzMode,
+      int blitzMinutes,
+      int aiTime,
+      boolean useExptiminimax,
+      boolean useMl,
+      String lang) {
+    cliLauncherHandler.launch(
+        players, aiColors, blitzMode, blitzMinutes, aiTime, useExptiminimax, useMl, lang);
   }
-
 
   /**
    * Launches the Graphical User Interface (GUI) mode.
@@ -198,12 +271,17 @@ public class App {
    * @param useMl True if the AI should use Machine Learning for word search.
    * @param lang The language of the dictionary to load ("en" or "fr").
    */
-  private static void launchGui(String[] args, int players, List<String> aiColors,
-      boolean blitzMode, int blitzMinutes, int aiTime, boolean useExptiminimax, boolean useMl,
+  private static void launchGui(
+      String[] args,
+      int players,
+      List<String> aiColors,
+      boolean blitzMode,
+      int blitzMinutes,
+      int aiTime,
+      boolean useExptiminimax,
+      boolean useMl,
       String lang) {
-    guiLauncherHandler.launch(args, players, aiColors, blitzMode, blitzMinutes, aiTime,
-        useExptiminimax, useMl, lang);
+    guiLauncherHandler.launch(
+        args, players, aiColors, blitzMode, blitzMinutes, aiTime, useExptiminimax, useMl, lang);
   }
-
-
 }

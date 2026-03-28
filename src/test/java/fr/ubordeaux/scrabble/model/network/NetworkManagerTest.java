@@ -1,6 +1,7 @@
 package fr.ubordeaux.scrabble.model.network;
 
 import fr.ubordeaux.scrabble.model.network.server.ServerInfo;
+import fr.ubordeaux.scrabble.model.utils.GameLogger;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
@@ -20,6 +21,8 @@ class NetworkManagerTest {
 
   @BeforeEach
   void setUp() {
+    GameLogger.setVerbose(false);
+    GameLogger.setDebug(false);
     networkManager = new NetworkManager();
     mockObserver =
         new NetworkObserver() {
@@ -29,12 +32,10 @@ class NetworkManagerTest {
           @Override
           public void gameEndedUpdate(List<Map<String, String>> players) {}
 
-            @Override
-            public void serverWelcomeUpdate(int myId) {
+          @Override
+          public void serverWelcomeUpdate(int myId) {}
 
-            }
-
-            @Override
+          @Override
           public void serverStatusUpdate(java.util.Map<String, String> info) {}
 
           @Override
@@ -174,5 +175,61 @@ class NetworkManagerTest {
     networkManager.playersPlayerId(1);
 
     // No exceptions should be thrown despite being disconnected
+  }
+
+  @Test
+  void testCommandsWhileConnected() throws InterruptedException {
+    int port = 12350;
+
+    // Start server and allow time for the thread to bind the port on slow machines
+    Assertions.assertTrue(networkManager.serverStart(port));
+    Thread.sleep(1000);
+
+    // Join using localhost for cross-platform compatibility
+    networkManager.join("localhost", port);
+    Thread.sleep(1000); // Allow time for the socket connection to establish
+
+    // Verify that calling methods while connected doesn't crash the client
+    Assertions.assertDoesNotThrow(
+        () -> {
+          networkManager.ping();
+          networkManager.serverStatus();
+          networkManager.players();
+          networkManager.scoreboard();
+          networkManager.newPlayerId(1);
+          networkManager.newPlayerId(1, 2);
+          networkManager.newPlayerId(1, 2, 3);
+          networkManager.play(7, 7, "H", "TEST");
+          networkManager.exchange("ABC");
+          networkManager.pass();
+          networkManager.accept();
+          networkManager.decline();
+          networkManager.cancel();
+          networkManager.playersPlayerId(1);
+          networkManager.away();
+          networkManager.back();
+        });
+
+    networkManager.quit();
+    networkManager.serverStop();
+  }
+
+  @Test
+  void testGetLocalGame() throws InterruptedException {
+    // Should return null when completely disconnected
+    Assertions.assertNull(networkManager.getLocalGame());
+
+    int port = 12352;
+    networkManager.serverStart(port);
+    Thread.sleep(1000); // Delay for slow machines
+
+    networkManager.join("localhost:" + port);
+    Thread.sleep(1000); // Delay for socket setup
+
+    // Should still return null because the server hasn't sent a GAME_START packet yet
+    Assertions.assertNull(networkManager.getLocalGame());
+
+    networkManager.quit();
+    networkManager.serverStop();
   }
 }

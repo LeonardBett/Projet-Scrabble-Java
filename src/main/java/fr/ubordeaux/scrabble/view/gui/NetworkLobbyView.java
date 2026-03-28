@@ -359,8 +359,6 @@ public class NetworkLobbyView extends Stage {
     log("Connecting to " + ip + ":" + port + "...");
     updateButtonStates();
 
-    // Automatically switch the user to the Lobby tab once connected
-    tabPane.getSelectionModel().select(2);
     networkManager.players();
   }
 

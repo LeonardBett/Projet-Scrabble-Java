@@ -1,6 +1,7 @@
 package fr.ubordeaux.scrabble.model.network.server;
 
 import fr.ubordeaux.scrabble.model.network.PacketParser;
+import fr.ubordeaux.scrabble.model.utils.GameLogger;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -39,8 +40,8 @@ public class ClientHandler implements Runnable {
   /**
    * Instantiates a new Client handler.
    *
-   * @param socket   the socket
-   * @param server   the server
+   * @param socket the socket
+   * @param server the server
    * @param playerId the player id
    */
   public ClientHandler(Socket socket, GameServer server, int playerId) {
@@ -51,6 +52,9 @@ public class ClientHandler implements Runnable {
 
     this.isRunning = true;
   }
+
+  // =========================================================================
+  // CLIENT CONNEXION LIFECYCLE METHODS
 
   // Needed since this class will be called in a Thread
   @Override
@@ -90,7 +94,7 @@ public class ClientHandler implements Runnable {
         }
       }
     } catch (SocketTimeoutException e) {
-      System.err.println("Server : Socket Timeout Exception");
+      GameLogger.logError("Server : Socket Timeout Exception", null);
       this.quit();
     } catch (SocketException e) {
       // If isRunning is false, it means we called stop(), so we just exit the loop
@@ -99,12 +103,11 @@ public class ClientHandler implements Runnable {
         if (!e.getMessage().contains("reset")
             && !e.getMessage().contains("abandonnée")
             && !e.getMessage().contains("closed")) {
-          System.err.println(
-              "ClientHandler run() : Unintended socket Exception: " + e.getMessage());
+          GameLogger.logError("ClientHandler run() : Unintended socket Exception: ", e);
         }
       }
     } catch (IOException e) {
-      System.err.println("ClientHandler run() : IOException with message: " + e.getMessage());
+      GameLogger.logError("ClientHandler run() : IOException: ", e);
     } finally {
       if (isRunning) {
         this.quit();
@@ -121,17 +124,15 @@ public class ClientHandler implements Runnable {
     if (out != null) {
       out.println(message);
     } else {
-      // System.err.println("Client is not connected");
+      GameLogger.logError("Client is not connected", null);
       return;
     }
   }
 
-  /**
-   * Close the connexion with the client.
-   */
+  /** Close the connexion with the client. */
   public void quit() {
     if (!isRunning) {
-      // err.println("Client is already disconnected");
+      GameLogger.logError("Client is already disconnected", null);
       return;
     }
     isRunning = false;
@@ -151,18 +152,12 @@ public class ClientHandler implements Runnable {
         socket.close();
       }
     } catch (IOException e) {
-      System.err.println("ClientHandler quit() : IOException with message: " + e.getMessage());
+      GameLogger.logError("ClientHandler quit() : IOException: ", e);
     }
   }
 
-  /**
-   * Gets client info.
-   *
-   * @return the client info
-   */
-  public ClientInfo getClientInfo() {
-    return clientInfo;
-  }
+  // =========================================================================
+  // PACKET HANDLER METHODS
 
   /**
    * Parses the 'new' command and requests game creation from the server.
@@ -234,6 +229,9 @@ public class ClientHandler implements Runnable {
     server.processCancel(this);
   }
 
+  // =========================================================================
+  // GETTER/SETTER
+
   /**
    * Sets online game.
    *
@@ -259,5 +257,14 @@ public class ClientHandler implements Runnable {
    */
   public OnlineGame getOnlineGame() {
     return onlineGame;
+  }
+
+  /**
+   * Gets client info.
+   *
+   * @return the client info
+   */
+  public ClientInfo getClientInfo() {
+    return clientInfo;
   }
 }

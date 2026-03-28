@@ -4,6 +4,7 @@ import fr.ubordeaux.scrabble.model.core.Game;
 import fr.ubordeaux.scrabble.model.network.client.GameClient;
 import fr.ubordeaux.scrabble.model.network.server.GameServer;
 import fr.ubordeaux.scrabble.model.network.server.ServerInfo;
+import fr.ubordeaux.scrabble.model.utils.GameLogger;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -60,38 +61,6 @@ public class NetworkManager {
     }
   }
 
-  /**
-   * Add an observer to the list. Since NetworkManager observer list is the one who rules, we apply
-   * change on gameClient and discoveryService
-   *
-   * @param observer the new observer to add
-   */
-  public void addObserver(NetworkObserver observer) {
-    observers.add(observer);
-    discoveryService.addObserver(observer);
-    if (gameClient != null) {
-      gameClient.addObserver(observer);
-    }
-  }
-
-  /**
-   * Remove an observer to the list. Since NetworkManager observer list is the one who rules, we
-   * apply change on gameClient and discoveryService
-   *
-   * @param observer the new observer to remove
-   */
-  public void removeObserver(NetworkObserver observer) {
-    if (!observers.remove(observer)) {
-      // System.err.println("User : Observer not found, can't remove it from the list");
-      return;
-    } else {
-      discoveryService.removeObserver(observer);
-      if (gameClient != null) {
-        gameClient.removeObserver(observer);
-      }
-    }
-  }
-
   // =========================================================================
   // COMMANDS METHODS (these will be called when the user click on a button (GUI) / run a command
   // (CLI))
@@ -122,7 +91,7 @@ public class NetworkManager {
   public boolean serverStart(int port) {
     // We check if the server is not already running
     if (gameServer != null) {
-      // System.err.println("User : Server is already running, can't start it");
+      GameLogger.logError("User : Server is already running, can't start it", null);
       return false;
     }
 
@@ -161,7 +130,7 @@ public class NetworkManager {
   public void serverStop() {
     // We check if the server is running before trying to stop it
     if (gameServer == null) {
-      // System.err.println("User : Server is not running, can't stop it");
+      GameLogger.logError("User : Server is not running, can't stop it", null);
       return;
     }
 
@@ -181,7 +150,7 @@ public class NetworkManager {
   public void join(String address, int port) {
     // We check if the client isn't already connected
     if (gameClient != null) {
-      // System.err.println("User : Client is already connected, can't connect it");
+      GameLogger.logError("User : Client is already connected, can't connect it", null);
       return;
     }
 
@@ -208,7 +177,7 @@ public class NetworkManager {
   public void quit() {
     // We check if the client is connected before trying to disconnect it
     if (gameClient == null) {
-      // System.err.println("User : Client is not connected, can't disconnect it");
+      GameLogger.logError("User : Client is not connected, can't disconnect it", null);
       return;
     }
 
@@ -222,7 +191,7 @@ public class NetworkManager {
    */
   public void ping() {
     if (gameClient == null) {
-      // System.err.println("User : Client is not connected, can't send a ping");
+      GameLogger.logError("User : Client is not connected, can't send a ping", null);
       return;
     }
     gameClient.sendPing();
@@ -236,7 +205,7 @@ public class NetworkManager {
    */
   public void serverStatus() {
     if (gameClient == null) {
-      // System.err.println("User : Client is not connected, can't show server status");
+      GameLogger.logError("User : Client is not connected, can't show server status", null);
       return;
     }
     gameClient.sendServerStatus();
@@ -247,7 +216,7 @@ public class NetworkManager {
    */
   public void players() {
     if (gameClient == null) {
-      // System.err.println("User : Client is not connected, can't show players");
+      GameLogger.logError("User : Client is not connected, can't show players", null);
       return;
     }
     gameClient.sendPlayers();
@@ -259,7 +228,7 @@ public class NetworkManager {
    */
   public void scoreboard() {
     if (gameClient == null) {
-      // System.err.println("User : Client is not connected, can't show scoreboard");
+      GameLogger.logError("User : Client is not connected, can't show scoreboard", null);
       return;
     }
     gameClient.sendScoreboard();
@@ -274,7 +243,7 @@ public class NetworkManager {
    */
   public void newPlayerId(int targetId) {
     if (gameClient == null) {
-      // err.println("User : Client is not connected, can't start a new game");
+      GameLogger.logError("User : Client is not connected, can't start a new game", null);
       return;
     }
     gameClient.sendNew(targetId);
@@ -290,7 +259,7 @@ public class NetworkManager {
    */
   public void newPlayerId(int targetId1, int targetId2) {
     if (gameClient == null) {
-      // System.err.println("User : Client is not connected, can't start a new game");
+      GameLogger.logError("User : Client is not connected, can't start a new game", null);
       return;
     }
     gameClient.sendNew(targetId1, targetId2);
@@ -307,7 +276,7 @@ public class NetworkManager {
    */
   public void newPlayerId(int targetId1, int targetId2, int targetId3) {
     if (gameClient == null) {
-      // System.err.println("User : Client is not connected, can't start a new game");
+      GameLogger.logError("User : Client is not connected, can't start a new game", null);
       return;
     }
     gameClient.sendNew(targetId1, targetId2, targetId3);
@@ -323,7 +292,7 @@ public class NetworkManager {
    */
   public void play(int x, int y, String direction, String tile) {
     if (gameClient == null) {
-      // System.err.println("User : Client is not connected, can't play a move");
+      GameLogger.logError("User : Client is not connected, can't play a move", null);
       return;
     }
     gameClient.sendPlayMove(x, y, direction, tile);
@@ -336,7 +305,7 @@ public class NetworkManager {
    */
   public void exchange(String tiles) {
     if (gameClient == null) {
-      // System.err.println("User : Client is not connected, can't exchange tiles");
+      GameLogger.logError("User : Client is not connected, can't exchange tiles", null);
       return;
     }
     gameClient.sendExchangeMove(tiles);
@@ -345,7 +314,7 @@ public class NetworkManager {
   /** COMMAND move PASS: Skips the current player's turn. */
   public void pass() {
     if (gameClient == null) {
-      // System.err.println("User : Client is not connected, can't skip a turn");
+      GameLogger.logError("User : Client is not connected, can't skip a turn", null);
       return;
     }
     gameClient.sendPassMove();
@@ -356,7 +325,7 @@ public class NetworkManager {
   /** COMMAND accept : Accept the current invitation. */
   public void accept() {
     if (gameClient == null) {
-      // System.err.println("User : Client is not connected, can't accept an invitation");
+      GameLogger.logError("User : Client is not connected, can't accept an invitation", null);
       return;
     }
     gameClient.sendAccept();
@@ -365,7 +334,7 @@ public class NetworkManager {
   /** COMMAND accept : Decline the current invitation. */
   public void decline() {
     if (gameClient == null) {
-      // System.err.println("User : Client is not connected, can't decline an invitation");
+      GameLogger.logError("User : Client is not connected, can't decline an invitation", null);
       return;
     }
     gameClient.sendDecline();
@@ -378,7 +347,7 @@ public class NetworkManager {
    */
   public void playersPlayerId(int playerId) {
     if (gameClient == null) {
-      // System.err.println("User : Client is not connected, can't show player informations");
+      GameLogger.logError("User : Client is not connected, can't show player information's", null);
       return;
     }
     gameClient.sendPlayersPlayerId(playerId);
@@ -408,11 +377,49 @@ public class NetworkManager {
     gameClient.sendCancel();
   }
 
+  // =========================================================================
+  // UTILS METHODS
+
   /** Get the local game client side. */
   public Game getLocalGame() {
     if (gameClient == null) {
       return null;
     }
     return gameClient.getLocalGame();
+  }
+
+  // =========================================================================
+  // OBSERVER METHODS
+
+  /**
+   * Add an observer to the list. Since NetworkManager observer list is the one who rules, we apply
+   * change on gameClient and discoveryService
+   *
+   * @param observer the new observer to add
+   */
+  public void addObserver(NetworkObserver observer) {
+    observers.add(observer);
+    discoveryService.addObserver(observer);
+    if (gameClient != null) {
+      gameClient.addObserver(observer);
+    }
+  }
+
+  /**
+   * Remove an observer to the list. Since NetworkManager observer list is the one who rules, we
+   * apply change on gameClient and discoveryService
+   *
+   * @param observer the new observer to remove
+   */
+  public void removeObserver(NetworkObserver observer) {
+    if (!observers.remove(observer)) {
+      GameLogger.logError("User : Observer not found, can't remove it from the list", null);
+      return;
+    } else {
+      discoveryService.removeObserver(observer);
+      if (gameClient != null) {
+        gameClient.removeObserver(observer);
+      }
+    }
   }
 }

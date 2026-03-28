@@ -3,6 +3,7 @@ package fr.ubordeaux.scrabble.model.network.server;
 import static fr.ubordeaux.scrabble.model.network.NetworkManager.DEFAULT_TCP_PORT;
 
 import fr.ubordeaux.scrabble.model.network.PlayerStatus;
+import fr.ubordeaux.scrabble.model.utils.GameLogger;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -49,6 +50,9 @@ public class GameServer {
   private final List<PendingInvitation> activeInvitations =
       Collections.synchronizedList(new ArrayList<>());
 
+  // =========================================================================
+  // SERVER LIFECYCLE METHODS
+
   /** Start the server on the default port. */
   public void start() throws IOException {
     start(DEFAULT_TCP_PORT);
@@ -60,7 +64,7 @@ public class GameServer {
    * @param port the port
    */
   public void start(int port) throws java.io.IOException {
-    // System.out.println("Server : Server Starting...");
+    GameLogger.logVerbose("Server : Server Starting...");
     isRunning = true;
     serverSocket = new ServerSocket(port);
 
@@ -111,8 +115,8 @@ public class GameServer {
                 // Infinite loop for accepting connexion
                 while (isRunning) {
                   Socket clientSocket = serverSocket.accept();
-                  // System.out.println("Server : Client connected: " +
-                  // clientSocket.getInetAddress());
+                  GameLogger.logVerbose(
+                      "Server : Client connected: " + clientSocket.getInetAddress());
 
                   // We are going to give this socket to a thread
                   ClientHandler handler = new ClientHandler(clientSocket, this, idCounter++);
@@ -120,15 +124,15 @@ public class GameServer {
                   new Thread(handler).start();
                 }
               } catch (java.net.BindException e) {
-                // System.err.println("Server Error: Port " + port + " is already in use.");
+                GameLogger.logError("Server Error: Port " + port + " is already in use.", e);
                 isRunning = false;
               } catch (SocketException e) {
                 if (isRunning) {
-                  System.err.println("Server Error: Socket exception - " + e.getMessage());
+                  GameLogger.logError("Server Error: Socket exception - ", e);
                 }
                 // If isRunning is false, it means we called stop(), so we just exit the loop
               } catch (IOException e) {
-                System.err.println("Server Error: IO exception - " + e.getMessage());
+                GameLogger.logError("Server Error: IO exception - ", e);
               } finally {
                 // Only call stop if it's still running to avoid double call message
                 if (isRunning) {
@@ -142,12 +146,12 @@ public class GameServer {
   /** Stop the server. */
   public void stop() {
     if (!isRunning) {
-      // System.err.println("Server : Server is not running, can't stop it");
+      GameLogger.logError("Server : Server is not running, can't stop it", null);
       return;
     }
     isRunning = false;
 
-    // System.out.println("Server : Server stopping, disconnecting all clients...");
+    GameLogger.logVerbose("Server : Server stopping, disconnecting all clients...");
 
     // Create a copy of the list to iterate over, to avoid ConcurrentModificationException
     // because client.quit() calls removeClient() which modifies the original list
@@ -165,13 +169,13 @@ public class GameServer {
         serverSocket.close();
       }
     } catch (IOException e) {
-      System.err.println("Server Error: IO exception - " + e.getMessage());
+      GameLogger.logError("Server Error: IO exception - ", e);
     }
   }
 
   private void addClient(ClientHandler client) {
     clients.add(client);
-    // System.out.println("Server : There is now " + clients.size() + " client(s) connected");
+    GameLogger.logVerbose("Server : There is now " + clients.size() + " client(s) connected");
   }
 
   /**
@@ -181,11 +185,11 @@ public class GameServer {
    */
   public void removeClient(ClientHandler client) {
     clients.remove(client);
-    // System.out.println("Server : There is now " + clients.size() + " client(s) connected");
+    GameLogger.logVerbose("Server : There is now " + clients.size() + " client(s) connected");
   }
 
   /**
-   * Gets local network ip of this server. Needed for getting server infos
+   * Gets local network ip of the current machine. Needed for start server on the good ip address.
    *
    * @return the local network ip
    */
@@ -210,10 +214,13 @@ public class GameServer {
         }
       }
     } catch (java.net.SocketException e) {
-      System.err.println("Server Error: Unable to scan network interfaces.");
+      GameLogger.logError("Server Error: Unable to scan network interfaces.", e);
     }
     return "127.0.0.1";
   }
+
+  // =========================================================================
+  // SERVER SIMPLE COMMANDS RESPONSE METHODS
 
   /**
    * Create the STATUS command response with server information.
@@ -257,6 +264,28 @@ public class GameServer {
     }
     return sb.toString();
   }
+
+  /**
+   * Generates a detailed response for a specific player ID (Requirement F40). Ensures every
+   * attribute follows the KEY=VALUE format for the PacketParser.
+   *
+   * @param targetId the ID of the player to look for.
+   * @return a formatted string compatible with PacketParser, or an error message.
+   */
+  public String getSpecificPlayerResponse(int targetId) {
+    synchronized (clients) {
+      for (ClientHandler client : clients) {
+        if (client.getClientInfo().getId() == targetId) {
+          ClientInfo info = client.getClientInfo();
+          return "PLAYERS_PLAYER_ID:" + info.getPlayerInfo() + ";" + info.getScoreboardLine();
+        }
+      }
+    }
+    return "ERROR: Player " + targetId + " not found";
+  }
+
+  // =========================================================================
+  // INVITATION AND GAME CREATION SERVER METHODS
 
   /**
    * Starts a new game invitation process between the requester and target players. Checks if the
@@ -448,7 +477,7 @@ public class GameServer {
       }
     }
 
-    // On libère les joueurs qui étaient encore en train de réfléchir (pending)
+    // We update status of client who did not answer the invitation
     for (ClientHandler p : currentInv.getPendingPlayers()) {
       p.getClientInfo().setStatus(PlayerStatus.IDLE);
       p.sendMessage("STATUS_UPDATE:STATUS=IDLE");
@@ -489,25 +518,6 @@ public class GameServer {
             return false;
           });
     }
-  }
-
-  /**
-   * Generates a detailed response for a specific player ID (Requirement F40). Ensures every
-   * attribute follows the KEY=VALUE format for the PacketParser.
-   *
-   * @param targetId the ID of the player to look for.
-   * @return a formatted string compatible with PacketParser, or an error message.
-   */
-  public String getSpecificPlayerResponse(int targetId) {
-    synchronized (clients) {
-      for (ClientHandler client : clients) {
-        if (client.getClientInfo().getId() == targetId) {
-          ClientInfo info = client.getClientInfo();
-          return "PLAYERS_PLAYER_ID:" + info.getPlayerInfo() + ";" + info.getScoreboardLine();
-        }
-      }
-    }
-    return "ERROR: Player " + targetId + " not found";
   }
 
   /**
