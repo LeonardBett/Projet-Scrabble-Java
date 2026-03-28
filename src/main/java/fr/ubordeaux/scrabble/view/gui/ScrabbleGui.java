@@ -36,12 +36,16 @@ import javafx.scene.control.Label;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextInputDialog;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
+
 
 /**
  * Main JavaFX application window for the Scrabble game.
@@ -155,7 +159,9 @@ public class ScrabbleGui extends Application {
 
     stage.setOnCloseRequest(e -> networkBridge.dispose());
     stage.setTitle(I18n.translate("scrabble.windowTitle"));
-    stage.setScene(new Scene(root, 1200, 800));
+    Scene scene = new Scene(root, 1200, 800);
+    setupShortcuts(scene);
+    stage.setScene(scene);
     stage.setFullScreen(true);
     stage.show();
 
@@ -683,6 +689,40 @@ public class ScrabbleGui extends Application {
   private Rack getCurrentRack() {
     Player p = gameInstance.getCurrentPlayer();
     return p != null ? p.getRack() : new Rack();
+  }
+
+  /**
+   * Configure global keyboard shortcuts.
+   *
+   * @param scene main scene of the application.
+   */
+  private void setupShortcuts(Scene scene) {
+    // Menu shortcuts
+    newGameMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.N, KeyCombination.CONTROL_DOWN));
+    loadMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.L, KeyCombination.CONTROL_DOWN));
+    saveMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.S, KeyCombination.CONTROL_DOWN));
+    quitMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.Q, KeyCombination.CONTROL_DOWN));
+
+    // Global shortcuts
+    scene.getAccelerators().put(new KeyCodeCombination(KeyCode.COMMA, KeyCombination.CONTROL_DOWN),
+        () -> showInfo("Configuration", "Show config (TODO)"));
+
+    scene.getAccelerators().put(new KeyCodeCombination(KeyCode.I, KeyCombination.CONTROL_DOWN),
+        () -> showInfo("Informations", "Scrabble U-Bordeaux\nVersion 1.0\n"));
+
+    // Simulate a clic on the buttons
+    scene.getAccelerators().put(new KeyCodeCombination(KeyCode.U, KeyCombination.CONTROL_DOWN),
+        () -> controlPanel.getUndoButton().fire());
+
+    scene.getAccelerators().put(new KeyCodeCombination(KeyCode.R, KeyCombination.CONTROL_DOWN),
+        () -> controlPanel.getRedoButton().fire());
+
+    scene.getAccelerators().put(new KeyCodeCombination(KeyCode.H, KeyCombination.CONTROL_DOWN),
+        () -> controlPanel.getHintButton().fire());
+
+    // Pause
+    scene.getAccelerators().put(new KeyCodeCombination(KeyCode.P, KeyCombination.CONTROL_DOWN),
+        () -> showInfo("Pause", "Currently in pause."));
   }
 
   /**
