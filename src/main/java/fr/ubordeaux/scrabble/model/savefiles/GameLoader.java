@@ -1,5 +1,6 @@
 package fr.ubordeaux.scrabble.model.savefiles;
 
+import fr.ubordeaux.scrabble.model.ai.AiPlayer;
 import fr.ubordeaux.scrabble.model.core.Game;
 import fr.ubordeaux.scrabble.model.core.HumanPlayer;
 import fr.ubordeaux.scrabble.model.core.Move;
@@ -11,7 +12,9 @@ import fr.ubordeaux.scrabble.model.utils.Point;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Robust loader for Scrabble save files.
@@ -19,6 +22,8 @@ import java.util.List;
  */
 public class GameLoader {
   private boolean isInBlockComment;
+  /** Stores AI settings keyed by player index (0-based): "type", "ai-mode", "name". */
+  private final Map<Integer, Map<String, String>> playerSettings = new HashMap<>();
 
   /**
    * Constructs a new GameLoader instance.
@@ -37,6 +42,7 @@ public class GameLoader {
   public Game loadGame(String filePath) throws Exception {
     Game game = new Game();
     this.isInBlockComment = false;
+    this.playerSettings.clear();
     int lineCount = 0;
 
     try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
@@ -118,12 +124,27 @@ public class GameLoader {
    * @param line The current line containing setting data.
    */
   private void parseSettings(Game game, String line) {
-    String[] parts = line.split("\\s+");
+    String[] parts = line.split("\\s+", 2);
     if (parts.length < 2) {
       return;
     }
-    if (parts[0].equals("blitz") && parts[1].equals("true")) {
+    String key = parts[0];
+    String value = parts[1].trim();
+
+    if (key.equals("blitz") && value.equals("true")) {
       game.enableBlitzMode();
+      return;
+    }
+
+    // player-X-type, player-X-ai-mode, player-X-name
+    if (key.startsWith("player-")) {
+      String[] keyParts = key.split("-", 3); // ["player", "X", "type|ai-mode|name"]
+      if (keyParts.length < 3) {
+        return;
+      }
+      int playerIdx = Integer.parseInt(keyParts[1]) - 1;
+      String setting = keyParts[2]; // "type", "ai-mode", or "name"
+      playerSettings.computeIfAbsent(playerIdx, k -> new HashMap<>()).put(setting, value);
     }
   }
 
@@ -154,19 +175,19 @@ public class GameLoader {
       return boardRow + 1;
     }
 
-    String trim = line.substring(line.indexOf(":") + 1).trim();
     if (line.startsWith("score-")) {
       int playerIdx = Integer.parseInt(line.substring(6, line.indexOf(":"))) - 1;
-      int scoreValue = Integer.parseInt(trim);
+      int scoreValue = Integer.parseInt(line.substring(line.indexOf(":") + 1).trim());
       ensurePlayerExists(game, playerIdx);
       game.getPlayers().get(playerIdx).addScore(scoreValue);
     }
 
     if (line.startsWith("rack-")) {
       int playerIdx = Integer.parseInt(line.substring(5, line.indexOf(":"))) - 1;
+      String tilesStr = line.substring(line.indexOf(":") + 1).trim();
       ensurePlayerExists(game, playerIdx);
-      Player p = game.getPlayers().get(playerIdx);
-      for (char c : trim.toCharArray()) {
+      fr.ubordeaux.scrabble.model.interfaces.Player p = game.getPlayers().get(playerIdx);
+      for (char c : tilesStr.toCharArray()) {
         p.getRack().addTile(new Tile(c));
       }
     }
@@ -216,7 +237,20 @@ public class GameLoader {
     while (game.getPlayers().size() <= index) {
       int nextIdx = game.getPlayers().size();
       PlayerColor color = PlayerColor.values()[nextIdx % PlayerColor.values().length];
-      game.addPlayer(new HumanPlayer("Player " + (nextIdx + 1), color));
+      Map<String, String> settings = playerSettings.getOrDefault(nextIdx, new HashMap<>());
+      String type = settings.getOrDefault("type", "human");
+      String name = settings.getOrDefault("name", "Player " + (nextIdx + 1));
+
+      if ("ai".equalsIgnoreCase(type)) {
+        AiPlayer ai = new AiPlayer(name, 3, 5, color);
+        String aiMode = settings.getOrDefault("ai-mode", "MinMax");
+        if ("Expectiminimax".equalsIgnoreCase(aiMode)) {
+          ai.setExpectiminimaxMode(true);
+        }
+        game.addPlayer(ai);
+      } else {
+        game.addPlayer(new HumanPlayer(name, color));
+      }
     }
   }
 }
