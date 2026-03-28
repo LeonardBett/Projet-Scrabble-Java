@@ -39,11 +39,11 @@ public class SaveManager {
     try (PrintWriter writer = new PrintWriter(new FileWriter(filePath))) {
 
       writer.println("[settings] # Global game parameters");
-      writer.println("blitz " + game.isBlitzModeEnabled());
-      writer.println("super-scrabble " + (game.getBoard().getSize() == 21));
-      writer.println("players-count " + game.getPlayers().size());
-      writer.println("debug " + GameLogger.isDebug());
-      writer.println("verbose " + GameLogger.isVerbose());
+      writer.println("blitz=" + game.isBlitzModeEnabled());
+      writer.println("super-scrabble=" + (game.getBoard().getSize() == 21));
+      writer.println("players-count=" + game.getPlayers().size());
+      writer.println("debug=" + GameLogger.isDebug());
+      writer.println("verbose=" + GameLogger.isVerbose());
       List<Player> allPlayers = game.getPlayers();
       for (int i = 0; i < allPlayers.size(); i++) {
         Player p = allPlayers.get(i);
@@ -56,9 +56,9 @@ public class SaveManager {
           } else {
             aiMode = "MinMax";
           }
-          writer.println("player-" + (i + 1) + "-type ai");
-          writer.println("player-" + (i + 1) + "-ai-mode " + aiMode);
-          writer.println("player-" + (i + 1) + "-name " + ia.getName());
+          writer.println("player-" + (i + 1) + "-type=ai");
+          writer.println("player-" + (i + 1) + "-ai-mode=" + aiMode);
+          writer.println("player-" + (i + 1) + "-name=" + ia.getName());
         }
       }
       writer.println();
@@ -123,6 +123,11 @@ public class SaveManager {
 
       if (move.getType() == MoveType.PASS) {
         writer.println(playerIndex + " pass");
+      } else if (move.getType() == MoveType.EXCHANGE) {
+        String exchanged = move.getTiles().stream()
+            .map(t -> String.valueOf(t.getCharacter()))
+            .collect(Collectors.joining());
+        writer.println(playerIndex + " exchange " + exchanged);
       } else if (move.getType() == MoveType.PLAY) {
         String coord = convertPointToCoord(move.getStartPosition());
         String dir = (move.getDirection() == Direction.HORIZONTAL) ? "h" : "v";
@@ -174,7 +179,6 @@ public class SaveManager {
       }
     }
 
-    // Fallback: if board read failed (e.g. move not yet applied), use rack tiles
     return !word.isEmpty() ? word.toString() : move.getTiles().stream()
         .map(t -> String.valueOf(t.getCharacter()))
         .collect(Collectors.joining());
