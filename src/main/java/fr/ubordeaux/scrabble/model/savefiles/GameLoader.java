@@ -219,19 +219,19 @@ public class GameLoader {
       return boardRow + 1;
     }
 
+    String trim = line.substring(line.indexOf(":") + 1).trim();
     if (line.startsWith("score-")) {
       int playerIdx = Integer.parseInt(line.substring(6, line.indexOf(":"))) - 1;
-      int scoreValue = Integer.parseInt(line.substring(line.indexOf(":") + 1).trim());
+      int scoreValue = Integer.parseInt(trim);
       ensurePlayerExists(game, playerIdx);
       game.getPlayers().get(playerIdx).addScore(scoreValue);
     }
 
     if (line.startsWith("rack-")) {
       int playerIdx = Integer.parseInt(line.substring(5, line.indexOf(":"))) - 1;
-      String tilesStr = line.substring(line.indexOf(":") + 1).trim();
       ensurePlayerExists(game, playerIdx);
-      fr.ubordeaux.scrabble.model.interfaces.Player p = game.getPlayers().get(playerIdx);
-      for (char c : tilesStr.toCharArray()) {
+      Player p = game.getPlayers().get(playerIdx);
+      for (char c : trim.toCharArray()) {
         p.getRack().addTile(new Tile(c));
       }
     }
