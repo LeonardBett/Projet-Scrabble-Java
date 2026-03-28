@@ -112,8 +112,9 @@ public class GameLoader {
           }
           continue;
         }
-        if (inSettings && preLine.startsWith("super-scrabble ")) {
-          superScrabble = preLine.substring("super-scrabble ".length()).trim().equals("true");
+        if (inSettings && (preLine.startsWith("super-scrabble=")
+            || preLine.startsWith("super-scrabble "))) {
+          superScrabble = preLine.replaceFirst("super-scrabble[= ]", "").trim().equals("true");
           break;
         }
       }
@@ -156,7 +157,7 @@ public class GameLoader {
    * @param line The current line containing setting data.
    */
   private void parseSettings(Game game, String line) {
-    String[] parts = line.split("\\s+", 2);
+    String[] parts = line.contains("=") ? line.split("=", 2) : line.split("\\s+", 2);
     if (parts.length < 2) {
       return;
     }
@@ -262,6 +263,12 @@ public class GameLoader {
 
     if (parts.length == 2 && parts[1].equalsIgnoreCase("pass")) {
       game.getUndoRedo().addMove(Move.createPass(player));
+    } else if (parts.length == 3 && parts[1].equalsIgnoreCase("exchange")) {
+      List<Tile> exchangedTiles = new ArrayList<>();
+      for (char c : parts[2].toCharArray()) {
+        exchangedTiles.add(new Tile(c));
+      }
+      game.getUndoRedo().addMove(Move.createExchange(player, exchangedTiles));
     } else if (parts.length == 3) {
       String moveData = parts[1];
       String wordStr = parts[2];
