@@ -44,17 +44,21 @@ public class SaveManager {
       writer.println("turn-limit " + "TODO");
       writer.println("debug " + "TODO");
       writer.println("verbose " + "TODO");
-      for (Player p : game.getPlayers()) {
-        if (p.getName().startsWith("IA")) {
-          AiPlayer ia = (AiPlayer) p;
+      List<Player> allPlayers = game.getPlayers();
+      for (int i = 0; i < allPlayers.size(); i++) {
+        Player p = allPlayers.get(i);
+        if (p instanceof AiPlayer ia) {
+          String aiMode;
           if (ia.isExpectiminimaxMode()) {
-            writer.println("ai-mode " + "Expectiminimax");
+            aiMode = "Expectiminimax";
           } else if (ia.getMlAgent() != null) {
-            writer.println("ai-mode " + "Machine Learning");
+            aiMode = "Machine Learning";
           } else {
-            writer.println("ai-mode " + "MinMax");
+            aiMode = "MinMax";
           }
-          break;
+          writer.println("player-" + (i + 1) + "-type ai");
+          writer.println("player-" + (i + 1) + "-ai-mode " + aiMode);
+          writer.println("player-" + (i + 1) + "-name " + ia.getName());
         }
       }
       writer.println();
@@ -121,9 +125,7 @@ public class SaveManager {
       } else if (move.getType() == MoveType.PLAY) {
         String coord = convertPointToCoord(move.getStartPosition());
         String dir = (move.getDirection() == Direction.HORIZONTAL) ? "h" : "v";
-        String word = move.getTiles().stream()
-            .map(t -> String.valueOf(t.getCharacter()))
-            .collect(Collectors.joining());
+        String word = readFullWordFromBoard(game.getBoard(), move);
 
         writer.println(playerIndex + " " + coord + dir + " " + word);
       }
@@ -138,6 +140,40 @@ public class SaveManager {
    */
   private String serializeRack(Player p) {
     return p.getRack().getTiles().stream()
+        .map(t -> String.valueOf(t.getCharacter()))
+        .collect(Collectors.joining());
+  }
+
+  /**
+   * Reads the full word from the board starting at the move's start position and following its
+   * direction, until an empty square is found. This ensures tiles already on the board (not played
+   * from the rack) are included in the saved history.
+   *
+   * @param board The current board state.
+   * @param move  The PLAY move whose full word must be reconstructed.
+   * @return The full word string as it appears on the board.
+   */
+  private String readFullWordFromBoard(Board board, Move move) {
+    StringBuilder word = new StringBuilder();
+    int x = move.getStartPosition().getX();
+    int y = move.getStartPosition().getY();
+    boolean horizontal = move.getDirection() == Direction.HORIZONTAL;
+
+    while (x < 15 && y < 15) {
+      Square sq = board.getSquare(new Point(x, y));
+      if (sq == null || sq.isEmpty()) {
+        break;
+      }
+      word.append(sq.getTile().getCharacter());
+      if (horizontal) {
+        x++;
+      } else {
+        y++;
+      }
+    }
+
+    // Fallback: if board read failed (e.g. move not yet applied), use rack tiles
+    return !word.isEmpty() ? word.toString() : move.getTiles().stream()
         .map(t -> String.valueOf(t.getCharacter()))
         .collect(Collectors.joining());
   }
