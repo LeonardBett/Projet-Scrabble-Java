@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import fr.ubordeaux.scrabble.model.core.Game;
 import fr.ubordeaux.scrabble.model.core.HumanPlayer;
 import fr.ubordeaux.scrabble.model.core.Move;
 import fr.ubordeaux.scrabble.model.core.Tile;
@@ -21,26 +22,58 @@ import org.junit.jupiter.api.Test;
 class PendingMoveBuilderTest {
 
   private Player player;
+  private Game game;
 
   @BeforeEach
   void setUp() {
     player = new HumanPlayer("Bob", PlayerColor.BLUE);
+    game = new Game();
   }
 
   @Test
   void buildShouldReturnNullForEmptyMap() {
-    assertNull(PendingMoveBuilder.build(new HashMap<>(), player));
+    assertNull(PendingMoveBuilder.build(new HashMap<>(), player, game));
   }
 
   @Test
-  void buildShouldReturnHorizontalMoveForSingleTile() {
+  void buildShouldReturnHorizontalMoveForSingleTileWithNoNeighbours() {
+    // No tiles on the board around (7,7) → should default to HORIZONTAL
     Map<Point, Tile> pending = new HashMap<>();
     pending.put(new Point(7, 7), new Tile('A'));
 
-    Move move = PendingMoveBuilder.build(pending, player);
+    Move move = PendingMoveBuilder.build(pending, player, game);
     assertNotNull(move);
     assertEquals(Direction.HORIZONTAL, move.getDirection());
     assertEquals(MoveType.PLAY, move.getType());
+  }
+
+  @Test
+  void buildShouldReturnVerticalMoveForSingleTileWithVerticalNeighbours() {
+    // Place tiles above and below (7,7) to simulate a vertical word context
+    game.getBoard().getSquare(new Point(7, 6)).setTile(new Tile('J'));
+    game.getBoard().getSquare(new Point(7, 8)).setTile(new Tile('G'));
+
+    Map<Point, Tile> pending = new HashMap<>();
+    pending.put(new Point(7, 7), new Tile('I'));
+
+    Move move = PendingMoveBuilder.build(pending, player, game);
+    assertNotNull(move);
+    assertEquals(Direction.VERTICAL, move.getDirection());
+  }
+
+  @Test
+  void buildShouldReturnVerticalMoveForSingleTileAppendedToVerticalWord() {
+    // Simulate appending S after JIG (vertical word at column 7, rows 6-8)
+    game.getBoard().getSquare(new Point(7, 6)).setTile(new Tile('J'));
+    game.getBoard().getSquare(new Point(7, 7)).setTile(new Tile('I'));
+    game.getBoard().getSquare(new Point(7, 8)).setTile(new Tile('G'));
+
+    Map<Point, Tile> pending = new HashMap<>();
+    pending.put(new Point(7, 9), new Tile('S'));
+
+    Move move = PendingMoveBuilder.build(pending, player, game);
+    assertNotNull(move);
+    assertEquals(Direction.VERTICAL, move.getDirection());
   }
 
   @Test
@@ -50,7 +83,7 @@ class PendingMoveBuilderTest {
     pending.put(new Point(6, 7), new Tile('I'));
     pending.put(new Point(7, 7), new Tile('S'));
 
-    Move move = PendingMoveBuilder.build(pending, player);
+    Move move = PendingMoveBuilder.build(pending, player, game);
     assertNotNull(move);
     assertEquals(Direction.HORIZONTAL, move.getDirection());
     assertEquals(3, move.getTiles().size());
@@ -63,7 +96,7 @@ class PendingMoveBuilderTest {
     pending.put(new Point(7, 6), new Tile('I'));
     pending.put(new Point(7, 7), new Tile('S'));
 
-    Move move = PendingMoveBuilder.build(pending, player);
+    Move move = PendingMoveBuilder.build(pending, player, game);
     assertNotNull(move);
     assertEquals(Direction.VERTICAL, move.getDirection());
     assertEquals(3, move.getTiles().size());
@@ -75,7 +108,7 @@ class PendingMoveBuilderTest {
     pending.put(new Point(5, 5), new Tile('A'));
     pending.put(new Point(6, 6), new Tile('B')); // diagonal → invalid
 
-    Move move = PendingMoveBuilder.build(pending, player);
+    Move move = PendingMoveBuilder.build(pending, player, game);
     assertNull(move);
   }
 
@@ -85,7 +118,7 @@ class PendingMoveBuilderTest {
     pending.put(new Point(3, 7), new Tile('A'));
     pending.put(new Point(4, 7), new Tile('B'));
 
-    Move move = PendingMoveBuilder.build(pending, player);
+    Move move = PendingMoveBuilder.build(pending, player, game);
     assertNotNull(move);
     assertEquals(3, move.getStartPosition().getX());
     assertEquals(7, move.getStartPosition().getY());
