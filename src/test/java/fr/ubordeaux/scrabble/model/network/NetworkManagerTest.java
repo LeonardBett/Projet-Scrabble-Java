@@ -228,7 +228,7 @@ class NetworkManagerTest {
     networkManager.serverStart(port);
     Thread.sleep(1000); // Delay for slow machines
 
-    networkManager.join("localhost:" + port);
+    networkManager.join("localhost:", port);
     Thread.sleep(1000); // Delay for socket setup
 
     // Should still return null because the server hasn't sent a GAME_START packet yet

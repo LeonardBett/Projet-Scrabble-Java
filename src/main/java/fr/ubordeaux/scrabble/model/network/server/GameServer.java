@@ -460,7 +460,7 @@ public class GameServer {
       return;
     }
 
-    // We delete her
+    // We delete it
     synchronized (activeInvitations) {
       activeInvitations.remove(currentInv);
     }

@@ -57,7 +57,7 @@ public class NetworkGameBridge implements NetworkObserver {
     return networkManager;
   }
 
-  // ─── Core Game Updates ────────────────────────────────────────────────────
+  // --- Core Game Updates ----------------------------------------------------
 
   /**
    * Triggered when the local game model is updated by the server. If the GUI is not yet in online
@@ -114,7 +114,7 @@ public class NetworkGameBridge implements NetworkObserver {
         });
   }
 
-  // ─── Lobby & Server Info Updates ──────────────────────────────────────────
+  // --- Lobby & Server Info Updates ------------------------------------------
 
   /**
    * Triggered when the server sends its global status.
@@ -228,7 +228,7 @@ public class NetworkGameBridge implements NetworkObserver {
     Platform.runLater(
         () -> {
           if (lobbyView != null) {
-            lobbyView.onMessageReceived(playerAccepted + " a accepte l'invitation.");
+            lobbyView.onMessageReceived(playerAccepted + " accepted the invitation.");
           }
         });
   }
@@ -243,7 +243,7 @@ public class NetworkGameBridge implements NetworkObserver {
     Platform.runLater(
         () -> {
           if (lobbyView != null) {
-            lobbyView.onMessageReceived(playerDeclined + " a refuse l'invitation.");
+            lobbyView.onMessageReceived(playerDeclined + " declined the invitation.");
           }
         });
   }
@@ -336,7 +336,7 @@ public class NetworkGameBridge implements NetworkObserver {
         () -> {
           if (gui != null) {
             gui.exitOnlineMode();
-            gui.showInfo("Partie interrompue", reason);
+            gui.showInfo("Game Interrupted", reason);
           }
           if (lobbyView != null) {
             lobbyView.onGameInterrupted(reason);
@@ -344,7 +344,7 @@ public class NetworkGameBridge implements NetworkObserver {
         });
   }
 
-  // ─── Cleanup ──────────────────────────────────────────────────────────────
+  // --- Cleanup --------------------------------------------------------------
 
   /**
    * Cleans up the bridge by removing it from the observers list and stopping network play. Should
