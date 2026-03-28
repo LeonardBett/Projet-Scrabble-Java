@@ -49,6 +49,13 @@ public interface NetworkObserver {
    */
   void scoreboardUpdate(List<Map<String, String>> scoreboard);
 
+  /**
+   * Call when a PONG response is received from the server.
+   *
+   * @param latencyMs the latency in milliseconds
+   */
+  void pongUpdate(long latencyMs);
+
   // -----Discovery service update-----
 
   /**

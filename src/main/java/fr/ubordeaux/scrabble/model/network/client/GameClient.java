@@ -137,10 +137,10 @@ public class GameClient {
             break;
 
           case "PONG":
-            long pingEndTime = System.currentTimeMillis();
-            GameLogger.logVerbose("Client : PONG TIME=" + (pingEndTime - pingStartTime) + "ms");
+            long duration = System.currentTimeMillis() - pingStartTime;
+            GameLogger.logVerbose("Client : PONG TIME=" + duration + "ms");
             for (NetworkObserver obs : observers) {
-              obs.messageUpdate("Client : PONG TIME=" + (pingEndTime - pingStartTime) + "ms");
+              obs.pongUpdate(duration);
             }
             break;
 

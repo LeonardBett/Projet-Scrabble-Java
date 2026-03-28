@@ -66,6 +66,8 @@ public class NetworkLobbyView extends Stage {
   private boolean isAway = false;
   private Button viewPlayerDetailsButton;
   private Label myIdLabel;
+  private Button serverStatusButton;
+  private Button pingButton;
 
   // Keeps track of the currently displayed invitation dialog to avoid duplicates
   private Alert currentInvitationDialog = null;
@@ -131,7 +133,7 @@ public class NetworkLobbyView extends Stage {
 
     root.getChildren().addAll(title, tabPane, consoleLabel, consoleArea);
 
-    Scene scene = new Scene(root, 520, 640);
+    Scene scene = new Scene(root, 520, 800);
     this.setScene(scene);
     updateButtonStates();
   }
@@ -140,7 +142,7 @@ public class NetworkLobbyView extends Stage {
 
   private Tab buildHostTab() {
     final Tab tab = new Tab("Host");
-    VBox content = new VBox(12);
+    VBox content = new VBox(5);
     content.setPadding(new Insets(20));
     content.setStyle("-fx-background-color: #243447;");
 
@@ -230,7 +232,8 @@ public class NetworkLobbyView extends Stage {
     content.setStyle("-fx-background-color: #243447;");
 
     playersListView = new ListView<>();
-    playersListView.setPrefHeight(150);
+    playersListView.setPrefHeight(120);
+    playersListView.setMinHeight(40);
     playersListView.setStyle("-fx-control-inner-background: #1a2a3a; -fx-text-fill: white;");
 
     // Enable multiple selections (holding Ctrl allows selecting multiple opponents)
@@ -238,6 +241,12 @@ public class NetworkLobbyView extends Stage {
 
     inviteButton = createBtn("Invite Selected Players", "#FF9800");
     inviteButton.setOnAction(e -> onInvitePlayers());
+
+    pingButton = createBtn("Ping Serveur", "#9C27B0");
+    pingButton.setOnAction(e -> networkManager.ping());
+
+    serverStatusButton = createBtn("Statut du serveur", "#607D8B");
+    serverStatusButton.setOnAction(e -> networkManager.serverStatus());
 
     // Cancel button is hidden by default, shown only when an invite is pending
     cancelInviteButton = createBtn("Cancel Invitation", "#c0392b");
@@ -247,6 +256,7 @@ public class NetworkLobbyView extends Stage {
 
     scoreboardListView = new ListView<>();
     scoreboardListView.setPrefHeight(120);
+    scoreboardListView.setMinHeight(40);
     scoreboardListView.setStyle("-fx-control-inner-background: #1a2a3a; -fx-text-fill: white;");
 
     refreshScoreboardButton = createBtn("Refresh Scoreboard", "#9C27B0");
@@ -276,6 +286,8 @@ public class NetworkLobbyView extends Stage {
             scoreboardListView,
             toggleStatusButton,
             viewPlayerDetailsButton,
+            serverStatusButton,
+            pingButton,
             refreshScoreboardButton);
     tab.setContent(content);
     return tab;
@@ -448,6 +460,19 @@ public class NetworkLobbyView extends Stage {
     }
   }
 
+  /**
+   * Displays a popup with the server ping latency.
+   *
+   * @param latencyMs the response time in milliseconds
+   */
+  public void onPongReceived(long latencyMs) {
+    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+    alert.setTitle("Ping Serveur");
+    alert.setHeaderText("Test de connexion");
+    alert.setContentText("Temps de réponse : " + latencyMs + " ms");
+    alert.show();
+  }
+
   // ─── F40 Invitation Logic ───────────────────────────────────────────────
 
   /**
@@ -606,18 +631,28 @@ public class NetworkLobbyView extends Stage {
   }
 
   /**
-   * Logs the current status of the server (port, number of clients, active games).
+   * Displays a popup with the current server status.
    *
-   * @param info the map containing server status information
+   * @param info map containing PORT, CLIENTS, GAMES
    */
   public void onServerStatusReceived(Map<String, String> info) {
-    log(
-        "Server — Port: "
-            + info.get("PORT")
-            + " | Clients: "
-            + info.get("CLIENTS")
-            + " | Games: "
-            + info.get("GAMES"));
+    String port = info.getOrDefault("PORT", "Inconnu");
+    String clients = info.getOrDefault("CLIENTS", "0");
+    String games = info.getOrDefault("GAMES", "0");
+
+    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+    alert.setTitle("Statut du Serveur");
+    alert.setHeaderText("Informations en direct du serveur");
+    alert.setContentText(
+        "Port d'écoute TCP : "
+            + port
+            + "\n"
+            + "Clients connectés : "
+            + clients
+            + "\n"
+            + "Parties en cours : "
+            + games);
+    alert.show();
   }
 
   /**
@@ -757,6 +792,8 @@ public class NetworkLobbyView extends Stage {
     inviteButton.setDisable(!clientConnected);
     toggleStatusButton.setDisable(!clientConnected);
     viewPlayerDetailsButton.setDisable(!clientConnected);
+    serverStatusButton.setDisable(!clientConnected);
+    pingButton.setDisable(!clientConnected);
   }
 
   /**

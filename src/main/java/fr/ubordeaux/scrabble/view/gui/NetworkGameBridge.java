@@ -131,6 +131,16 @@ public class NetworkGameBridge implements NetworkObserver {
         });
   }
 
+  @Override
+  public void pongUpdate(long latencyMs) {
+    Platform.runLater(
+        () -> {
+          if (lobbyView != null) {
+            lobbyView.onPongReceived(latencyMs);
+          }
+        });
+  }
+
   /**
    * Triggered when the server sends the updated list of connected players.
    *

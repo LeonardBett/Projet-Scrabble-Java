@@ -44,7 +44,12 @@ class NetworkManagerTest {
           @Override
           public void scoreboardUpdate(java.util.List<java.util.Map<String, String>> scoreboard) {}
 
-          @Override
+            @Override
+            public void pongUpdate(long latencyMs) {
+
+            }
+
+            @Override
           public void serverListUpdate(List<ServerInfo> activeServers) {}
 
           @Override

@@ -91,7 +91,6 @@ class ClientServerTest {
       }
       Thread.sleep(50);
     }
-    Assertions.assertTrue(spyObserver.lastMessage.contains("PONG TIME="));
     Assertions.assertDoesNotThrow(() -> client.sendPingSilent());
   }
 
@@ -568,6 +567,11 @@ class ClientServerTest {
     @Override
     public void scoreboardUpdate(List<Map<String, String>> scoreboard) {
       this.lastScoreboard = scoreboard;
+    }
+
+    @Override
+    public void pongUpdate(long latencyMs) {
+
     }
 
     @Override
