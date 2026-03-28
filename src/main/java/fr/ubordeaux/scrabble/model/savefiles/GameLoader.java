@@ -118,8 +118,7 @@ public class GameLoader {
         }
       }
     }
-    Game game = superScrabble ? new Game(GameMode.SUPER) : new Game();
-    return game;
+    return superScrabble ? new Game(GameMode.SUPER) : new Game();
   }
 
   /**
