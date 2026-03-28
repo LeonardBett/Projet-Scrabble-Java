@@ -175,7 +175,7 @@ public class SaveManager {
     }
 
     // Fallback: if board read failed (e.g. move not yet applied), use rack tiles
-    return word.length() > 0 ? word.toString() : move.getTiles().stream()
+    return !word.isEmpty() ? word.toString() : move.getTiles().stream()
         .map(t -> String.valueOf(t.getCharacter()))
         .collect(Collectors.joining());
   }
