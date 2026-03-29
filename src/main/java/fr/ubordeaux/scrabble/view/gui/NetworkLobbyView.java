@@ -173,7 +173,7 @@ public class NetworkLobbyView extends Stage {
     content
         .getChildren()
         .addAll(
-            styledLabel("Héberger une partie", Color.WHITE, 15, true),
+            styledLabel(I18n.translate("lobby.hostSectionTitle"), Color.WHITE, 15, true),
             desc,
             portRow,
             startServerButton,
@@ -344,7 +344,7 @@ public class NetworkLobbyView extends Stage {
   private void onJoinSelected() {
     int idx = serverListView.getSelectionModel().getSelectedIndex();
     if (idx < 0 || idx >= discoveredServers.size()) {
-      log("❌ Sélectionnez un serveur dans la liste.");
+      log(I18n.translate("lobby.invalidServerSelection"));
       return;
     }
     doConnect(discoveredServers.get(idx).getIp(), discoveredServers.get(idx).getPort());
