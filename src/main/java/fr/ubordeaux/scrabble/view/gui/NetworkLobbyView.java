@@ -335,10 +335,10 @@ public class NetworkLobbyView extends Stage {
   private void onStopServer() {
     networkManager.serverStop();
     serverRunning = false;
-    lobbyPlayerCount = 0;
     serverStatusLabel.setText(I18n.translate("lobby.serverStopped"));
     serverStatusLabel.setTextFill(Color.GRAY);
-    lobbyPlayerListView.getItems().clear();
+    playersListView.getItems().clear();
+    scoreboardListView.getItems().clear();
     log(I18n.translate("lobby.serverStoppedLog"));
     updateButtonStates();
   }
