@@ -31,6 +31,13 @@ public class GameLoader {
   private final Map<Integer, Map<String, String>> playerSettings = new HashMap<>();
 
   /**
+   * Constructs a new GameLoader instance.
+   */
+  public GameLoader() {
+    this.isInBlockComment = false;
+  }
+
+  /**
    * Loads a game state from an ASCII text file.
    *
    * @param filePath Path to the .scrabble save file.
@@ -220,19 +227,19 @@ public class GameLoader {
       return boardRow + 1;
     }
 
-    String trim = line.substring(line.indexOf(":") + 1).trim();
     if (line.startsWith("score-")) {
       int playerIdx = Integer.parseInt(line.substring(6, line.indexOf(":"))) - 1;
-      int scoreValue = Integer.parseInt(trim);
+      int scoreValue = Integer.parseInt(line.substring(line.indexOf(":") + 1).trim());
       ensurePlayerExists(game, playerIdx);
       game.getPlayers().get(playerIdx).addScore(scoreValue);
     }
 
     if (line.startsWith("rack-")) {
       int playerIdx = Integer.parseInt(line.substring(5, line.indexOf(":"))) - 1;
+      String tilesStr = line.substring(line.indexOf(":") + 1).trim();
       ensurePlayerExists(game, playerIdx);
-      Player p = game.getPlayers().get(playerIdx);
-      for (char c : trim.toCharArray()) {
+      fr.ubordeaux.scrabble.model.interfaces.Player p = game.getPlayers().get(playerIdx);
+      for (char c : tilesStr.toCharArray()) {
         p.getRack().addTile(new Tile(c));
       }
     }
