@@ -94,6 +94,16 @@ public class GameLoader {
     return game;
   }
 
+  /**
+   * Pre-reads the save file to detect whether the game was played in Super-Scrabble mode,
+   * then constructs and returns the appropriate {@link Game} instance (21x21 board if super,
+   * standard 15x15 otherwise). This pre-pass is necessary because the board size must be
+   * known before the main parsing loop begins.
+   *
+   * @param filePath Path to the .scrabble save file.
+   * @return A new {@link Game} instance with the correct board size.
+   * @throws IOException If the file cannot be read.
+   */
   private static Game getGame(String filePath) throws IOException {
     boolean superScrabble = false;
     try (BufferedReader preReader
