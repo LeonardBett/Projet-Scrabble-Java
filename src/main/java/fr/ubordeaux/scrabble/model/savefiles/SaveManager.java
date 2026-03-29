@@ -89,7 +89,8 @@ public class SaveManager {
   }
 
   /**
-   * Serializes the 15x15 board into the save file using characters and dashes.
+   * Serializes the board into the save file using uppercase letters for tiles and dashes for
+   * empty squares. Supports boards of any size (standard 15x15 or super 21x21).
    *
    * @param writer The PrintWriter used to write the board state.
    * @param board  The game board containing the squares and tiles.
