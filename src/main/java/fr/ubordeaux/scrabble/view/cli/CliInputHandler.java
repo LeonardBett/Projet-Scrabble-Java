@@ -1,5 +1,6 @@
 package fr.ubordeaux.scrabble.view.cli;
 
+import fr.ubordeaux.scrabble.i18n.I18n;
 import fr.ubordeaux.scrabble.model.core.Move;
 import fr.ubordeaux.scrabble.model.core.Tile;
 import fr.ubordeaux.scrabble.model.enums.Direction;
@@ -32,15 +33,15 @@ public class CliInputHandler {
    * @return the action string chosen by the player
    */
   public String askAction() {
-    messageRenderer.sectionTitle("CHOSE AN ACTION");
-    System.out.println("1. Play a word");
-    System.out.println("2. Exchange letters");
-    System.out.println("3. Skip turn");
-    System.out.println("4. Undo former move");
-    System.out.println("5. Redo the canceled move");
-    System.out.println("6. Quit");
-    System.out.println("7. Ask for an hint");
-    System.out.print("\nYour choice (1-7) : ");
+    messageRenderer.sectionTitle(I18n.translate("cli.action.title"));
+    System.out.println(I18n.translate("cli.action.play"));
+    System.out.println(I18n.translate("cli.action.exchange"));
+    System.out.println(I18n.translate("cli.action.pass"));
+    System.out.println(I18n.translate("cli.action.undo"));
+    System.out.println(I18n.translate("cli.action.redo"));
+    System.out.println(I18n.translate("cli.action.quit"));
+    System.out.println(I18n.translate("cli.action.hint"));
+    System.out.print("\n" + I18n.translate("cli.action.choicePrompt"));
     return scanner.nextLine().trim();
   }
 
@@ -52,10 +53,10 @@ public class CliInputHandler {
    */
   public Move askPlayMove(Player player) {
     try {
-      System.out.print("\nStart position (format: h 8 ou 8 8) : ");
+      System.out.print("\n" + I18n.translate("cli.play.startPrompt"));
       String[] posInput = scanner.nextLine().trim().split("\\s+");
       if (posInput.length < 2) {
-        throw new IllegalArgumentException("Input two values: line column.");
+        throw new IllegalArgumentException(I18n.translate("cli.play.needTwoValues"));
       }
 
       int x;
@@ -72,7 +73,7 @@ public class CliInputHandler {
           }
         }
         if (rowIndex == -1) {
-          throw new IllegalArgumentException("Ligne invalide: " + posInput[0]);
+          throw new IllegalArgumentException(I18n.translate("cli.play.invalidRow", posInput[0]));
         }
         y = rowIndex;
         x = Integer.parseInt(posInput[1]) - 1;
@@ -83,11 +84,11 @@ public class CliInputHandler {
 
       final Point startPoint = new Point(x, y);
 
-      System.out.print("Direction (H for horizontal, V for vertical) : ");
+      System.out.print(I18n.translate("cli.play.directionPrompt"));
       String dirInput = scanner.nextLine().trim().toUpperCase();
       Direction direction = dirInput.equals("H") ? Direction.HORIZONTAL : Direction.VERTICAL;
 
-      System.out.print("Letters to play (ex: HELLO) : ");
+      System.out.print(I18n.translate("cli.play.lettersPrompt"));
       String lettersInput = scanner.nextLine().trim().toUpperCase();
 
       List<Tile> tiles = new ArrayList<>();
@@ -112,7 +113,7 @@ public class CliInputHandler {
           }
         }
         if (!found) {
-          messageRenderer.error("The letter '" + letter + "' is not in your rack !");
+          messageRenderer.error(I18n.translate("cli.play.letterNotInRack", letter));
           return null;
         }
       }
@@ -120,7 +121,7 @@ public class CliInputHandler {
       return Move.createPlay(player, tiles, startPoint, direction);
 
     } catch (Exception e) {
-      messageRenderer.error("Invalid format ! " + e.getMessage());
+      messageRenderer.error(I18n.translate("cli.play.invalidFormat", e.getMessage()));
       return null;
     }
   }
@@ -133,7 +134,7 @@ public class CliInputHandler {
    */
   public Move askExchangeMove(Player player) {
     try {
-      System.out.print("\nLetters to exchange (ex: ABC) : ");
+      System.out.print("\n" + I18n.translate("cli.exchange.prompt"));
       String lettersInput = scanner.nextLine().trim().toUpperCase();
 
       List<Tile> tiles = new ArrayList<>();
@@ -158,7 +159,7 @@ public class CliInputHandler {
           }
         }
         if (!found) {
-          messageRenderer.error("La lettre '" + letter + "' n'est pas dans votre chevalet !");
+          messageRenderer.error(I18n.translate("cli.exchange.letterNotInRack", letter));
           return null;
         }
       }
@@ -166,7 +167,7 @@ public class CliInputHandler {
       return Move.createExchange(player, tiles);
 
     } catch (Exception e) {
-      messageRenderer.error("Format invalide ! " + e.getMessage());
+      messageRenderer.error(I18n.translate("cli.exchange.invalidFormat", e.getMessage()));
       return null;
     }
   }
@@ -178,15 +179,15 @@ public class CliInputHandler {
    */
   public int askNumberOfPlayers() {
     while (true) {
-      System.out.print("\nNumbers of players (2-4) : ");
+      System.out.print("\n" + I18n.translate("cli.players.countPrompt"));
       try {
         int num = Integer.parseInt(scanner.nextLine().trim());
         if (num >= 2 && num <= 4) {
           return num;
         }
-        messageRenderer.warning("The numbers of player must be between 2 and 4.");
+        messageRenderer.warning(I18n.translate("cli.players.rangeWarning"));
       } catch (NumberFormatException e) {
-        messageRenderer.error("Please enter a valid number.");
+        messageRenderer.error(I18n.translate("cli.players.invalidNumber"));
       }
     }
   }
@@ -198,7 +199,7 @@ public class CliInputHandler {
    * @return the name entered by the user
    */
   public String askPlayerName(int playerNumber) {
-    System.out.print("Player's name " + playerNumber + " : ");
+    System.out.print(I18n.translate("cli.players.namePrompt", playerNumber));
     return scanner.nextLine().trim();
   }
 
@@ -209,7 +210,7 @@ public class CliInputHandler {
    * @return true if the user confirmed, false otherwise
    */
   public boolean askConfirmation(String question) {
-    System.out.print(question + " (o/n) : ");
+    System.out.print(question + " " + I18n.translate("cli.confirm.suffix"));
     String response = scanner.nextLine().trim().toLowerCase();
     return response.equals("o") || response.equals("oui") || response.equals("y")
         || response.equals("yes");

@@ -61,6 +61,7 @@ public class GuiLauncher {
     JavaFxView view = new JavaFxView(game);
     ScrabbleGui.setGame(game);
     ScrabbleGui.setView(view);
+    ScrabbleGui.setLanguage(lang);
     Application.launch(ScrabbleGui.class, args);
   }
 

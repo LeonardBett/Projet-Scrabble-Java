@@ -1,6 +1,7 @@
 package fr.ubordeaux.scrabble.view.optionlancement;
 
 import fr.ubordeaux.scrabble.controller.GameController;
+import fr.ubordeaux.scrabble.i18n.I18n;
 import fr.ubordeaux.scrabble.model.ai.AiPlayer;
 import fr.ubordeaux.scrabble.model.core.Game;
 import fr.ubordeaux.scrabble.model.core.HumanPlayer;
@@ -67,7 +68,8 @@ public class CliLauncher {
         // Le temps de réflexion 'aiTime' est maintenant correctement injecté au lieu du 5
         game.addPlayer(new AiPlayer("IA-" + color.name(), 3, aiTime, color));
       } else {
-        game.addPlayer(new HumanPlayer("Player" + humanCount, color));
+        game.addPlayer(
+            new HumanPlayer(I18n.translate("scrabble.defaultPlayer", humanCount), color));
         humanCount++;
       }
     }

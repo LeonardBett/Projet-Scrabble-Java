@@ -1,5 +1,6 @@
 package fr.ubordeaux.scrabble.controller;
 
+import fr.ubordeaux.scrabble.i18n.I18n;
 import fr.ubordeaux.scrabble.model.core.Board;
 import fr.ubordeaux.scrabble.model.core.Game;
 import fr.ubordeaux.scrabble.model.core.Move;
@@ -134,8 +135,10 @@ public class GameController {
             if (!warned[i] && remaining <= warnedAt[i] && remaining > 0) {
               warned[i] = true;
               long minutes = warnedAt[i] / 60_000L;
-              System.out.println("\n " + current.getName()
-                  + " — " + minutes + " minute(s) remaining !");
+              System.out.println("\n " + I18n.translate(
+                  "cli.blitz.remainingMinutes",
+                  current.getName(),
+                  minutes));
             }
           }
 
@@ -180,8 +183,8 @@ public class GameController {
   void handleBlitzExpiry(Player expired, CliView cliView) {
     game.setGameOver(true);
     stopBlitzWatcher();
-    cliView.displayError("\nTime's up" + expired.getName() + " !");
-    cliView.displayMessage("Game is over.");
+    cliView.displayError(I18n.translate("cli.blitz.playerTimedOut", expired.getName()));
+    cliView.displayMessage(I18n.translate("cli.game.over"));
   }
 
   /**
@@ -368,7 +371,7 @@ public class GameController {
    * Searches for the highest-scoring move that specifically uses fewer than 7 letters
    * from the rack to avoid giving away a bingo/scrabble.
    */
-  void provideHint() {
+  public void provideHint() {
     MoveGenerator moveGen = new MoveGenerator();
     List<PlayableWord> possibleMoves = moveGen.getPlayableWordsList(game, getOrLoadGaddag());
 
@@ -391,13 +394,9 @@ public class GameController {
     }
 
     if (bestHintMove != null) {
-      view.displayMessage("\n Hint : You can use the letters "
-          + bestLettersToUse.toString()
-          + " to make a word of " + bestScore + " points.\n");
+      view.displayMessage(I18n.translate("cli.hint.found", bestLettersToUse.toString(), bestScore));
     } else {
-      view.displayMessage("\n Hint : No words shorter than 7"
-          +
-          "letters were found with your rack.\n");
+      view.displayMessage(I18n.translate("cli.hint.notFound"));
     }
   }
 
