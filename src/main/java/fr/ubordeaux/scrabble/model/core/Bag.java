@@ -55,12 +55,18 @@ public class Bag {
     addTiles('Z', 1);
 
     // Jokers (Blanks) - represented by a space ' '
-    addTiles(' ', 2);
+    addJokers(2);
   }
 
   private void addTiles(char letter, int count) {
     for (int i = 0; i < count; i++) {
       tiles.add(new Tile(letter));
+    }
+  }
+
+  private void addJokers(int count) {
+    for (int i = 0; i < count; i++) {
+      tiles.add(new Tile(' ', true));
     }
   }
 

@@ -42,6 +42,19 @@ class ScoringTest {
     assertEquals(57, score);
   }
 
+  @Test
+  void calculateWordScoreShouldCountJokerAsZeroWithWordMultiplier() {
+    Square jokerOnTripleWord = new Square(new Point(0, 0), SquareType.TRIPLE_WORD);
+    jokerOnTripleWord.setTile(new Tile('Z', true));
+
+    Square normalA = squareWithTile(1, 0, SquareType.NORMAL, 'A');
+
+    int score = Scoring.calculateWordScore(List.of(jokerOnTripleWord, normalA),
+        List.of(jokerOnTripleWord, normalA));
+
+    assertEquals(3, score);
+  }
+
   /**
    * Test that calculateWordScore validates its inputs and throws appropriate exceptions for null
    * parameters, empty squares, or squares without tiles.

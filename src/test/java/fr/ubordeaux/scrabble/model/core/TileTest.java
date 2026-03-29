@@ -2,6 +2,7 @@ package fr.ubordeaux.scrabble.model.core;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
@@ -48,6 +49,17 @@ class TileTest {
     assertEquals(first, same);
     assertEquals(first.hashCode(), same.hashCode());
     assertNotEquals(first, different);
+    Tile jokerDisplayedK = new Tile('K', true);
+    assertNotEquals(first, jokerDisplayedK);
+  }
+
+  @Test
+  void jokerConstructorShouldCreateZeroPointTile() {
+    Tile jokerAsG = new Tile('G', true);
+
+    assertEquals('G', jokerAsG.getCharacter());
+    assertEquals(0, jokerAsG.getValue());
+    assertTrue(jokerAsG.isJoker());
   }
 
   /**

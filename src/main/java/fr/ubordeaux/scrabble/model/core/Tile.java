@@ -94,11 +94,11 @@ public class Tile {
       return false;
     }
     Tile tile = (Tile) o;
-    return character == tile.character && value == tile.value;
+    return character == tile.character && value == tile.value && isJoker == tile.isJoker;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(character, value);
+    return Objects.hash(character, value, isJoker);
   }
 }
