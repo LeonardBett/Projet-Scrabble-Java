@@ -93,9 +93,19 @@ public class NetworkLobbyView extends Stage {
     this.setTitle(I18n.translate("lobby.windowTitle"));
     this.initModality(Modality.NONE);
     this.setResizable(false);
+    this.setOnCloseRequest(event -> onLobbyClose());
 
     // Start UDP discovery listening as soon as the window opens
     this.networkManager.startOnlinePlay();
+  }
+
+  /**
+   * Stops all network background activity when the lobby window is closed.
+   */
+  private void onLobbyClose() {
+    networkManager.stopOnlinePlay();
+    serverRunning = false;
+    clientConnected = false;
   }
 
   /** Initializes the main UI components, tabs, and the console text area. */
