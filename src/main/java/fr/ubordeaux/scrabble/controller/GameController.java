@@ -363,7 +363,16 @@ public class GameController {
    * @param lang the language code (e.g., "en" or "fr")
    */
   public void setLang(String lang) {
-    this.lang = lang;
+    String normalized = Tile.normalizeLanguage(lang);
+    this.lang = normalized;
+
+    if (game != null) {
+      game.setLanguage(normalized);
+    }
+
+    // Force lazy resources to be rebuilt using the new language.
+    this.gaddag = null;
+    this.dictionaryList = null;
   }
 
   /**

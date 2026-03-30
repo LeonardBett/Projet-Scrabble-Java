@@ -11,6 +11,7 @@ import java.util.Random;
 public class Bag {
   private final List<Tile> tiles;
   private final Random random;
+  private String language;
 
   // Size of the bag, only use in online client mode
   private int onlineSize = -1;
@@ -19,55 +20,114 @@ public class Bag {
    * Constructor: initializes the bag with the standard distribution of tiles.
    */
   public Bag() {
+    this(Tile.getActiveLanguage());
+  }
+
+  /**
+   * Constructor: initializes the bag with the standard distribution of tiles for the given
+   * language.
+   *
+   * @param language language code ("en" or "fr")
+   */
+  public Bag(String language) {
     this.tiles = new ArrayList<>();
     this.random = new Random();
-    initializeBag();
+    reset(language);
+  }
+
+  private void initializeBag(String language) {
+    if ("fr".equals(language)) {
+      // French Scrabble distribution (102 tiles).
+      addTiles('A', 9, language);
+      addTiles('B', 2, language);
+      addTiles('C', 2, language);
+      addTiles('D', 3, language);
+      addTiles('E', 15, language);
+      addTiles('F', 2, language);
+      addTiles('G', 2, language);
+      addTiles('H', 2, language);
+      addTiles('I', 8, language);
+      addTiles('J', 1, language);
+      addTiles('K', 1, language);
+      addTiles('L', 5, language);
+      addTiles('M', 3, language);
+      addTiles('N', 6, language);
+      addTiles('O', 6, language);
+      addTiles('P', 2, language);
+      addTiles('Q', 1, language);
+      addTiles('R', 6, language);
+      addTiles('S', 6, language);
+      addTiles('T', 6, language);
+      addTiles('U', 6, language);
+      addTiles('V', 2, language);
+      addTiles('W', 1, language);
+      addTiles('X', 1, language);
+      addTiles('Y', 1, language);
+      addTiles('Z', 1, language);
+      addJokers(2, language);
+      return;
+    } else {     // English Scrabble distribution (100 tiles).
+      addTiles('A', 9, language);
+      addTiles('B', 2, language);
+      addTiles('C', 2, language);
+      addTiles('D', 4, language);
+      addTiles('E', 12, language);
+      addTiles('F', 2, language);
+      addTiles('G', 3, language);
+      addTiles('H', 2, language);
+      addTiles('I', 9, language);
+      addTiles('J', 1, language);
+      addTiles('K', 1, language);
+      addTiles('L', 4, language);
+      addTiles('M', 2, language);
+      addTiles('N', 6, language);
+      addTiles('O', 8, language);
+      addTiles('P', 2, language);
+      addTiles('Q', 1, language);
+      addTiles('R', 6, language);
+      addTiles('S', 4, language);
+      addTiles('T', 6, language);
+      addTiles('U', 4, language);
+      addTiles('V', 2, language);
+      addTiles('W', 2, language);
+      addTiles('X', 1, language);
+      addTiles('Y', 2, language);
+      addTiles('Z', 1, language);
+      addJokers(2, language);
+    }
+  }
+
+  private void addTiles(char letter, int count, String language) {
+    for (int i = 0; i < count; i++) {
+      tiles.add(new Tile(letter, language));
+    }
+  }
+
+  private void addJokers(int count, String language) {
+    for (int i = 0; i < count; i++) {
+      tiles.add(new Tile(' ', true, language));
+    }
+  }
+
+  /**
+   * Resets the bag content using the distribution of the selected language.
+   *
+   * @param language language code ("en" or "fr")
+   */
+  public void reset(String language) {
+    this.language = Tile.normalizeLanguage(language);
+    this.tiles.clear();
+    initializeBag(this.language);
     shuffle();
   }
 
-  private void initializeBag() {
-    // French Scrabble Distribution (102 tiles)
-    addTiles('A', 9);
-    addTiles('B', 2);
-    addTiles('C', 2);
-    addTiles('D', 3);
-    addTiles('E', 15);
-    addTiles('F', 2);
-    addTiles('G', 2);
-    addTiles('H', 2);
-    addTiles('I', 8);
-    addTiles('J', 1);
-    addTiles('K', 1);
-    addTiles('L', 5);
-    addTiles('M', 3);
-    addTiles('N', 6);
-    addTiles('O', 6);
-    addTiles('P', 2);
-    addTiles('Q', 1);
-    addTiles('R', 6);
-    addTiles('S', 6);
-    addTiles('T', 6);
-    addTiles('U', 6);
-    addTiles('V', 2);
-    addTiles('W', 1);
-    addTiles('X', 1);
-    addTiles('Y', 1);
-    addTiles('Z', 1);
-
-    // Jokers (Blanks) - represented by a space ' '
-    addJokers(2);
-  }
-
-  private void addTiles(char letter, int count) {
-    for (int i = 0; i < count; i++) {
-      tiles.add(new Tile(letter));
-    }
-  }
-
-  private void addJokers(int count) {
-    for (int i = 0; i < count; i++) {
-      tiles.add(new Tile(' ', true));
-    }
+  /**
+   * Returns the language currently used by this bag distribution.
+   *
+   * @return language code.
+   */
+  public String getLanguage() {
+    return language;
   }
 
   /**

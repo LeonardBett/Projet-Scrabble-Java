@@ -4,9 +4,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class TileTest {
+
+  @BeforeEach
+  void resetActiveLanguage() {
+    Tile.setActiveLanguage("en");
+  }
 
   /**
    * Test that the Tile constructor correctly assigns the character and retrieves its standard point
@@ -26,14 +32,22 @@ class TileTest {
    */
   @Test
   void getStandardValueShouldReturnExpectedScores() {
-    assertEquals(1, Tile.getStandardValue('E'));
-    assertEquals(2, Tile.getStandardValue('D'));
-    assertEquals(3, Tile.getStandardValue('C'));
-    assertEquals(4, Tile.getStandardValue('F'));
-    assertEquals(8, Tile.getStandardValue('J'));
-    assertEquals(10, Tile.getStandardValue('Z'));
+    assertEquals(1, Tile.getStandardValue('E', "en"));
+    assertEquals(2, Tile.getStandardValue('D', "en"));
+    assertEquals(3, Tile.getStandardValue('C', "en"));
+    assertEquals(4, Tile.getStandardValue('F', "en"));
+    assertEquals(8, Tile.getStandardValue('J', "en"));
+    assertEquals(10, Tile.getStandardValue('Z', "en"));
     assertEquals(0, Tile.getStandardValue(' '));
     assertEquals(0, Tile.getStandardValue('?'));
+  }
+
+  @Test
+  void getStandardValueShouldAdaptBetweenEnglishAndFrench() {
+    assertEquals(2, Tile.getStandardValue('M', "fr"));
+    assertEquals(3, Tile.getStandardValue('M', "en"));
+    assertEquals(10, Tile.getStandardValue('W', "fr"));
+    assertEquals(4, Tile.getStandardValue('W', "en"));
   }
 
   /**

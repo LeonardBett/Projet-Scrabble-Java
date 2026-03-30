@@ -178,7 +178,8 @@ class GameControllerTest {
 
   @Test
   void settersShouldUpdateControllerConfiguration() throws Exception {
-    GameController controller = new GameController(new Game(), new RecordingView());
+    Game game = new Game();
+    GameController controller = new GameController(game, new RecordingView());
 
     controller.setAiTime(9);
     controller.setUseExptiminimax(true);
@@ -191,25 +192,19 @@ class GameControllerTest {
     assertTrue((boolean) getPrivateField(controller, "useMl"));
     assertEquals("fr", getPrivateField(controller, "lang"));
     assertEquals(3, (int) getPrivateField(controller, "playerCount"));
+    assertEquals("fr", game.getLanguage());
+    assertEquals("fr", game.getBag().getLanguage());
   }
 
   @Test
-  void handlePlayerMoveShouldWrapDictionaryLoadingErrorForUnknownLanguage() {
+  void setLangShouldFallbackToEnglishForUnknownLanguage() throws Exception {
     Game game = new Game();
-    HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
-    game.addPlayer(alice);
-
-    alice.getRack().setTiles(new ArrayList<>(List.of(new Tile('A'))));
-
     GameController controller = new GameController(game, new RecordingView());
     controller.setLang("zz");
 
-    Move move = Move.createPlay(alice, List.of(new Tile('A')), new Point(7, 7),
-        Direction.HORIZONTAL);
-
-    RuntimeException error = assertThrows(RuntimeException.class,
-        () -> controller.handlePlayerMove(move));
-    assertTrue(error.getMessage().contains("Dictionary file dictionaries/lexicon_zz.txt"));
+    assertEquals("en", getPrivateField(controller, "lang"));
+    assertEquals("en", game.getLanguage());
+    assertEquals("en", game.getBag().getLanguage());
   }
 
   @Test

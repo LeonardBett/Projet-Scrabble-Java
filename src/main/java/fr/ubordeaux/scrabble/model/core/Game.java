@@ -1,5 +1,6 @@
 package fr.ubordeaux.scrabble.model.core;
 
+import fr.ubordeaux.scrabble.i18n.I18n;
 import fr.ubordeaux.scrabble.model.enums.GameMode;
 import fr.ubordeaux.scrabble.model.enums.MoveType;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
@@ -23,10 +24,12 @@ public class Game {
   private boolean isGameOver;
   private final MoveHandler moveHandler;
   private final UndoRedo undoRedo;
+  private String language;
   /**
    * True once the first PLAY move has been successfully executed.
    */
   private boolean firstMoveDone;
+  private boolean started;
   private boolean blitzModeEnabled;
   private Duration blitzTimePerPlayer;
 
@@ -34,7 +37,16 @@ public class Game {
    * Builds a new game with an empty player list and initialized board/bag.
    */
   public Game() {
-    this(GameMode.STANDARD);
+    this(GameMode.STANDARD, I18n.getLanguage());
+  }
+
+  /**
+   * Builds a new game with an empty player list and initialized board/bag using a language.
+   *
+   * @param language language code ("en" or "fr")
+   */
+  public Game(String language) {
+    this(GameMode.STANDARD, language);
   }
 
   /**
@@ -43,14 +55,27 @@ public class Game {
    * @param mode selected game mode.
    */
   public Game(GameMode mode) {
+    this(mode, I18n.getLanguage());
+  }
+
+  /**
+   * Builds a new game with an empty player list using a specific board preset and language.
+   *
+   * @param mode selected game mode.
+   * @param language language code ("en" or "fr")
+   */
+  public Game(GameMode mode, String language) {
+    this.language = Tile.normalizeLanguage(language);
+    Tile.setActiveLanguage(this.language);
     this.board = mode == GameMode.SUPER ? new Board(21) : new Board();
-    this.bag = new Bag();
+    this.bag = new Bag(this.language);
     this.players = new ArrayList<>();
     this.currentPlayerIndex = 0;
     this.isGameOver = false;
     this.moveHandler = new MoveHandler(this);
     this.undoRedo = new UndoRedo();
     this.firstMoveDone = false;
+    this.started = false;
     this.blitzModeEnabled = false;
     this.blitzTimePerPlayer = DEFAULT_BLITZ_TIME;
   }
@@ -118,9 +143,11 @@ public class Game {
     if (players.isEmpty()) {
       throw new IllegalStateException("No players added to the game.");
     }
+    Tile.setActiveLanguage(language);
     for (Player player : players) {
       refillRack(player);
     }
+    started = true;
 
     if (blitzModeEnabled) {
       for (Player player : players) {
@@ -411,6 +438,42 @@ public class Game {
       }
     }
     return winner;
+  }
+
+  /**
+   * Returns the language used by this game.
+   *
+   * @return language code ("en" or "fr").
+   */
+  public String getLanguage() {
+    return language;
+  }
+
+  /**
+   * Configures the game language and refreshes the bag distribution.
+   * Must be called before game start and before any tile is placed or assigned to racks.
+   *
+   * @param language language code ("en" or "fr")
+   */
+  public void setLanguage(String language) {
+    if (started || firstMoveDone || boardHasAnyTile() || undoRedo.canUndo()) {
+      throw new IllegalStateException("Language can only be changed before the game starts.");
+    }
+
+    this.language = Tile.normalizeLanguage(language);
+    Tile.setActiveLanguage(this.language);
+
+    boolean canResetBag = true;
+    for (Player player : players) {
+      if (!player.getRack().isEmpty()) {
+        canResetBag = false;
+        break;
+      }
+    }
+
+    if (canResetBag) {
+      bag.reset(this.language);
+    }
   }
 
   /**

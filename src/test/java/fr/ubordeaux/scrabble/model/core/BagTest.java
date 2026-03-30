@@ -13,12 +13,19 @@ import org.junit.jupiter.api.Test;
 class BagTest {
 
   /**
-   * Test that the Bag constructor initializes with 102 tiles, which is the standard French Scrabble
-   * tile distribution.
+   * Test that the default Bag constructor initializes with 100 tiles (English distribution).
    */
   @Test
-  void constructorShouldInitializeStandardFrenchDistributionSize() {
+  void constructorShouldInitializeStandardEnglishDistributionSize() {
     Bag bag = new Bag();
+
+    assertEquals(100, bag.size());
+    assertFalse(bag.isEmpty());
+  }
+
+  @Test
+  void constructorShouldInitializeFrenchDistributionSizeWhenRequested() {
+    Bag bag = new Bag("fr");
 
     assertEquals(102, bag.size());
     assertFalse(bag.isEmpty());
