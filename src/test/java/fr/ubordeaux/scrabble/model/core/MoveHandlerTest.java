@@ -109,6 +109,32 @@ class MoveHandlerTest {
   }
 
   @Test
+  void handlePlayMoveShouldUseJokerFromRackWithZeroPoints() {
+    Game game = new Game();
+    HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
+    game.addPlayer(alice);
+    MoveHandler handler = new MoveHandler(game);
+
+    alice.getRack().setTiles(new ArrayList<>(List.of(new Tile('A'), new Tile(' ', true))));
+
+    Move move = Move.createPlay(alice, List.of(new Tile('A'), new Tile('Z', true)),
+        new Point(7, 7), Direction.HORIZONTAL);
+
+    handler.handlePlayMove(move);
+
+    Tile placedA = game.getBoard().getSquare(new Point(7, 7)).getTile();
+    Tile placedZ = game.getBoard().getSquare(new Point(8, 7)).getTile();
+
+    assertNotNull(placedA);
+    assertNotNull(placedZ);
+    assertEquals('A', placedA.getCharacter());
+    assertEquals(1, placedA.getValue());
+    assertEquals('Z', placedZ.getCharacter());
+    assertEquals(0, placedZ.getValue());
+    assertTrue(placedZ.isJoker());
+  }
+
+  @Test
   void handlePlayMoveShouldRejectDisconnectedWordAfterFirstMove() {
     Game game = new Game();
     HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);

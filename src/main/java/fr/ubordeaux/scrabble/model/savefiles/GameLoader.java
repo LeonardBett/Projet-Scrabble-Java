@@ -10,6 +10,8 @@ import fr.ubordeaux.scrabble.model.interfaces.Player;
 import fr.ubordeaux.scrabble.model.utils.Point;
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,7 +37,8 @@ public class GameLoader {
    * @throws Exception if format is invalid, specifying the line number (F24).
    */
   public Game loadGame(String filePath) throws Exception {
-    Game game = new Game();
+    String detectedLanguage = detectLanguage(filePath);
+    Game game = new Game(detectedLanguage);
     this.isInBlockComment = false;
     int lineCount = 0;
 
@@ -136,6 +139,10 @@ public class GameLoader {
    * @return The updated board row index.
    */
   private int parseGameState(Game game, String line, int boardRow) {
+    if (line.startsWith("language ")) {
+      return boardRow;
+    }
+
     if (line.length() == 1 && Character.isDigit(line.charAt(0))) {
       return boardRow;
     }
@@ -216,5 +223,44 @@ public class GameLoader {
       PlayerColor color = PlayerColor.values()[nextIdx % PlayerColor.values().length];
       game.addPlayer(new HumanPlayer("Player " + (nextIdx + 1), color));
     }
+  }
+
+  private String detectLanguage(String filePath) {
+    boolean inBlockComment = false;
+
+    try {
+      List<String> lines = Files.readAllLines(Path.of(filePath));
+      for (String rawLine : lines) {
+        StringBuilder cleaned = new StringBuilder();
+        for (char c : rawLine.toCharArray()) {
+          if (inBlockComment) {
+            if (c == '}') {
+              inBlockComment = false;
+            }
+            continue;
+          }
+          if (c == '{') {
+            inBlockComment = true;
+            continue;
+          }
+          if (c == '#') {
+            break;
+          }
+          cleaned.append(c);
+        }
+
+        String line = cleaned.toString().trim();
+        if (line.startsWith("language")) {
+          String[] parts = line.split("\\s+");
+          if (parts.length >= 2) {
+            return Tile.normalizeLanguage(parts[1]);
+          }
+        }
+      }
+    } catch (Exception ignored) {
+      // Ignore and fallback to English.
+    }
+
+    return "en";
   }
 }

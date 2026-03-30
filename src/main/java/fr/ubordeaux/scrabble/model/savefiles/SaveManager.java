@@ -63,7 +63,7 @@ public class SaveManager {
       }
 
       writer.println();
-      writer.println("language en");
+      writer.println("language " + game.getLanguage());
       writer.println();
 
       writer.println("[history]");

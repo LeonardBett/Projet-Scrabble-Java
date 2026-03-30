@@ -7,17 +7,25 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 
 class BagTest {
 
   /**
-   * Test that the Bag constructor initializes with 102 tiles, which is the standard French Scrabble
-   * tile distribution.
+   * Test that the default Bag constructor initializes with 100 tiles (English distribution).
    */
   @Test
-  void constructorShouldInitializeStandardFrenchDistributionSize() {
+  void constructorShouldInitializeStandardEnglishDistributionSize() {
     Bag bag = new Bag();
+
+    assertEquals(100, bag.size());
+    assertFalse(bag.isEmpty());
+  }
+
+  @Test
+  void constructorShouldInitializeFrenchDistributionSizeWhenRequested() {
+    Bag bag = new Bag("fr");
 
     assertEquals(102, bag.size());
     assertFalse(bag.isEmpty());
@@ -69,5 +77,24 @@ class BagTest {
 
     assertTrue(bag.removeTile(new Tile('Z')));
     assertFalse(bag.removeTile(new Tile('#')));
+  }
+
+  @Test
+  void constructorShouldCreateTwoJokerTiles() {
+    Bag bag = new Bag();
+    List<Tile> allTiles = bagToList(bag);
+
+    List<Tile> jokers = allTiles.stream().filter(Tile::isJoker).collect(Collectors.toList());
+    assertEquals(2, jokers.size());
+    assertTrue(jokers.stream().allMatch(t -> t.getCharacter() == ' '));
+    assertTrue(jokers.stream().allMatch(t -> t.getValue() == 0));
+  }
+
+  private List<Tile> bagToList(Bag bag) {
+    List<Tile> allTiles = new java.util.ArrayList<>();
+    while (!bag.isEmpty()) {
+      allTiles.add(bag.drawTile());
+    }
+    return allTiles;
   }
 }

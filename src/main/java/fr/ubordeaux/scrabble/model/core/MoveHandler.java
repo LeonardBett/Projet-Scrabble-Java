@@ -149,18 +149,14 @@ public class MoveHandler {
     List<Tile> newlyPlacedTiles = new ArrayList<>();
     buildWordForMove(startPosition, direction, tiles, wordSquares, wordPositions,
         newlyPlacedSquares, newlyPlacedPositions, newlyPlacedTiles);
-    // IMPORTANT: Verify player has all required tiles BEFORE modifying the board
-    for (Tile tile : newlyPlacedTiles) {
-      if (!player.getRack().getTiles().contains(tile)) {
-        throw new IllegalArgumentException("Player does not have the tile " + tile.getCharacter());
-      }
-    }
+    // Resolve concrete rack tiles to consume (supports jokers replacing letters)
+    List<Tile> resolvedTiles = resolveTilesFromRack(player.getRack().getTiles(), newlyPlacedTiles);
 
     // Place the tiles from the move into the recorded newly placed positions
     for (int i = 0; i < newlyPlacedPositions.size(); i++) {
       Point p = newlyPlacedPositions.get(i);
       Square sq = game.getBoard().getSquare(p);
-      Tile tileToPlace = newlyPlacedTiles.get(i);
+      Tile tileToPlace = resolvedTiles.get(i);
       if (!sq.isEmpty()) {
         throw new IllegalArgumentException("Attempting to place a tile on a non-empty square.");
       }
@@ -169,7 +165,7 @@ public class MoveHandler {
 
     // Save placed positions in the move for undo
     move.setPlacedPositions(newlyPlacedPositions);
-    move.setPlacedTiles(newlyPlacedTiles);
+    move.setPlacedTiles(resolvedTiles);
 
     // 5. Calculate the score using the Scoring utility (main word + crosses)
     int totalScore = 0;
@@ -187,10 +183,9 @@ public class MoveHandler {
     // Save score in move for undo
     move.setScoreGained(totalScore);
 
-    // 6. Remove the used tiles from the player's rack (already validated above)
-    for (Square square : newlyPlacedSquares) {
-      Tile tile = square.getTile();
-      player.getRack().removeTile(tile); // Safe: already validated above
+    // 6. Remove the used tiles from the player's rack (resolved from rack content)
+    for (Tile tile : resolvedTiles) {
+      player.getRack().removeTile(tile);
     }
 
     // 7. Refill the player's rack from the bag
@@ -199,6 +194,58 @@ public class MoveHandler {
 
     GameLogger.logVerbose(
         "Player " + player.getName() + " played a word for " + totalScore + " points.");
+  }
+
+  private List<Tile> resolveTilesFromRack(List<Tile> rackTiles, List<Tile> tilesToPlace) {
+    List<Tile> remaining = new ArrayList<>(rackTiles);
+    List<Tile> resolved = new ArrayList<>();
+
+    for (Tile requested : tilesToPlace) {
+      Tile fromRack = findAndConsumeMatchingTile(remaining, requested);
+      if (fromRack == null) {
+        throw new IllegalArgumentException("Player does not have the tile "
+            + requested.getCharacter());
+      }
+
+      if (fromRack.isJoker() && requested.getCharacter() != ' ') {
+        resolved.add(new Tile(requested.getCharacter(), true));
+      } else {
+        resolved.add(fromRack);
+      }
+    }
+
+    return resolved;
+  }
+
+  private Tile findAndConsumeMatchingTile(List<Tile> remainingRackTiles, Tile requested) {
+    for (int i = 0; i < remainingRackTiles.size(); i++) {
+      Tile candidate = remainingRackTiles.get(i);
+      if (candidate.equals(requested)) {
+        remainingRackTiles.remove(i);
+        return candidate;
+      }
+    }
+
+    if (requested.isJoker()) {
+      for (int i = 0; i < remainingRackTiles.size(); i++) {
+        Tile candidate = remainingRackTiles.get(i);
+        if (candidate.isJoker()) {
+          remainingRackTiles.remove(i);
+          return candidate;
+        }
+      }
+      return null;
+    }
+
+    for (int i = 0; i < remainingRackTiles.size(); i++) {
+      Tile candidate = remainingRackTiles.get(i);
+      if (candidate.isJoker()) {
+        remainingRackTiles.remove(i);
+        return candidate;
+      }
+    }
+
+    return null;
   }
 
   /**
