@@ -162,7 +162,6 @@ public class ScrabbleGui extends Application {
     stage.setOnCloseRequest(e -> networkBridge.dispose());
     stage.setTitle(I18n.translate("scrabble.windowTitle"));
     Scene scene = new Scene(root, 1200, 800);
-    setupShortcuts(scene);
     stage.setScene(scene);
     stage.setFullScreen(true);
     stage.show();
