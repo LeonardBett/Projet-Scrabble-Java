@@ -499,7 +499,9 @@ public class NetworkLobbyView extends Stage {
     content.setStyle(tabContentBackgroundStyle());
 
     Label desc =
-        styledLabel(hostDescriptionText(), Color.LIGHTGRAY);
+        styledLabel(
+        I18n.translate("lobby.hostDescription"),
+            Color.LIGHTGRAY);
     desc.setWrapText(true);
 
     HBox portRow = new HBox(rowSpacing());
@@ -548,7 +550,7 @@ public class NetworkLobbyView extends Stage {
   }
 
   private Tab buildJoinTab() {
-    final Tab tab = new Tab(joinTabTitleText());
+    final Tab tab = new Tab(I18n.translate("lobby.joinTab"));
 
     VBox content = new VBox(tabContentSpacing());
     content.setPadding(new Insets(tabContentPadding()));
@@ -639,7 +641,7 @@ public class NetworkLobbyView extends Stage {
     refreshScoreboardButton = createBtn(I18n.translate("lobby.refreshScoreboard"), "#9C27B0");
     refreshScoreboardButton.setOnAction(e -> onRefreshScoreboard());
 
-    refreshPlayersButton = createBtn("Refresh Players", "#2196F3"); // Bleu
+    refreshPlayersButton = createBtn("Actualiser les joueurs", "#2196F3"); // Bleu
     refreshPlayersButton.setOnAction(e -> onRefreshPlayers());
 
     toggleStatusButton = createBtn("Go Away (AWAY)", "#607D8B"); // Gris bleuté
@@ -821,7 +823,7 @@ public class NetworkLobbyView extends Stage {
 
   private void onToggleStatus() {
     if (!clientConnected) {
-      log(notConnectedMessage());
+      log(I18n.translate("lobby.notConnected"));
       return;
     }
 
@@ -1030,10 +1032,10 @@ public class NetworkLobbyView extends Stage {
     int rank = 1;
     for (Map<String, String> entry : scoreboard) {
       String name = entry.getOrDefault("NAME", "?");
-      String w = entry.getOrDefault("WINS", "0");
-      String l = entry.getOrDefault("LOSSES", "0");
-      String t = entry.getOrDefault("TOTAL", "0");
-      items.add(String.format("%d. %-14s  W:%s  L:%s  T:%s", rank++, name, w, l, t));
+      String wins = entry.getOrDefault("WINS", "0");
+      String losses = entry.getOrDefault("LOSSES", "0");
+      String total = entry.getOrDefault("TOTAL", "0");
+      items.add(String.format("%d. %-14s  V:%s  D:%s  T:%s", rank++, name, wins, losses, total));
     }
     scoreboardListView.setItems(items);
   }
