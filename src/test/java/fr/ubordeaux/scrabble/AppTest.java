@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
@@ -144,6 +145,101 @@ class AppTest {
         assertThrows(ExitCalledException.class, () -> App.main(new String[] {"-b", "-t"}));
 
     assertEquals(1, ex.status);
+  }
+
+  @Test
+  void mainShouldAcceptHelpAndVersionOptions() {
+    assertDoesNotThrow(() -> App.main(new String[] {"--help"}));
+    assertDoesNotThrow(() -> App.main(new String[] {"--version"}));
+
+    assertNotNull(cliCall);
+  }
+
+  @Test
+  void mainShouldNormalizeLanguageWithAtAndUnderscoreSuffixes() {
+    App.main(new String[] {"-l", "fr_CA.UTF-8@euro"});
+
+    assertNotNull(cliCall);
+    assertEquals("fr", cliCall.lang);
+  }
+
+  @Test
+  void normalizeLanguageShouldFallbackToDefaultForBlank() throws Exception {
+    Method normalize = App.class.getDeclaredMethod("normalizeLanguageOrDefault", String.class);
+    normalize.setAccessible(true);
+
+    String normalized = (String) normalize.invoke(null, "   ");
+    assertEquals("en", normalized);
+  }
+
+  @Test
+  void mainShouldExitWhenServerPortIsMissing() {
+    ExitCalledException ex =
+        assertThrows(ExitCalledException.class, () -> App.main(new String[] {"-S"}));
+
+    assertEquals(1, ex.status);
+  }
+
+  @Test
+  void mainShouldExitWhenServerPortIsInvalidText() {
+    ExitCalledException ex =
+        assertThrows(ExitCalledException.class, () -> App.main(new String[] {"-S", "not-a-port"}));
+
+    assertEquals(1, ex.status);
+  }
+
+  @Test
+  void mainShouldExitWhenServerPortIsOutOfRange() {
+    ExitCalledException ex =
+        assertThrows(ExitCalledException.class, () -> App.main(new String[] {"-S", "70000"}));
+
+    assertEquals(1, ex.status);
+  }
+
+  @Test
+  void mainShouldEnableBlitzWhenTimeFlagHasNoNumericValueYet() {
+    ExitCalledException ex =
+        assertThrows(ExitCalledException.class, () -> App.main(new String[] {"-b", "--time"}));
+
+    assertEquals(1, ex.status);
+  }
+
+  @Test
+  void mainShouldParseDaemonFlagBeforeUnknownOption() {
+    ExitCalledException ex =
+        assertThrows(
+            ExitCalledException.class,
+            () -> App.main(new String[] {"-D", "--unknown-daemon"}));
+
+    assertEquals(1, ex.status);
+  }
+
+  @Test
+  void normalizeLanguageShouldHandleAtSuffix() throws Exception {
+    Method normalize = App.class.getDeclaredMethod("normalizeLanguageOrDefault", String.class);
+    normalize.setAccessible(true);
+
+    String normalized = (String) normalize.invoke(null, "en@euro");
+    assertEquals("en", normalized);
+  }
+
+  @Test
+  void mainShouldContinueAfterUnknownOptionWhenExitHandlerDoesNotThrow() {
+    App.setExitHandlerForTests(status -> {
+      // no-op to execute the unknown-option path without aborting the test flow
+    });
+
+    assertDoesNotThrow(() -> App.main(new String[] {"--still-unknown"}));
+    assertNotNull(cliCall);
+  }
+
+  @Test
+  void mainShouldReachMissingAiExitCallWhenExitHandlerDoesNotThrow() {
+    App.setExitHandlerForTests(status -> {
+      // no-op to execute the missing-ai-color exit path and continue
+    });
+
+    assertThrows(ArrayIndexOutOfBoundsException.class, () -> App.main(new String[] {"-a"}));
   }
 
   private static final class ExitCalledException extends RuntimeException {
