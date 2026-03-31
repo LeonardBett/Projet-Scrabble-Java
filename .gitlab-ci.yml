@@ -28,8 +28,14 @@ run_tests:
   - CREMI
   - Podman
   timeout: 5m
+  before_script:
+    # 1. Mise à jour de la liste des paquets (nécessaire sur les images basées sur Debian/Ubuntu)
+    - apt-get update -y
+    # 2. Installation de xvfb et des dépendances graphiques minimales pour JavaFX
+    - apt-get install -y xvfb libxrender1 libxtst6 libxi6
   script:
-    - mvn clean checkstyle:check javadoc:javadoc verify -Dglass.platform=Monocle -Dpharser=UNIFIED -Dprism.order=sw -Dprism.verbose=false
+    # 3. Exécution de Maven à l'intérieur de l'environnement virtuel Xvfb
+    - xvfb-run -a mvn clean checkstyle:check javadoc:javadoc verify -Dglass.platform=Monocle -Dpharser=UNIFIED -Dprism.order=sw -Dprism.verbose=false
   artifacts:
     when: always
     reports:
