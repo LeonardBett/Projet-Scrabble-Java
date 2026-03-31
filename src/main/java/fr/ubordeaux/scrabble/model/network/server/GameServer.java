@@ -75,7 +75,7 @@ public class GameServer {
     serverInfo = new ServerInfo(ipAddress, port, serverName);
 
     // Thread to clean expired invitations
-    new Thread(
+    Thread cleanupThread = new Thread(
             () -> {
               while (isRunning) {
                 try {
@@ -105,11 +105,12 @@ public class GameServer {
                   Thread.currentThread().interrupt();
                 }
               }
-            })
-        .start();
+            });
+    cleanupThread.setDaemon(true);
+    cleanupThread.start();
 
     // Thread to accept client
-    new Thread(
+    Thread acceptorThread = new Thread(
             () -> {
               try {
                 // Infinite loop for accepting connexion
@@ -121,7 +122,9 @@ public class GameServer {
                   // We are going to give this socket to a thread
                   ClientHandler handler = new ClientHandler(clientSocket, this, idCounter++);
                   addClient(handler);
-                  new Thread(handler).start();
+                  Thread clientThread = new Thread(handler);
+                  clientThread.setDaemon(true);
+                  clientThread.start();
                 }
               } catch (java.net.BindException e) {
                 GameLogger.logError("Server Error: Port " + port + " is already in use.", e);
@@ -139,8 +142,9 @@ public class GameServer {
                   stop();
                 }
               }
-            })
-        .start();
+            });
+    acceptorThread.setDaemon(true);
+    acceptorThread.start();
   }
 
   /** Stop the server. */

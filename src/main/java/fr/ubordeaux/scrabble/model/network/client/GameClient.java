@@ -92,12 +92,15 @@ public class GameClient {
       isRunning = true;
 
       // We use a Thread for listening to the server
-      new Thread(this::listenServerLoop).start();
+      Thread listenerThread = new Thread(this::listenServerLoop);
+      listenerThread.setDaemon(true);
+      listenerThread.start();
 
       // We use a Thread for sending a regular PING command to the server (to avoid
       // disconnecting
       // with 60sec timeout)
       heartbeatThread = new Thread(this::startHeartbeat);
+      heartbeatThread.setDaemon(true);
       heartbeatThread.start();
 
     } catch (IOException e) {
@@ -607,12 +610,12 @@ public class GameClient {
   // =========================================================================
 
   // Method use in a Thread
-  // Needed since the server timeout is 60sec, we ping it every 30sec to avoid
-  // disconnecting
+  // Needed since the server timeout is 60sec, we ping it every 5sec in tests/CI
+  // (reduced from 30sec for faster test execution)
   private void startHeartbeat() {
     try {
       while (isRunning) {
-        Thread.sleep(30000);
+        Thread.sleep(5000);
         if (isRunning && !socket.isClosed()) {
           this.sendPingSilent();
         }
