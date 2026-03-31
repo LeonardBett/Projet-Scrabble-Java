@@ -9,6 +9,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.lang.reflect.Method;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
@@ -265,6 +267,34 @@ class AppTest {
 
     assertNotNull(cliCall);
     assertEquals("save.scrabble", cliCall.saveFilePath);
+  }
+
+  @Test
+  void mainShouldRunContestModeWithoutLaunchingCliOrGui() throws Exception {
+    Path saveFile = Files.createTempFile("contest-", ".scrabble");
+    Files.writeString(saveFile, minimalContestSave());
+
+    assertDoesNotThrow(() -> App.main(new String[] {"--contest", saveFile.toString()}));
+    assertNull(cliCall);
+    assertNull(guiCall);
+  }
+
+  private String minimalContestSave() {
+    StringBuilder sb = new StringBuilder();
+    sb.append("[settings]\n");
+    sb.append("blitz false\n");
+    sb.append("[game]\n");
+    sb.append("1\n");
+    for (int i = 0; i < 15; i++) {
+      sb.append("---------------").append('\n');
+    }
+    sb.append("rack-1: ABCDEFG\n");
+    sb.append("rack-2: HIJKLMN\n");
+    sb.append("score-1: 0\n");
+    sb.append("score-2: 0\n");
+    sb.append("language en\n");
+    sb.append("[history]\n");
+    return sb.toString();
   }
 
   private static final class ExitCalledException extends RuntimeException {
