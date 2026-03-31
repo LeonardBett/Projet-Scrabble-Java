@@ -127,7 +127,7 @@ public class NetworkLobbyView extends Stage {
   }
 
   private static int sceneHeight() {
-    return 640;
+    return 800;
   }
 
   private static String hostTabTitleText() {
@@ -403,7 +403,6 @@ public class NetworkLobbyView extends Stage {
   private final ObservableList<ServerInfo> discoveredServers = FXCollections.observableArrayList();
 
   // Lobby Tab Controls (Visible to both host and clients)
-  private ListView<String> lobbyPlayerListView;
   private Button startGameButton;
   private int lobbyPlayerCount = 0;
   private ListView<String> playersListView;
@@ -541,13 +540,6 @@ public class NetworkLobbyView extends Stage {
     startGameButton.setDisable(true);
     startGameButton.setOnAction(e -> onStartGame());
 
-    // Liste des joueurs dans le lobby (mis à jour auto)
-    final Label playersTitle = styledLabel(
-        I18n.translate("lobby.hostPlayersTitle"), Color.WHITE, 13, true);
-    lobbyPlayerListView = new ListView<>();
-    lobbyPlayerListView.setPrefHeight(130);
-    lobbyPlayerListView.setStyle(listViewStyle());
-
     content
         .getChildren()
         .addAll(
@@ -557,9 +549,7 @@ public class NetworkLobbyView extends Stage {
             startServerButton,
             stopServerButton,
             serverStatusLabel,
-            startGameButton,
-            playersTitle,
-            lobbyPlayerListView);
+            startGameButton);
     tab.setContent(content);
     return tab;
   }
@@ -1021,8 +1011,7 @@ public class NetworkLobbyView extends Stage {
 
     lobbyPlayerCount = players.size();
 
-    // Update both views
-    lobbyPlayerListView.setItems(FXCollections.observableArrayList(items));
+    // Update players list in lobby tab
     playersListView.setItems(FXCollections.observableArrayList(items));
 
     // Enable start button for host if >= 2 players
