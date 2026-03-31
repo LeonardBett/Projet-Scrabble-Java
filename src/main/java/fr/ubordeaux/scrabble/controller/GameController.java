@@ -426,8 +426,7 @@ public class GameController {
     for (PlayableWord move : possibleMoves) {
       List<Character> lettersFromRack = getLettersFromRack(game.getBoard(), move);
 
-      // Strict constraint: The hint must never give away a 7-letter play
-      if (!lettersFromRack.isEmpty() && lettersFromRack.size() < 7) {
+      if (!lettersFromRack.isEmpty()) {
         int score = simulateScoreForHint(game.getBoard(), move);
         if (score > bestScore) {
           bestScore = score;
@@ -438,10 +437,29 @@ public class GameController {
     }
 
     if (bestHintMove != null) {
-      view.displayMessage(I18n.translate("cli.hint.found", bestLettersToUse.toString(), bestScore));
+      view.displayMessage(I18n.translate(
+          "cli.hint.foundDetailed",
+          formatHintMove(bestHintMove),
+          bestLettersToUse.toString(),
+          bestScore));
     } else {
       view.displayMessage(I18n.translate("cli.hint.notFound"));
     }
+  }
+
+  private String formatHintMove(PlayableWord move) {
+    int hookIndex = move.getGaddagRepresentation().indexOf('>') - 1;
+    int startX = move.getDirection() == Direction.HORIZONTAL
+        ? move.getHookX() - hookIndex
+        : move.getHookX();
+    int startY = move.getDirection() == Direction.VERTICAL
+        ? move.getHookY() - hookIndex
+        : move.getHookY();
+
+    char row = (char) ('a' + startY);
+    int col = startX + 1;
+    char dir = move.getDirection() == Direction.HORIZONTAL ? 'h' : 'v';
+    return "" + row + col + dir + " " + move.getWord();
   }
 
   /**
