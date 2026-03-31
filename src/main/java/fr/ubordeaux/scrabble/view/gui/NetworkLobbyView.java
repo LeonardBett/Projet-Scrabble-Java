@@ -450,11 +450,16 @@ public class NetworkLobbyView extends Stage {
 
   /**
    * Stops all network background activity when the lobby window is closed.
+   * Executes in background thread to prevent blocking the JavaFX Application Thread.
    */
   private void onLobbyClose() {
-    networkManager.stopOnlinePlay();
-    serverRunning = false;
-    clientConnected = false;
+    Thread shutdownThread = new Thread(() -> {
+      networkManager.stopOnlinePlay();
+      serverRunning = false;
+      clientConnected = false;
+    });
+    shutdownThread.setDaemon(true);
+    shutdownThread.start();
   }
 
   /** Initializes the main UI components, tabs, and the console text area. */
