@@ -38,6 +38,7 @@ class AppTest {
   @AfterEach
   void tearDown() {
     App.resetHandlersForTests();
+    System.clearProperty("scrabble.dictionary.path");
     cliCall = null;
     guiCall = null;
   }
@@ -228,7 +229,7 @@ class AppTest {
     ExitCalledException ex =
         assertThrows(
             ExitCalledException.class,
-            () -> App.main(new String[] {"-D", "--unknown-daemon"}));
+            () -> App.main(new String[] {"--daemon", "--unknown-daemon"}));
 
     assertEquals(1, ex.status);
   }
@@ -275,6 +276,22 @@ class AppTest {
     Files.writeString(saveFile, minimalContestSave());
 
     assertDoesNotThrow(() -> App.main(new String[] {"--contest", saveFile.toString()}));
+    assertNull(cliCall);
+    assertNull(guiCall);
+  }
+
+  @Test
+  void mainShouldAcceptDictionaryOptionAndSetProperty() {
+    App.main(new String[] {"-D", "custom-dict.txt"});
+
+    assertNotNull(cliCall);
+    assertEquals("custom-dict.txt", System.getProperty("scrabble.dictionary.path"));
+  }
+
+  @Test
+  void mainShouldListLanguagesAndExitWithoutLaunchingGame() {
+    assertDoesNotThrow(() -> App.main(new String[] {"--list-languages"}));
+
     assertNull(cliCall);
     assertNull(guiCall);
   }

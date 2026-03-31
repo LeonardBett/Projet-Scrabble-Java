@@ -19,8 +19,11 @@ import fr.ubordeaux.scrabble.model.utils.Point;
 import fr.ubordeaux.scrabble.view.UserInterface;
 import fr.ubordeaux.scrabble.view.cli.CliView;
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,6 +38,7 @@ public class GameController {
   private Gaddag gaddag;
   private List<String> dictionaryList;
   private String lang = "en"; // Default
+  private String dictionaryPathOverride;
 
   // AI Configuration fields
   private int aiTime = 5;
@@ -53,6 +57,7 @@ public class GameController {
   public GameController(Game game, UserInterface view) {
     this.game = game;
     this.view = view;
+    this.dictionaryPathOverride = System.getProperty("scrabble.dictionary.path");
   }
 
   /**
@@ -240,18 +245,12 @@ public class GameController {
     }
 
     dictionaryList = new ArrayList<>();
-    String dictPath = "dictionaries/lexicon_" + this.lang + ".txt";
-
-    try (InputStream is = getClass().getClassLoader().getResourceAsStream(dictPath)) {
-      if (is != null) {
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
-          String line;
-          while ((line = br.readLine()) != null) {
-            String cleanWord = line.trim().toUpperCase();
-            if (!cleanWord.isEmpty()) {
-              dictionaryList.add(cleanWord);
-            }
-          }
+    try (BufferedReader br = openDictionaryReader()) {
+      String line;
+      while ((line = br.readLine()) != null) {
+        String cleanWord = line.trim().toUpperCase();
+        if (!cleanWord.isEmpty()) {
+          dictionaryList.add(cleanWord);
         }
       }
     } catch (Exception e) {
@@ -271,23 +270,17 @@ public class GameController {
     }
 
     gaddag = new Gaddag();
-    String dictPath = "dictionaries/lexicon_" + this.lang + ".txt";
+    String dictPath = resolvedDictionarySourceLabel();
     GameLogger.logVerbose("\nLoading Gaddag dictionary (" + dictPath + ") please wait...");
 
-    try (InputStream is = getClass().getClassLoader().getResourceAsStream(dictPath)) {
-      if (is == null) {
-        throw new IllegalStateException("Dictionary file " + dictPath + " not found in resources.");
-      }
-
+    try (BufferedReader br = openDictionaryReader()) {
       int wordCount = 0;
-      try (BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
-        String line;
-        while ((line = br.readLine()) != null) {
-          String cleanWord = line.trim().toUpperCase();
-          if (!cleanWord.isEmpty()) {
-            gaddag.add(cleanWord);
-            wordCount++;
-          }
+      String line;
+      while ((line = br.readLine()) != null) {
+        String cleanWord = line.trim().toUpperCase();
+        if (!cleanWord.isEmpty()) {
+          gaddag.add(cleanWord);
+          wordCount++;
         }
       }
 
@@ -384,6 +377,37 @@ public class GameController {
     // Force lazy resources to be rebuilt using the new language.
     this.gaddag = null;
     this.dictionaryList = null;
+  }
+
+  /**
+   * Sets an explicit dictionary file path to override the built-in language dictionaries.
+   *
+   * @param dictionaryPath path to a text dictionary file (one word per line)
+   */
+  public void setDictionaryPath(String dictionaryPath) {
+    this.dictionaryPathOverride = dictionaryPath;
+    this.gaddag = null;
+    this.dictionaryList = null;
+  }
+
+  private String resolvedDictionarySourceLabel() {
+    if (dictionaryPathOverride != null && !dictionaryPathOverride.isBlank()) {
+      return dictionaryPathOverride;
+    }
+    return "dictionaries/lexicon_" + this.lang + ".txt";
+  }
+
+  private BufferedReader openDictionaryReader() throws IOException {
+    if (dictionaryPathOverride != null && !dictionaryPathOverride.isBlank()) {
+      return Files.newBufferedReader(Path.of(dictionaryPathOverride));
+    }
+
+    String dictPath = "dictionaries/lexicon_" + this.lang + ".txt";
+    InputStream is = getClass().getClassLoader().getResourceAsStream(dictPath);
+    if (is == null) {
+      throw new IllegalStateException("Dictionary file " + dictPath + " not found in resources.");
+    }
+    return new BufferedReader(new InputStreamReader(is));
   }
 
   /**

@@ -191,6 +191,7 @@ public class App {
     boolean timeOptionProvided = false;
     boolean contestMode = false;
     String contestFilePath = null;
+    String customDictionaryPath = null;
     I18n.setLanguage(lang);
 
     // Network arguments
@@ -205,8 +206,18 @@ public class App {
 
     for (int i = 0; i < args.length; i++) {
       switch (args[i]) {
-        case "-h", "--help" -> helpRequested = true;
-        case "-V", "--version" -> HelpPrinter.printVersion();
+        case "-h", "--help" -> {
+          HelpPrinter.printHelp();
+          return;
+        }
+        case "--list-languages" -> {
+          printSupportedLanguages();
+          return;
+        }
+        case "-V", "--version" -> {
+          HelpPrinter.printVersion();
+          return;
+        }
         case "-g", "--gui" -> guiMode = true;
         case "-s", "--super" -> superMode = true;
         case "-b", "--blitz" -> blitzMode = true;
@@ -259,6 +270,14 @@ public class App {
             I18n.setLanguage(lang);
           }
         }
+        case "-D", "--dictionary" -> {
+          if (i + 1 >= args.length || args[i + 1].startsWith("-")) {
+            System.err.println("Missing value for dictionary path.");
+            exitHandler.exit(1);
+            return;
+          }
+          customDictionaryPath = args[++i];
+        }
         case "-ai-time", "--ai-time" -> {
           if (i + 1 >= args.length) {
             System.err.println("Missing value for AI time. Using default of 5 seconds.");
@@ -295,8 +314,7 @@ public class App {
           }
         }
 
-        // Upper D because there is already an -d option in the specifications
-        case "-D", "--daemon" -> {
+        case "--daemon" -> {
           daemonMode = true;
           startServer = true;
         }
@@ -327,6 +345,12 @@ public class App {
     if (timeOptionProvided && !blitzMode) {
       System.err.println("Warning: --time is ignored without --blitz.");
       blitzMinutes = 30;
+    }
+
+    if (customDictionaryPath != null) {
+      System.setProperty("scrabble.dictionary.path", customDictionaryPath);
+    } else {
+      System.clearProperty("scrabble.dictionary.path");
     }
 
     if (contestMode) {
@@ -600,5 +624,10 @@ public class App {
         : 'v';
 
     return "" + row + col + dir + " " + move.getWord();
+  }
+
+  private static void printSupportedLanguages() {
+    System.out.println("en");
+    System.out.println("fr");
   }
 }
