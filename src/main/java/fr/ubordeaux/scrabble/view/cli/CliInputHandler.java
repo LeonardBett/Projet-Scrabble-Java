@@ -53,43 +53,64 @@ public class CliInputHandler {
    */
   public Move askPlayMove(Player player) {
     try {
-      System.out.print("\n" + I18n.translate("cli.play.startPrompt"));
-      String[] posInput = scanner.nextLine().trim().split("\\s+");
-      if (posInput.length < 2) {
-        throw new IllegalArgumentException(I18n.translate("cli.play.needTwoValues"));
+      System.out.print("\n" + I18n.translate("cli.play.notationPrompt"));
+      String input = scanner.nextLine().trim();
+      if (input.isEmpty()) {
+        throw new IllegalArgumentException(I18n.translate("cli.play.emptyInput"));
       }
 
-      int x;
-      int y;
+      String[] parts = input.split("\\s+");
+      if (parts.length < 2) {
+        throw new IllegalArgumentException(I18n.translate("cli.play.missingLetters"));
+      }
 
-      if (posInput[0].matches("[a-oA-O]")) {
-        String[] rows = {"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o"};
-        String row = posInput[0].toLowerCase();
-        int rowIndex = -1;
-        for (int i = 0; i < rows.length; i++) {
-          if (rows[i].equals(row)) {
-            rowIndex = i;
-            break;
-          }
-        }
-        if (rowIndex == -1) {
-          throw new IllegalArgumentException(I18n.translate("cli.play.invalidRow", posInput[0]));
-        }
-        y = rowIndex;
-        x = Integer.parseInt(posInput[1]) - 1;
+      int x = -1;
+      int y = -1;
+      Direction direction;
+      int lettersStartIndex;
+
+      if (parts.length >= 4 && parts[0].matches("\\d+") && parts[1].matches("\\d+")) {
+        x = Integer.parseInt(parts[0]) - 1;
+        y = Integer.parseInt(parts[1]) - 1;
+        direction = parseDirection(parts[2]);
+        lettersStartIndex = 3;
+      } else if (parts.length >= 4 && parts[0].matches("[a-oA-O]") && parts[1].matches("\\d+")) {
+        y = rowToIndex(parts[0]);
+        x = Integer.parseInt(parts[1]) - 1;
+        direction = parseDirection(parts[2]);
+        lettersStartIndex = 3;
       } else {
-        x = Integer.parseInt(posInput[0]) - 1;
-        y = Integer.parseInt(posInput[1]) - 1;
+        String posDir = parts[0];
+        if (posDir.length() < 3) {
+          throw new IllegalArgumentException(I18n.translate("cli.play.invalidNotation"));
+        }
+
+        direction = parseDirection(String.valueOf(posDir.charAt(posDir.length() - 1)));
+        String posStr = posDir.substring(0, posDir.length() - 1);
+
+        if (posStr.matches("[a-oA-O]\\d+")) {
+          y = rowToIndex(posStr.substring(0, 1));
+          x = Integer.parseInt(posStr.substring(1)) - 1;
+        } else if (posStr.matches("\\d+[a-oA-O]")) {
+          y = rowToIndex(posStr.substring(posStr.length() - 1));
+          x = Integer.parseInt(posStr.substring(0, posStr.length() - 1)) - 1;
+        } else {
+          throw new IllegalArgumentException(I18n.translate("cli.play.invalidPositionFormat"));
+        }
+        lettersStartIndex = 1;
+      }
+
+      if (x < 0 || x >= 15 || y < 0 || y >= 15) {
+        throw new IllegalArgumentException(I18n.translate("cli.play.invalidCoordinates"));
+      }
+
+      String lettersInput = String.join(" ",
+          java.util.Arrays.copyOfRange(parts, lettersStartIndex, parts.length)).toUpperCase();
+      if (lettersInput.trim().isEmpty()) {
+        throw new IllegalArgumentException(I18n.translate("cli.play.missingLetters"));
       }
 
       final Point startPoint = new Point(x, y);
-
-      System.out.print(I18n.translate("cli.play.directionPrompt"));
-      String dirInput = scanner.nextLine().trim().toUpperCase();
-      Direction direction = dirInput.equals("H") ? Direction.HORIZONTAL : Direction.VERTICAL;
-
-      System.out.print(I18n.translate("cli.play.lettersPrompt"));
-      String lettersInput = scanner.nextLine().trim().toUpperCase();
 
       List<Tile> tiles = new ArrayList<>();
       List<Tile> rack = player.getRack().getTiles();
@@ -124,6 +145,25 @@ public class CliInputHandler {
       messageRenderer.error(I18n.translate("cli.play.invalidFormat", e.getMessage()));
       return null;
     }
+  }
+
+  private int rowToIndex(String row) {
+    char lower = Character.toLowerCase(row.charAt(0));
+    if (lower < 'a' || lower > 'o') {
+      throw new IllegalArgumentException(I18n.translate("cli.play.invalidRow", row));
+    }
+    return lower - 'a';
+  }
+
+  private Direction parseDirection(String dirValue) {
+    String normalized = dirValue.toUpperCase();
+    if ("H".equals(normalized) || "G".equals(normalized)) {
+      return Direction.HORIZONTAL;
+    }
+    if ("V".equals(normalized)) {
+      return Direction.VERTICAL;
+    }
+    throw new IllegalArgumentException(I18n.translate("cli.play.invalidNotation"));
   }
 
   /**

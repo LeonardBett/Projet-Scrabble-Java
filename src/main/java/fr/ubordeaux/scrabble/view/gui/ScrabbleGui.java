@@ -32,6 +32,7 @@ import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
@@ -40,6 +41,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -140,14 +142,14 @@ public class ScrabbleGui extends Application {
     rackPanel.setOnTileDragged(this::onTileDragged);
 
     controller = new GameController(gameInstance, viewInstance);
-    VBox leftMenu = buildLeftMenu();
-
     BorderPane root = new BorderPane();
     root.setPadding(new Insets(10));
     root.setStyle("-fx-background-color: #115829;");
     root.setCenter(boardPanel);
-    root.setLeft(leftMenu);
 
+    final VBox menuPanel = buildLeftMenu();
+    root.setLeft(menuPanel);
+    BorderPane.setAlignment(menuPanel, Pos.TOP_LEFT);
     connectButtons();
 
     VBox right = new VBox(15);
@@ -160,7 +162,6 @@ public class ScrabbleGui extends Application {
     stage.setOnCloseRequest(e -> networkBridge.dispose());
     stage.setTitle(I18n.translate("scrabble.windowTitle"));
     Scene scene = new Scene(root, 1200, 800);
-    setupShortcuts(scene);
     stage.setScene(scene);
     stage.setFullScreen(true);
     stage.show();
@@ -234,7 +235,7 @@ public class ScrabbleGui extends Application {
               "*.scrabble", "*.txt"));
       chooser.setInitialFileName(I18n.translate("scrabble.saveDefaultFile"));
 
-      java.io.File file = chooser.showSaveDialog(appMenuButton.getScene().getWindow());
+      java.io.File file = chooser.showSaveDialog(controlPanel.getScene().getWindow());
       if (file == null) {
         return; // utilisateur a annulé
       }
@@ -256,7 +257,7 @@ public class ScrabbleGui extends Application {
           new javafx.stage.FileChooser.ExtensionFilter(I18n.translate("scrabble.loadFileFilter"),
               "*.scrabble", "*.txt"));
 
-      java.io.File file = chooser.showOpenDialog(appMenuButton.getScene().getWindow());
+      java.io.File file = chooser.showOpenDialog(controlPanel.getScene().getWindow());
       if (file == null) {
         return; // utilisateur a annulé
       }
@@ -625,10 +626,37 @@ public class ScrabbleGui extends Application {
     appMenuButton.setPrefWidth(190);
     appMenuButton.setStyle("-fx-background-color: #0B3D1D; -fx-text-fill: white;");
 
-    VBox left = new VBox(8, menuLabel, appMenuButton);
-    left.setAlignment(Pos.TOP_LEFT);
-    left.setPadding(new Insets(8, 15, 0, 0));
-    return left;
+    Button newGameButton = createMenuActionButton(newGameMenuItem.getText());
+    newGameButton.setOnAction(e -> newGameMenuItem.fire());
+    Button onlineButton = createMenuActionButton(onlineMenuItem.getText());
+    onlineButton.setOnAction(e -> onlineMenuItem.fire());
+    Button saveButton = createMenuActionButton(saveMenuItem.getText());
+    saveButton.setOnAction(e -> saveMenuItem.fire());
+    Button loadButton = createMenuActionButton(loadMenuItem.getText());
+    loadButton.setOnAction(e -> loadMenuItem.fire());
+    Button quitButton = createMenuActionButton(quitMenuItem.getText());
+    quitButton.setOnAction(e -> quitMenuItem.fire());
+
+    VBox panel = new VBox(8, menuLabel, newGameButton, onlineButton, saveButton, loadButton,
+        quitButton);
+    panel.setAlignment(Pos.TOP_CENTER);
+    panel.setPadding(new Insets(15, 10, 10, 10));
+    panel.setStyle("-fx-background-color: rgba(0,0,0,0.4); -fx-background-radius: 10;");
+    panel.setPrefWidth(250);
+    panel.setMaxHeight(Region.USE_PREF_SIZE);
+    return panel;
+  }
+
+  private Button createMenuActionButton(String text) {
+    Button button = new Button(text);
+    button.setPrefWidth(220);
+    button.setPrefHeight(38);
+    button.setFont(Font.font("Arial", FontWeight.BOLD, 13));
+    button.setStyle("-fx-background-color: #0B3D1D;" + "-fx-text-fill: white;"
+        + "-fx-background-radius: 5;" + "-fx-cursor: hand;");
+    button.setOnMouseEntered(e -> button.setOpacity(0.8));
+    button.setOnMouseExited(e -> button.setOpacity(1.0));
+    return button;
   }
 
   /**
@@ -644,6 +672,13 @@ public class ScrabbleGui extends Application {
   public void refreshRack() {
     rackPanel.setRack(getCurrentRack());
     rackPanel.setOnTileDragged(this::onTileDragged);
+    Player current = gameInstance.getCurrentPlayer();
+    if (current != null) {
+      int idx = gameInstance.getPlayers().indexOf(current);
+      if (idx >= 0) {
+        rackPanel.setCurrentPlayerNumber(idx + 1);
+      }
+    }
   }
 
   /**
@@ -691,38 +726,360 @@ public class ScrabbleGui extends Application {
     return p != null ? p.getRack() : new Rack();
   }
 
-  /**
-   * Configure global keyboard shortcuts.
-   *
-   * @param scene main scene of the application.
-   */
-  private void setupShortcuts(Scene scene) {
-    // Menu shortcuts
-    newGameMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.N, KeyCombination.CONTROL_DOWN));
-    loadMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.L, KeyCombination.CONTROL_DOWN));
-    saveMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.S, KeyCombination.CONTROL_DOWN));
-    quitMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.Q, KeyCombination.CONTROL_DOWN));
+  private static boolean isOccupiedOrPending(Game game, Map<Point, Tile> pending, Point point) {
+    return !game.getBoard().getSquare(point).isEmpty() || pending.containsKey(point);
+  }
 
-    // Global shortcuts
-    scene.getAccelerators().put(new KeyCodeCombination(KeyCode.COMMA, KeyCombination.CONTROL_DOWN),
-        () -> showInfo("Configuration", "Show config (TODO)"));
+  private static String normalizeExchangeLetters(String input) {
+    return input == null ? "" : input.trim().toUpperCase();
+  }
 
-    scene.getAccelerators().put(new KeyCodeCombination(KeyCode.I, KeyCombination.CONTROL_DOWN),
-        () -> showInfo("Informations", "Scrabble U-Bordeaux\nVersion 1.0\n"));
+  private static boolean shouldSkipExchange(String letters) {
+    return letters == null || letters.isEmpty();
+  }
 
-    // Simulate a clic on the buttons
-    scene.getAccelerators().put(new KeyCodeCombination(KeyCode.U, KeyCombination.CONTROL_DOWN),
-        () -> controlPanel.getUndoButton().fire());
+  private static boolean shouldIgnoreGameplayAction(boolean gameOver) {
+    return gameOver;
+  }
 
-    scene.getAccelerators().put(new KeyCodeCombination(KeyCode.R, KeyCombination.CONTROL_DOWN),
-        () -> controlPanel.getRedoButton().fire());
+  private static boolean shouldPassThroughNetwork(boolean onlineMode) {
+    return onlineMode;
+  }
 
-    scene.getAccelerators().put(new KeyCodeCombination(KeyCode.H, KeyCombination.CONTROL_DOWN),
-        () -> controlPanel.getHintButton().fire());
+  private static boolean canUseUndoRedo(boolean onlineMode, boolean gameOver) {
+    return !onlineMode && !gameOver;
+  }
 
-    // Pause
-    scene.getAccelerators().put(new KeyCodeCombination(KeyCode.P, KeyCombination.CONTROL_DOWN),
-        () -> showInfo("Pause", "Currently in pause."));
+  private static boolean shouldIgnoreTileDrop(Tile tile, boolean gameOver) {
+    return tile == null || gameOver;
+  }
+
+  private static boolean shouldRunAiTurn(Player current, boolean gameOver) {
+    return current instanceof AiPlayer && !gameOver;
+  }
+
+  private static boolean shouldKeepGameplayDisabledAfterAi(boolean gameOver) {
+    return gameOver;
+  }
+
+  private static boolean shouldOpenNetworkLobby(NetworkLobbyView lobby) {
+    return lobby == null;
+  }
+
+  private static String normalizedDictionaryLine(String line) {
+    return line == null ? "" : line.trim();
+  }
+
+  private static boolean shouldAddDictionaryEntry(String line) {
+    return line != null && !line.isEmpty();
+  }
+
+  private static boolean shouldLoadDictionaryForAi(Gaddag currentGaddag) {
+    return currentGaddag == null;
+  }
+
+  private static boolean shouldSkipScoreRefresh(List<Player> players) {
+    return players == null || players.isEmpty();
+  }
+
+  private static boolean shouldHighlightScoreIndex(int index) {
+    return index >= 0;
+  }
+
+  private static boolean shouldRejectSubmitWhenNoPending(Map<Point, Tile> pending) {
+    return pending == null || pending.isEmpty();
+  }
+
+  private static boolean shouldRejectSubmitWhenMoveNull(Move move) {
+    return move == null;
+  }
+
+  private static boolean shouldBlockExchangeWhilePending(Map<Point, Tile> pending) {
+    return pending != null && !pending.isEmpty();
+  }
+
+  private static boolean shouldCancelWhenPendingEmpty(Map<Point, Tile> pending) {
+    return pending == null || pending.isEmpty();
+  }
+
+  private static boolean shouldStartBlitz(boolean blitzEnabled) {
+    return blitzEnabled;
+  }
+
+  private static String[] toPlayerNames(List<Player> players) {
+    if (players == null || players.isEmpty()) {
+      return new String[0];
+    }
+    return players.stream().map(Player::getName).toArray(String[]::new);
+  }
+
+  private static int[] toPlayerScores(List<Player> players) {
+    if (players == null || players.isEmpty()) {
+      return new int[0];
+    }
+    return players.stream().mapToInt(Player::getScore).toArray();
+  }
+
+  private static int indexOfCurrentPlayer(List<Player> players, Player current) {
+    if (players == null || current == null) {
+      return -1;
+    }
+    return players.indexOf(current);
+  }
+
+  private static String buildBlitzTimeoutMessage(String playerName) {
+    return playerName + " a épuisé son temps. La partie est terminée !";
+  }
+
+  private static String blitzTimeoutTitle() {
+    return "⏱ Temps écoulé !";
+  }
+
+  private static List<HumanPlayer> createDefaultPlayers(int count) {
+    List<HumanPlayer> players = new java.util.ArrayList<>();
+    for (int i = 1; i <= count; i++) {
+      players.add(new HumanPlayer(defaultPlayerName(i), PlayerColor.fromIndex(i - 1)));
+    }
+    return players;
+  }
+
+  private static Optional<String> findOutOfTimePlayerName(List<Player> players) {
+    return players.stream()
+        .filter(p -> p.isBlitzClockEnabled() && p.isOutOfTime())
+        .map(Player::getName)
+        .findFirst();
+  }
+
+  private static String buildPlayedWord(Move move) {
+    if (move == null || move.getTiles() == null) {
+      return "";
+    }
+    return move.getTiles().stream().map(t -> String.valueOf(t.getCharacter())).reduce("",
+        String::concat);
+  }
+
+  private static int moveOriginX(Move move) {
+    return move.getStartPosition().getX();
+  }
+
+  private static int moveOriginY(Move move) {
+    return move.getStartPosition().getY();
+  }
+
+  private static String moveDirectionToken(Move move) {
+    return move.getDirection().name().substring(0, 1);
+  }
+
+  private static boolean shouldAbortNewGame(boolean confirmed) {
+    return !confirmed;
+  }
+
+  private static boolean shouldAbortWhenMissingPlayerCount(Optional<Integer> countOpt) {
+    return countOpt == null || countOpt.isEmpty();
+  }
+
+  private static boolean shouldReinitializeNetworkForNewGame(boolean onlineMode) {
+    return onlineMode;
+  }
+
+  private static int selectedPlayerCount(Optional<Integer> countOpt) {
+    return countOpt.orElse(0);
+  }
+
+  private static boolean shouldLoadGaddag(Gaddag currentGaddag) {
+    return currentGaddag == null;
+  }
+
+  private static String defaultPlayerName(int index) {
+    return "Joueur" + index;
+  }
+
+  private static String menuTitleText() {
+    return "MENU";
+  }
+
+  private static int windowWidth() {
+    return 1200;
+  }
+
+  private static int windowHeight() {
+    return 800;
+  }
+
+  private static String helpDialogTitle() {
+    return "Aide";
+  }
+
+  private static String helpDialogMessage() {
+    return "Consultez les règles du Scrabble pour jouer.";
+  }
+
+  private static String occupiedCellMessage() {
+    return "Cette case est déjà occupée !";
+  }
+
+  private static String placeAtLeastOneTileMessage() {
+    return "Placez au moins une tuile avant de valider !";
+  }
+
+  private static String invalidAlignmentMessage() {
+    return "Les tuiles doivent être alignées horizontalement ou verticalement !";
+  }
+
+  private static String exchangeDialogTitle() {
+    return "Échanger des lettres";
+  }
+
+  private static String exchangeDialogHeaderText() {
+    return "Lettres de votre chevalet à échanger";
+  }
+
+  private static String exchangeDialogContentText() {
+    return "Lettres (ex: ABC) :";
+  }
+
+  private static String onlineStartedTitle() {
+    return "Partie en ligne";
+  }
+
+  private static String onlineStartedMessage() {
+    return "La partie a commencé ! Bonne chance 🎮";
+  }
+
+  private static String saveComingSoonMessage() {
+    return "Sauvegarde bientôt disponible";
+  }
+
+  private static String loadComingSoonMessage() {
+    return "Chargement bientôt disponible";
+  }
+
+  private static String comingSoonTitle() {
+    return "Bientôt";
+  }
+
+  private static String appMenuButtonText() {
+    return "☰ Jeu";
+  }
+
+  private static String newGameMenuText() {
+    return "Nouvelle partie";
+  }
+
+  private static String multiplayerMenuText() {
+    return "Multijoueur";
+  }
+
+  private static String saveMenuText() {
+    return "Sauvegarder";
+  }
+
+  private static String loadMenuText() {
+    return "Charger";
+  }
+
+  private static String quitMenuText() {
+    return "Quitter";
+  }
+
+  private static String rootBackgroundStyle() {
+    return "-fx-background-color: #115829;";
+  }
+
+  private static String appMenuButtonStyle() {
+    return "-fx-background-color: #0B3D1D; -fx-text-fill: white;";
+  }
+
+  private static double rootPadding() {
+    return 10.0;
+  }
+
+  private static double rightPanelSpacing() {
+    return 15.0;
+  }
+
+  private static double appMenuButtonWidth() {
+    return 190.0;
+  }
+
+  private static String menuLabelFontFamily() {
+    return "Arial";
+  }
+
+  private static int menuLabelFontSize() {
+    return 14;
+  }
+
+  private static String dictionaryLoadErrorMessage(String details) {
+    return "Impossible de charger le dictionnaire : " + details;
+  }
+
+  private static String invalidMoveMessage(String details) {
+    return "Coup invalide : " + details;
+  }
+
+  private static String cancelTilesBeforeExchangeMessage() {
+    return "Annulez d'abord les tuiles placées (bouton ↩).";
+  }
+
+  private static String exchangeLettersNotInRackMessage() {
+    return "Certaines lettres ne sont pas dans votre chevalet !";
+  }
+
+  private static String newGameConfirmationMessage() {
+    return "Abandonner la partie en cours et recommencer ?";
+  }
+
+  private static String quitConfirmationMessage() {
+    return "Voulez-vous vraiment quitter ?";
+  }
+
+  private static String missingGameErrorMessage() {
+    return "Appelez ScrabbleGui.setGame() avant de lancer.";
+  }
+
+  private static String aiErrorMessage(String details) {
+    return "Erreur IA : " + details;
+  }
+
+  private static String windowTitleText() {
+    return "Scrabble U-Bordeaux";
+  }
+
+  private static double rightTopPadding() {
+    return 0.0;
+  }
+
+  private static double rightRightPadding() {
+    return 0.0;
+  }
+
+  private static double rightBottomPadding() {
+    return 0.0;
+  }
+
+  private static double rightLeftPadding() {
+    return 15.0;
+  }
+
+  private static double leftMenuSpacing() {
+    return 8.0;
+  }
+
+  private static double leftMenuTopPadding() {
+    return 8.0;
+  }
+
+  private static double leftMenuRightPadding() {
+    return 15.0;
+  }
+
+  private static double leftMenuBottomPadding() {
+    return 0.0;
+  }
+
+  private static double leftMenuLeftPadding() {
+    return 0.0;
   }
 
   /**

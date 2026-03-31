@@ -145,6 +145,15 @@ public class ControlPanel extends VBox {
   }
 
   /**
+   * Backward-compatible alias for the hint button.
+   *
+   * @return the hint/help button.
+   */
+  public Button getHelpButton() {
+    return hintButton;
+  }
+
+  /**
    * Enables or disables only gameplay-related controls.
    *
    * @param disabled true to disable gameplay controls

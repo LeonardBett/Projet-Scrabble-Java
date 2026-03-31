@@ -157,14 +157,24 @@ class CliInputHandlerTest {
     player.getRack().addTile(new Tile('H'));
     player.getRack().addTile(new Tile('I'));
 
-    // row letter format: "h 8", direction "H", letters "HI"
-    CliInputHandler handler = handlerWithInput("h 8\nH\nHI\n");
-    ByteArrayOutputStream out = new ByteArrayOutputStream();
-    System.setOut(new PrintStream(out));
+    
+    // Numeric format: "8 8 h HI" (col row dir letters)
+    CliInputHandler handler = handlerWithInput("8 8 h HI\n");
 
     Move move = handler.askPlayMove(player);
-    System.setOut(System.out);
-    System.setIn(System.in);
+
+    assertNotNull(move);
+  }
+
+  @Test
+  void askPlayMoveWithMixedFormatShouldReturnMove() {
+    Player player = new HumanPlayer("Alice", PlayerColor.BLUE);
+    player.getRack().addTile(new Tile('H'));
+    player.getRack().addTile(new Tile('I'));
+
+    CliInputHandler handler = handlerWithInput("h 8 G HI\n");
+
+    Move move = handler.askPlayMove(player);
 
     assertNotNull(move);
   }
@@ -174,15 +184,11 @@ class CliInputHandlerTest {
     Player player = new HumanPlayer("Alice", PlayerColor.BLUE);
     player.getRack().addTile(new Tile('A'));
 
-    // tries to play Z which is not in rack
-    CliInputHandler handler = handlerWithInput("h 8\nH\nZ\n");
-    ByteArrayOutputStream out = new ByteArrayOutputStream();
-    System.setOut(new PrintStream(out));
+    // tries to play Z which is not in rack using numeric format
+    CliInputHandler handler = handlerWithInput("8 8 h Z\n");
 
     Move move = handler.askPlayMove(player);
-    System.setOut(System.out);
-    System.setIn(System.in);
-
+    
     assertNull(move);
   }
 }
