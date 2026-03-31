@@ -449,7 +449,8 @@ public class NetworkLobbyView extends Stage {
 
   /**
    * Stops all network background activity when the lobby window is closed.
-   * Executes in background thread to prevent blocking the JavaFX Application Thread.
+   * Executes in background thread to prevent blocking the JavaFX Application Thread,
+   * but waits for completion with a timeout.
    */
   private void onLobbyClose() {
     Thread shutdownThread = new Thread(() -> {
@@ -459,6 +460,13 @@ public class NetworkLobbyView extends Stage {
     });
     shutdownThread.setDaemon(true);
     shutdownThread.start();
+    
+    // Wait for shutdown to complete with timeout
+    try {
+      shutdownThread.join(2000); // 2 seconds max
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+    }
   }
 
   /** Initializes the main UI components, tabs, and the console text area. */
