@@ -212,7 +212,6 @@ class GameControllerAux {
       Thread.sleep(2000);
     } catch (Exception e) {
       cliView.displayError(I18n.translate("cli.game.aiTurnError", e.getMessage()));
-      e.printStackTrace();
       controller.handlePlayerMove(Move.createPass(player));
     }
   }

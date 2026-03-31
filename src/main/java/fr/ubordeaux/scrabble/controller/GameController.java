@@ -230,7 +230,7 @@ public class GameController {
       view.refresh();
 
     } catch (IllegalArgumentException | IllegalStateException e) {
-      throw new RuntimeException("Invalid move: " + e.getMessage(), e);
+      throw new RuntimeException(I18n.translate("scrabble.invalidMove", e.getMessage()), e);
     }
   }
 
