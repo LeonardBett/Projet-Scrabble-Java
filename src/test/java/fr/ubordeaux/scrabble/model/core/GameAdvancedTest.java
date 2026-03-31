@@ -28,6 +28,29 @@ class GameAdvancedTest {
   }
 
   @Test
+  void executeMoveShouldRejectMoveFromNonCurrentPlayer() {
+    Game game = new Game();
+    HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
+    HumanPlayer bob = new HumanPlayer("Bob", PlayerColor.RED);
+    game.addPlayer(alice);
+    game.addPlayer(bob);
+
+    assertThrows(IllegalArgumentException.class, () -> game.executeMove(Move.createPass(bob)));
+  }
+
+  @Test
+  void setLanguageShouldFailAfterGameHasStarted() {
+    Game game = new Game();
+    HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
+    HumanPlayer bob = new HumanPlayer("Bob", PlayerColor.RED);
+    game.addPlayer(alice);
+    game.addPlayer(bob);
+    game.startGame();
+
+    assertThrows(IllegalStateException.class, () -> game.setLanguage("fr"));
+  }
+
+  @Test
   void undoRedoShouldWorkForHumanPlayAndResetFirstMoveFlag() {
     Game game = new Game();
     HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
