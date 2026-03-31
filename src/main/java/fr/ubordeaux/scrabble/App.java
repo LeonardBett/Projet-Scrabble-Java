@@ -627,7 +627,8 @@ public class App {
   }
 
   private static void printSupportedLanguages() {
-    System.out.println("en");
-    System.out.println("fr");
+    for (String language : I18n.getSupportedLanguages()) {
+      System.out.println(language);
+    }
   }
 }
