@@ -86,6 +86,28 @@ class GameAdvancedTest {
   }
 
   @Test
+  void redoShouldReplayAssociatedAiMovesAfterHumanMove() {
+    Game game = new Game();
+    HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
+    AiPlayer bot = new AiPlayer("Bot", 1, 5, PlayerColor.RED);
+    game.addPlayer(alice);
+    game.addPlayer(bot);
+
+    game.executeMove(Move.createPass(alice));
+    game.executeMove(Move.createPass(bot));
+
+    assertEquals(2, game.getUndoRedo().getHistory().size());
+
+    game.undo();
+    assertEquals(0, game.getUndoRedo().getHistory().size());
+
+    game.redo();
+    assertEquals(2, game.getUndoRedo().getHistory().size());
+    assertEquals(alice, game.getCurrentPlayer());
+    assertTrue(!game.getUndoRedo().canRedo());
+  }
+
+  @Test
   void networkHelpersShouldFindPlayerForceTilesAndSyncBoard() {
     Game game = new Game();
     HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
