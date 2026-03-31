@@ -27,8 +27,9 @@ run_tests:
   - Docker
   - CREMI
   - Podman
+  timeout: 5m
   script:
-    - mvn clean checkstyle:check javadoc:javadoc verify
+    - mvn clean checkstyle:check javadoc:javadoc verify -Dglass.platform=Monocle -Dpharser=UNIFIED -Dprism.order=sw -Dprism.verbose=false
   artifacts:
     when: always
     reports:
