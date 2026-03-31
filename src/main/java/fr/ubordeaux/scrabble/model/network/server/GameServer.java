@@ -53,7 +53,14 @@ public class GameServer {
   // =========================================================================
   // SERVER LIFECYCLE METHODS
 
-  /** Start the server on the default port. */
+  /** Default constructor for GameServer. */
+  public GameServer() {}
+
+  /**
+   * Start the server on the default port.
+   *
+   * @throws IOException if the server socket cannot be opened or the port is invalid.
+   */
   public void start() throws IOException {
     start(DEFAULT_TCP_PORT);
   }
@@ -62,6 +69,7 @@ public class GameServer {
    * Start a server on the specified port.
    *
    * @param port the port
+   * @throws IOException if the server socket cannot be opened or the port is invalid.
    */
   public void start(int port) throws java.io.IOException {
     GameLogger.logVerbose("Server : Server Starting...");

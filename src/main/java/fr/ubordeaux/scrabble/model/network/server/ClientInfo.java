@@ -99,14 +99,29 @@ public class ClientInfo {
     this.name = name;
   }
 
+  /**
+   * Get client's game won.
+   *
+   * @return the wins count
+   */
   public int getWins() {
     return wins;
   }
 
+  /**
+   * Get client's game lost.
+   *
+   * @return the loose count
+   */
   public int getLosses() {
     return losses;
   }
 
+  /**
+   * Get client's total game played.
+   *
+   * @return the client total game played
+   */
   public int getGamesPlayed() {
     return gamesPlayed;
   }

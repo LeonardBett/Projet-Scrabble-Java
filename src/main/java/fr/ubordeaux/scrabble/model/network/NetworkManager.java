@@ -87,6 +87,7 @@ public class NetworkManager {
    * display an error message.
    *
    * @param port the port
+   * @return if the server start successfully or not
    */
   public boolean serverStart(int port) {
     // We check if the server is not already running
@@ -118,7 +119,11 @@ public class NetworkManager {
     }
   }
 
-  /** COMMAND server start : start with default port. */
+  /**
+   * COMMAND server start : start with default port.
+   *
+   * @return if the server start successfully or not
+   */
   public boolean serverStart() {
     return serverStart(DEFAULT_TCP_PORT);
   }
@@ -344,6 +349,8 @@ public class NetworkManager {
    * COMMAND players [PLAYER_ID]: If an ID is provided, displays detailed information for the player
    * (status, score, statistics). The possible statuses are now: idle, away, waitgame (waiting for
    * an invitation response), and ingame.
+   *
+   * @param playerId the player id to get information about
    */
   public void playersPlayerId(int playerId) {
     if (gameClient == null) {
@@ -380,7 +387,11 @@ public class NetworkManager {
   // =========================================================================
   // UTILS METHODS
 
-  /** Get the local game client side. */
+  /**
+   * Get the local game client side.
+   *
+   * @return the local game client side, or null if not in online game
+   */
   public Game getLocalGame() {
     if (gameClient == null) {
       return null;
