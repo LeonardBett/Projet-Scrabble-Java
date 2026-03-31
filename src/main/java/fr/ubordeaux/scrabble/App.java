@@ -175,6 +175,8 @@ public class App {
     boolean useExptiminimax = false;
     boolean useMl = false;
     String lang = languageFromEnvironment();
+    String saveFilePath = null;
+    boolean timeOptionProvided = false;
     I18n.setLanguage(lang);
 
     // Network arguments
@@ -193,23 +195,17 @@ public class App {
         case "-V", "--version" -> HelpPrinter.printVersion();
         case "-g", "--gui" -> guiMode = true;
         case "-s", "--super" -> superMode = true;
-        case "-b", "--blitz" -> {
-          if (i + 1 < args.length && (args[i + 1].equals("-t") || args[i + 1].equals("--time"))) {
-            if (i + 2 >= args.length) {
-              System.err.println("Missing value for blitz time. Using default of 30 minutes.");
-              blitzMode = true;
-            } else {
-              i++; // Skip -t/--time token and read the numeric value next.
-              try {
-                blitzMinutes = Integer.parseInt(args[++i]);
-                blitzMode = true;
-              } catch (NumberFormatException e) {
-                System.err.println("Invalid blitz time. Using default of 30 minutes.");
-                blitzMode = true;
-              }
-            }
+        case "-b", "--blitz" -> blitzMode = true;
+        case "-t", "--time" -> {
+          timeOptionProvided = true;
+          if (i + 1 >= args.length) {
+            System.err.println("Missing value for blitz time. Using default of 30 minutes.");
           } else {
-            blitzMode = true;
+            try {
+              blitzMinutes = Integer.parseInt(args[++i]);
+            } catch (NumberFormatException e) {
+              System.err.println("Invalid blitz time. Using default of 30 minutes.");
+            }
           }
         }
         case "-ai-exptiminimax", "--ai-exptiminimax" -> useExptiminimax = true;
@@ -305,6 +301,11 @@ public class App {
     }
 
     // Check program start with server start
+    if (timeOptionProvided && !blitzMode) {
+      System.err.println("Warning: --time is ignored without --blitz.");
+      blitzMinutes = 30;
+    }
+
     if (startServer) {
       NetworkManager tempManager = new NetworkManager();
       boolean success = tempManager.serverStart(serverPort);

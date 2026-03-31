@@ -2,6 +2,7 @@ package fr.ubordeaux.scrabble;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -145,10 +146,20 @@ class AppTest {
 
   @Test
   void mainShouldExitWhenBlitzTimeFlagHasNoValue() {
-    ExitCalledException ex =
-        assertThrows(ExitCalledException.class, () -> App.main(new String[] {"-b", "-t"}));
+    App.main(new String[] {"-b", "-t"});
 
-    assertEquals(1, ex.status);
+    assertNotNull(cliCall);
+    assertTrue(cliCall.blitzMode);
+    assertEquals(30, cliCall.blitzMinutes);
+  }
+
+  @Test
+  void mainShouldIgnoreTimeWhenBlitzNotEnabled() {
+    App.main(new String[] {"-t", "12"});
+
+    assertNotNull(cliCall);
+    assertEquals(30, cliCall.blitzMinutes);
+    assertFalse(cliCall.blitzMode);
   }
 
   @Test
