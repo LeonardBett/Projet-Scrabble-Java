@@ -7,6 +7,11 @@ import fr.ubordeaux.scrabble.i18n.I18n;
  */
 public class OptionPlayer {
 
+  @FunctionalInterface
+  interface ExitHandler {
+    void exit(int status);
+  }
+
   /**
    * Minimum number of players allowed.
    */
@@ -22,7 +27,17 @@ public class OptionPlayer {
    */
   public static final int DEFAULT = 2;
 
+  private static ExitHandler exitHandler = System::exit;
+
   private OptionPlayer() {
+  }
+
+  static void setExitHandlerForTests(ExitHandler handler) {
+    exitHandler = handler;
+  }
+
+  static void resetExitHandlerForTests() {
+    exitHandler = System::exit;
   }
 
   /**
@@ -37,12 +52,12 @@ public class OptionPlayer {
       int n = Integer.parseInt(value);
       if (n < MIN || n > MAX) {
         System.err.println(I18n.translate("optionplayer.err.invalidCount", n, MIN, MAX));
-        System.exit(1);
+        exitHandler.exit(1);
       }
       return n;
     } catch (NumberFormatException e) {
       System.err.println(I18n.translate("optionplayer.err.notInteger", value));
-      System.exit(1);
+      exitHandler.exit(1);
       return DEFAULT;
     }
   }

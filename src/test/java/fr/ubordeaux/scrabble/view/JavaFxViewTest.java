@@ -8,7 +8,6 @@ import fr.ubordeaux.scrabble.model.core.Game;
 import fr.ubordeaux.scrabble.model.core.HumanPlayer;
 import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.view.gui.JavaFxView;
-import javafx.application.Platform;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,7 +27,8 @@ class JavaFxViewTest {
     try {
       // Force le démarrage du Toolkit JavaFX pour éviter l'IllegalStateException
       // lors des appels à Platform.runLater() dans JavaFxView.
-      Platform.startup(() -> {});
+      com.sun.javafx.application.PlatformImpl.startup(() -> {
+      });
     } catch (IllegalStateException e) {
       // Le Toolkit est déjà initialisé par un autre test, on ignore l'erreur.
     }
