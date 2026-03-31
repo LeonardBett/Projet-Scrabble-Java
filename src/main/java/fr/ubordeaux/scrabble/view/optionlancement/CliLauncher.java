@@ -7,6 +7,7 @@ import fr.ubordeaux.scrabble.model.core.Game;
 import fr.ubordeaux.scrabble.model.core.HumanPlayer;
 import fr.ubordeaux.scrabble.model.enums.GameMode;
 import fr.ubordeaux.scrabble.model.enums.PlayerColor;
+import fr.ubordeaux.scrabble.model.savefiles.GameLoader;
 import fr.ubordeaux.scrabble.view.cli.CliView;
 import java.time.Duration;
 import java.util.List;
@@ -32,10 +33,21 @@ public class CliLauncher {
    * @param useExptiminimax true to enable the Expectiminimax algorithm
    * @param useMl true to enable the Machine Learning agent
    * @param lang the dictionary language ("en" or "fr")
+   * @param saveFilePath path to a save file to load, or null to start a new game
    */
   public static void launch(int players, List<String> aiColors, boolean blitzMode, int blitzMinutes,
-      int aiTime, boolean useExptiminimax, boolean useMl, String lang) {
-    Game game = new Game();
+      int aiTime, boolean useExptiminimax, boolean useMl, String lang, String saveFilePath) {
+    Game game;
+    if (saveFilePath != null) {
+      try {
+        game = new GameLoader().loadGame(saveFilePath);
+      } catch (Exception e) {
+        throw new IllegalArgumentException("Could not load save file: " + saveFilePath, e);
+      }
+    } else {
+      game = new Game();
+    }
+
     if (blitzMode) {
       game.enableBlitzMode(Duration.ofMinutes(blitzMinutes));
     }
@@ -51,7 +63,7 @@ public class CliLauncher {
     controller.setLang(lang);
     int humanCount = 1;
 
-    for (int i = 1; i <= players; i++) {
+    for (int i = game.getPlayers().size() + 1; i <= players; i++) {
       PlayerColor color = PlayerColor.fromIndex(i - 1);
 
       boolean isAi = false;
@@ -75,5 +87,23 @@ public class CliLauncher {
     }
 
     controller.runCli();
+  }
+
+  /**
+   * Starts the game in CLI mode without loading a save file.
+   *
+   * @param players the total number of players (0 = ask, 2-4 = use directly)
+   * @param aiColors the list of colors that should be controlled by AI
+   * @param blitzMode true to enable blitz mode
+   * @param blitzMinutes time limit per player in minutes (only used when blitzMode is true)
+   * @param aiTime AI thinking time in seconds
+   * @param useExptiminimax true to enable the Expectiminimax algorithm
+   * @param useMl true to enable the Machine Learning agent
+   * @param lang the dictionary language ("en" or "fr")
+   */
+  public static void launch(int players, List<String> aiColors, boolean blitzMode, int blitzMinutes,
+      int aiTime, boolean useExptiminimax, boolean useMl, String lang) {
+    launch(players, aiColors, blitzMode, blitzMinutes, aiTime, useExptiminimax, useMl, lang,
+        null);
   }
 }

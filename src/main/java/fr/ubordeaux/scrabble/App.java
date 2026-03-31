@@ -36,7 +36,8 @@ public class App {
         int aiTime,
         boolean useExptiminimax,
         boolean useMl,
-        String lang);
+        String lang,
+        String saveFilePath);
   }
 
   @FunctionalInterface
@@ -50,7 +51,8 @@ public class App {
         int aiTime,
         boolean useExptiminimax,
         boolean useMl,
-        String lang);
+        String lang,
+        String saveFilePath);
   }
 
   private static ExitHandler exitHandler = System::exit;
@@ -218,6 +220,7 @@ public class App {
           if (i + 1 >= args.length) {
             System.err.println(I18n.translate("app.err.missingAiColor"));
             exitHandler.exit(1);
+            return;
           }
           aiColors.add(args[++i].toUpperCase());
         }
@@ -225,6 +228,7 @@ public class App {
           if (i + 1 >= args.length) {
             System.err.println(I18n.translate("app.err.missingPlayers"));
             exitHandler.exit(1);
+            return;
           }
           players = OptionPlayer.parsePlayers(args[++i]);
         }
@@ -258,14 +262,17 @@ public class App {
               if (serverPort < 0 || serverPort > 65535) {
                 System.err.println("-S / --server : The port number must be between 0 and 65535.");
                 exitHandler.exit(1);
+                return;
               }
             } catch (NumberFormatException e) {
               System.err.println("-S / --server : Invalid port argument.");
               exitHandler.exit(1);
+              return;
             }
           } else {
             System.err.println("-S / --server : Missing port argument.");
             exitHandler.exit(1);
+            return;
           }
         }
 
@@ -325,11 +332,31 @@ public class App {
       throw new IllegalStateException("Game mode should never be null.");
     }
 
+    String saveFilePath = null;
+
     if (guiMode) {
       launchGui(
-          args, players, aiColors, blitzMode, blitzMinutes, aiTime, useExptiminimax, useMl, lang);
+          args,
+          players,
+          aiColors,
+          blitzMode,
+          blitzMinutes,
+          aiTime,
+          useExptiminimax,
+          useMl,
+          lang,
+          saveFilePath);
     } else {
-      launchCli(players, aiColors, blitzMode, blitzMinutes, aiTime, useExptiminimax, useMl, lang);
+      launchCli(
+          players,
+          aiColors,
+          blitzMode,
+          blitzMinutes,
+          aiTime,
+          useExptiminimax,
+          useMl,
+          lang,
+          saveFilePath);
     }
   }
 
@@ -388,9 +415,18 @@ public class App {
       int aiTime,
       boolean useExptiminimax,
       boolean useMl,
-      String lang) {
+      String lang,
+      String saveFilePath) {
     cliLauncherHandler.launch(
-        players, aiColors, blitzMode, blitzMinutes, aiTime, useExptiminimax, useMl, lang);
+        players,
+        aiColors,
+        blitzMode,
+        blitzMinutes,
+        aiTime,
+        useExptiminimax,
+        useMl,
+        lang,
+        saveFilePath);
   }
 
   /**
@@ -415,8 +451,18 @@ public class App {
       int aiTime,
       boolean useExptiminimax,
       boolean useMl,
-      String lang) {
+      String lang,
+      String saveFilePath) {
     guiLauncherHandler.launch(
-        args, players, aiColors, blitzMode, blitzMinutes, aiTime, useExptiminimax, useMl, lang);
+        args,
+        players,
+        aiColors,
+        blitzMode,
+        blitzMinutes,
+        aiTime,
+        useExptiminimax,
+        useMl,
+        lang,
+        saveFilePath);
   }
 }

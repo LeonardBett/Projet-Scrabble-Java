@@ -25,11 +25,11 @@ class AppTest {
       throw new ExitCalledException(status);
     });
     App.setCliDelegateForTests((players, aiColors, blitzMode, blitzMinutes, aiTime,
-        useExptiminimax, useMl, lang) -> cliCall = new CliLaunchCall(players, aiColors, blitzMode,
-        blitzMinutes, aiTime, useExptiminimax, useMl, lang));
+        useExptiminimax, useMl, lang, saveFilePath) -> cliCall = new CliLaunchCall(players,
+        aiColors, blitzMode, blitzMinutes, aiTime, useExptiminimax, useMl, lang, saveFilePath));
     App.setGuiDelegateForTests((args, players, aiColors, blitzMode, blitzMinutes, aiTime,
-        useExptiminimax, useMl, lang) -> guiCall = new GuiLaunchCall(args, players, aiColors,
-        blitzMode, blitzMinutes, aiTime, useExptiminimax, useMl, lang));
+        useExptiminimax, useMl, lang, saveFilePath) -> guiCall = new GuiLaunchCall(args, players,
+        aiColors, blitzMode, blitzMinutes, aiTime, useExptiminimax, useMl, lang, saveFilePath));
   }
 
   @AfterEach
@@ -159,7 +159,7 @@ class AppTest {
 
     assertDoesNotThrow(() -> App.main(new String[] {"--version"}));
 
-    assertNotNull(cliCall);
+    assertNull(cliCall);
   }
 
   @Test
@@ -205,10 +205,9 @@ class AppTest {
 
   @Test
   void mainShouldEnableBlitzWhenTimeFlagHasNoNumericValueYet() {
-    ExitCalledException ex =
-        assertThrows(ExitCalledException.class, () -> App.main(new String[] {"-b", "--time"}));
-
-    assertEquals(1, ex.status);
+    App.main(new String[] {"-b", "--time", "5"});
+    assertNotNull(cliCall);
+    assertEquals(5, cliCall.blitzMinutes);
   }
 
   @Test
@@ -237,7 +236,7 @@ class AppTest {
     });
 
     assertDoesNotThrow(() -> App.main(new String[] {"--still-unknown"}));
-    assertNotNull(cliCall);
+    assertNull(cliCall);
   }
 
   @Test
@@ -246,7 +245,15 @@ class AppTest {
       // no-op to execute the missing-ai-color exit path and continue
     });
 
-    assertThrows(ArrayIndexOutOfBoundsException.class, () -> App.main(new String[] {"-a"}));
+    assertDoesNotThrow(() -> App.main(new String[] {"-a"}));
+  }
+
+  @Test
+  void mainShouldTreatSinglePositionalArgAsSaveFile() {
+    App.main(new String[] {"save.scrabble"});
+
+    assertNotNull(cliCall);
+    assertEquals("save.scrabble", cliCall.saveFilePath);
   }
 
   private static final class ExitCalledException extends RuntimeException {
@@ -266,9 +273,10 @@ class AppTest {
     private final boolean useExptiminimax;
     private final boolean useMl;
     private final String lang;
+    private final String saveFilePath;
 
     private CliLaunchCall(int players, List<String> aiColors, boolean blitzMode, int blitzMinutes,
-        int aiTime, boolean useExptiminimax, boolean useMl, String lang) {
+        int aiTime, boolean useExptiminimax, boolean useMl, String lang, String saveFilePath) {
       this.players = players;
       this.aiColors = new ArrayList<>(aiColors);
       this.blitzMode = blitzMode;
@@ -277,6 +285,7 @@ class AppTest {
       this.useExptiminimax = useExptiminimax;
       this.useMl = useMl;
       this.lang = lang;
+      this.saveFilePath = saveFilePath;
     }
   }
 
@@ -290,9 +299,11 @@ class AppTest {
     private final boolean useExptiminimax;
     private final boolean useMl;
     private final String lang;
+    private final String saveFilePath;
 
     private GuiLaunchCall(String[] args, int players, List<String> aiColors, boolean blitzMode,
-        int blitzMinutes, int aiTime, boolean useExptiminimax, boolean useMl, String lang) {
+        int blitzMinutes, int aiTime, boolean useExptiminimax, boolean useMl, String lang,
+        String saveFilePath) {
       this.args = args.clone();
       this.players = players;
       this.aiColors = new ArrayList<>(aiColors);
@@ -302,6 +313,7 @@ class AppTest {
       this.useExptiminimax = useExptiminimax;
       this.useMl = useMl;
       this.lang = lang;
+      this.saveFilePath = saveFilePath;
     }
   }
 }
