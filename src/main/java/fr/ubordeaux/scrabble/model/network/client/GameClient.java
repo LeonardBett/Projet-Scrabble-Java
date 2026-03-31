@@ -605,6 +605,7 @@ public class GameClient {
   }
 
   // =========================================================================
+  // THREAD METHODS
 
   // Method use in a Thread
   // Needed since the server timeout is 60sec, we ping it every 30sec to avoid
@@ -660,6 +661,11 @@ public class GameClient {
     return localGame;
   }
 
+  /**
+   * Get this client Id, given by the server welcome message.
+   *
+   * @return the local client Id
+   */
   public int getMyId() {
     return myId;
   }
