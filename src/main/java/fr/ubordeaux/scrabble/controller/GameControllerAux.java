@@ -9,11 +9,13 @@ import fr.ubordeaux.scrabble.model.core.Move;
 import fr.ubordeaux.scrabble.model.dictionary.Gaddag;
 import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
+import fr.ubordeaux.scrabble.model.network.NetworkManager;
 import fr.ubordeaux.scrabble.model.savefiles.GameLoader;
 import fr.ubordeaux.scrabble.model.savefiles.SaveManager;
 import fr.ubordeaux.scrabble.model.utils.GameLogger;
 import fr.ubordeaux.scrabble.model.utils.Point;
 import fr.ubordeaux.scrabble.view.cli.CliInputHandler;
+import fr.ubordeaux.scrabble.view.cli.CliNetworkLobby;
 import fr.ubordeaux.scrabble.view.cli.CliView;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -293,6 +295,9 @@ class GameControllerAux {
       case "load":
         handleLoad(tokens, cliView);
         return true;
+      case "network":
+        handleNetwork(input, cliView);
+        return true;
       case "new":
         cliView.displayError(I18n.translate("cli.shell.commandNotSupportedInSession"));
         return true;
@@ -553,6 +558,12 @@ class GameControllerAux {
     }
   }
 
+  private void handleNetwork(CliInputHandler input, CliView cliView) {
+    NetworkManager networkManager = new NetworkManager();
+    CliNetworkLobby lobby = new CliNetworkLobby(networkManager, cliView, input);
+    lobby.showMenu();
+  }
+
   private void displayHelp(CliView cliView, String cmd) {
     if (cmd == null || cmd.isBlank()) {
       cliView.displayMessage(I18n.translate("cli.shell.help.full"));
@@ -592,6 +603,9 @@ class GameControllerAux {
         return;
       case "set":
         cliView.displayMessage(I18n.translate("cli.shell.help.set"));
+        return;
+      case "network":
+        cliView.displayMessage(I18n.translate("cli.shell.help.network"));
         return;
       default:
         cliView.displayError(I18n.translate("cli.shell.help.unknown", cmd));
