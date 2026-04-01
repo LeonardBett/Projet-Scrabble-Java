@@ -9,6 +9,7 @@ import fr.ubordeaux.scrabble.model.core.Tile;
 import fr.ubordeaux.scrabble.model.dictionary.Gaddag;
 import fr.ubordeaux.scrabble.model.enums.GameMode;
 import fr.ubordeaux.scrabble.model.network.NetworkManager;
+import fr.ubordeaux.scrabble.model.savefiles.ConfigLoader;
 import fr.ubordeaux.scrabble.model.savefiles.GameLoader;
 import fr.ubordeaux.scrabble.model.utils.GameLogger;
 import fr.ubordeaux.scrabble.model.utils.Point;
@@ -178,20 +179,34 @@ public class App {
    * @param args Application command-line arguments.
    */
   public static void main(String[] args) {
-    int players = OptionPlayer.DEFAULT;
-    boolean guiMode = false;
-    boolean superMode = false;
-    boolean blitzMode = false;
-    int blitzMinutes = 30;
-    int aiTime = 5;
-    boolean useExptiminimax = false;
-    boolean useMl = false;
+    // Load configuration (user/home/.scrabblerc) (f2)
+    ConfigLoader configLoader = new ConfigLoader();
+    configLoader.loadConfig();
+
     String lang = languageFromEnvironment();
+    lang = configLoader.getOption("language", lang);
+
+    // Set language
+    I18n.setLanguage(lang);
+
+    // Load the parameters from the config file
+    GameLogger.setVerbose(Boolean.parseBoolean(configLoader.getOption("verbose", "false")));
+    GameLogger.setDebug(Boolean.parseBoolean(configLoader.getOption("debug", "false")));
+    int players = Integer.parseInt(configLoader.getOption("players-count",
+        String.valueOf(OptionPlayer.DEFAULT)));
+    boolean guiMode = Boolean.parseBoolean(configLoader.getOption("gui", "false"));
+    boolean superMode = Boolean.parseBoolean(configLoader.getOption("super-scrabble",
+        "false"));
+    boolean blitzMode = Boolean.parseBoolean(configLoader.getOption("blitz", "false"));
+    int blitzMinutes = Integer.parseInt(configLoader.getOption("timeout", "30"));
+    int aiTime = Integer.parseInt(configLoader.getOption("ai-time", "5"));
+    boolean useExptiminimax = Boolean.parseBoolean(configLoader.getOption("ai-exptiminimax",
+        "false"));
+    boolean useMl = Boolean.parseBoolean(configLoader.getOption("ai-ml", "false"));
     boolean timeOptionProvided = false;
     boolean contestMode = false;
     String contestFilePath = null;
     String customDictionaryPath = null;
-    I18n.setLanguage(lang);
 
     // Network arguments
     boolean startServer = false; // Server mode

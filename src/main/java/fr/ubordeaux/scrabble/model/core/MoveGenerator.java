@@ -44,7 +44,7 @@ public class MoveGenerator {
    * @return list of playable words.
    */
   public List<PlayableWord> getPlayableWordsList(Board board, Character[] rackChars,
-      Gaddag gaddag) {
+                                                 Gaddag gaddag) {
     List<PlayableWord> playableMoves = new ArrayList<>();
     if (rackChars == null || gaddag == null) {
       return playableMoves;
@@ -58,7 +58,7 @@ public class MoveGenerator {
 
     // Specific logic for the opening move
     if (isFirstMove) {
-      for (Gaddag.GaddagResult result : gaddag.findWordsWithRackAndHook(rackChars, ' ')) {
+      for (Gaddag.GaddagResult result : gaddag.findGaddagResults(rackChars, ' ')) {
         String word = result.word;
         String gaddagRep = result.gaddagPath;
 
@@ -81,7 +81,7 @@ public class MoveGenerator {
         if (square != null && !square.isEmpty()) {
           char hookLetter = square.getTile().getCharacter();
 
-          for (Gaddag.GaddagResult result : gaddag.findWordsWithRackAndHook(rackChars,
+          for (Gaddag.GaddagResult result : gaddag.findGaddagResults(rackChars,
               hookLetter)) {
             String word = result.word;
             String gaddagRep = result.gaddagPath;
@@ -106,7 +106,7 @@ public class MoveGenerator {
    * cross-words.
    */
   private boolean isPlayable(String word, String gaddagPath, int hookX, int hookY, Direction dir,
-      Board board, Character[] rackChars, Gaddag gaddag) {
+                             Board board, Character[] rackChars, Gaddag gaddag) {
     int hookIndex = gaddagPath.indexOf('>') - 1;
     int startX = (dir == Direction.HORIZONTAL) ? hookX - hookIndex : hookX;
     int startY = (dir == Direction.VERTICAL) ? hookY - hookIndex : hookY;
@@ -185,7 +185,7 @@ public class MoveGenerator {
    * Verifies that placing a new letter creates a valid perpendicular word on the board.
    */
   private boolean isValidCrossWord(Board board, int x, int y, char placedLetter, Direction mainDir,
-      Gaddag gaddag) {
+                                   Gaddag gaddag) {
     Direction crossDir =
         (mainDir == Direction.HORIZONTAL) ? Direction.VERTICAL : Direction.HORIZONTAL;
 

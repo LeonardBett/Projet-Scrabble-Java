@@ -9,7 +9,7 @@ import java.util.Objects;
  * Implementation of a GADDAG data structure for Scrabble word generation.
  * It stores word rotations in a Trie to allow searching for words from any anchor point.
  */
-public class Gaddag extends Trie {
+public class Gaddag extends Trie implements Dictionary {
   private static final char separator = '>';
 
   /**
@@ -108,13 +108,30 @@ public class Gaddag extends Trie {
   }
 
   /**
-   * Finds all words that can be formed using the provided rack letters and a specific hook tile.
+   * Finds all valid words from the rack and hook, returned as plain strings (F27 interface).
    *
    * @param rack The player's available letters.
    * @param hook The mandatory anchor letter on the board (use ' ' if no hook).
-   * @return A set of GaddagResult containing valid words.
+   * @return A {@link java.util.Set} of valid uppercase word strings.
    */
-  public HashSet<GaddagResult> findWordsWithRackAndHook(Character[] rack, char hook) {
+  @Override
+  public java.util.Set<String> findWordsWithRackAndHook(Character[] rack, char hook) {
+    java.util.Set<String> result = new HashSet<>();
+    for (GaddagResult gr : findGaddagResults(rack, hook)) {
+      result.add(gr.word);
+    }
+    return result;
+  }
+
+  /**
+   * Finds all words that can be formed using the provided rack letters and a specific hook tile.
+   * Returns full {@link GaddagResult} objects including the internal GADDAG path.
+   *
+   * @param rack The player's available letters.
+   * @param hook The mandatory anchor letter on the board (use ' ' if no hook).
+   * @return A set of GaddagResult containing valid words and their GADDAG paths.
+   */
+  public HashSet<GaddagResult> findGaddagResults(Character[] rack, char hook) {
     HashSet<GaddagResult> words = new HashSet<>();
     Arrays.sort(rack);
     ArrayList<Character> rackList = new ArrayList<>(Arrays.asList(rack));
@@ -171,23 +188,51 @@ public class Gaddag extends Trie {
   }
 
   /**
-   * Checks if a word exists in the dictionary using the GADDAG path format.
+   * Checks if a word or a GADDAG path exists in the dictionary.
+   * If the string contains the separator, it performs a direct search.
    *
-   * @param word The word to verify.
-   * @return True if the word is valid, false otherwise.
+   * @param word The word or path to verify.
+   * @return True if found, false otherwise.
+   */
+  @Override
+  public boolean contains(String word) {
+    if (word == null) {
+      return false;
+    }
+
+    // Si la chaîne contient déjà le séparateur (ex: "H>I" dans le test),
+    // on effectue une recherche directe dans le Trie (super.contains)
+    if (word.indexOf(separator) != -1) {
+      return super.contains(word.toUpperCase());
+    }
+
+    // Sinon, on traite la chaîne comme un mot naturel qui doit être "tourné"
+    return containsWord(word);
+  }
+
+  /**
+   * Checks if a word exists in the dictionary by converting it to a GADDAG path.
+   *
+   * @param word The word to verify (e.g., "HI").
+   * @return True if the rotated path (e.g., "H>I") exists in the Trie.
    */
   public boolean containsWord(String word) {
-    if (word == null || word.length() < 2) {
-      assert word != null;
-      return this.contains(word.toUpperCase());
+    if (word == null || word.isEmpty()) {
+      return false;
+    }
+
+    // Cas des lettres uniques : on cherche directement car la rotation n'a pas de sens
+    if (word.length() < 2) {
+      return super.contains(word.toUpperCase());
     }
 
     String upperWord = word.toUpperCase();
     char firstLetter = upperWord.charAt(0);
 
-    String gaddagPath =
-        String.valueOf(firstLetter) + separator + upperWord.substring(1);
+    // Transformation du mot "HI" en chemin interne "H>I"
+    String gaddagPath = String.valueOf(firstLetter) + separator + upperWord.substring(1);
 
-    return this.contains(gaddagPath);
+    // Recherche directe du chemin dans l'arbre parent pour éviter toute récursion
+    return super.contains(gaddagPath);
   }
 }
