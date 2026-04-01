@@ -403,7 +403,6 @@ public class NetworkLobbyView extends Stage {
   private final ObservableList<ServerInfo> discoveredServers = FXCollections.observableArrayList();
 
   // Lobby Tab Controls (Visible to both host and clients)
-  private Button startGameButton;
   private int lobbyPlayerCount = 0;
   private ListView<String> playersListView;
   private ListView<String> scoreboardListView;
@@ -543,11 +542,6 @@ public class NetworkLobbyView extends Stage {
     startServerButton.setOnAction(e -> onStartServer());
     stopServerButton.setOnAction(e -> onStopServer());
 
-    // Bouton lancer la partie — actif quand >= 2 joueurs
-    startGameButton = createBtn(I18n.translate("lobby.startGame"), "#FF9800");
-    startGameButton.setDisable(true);
-    startGameButton.setOnAction(e -> onStartGame());
-
     content
         .getChildren()
         .addAll(
@@ -556,8 +550,7 @@ public class NetworkLobbyView extends Stage {
             portRow,
             startServerButton,
             stopServerButton,
-            serverStatusLabel,
-            startGameButton);
+            serverStatusLabel);
     tab.setContent(content);
     return tab;
   }
@@ -962,10 +955,10 @@ public class NetworkLobbyView extends Stage {
             type -> {
               if (type == acceptBtn) {
                 networkManager.accept();
-                log(I18n.translate("lobby.acceptedInvitation", from));
+                log(I18n.translate("lobby.youAcceptedInvitation", from));
               } else {
                 networkManager.decline();
-                log(I18n.translate("lobby.declinedInvitation", from));
+                log(I18n.translate("lobby.youDeclinedInvitation", from));
               }
               currentInvitationDialog = null;
             });
@@ -1024,8 +1017,6 @@ public class NetworkLobbyView extends Stage {
 
     // Enable start button for host if >= 2 players
     if (serverRunning) {
-      startGameButton.setDisable(lobbyPlayerCount < 2);
-
       if (lobbyPlayerCount >= 2) {
         log(I18n.translate("lobby.playersReady", lobbyPlayerCount));
       }
@@ -1248,7 +1239,6 @@ public class NetworkLobbyView extends Stage {
     disconnectButton.setDisable(!clientConnected);
 
     // Lobby
-    startGameButton.setDisable(!serverRunning || lobbyPlayerCount < 2);
     refreshScoreboardButton.setDisable(!clientConnected);
     refreshPlayersButton.setDisable(!clientConnected);
     inviteButton.setDisable(!clientConnected);

@@ -101,7 +101,8 @@ public class NetworkGameBridge implements NetworkObserver {
         () -> {
           if (gui != null) {
             gui.exitOnlineMode();
-            gui.showInfo(I18n.translate("view.gameEndedTitle"),
+            gui.showInfo(
+                I18n.translate("view.gameEndedTitle"),
                 I18n.translate("lobby.gameEnded", "Final scores available"));
           }
           if (lobbyView != null) {
@@ -120,18 +121,17 @@ public class NetworkGameBridge implements NetworkObserver {
         () -> {
           if (gui != null) {
             gui.exitOnlineMode();
-            gui.showInfo(I18n.translate("view.gameEndedTitle"),
-                I18n.translate("lobby.gameEnded", reason));
+            gui.showInfo(
+                I18n.translate("view.gameEndedTitle"),
+                I18n.translate("lobby.gameEnded", I18n.translate(reason)));
           }
           if (lobbyView != null) {
-            lobbyView.onGameEnded(reason);
+            lobbyView.onGameEnded(I18n.translate(reason));
           }
         });
   }
 
-  /**
-   * Requests a game start from the host side by fetching player list first.
-   */
+  /** Requests a game start from the host side by fetching player list first. */
   public void requestGameStart() {
     pendingGameStart = true;
     networkManager.players();
@@ -209,7 +209,10 @@ public class NetworkGameBridge implements NetworkObserver {
   }
 
   private static int[] extractPositivePlayerIds(List<Map<String, String>> players) {
-    return players.stream().mapToInt(NetworkGameBridge::parsePlayerId).filter(id -> id > 0).sorted()
+    return players.stream()
+        .mapToInt(NetworkGameBridge::parsePlayerId)
+        .filter(id -> id > 0)
+        .sorted()
         .toArray();
   }
 
@@ -269,7 +272,7 @@ public class NetworkGameBridge implements NetworkObserver {
     Platform.runLater(
         () -> {
           if (lobbyView != null) {
-            lobbyView.onMessageReceived(message);
+            lobbyView.onMessageReceived(I18n.translate(message));
           }
         });
   }
@@ -301,7 +304,8 @@ public class NetworkGameBridge implements NetworkObserver {
     Platform.runLater(
         () -> {
           if (lobbyView != null) {
-            lobbyView.onMessageReceived(playerAccepted + " accepted the invitation.");
+            lobbyView.onMessageReceived(
+                I18n.translate("lobby.playerAcceptedInvitation", playerAccepted));
           }
         });
   }
@@ -316,7 +320,8 @@ public class NetworkGameBridge implements NetworkObserver {
     Platform.runLater(
         () -> {
           if (lobbyView != null) {
-            lobbyView.onMessageReceived(playerDeclined + " declined the invitation.");
+            lobbyView.onMessageReceived(
+                I18n.translate("lobby.playerDeclinedInvitation", playerDeclined));
           }
         });
   }
@@ -331,7 +336,7 @@ public class NetworkGameBridge implements NetworkObserver {
     Platform.runLater(
         () -> {
           if (lobbyView != null) {
-            lobbyView.onInvitationCancelled(reason);
+            lobbyView.onInvitationCancelled(I18n.translate(reason));
           }
         });
   }
@@ -371,11 +376,11 @@ public class NetworkGameBridge implements NetworkObserver {
           // If we are in gui, we exit online mode
           if (gui != null) {
             gui.exitOnlineMode();
-            gui.showInfo("Disconnected", reason);
+            gui.showInfo(I18n.translate("lobby.disconnected"), I18n.translate(reason));
           }
           // We reset lobby
           if (lobbyView != null) {
-            lobbyView.onClientDisconnected(reason);
+            lobbyView.onClientDisconnected(I18n.translate(reason));
           }
         });
   }
@@ -388,7 +393,7 @@ public class NetworkGameBridge implements NetworkObserver {
           networkManager.quit();
 
           if (lobbyView != null) {
-            lobbyView.onConnectionFailed(reason);
+            lobbyView.onConnectionFailed(I18n.translate(reason));
           }
         });
   }
@@ -399,6 +404,7 @@ public class NetworkGameBridge implements NetworkObserver {
         () -> {
           if (lobbyView != null) {
             lobbyView.onInvitationCancel();
+            lobbyView.onMessageReceived(I18n.translate(reason));
           }
         });
   }
@@ -409,10 +415,10 @@ public class NetworkGameBridge implements NetworkObserver {
         () -> {
           if (gui != null) {
             gui.exitOnlineMode();
-            gui.showInfo("Game Interrupted", reason);
+            gui.showInfo(I18n.translate("view.gameEndedTitle"), I18n.translate(reason));
           }
           if (lobbyView != null) {
-            lobbyView.onGameInterrupted(reason);
+            lobbyView.onGameInterrupted(I18n.translate(reason));
           }
         });
   }

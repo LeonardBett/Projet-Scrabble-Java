@@ -90,7 +90,7 @@ public class ClientHandler implements Runnable {
           case "BACK" -> handleBackRequest();
           case "CANCEL" -> handleCancelRequest();
 
-          default -> sendMessage("ERROR: Unknown command");
+          default -> sendMessage("ERROR:REASON=err_unknown_command");
         }
       }
     } catch (SocketTimeoutException e) {
@@ -138,7 +138,7 @@ public class ClientHandler implements Runnable {
     isRunning = false;
 
     if (onlineGame != null) {
-      onlineGame.interruptGame(clientInfo.getName() + " disconnected");
+      onlineGame.interruptGame("err_player_disconnected");
     }
 
     // We cancel invitation with this player in it
@@ -182,19 +182,16 @@ public class ClientHandler implements Runnable {
       }
 
       // We give the target list to the server to create a new game
-      String response = server.createNewGame(this, targetIds);
+      server.createNewGame(this, targetIds);
 
-      if (response.startsWith("ERROR")) {
-        sendMessage(response);
-      }
     } catch (NumberFormatException e) {
-      sendMessage("ERROR: Invalid ID format.");
+      sendMessage("ERROR:REASON=err_invalid_id_format");
     }
   }
 
   private void handleMoveRequest(PacketParser packet) {
     if (onlineGame == null) {
-      sendMessage("ERROR: You are not currently in a game");
+      sendMessage("ERROR:REASON=err_not_in_game");
     } else {
       onlineGame.processMove(this, packet);
     }
@@ -208,7 +205,7 @@ public class ClientHandler implements Runnable {
         String detailResponse = server.getSpecificPlayerResponse(targetId);
         sendMessage(detailResponse);
       } catch (NumberFormatException e) {
-        sendMessage("ERROR: Invalid Player ID format");
+        sendMessage("ERROR:REASON=err_invalid_player_id_format");
       }
     }
   }

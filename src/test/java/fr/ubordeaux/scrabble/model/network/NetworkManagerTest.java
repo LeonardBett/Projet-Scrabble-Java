@@ -1,7 +1,6 @@
 package fr.ubordeaux.scrabble.model.network;
 
 import fr.ubordeaux.scrabble.model.network.server.ServerInfo;
-import fr.ubordeaux.scrabble.model.utils.GameLogger;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
@@ -21,8 +20,6 @@ class NetworkManagerTest {
 
   @BeforeEach
   void setUp() {
-    GameLogger.setVerbose(false);
-    GameLogger.setDebug(false);
     networkManager = new NetworkManager();
     mockObserver =
         new NetworkObserver() {
@@ -39,17 +36,15 @@ class NetworkManagerTest {
           public void serverStatusUpdate(java.util.Map<String, String> info) {}
 
           @Override
+          public void pongUpdate(long latencyMs) {}
+
+          @Override
           public void playersUpdate(java.util.List<java.util.Map<String, String>> players) {}
 
           @Override
           public void scoreboardUpdate(java.util.List<java.util.Map<String, String>> scoreboard) {}
 
-            @Override
-            public void pongUpdate(long latencyMs) {
-
-            }
-
-            @Override
+          @Override
           public void serverListUpdate(List<ServerInfo> activeServers) {}
 
           @Override
@@ -112,14 +107,22 @@ class NetworkManagerTest {
     networkManager.startOnlinePlay();
 
     // Start server on default port
-    networkManager.serverStart();
+    boolean result = networkManager.serverStart(12349);
+    Assertions.assertTrue(result);
 
     // Attempting to start a second server should be blocked internally
-    networkManager.serverStart(12345);
+    result = networkManager.serverStart(12345);
+    Assertions.assertFalse(result);
 
     networkManager.serverStop();
     // Stopping again should be handled gracefully
     networkManager.serverStop();
+  }
+
+  @Test
+  void testServerStartInvalidPort() {
+    Assertions.assertFalse(networkManager.serverStart(-1));
+    Assertions.assertFalse(networkManager.serverStart(70000));
   }
 
   // --- CLIENT MANAGEMENT TESTS ---
@@ -138,6 +141,9 @@ class NetworkManagerTest {
     networkManager.quit();
     // Quitting while disconnected should be handled gracefully
     networkManager.quit();
+
+    networkManager.serverStop();
+    Thread.sleep(500);
   }
 
   // --- OBSERVER DELEGATION TESTS ---
@@ -228,7 +234,7 @@ class NetworkManagerTest {
     networkManager.serverStart(port);
     Thread.sleep(1000); // Delay for slow machines
 
-    networkManager.join("localhost:", port);
+    networkManager.join("localhost", port);
     Thread.sleep(1000); // Delay for socket setup
 
     // Should still return null because the server hasn't sent a GAME_START packet yet

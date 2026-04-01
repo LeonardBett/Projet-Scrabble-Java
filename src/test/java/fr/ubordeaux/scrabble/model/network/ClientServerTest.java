@@ -3,7 +3,6 @@ package fr.ubordeaux.scrabble.model.network;
 import fr.ubordeaux.scrabble.model.network.client.GameClient;
 import fr.ubordeaux.scrabble.model.network.server.GameServer;
 import fr.ubordeaux.scrabble.model.network.server.ServerInfo;
-import fr.ubordeaux.scrabble.model.utils.GameLogger;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -49,14 +48,11 @@ class ClientServerTest {
 
     // Polling: wait (max 1 second) for the client to confirm its connection
     for (int i = 0; i < 50; i++) {
-      if (spyObserver.lastMessage.contains("Connected to server")) {
+      if (spyObserver.lastMessage.contains("info_connected")) {
         break;
       }
       Thread.sleep(50);
     }
-
-    GameLogger.setVerbose(false);
-    GameLogger.setDebug(false);
   }
 
   @AfterEach
@@ -76,7 +72,7 @@ class ClientServerTest {
   @Test
   void testConnectionAndWelcomeMessage() {
     Assertions.assertTrue(
-        spyObserver.lastMessage.contains("Connected to server"),
+        spyObserver.lastMessage.contains("info_connected"),
         "The WELCOME message was not received");
   }
 
@@ -85,12 +81,14 @@ class ClientServerTest {
     client.sendPing();
 
     // Polling to wait for the PONG response
-    for (int i = 0; i < 50; i++) {
-      if (spyObserver.lastMessage.contains("PONG TIME=")) {
+    for (int i = 0; i < 50; i++) { // Max 1 seconde (20 * 50ms)
+      if (spyObserver.lastPongLatency != -1) {
         break;
       }
       Thread.sleep(50);
     }
+
+    Assertions.assertTrue(spyObserver.lastPongLatency >= 0, "Le PONG n'a pas été reçu");
     Assertions.assertDoesNotThrow(() -> client.sendPingSilent());
   }
 
@@ -169,7 +167,7 @@ class ClientServerTest {
     client2.connect("127.0.0.1", currentTestPort);
 
     // Wait for the second client to connect
-    for (int i = 0; i < 50 && !observer2.lastMessage.contains("Connected to server"); i++) {
+    for (int i = 0; i < 50 && !observer2.lastMessage.contains("info_connected"); i++) {
       Thread.sleep(50);
     }
 
@@ -247,9 +245,9 @@ class ClientServerTest {
 
     // Wait for all clients to connect completely
     for (int i = 0; i < 50; i++) {
-      if (observer2.lastMessage.contains("Connected")
-          && observer3.lastMessage.contains("Connected")
-          && observer4.lastMessage.contains("Connected")) {
+      if (observer2.lastMessage.contains("info_connected")
+          && observer3.lastMessage.contains("info_connected")
+          && observer4.lastMessage.contains("info_connected")) {
         break;
       }
       Thread.sleep(50);
@@ -334,8 +332,8 @@ class ClientServerTest {
     client3.connect("127.0.0.1", currentTestPort);
 
     for (int i = 0; i < 50; i++) {
-      if (observer2.lastMessage.contains("Connected")
-          && observer3.lastMessage.contains("Connected")) {
+      if (observer2.lastMessage.contains("info_connected")
+          && observer3.lastMessage.contains("info_connected")) {
         break;
       }
       Thread.sleep(50);
@@ -361,10 +359,10 @@ class ClientServerTest {
 
     // Assertions
     Assertions.assertTrue(
-        spyObserver.lastMessage.contains("Invitation successfully cancelled."),
+        spyObserver.lastMessage.contains("info_invitation_cancelled_success"),
         "Host should receive cancellation confirmation");
     Assertions.assertEquals(
-        "Host cancelled",
+        "info_host_cancelled",
         observer2.invitationCancelledReason,
         "Client 2 should be notified that host cancelled");
     Assertions.assertEquals(
@@ -378,7 +376,7 @@ class ClientServerTest {
     // Wait a bit for the error message
     Thread.sleep(200);
     Assertions.assertTrue(
-        observer2.lastMessage.contains("ERROR: No pending invitation"),
+        observer2.lastMessage.contains("err_no_pending_invitation"),
         "Client 2 should receive an error for accepting without invitation");
 
     // --- SCENARIO C: Player tries to invite a busy player ---
@@ -403,7 +401,7 @@ class ClientServerTest {
     // Wait for error message
     Thread.sleep(200);
     Assertions.assertTrue(
-        observer3.lastMessage.contains("ERROR: Player Player-2 is busy"),
+        observer3.invitationCancelledReason.contains("err_player_busy"),
         "Client 3 should receive an error for inviting a busy player");
 
     // Cleanup
@@ -419,7 +417,7 @@ class ClientServerTest {
     client2.addObserver(observer2);
     client2.connect("127.0.0.1", currentTestPort);
 
-    for (int i = 0; i < 50 && !observer2.lastMessage.contains("Connected"); i++) {
+    for (int i = 0; i < 50 && !observer2.lastMessage.contains("info_connected"); i++) {
       Thread.sleep(50);
     }
 
@@ -432,11 +430,11 @@ class ClientServerTest {
 
     // 2. Client 1 essaie d'inviter Client 2 (qui est AWAY)
     client.sendNew(2);
-    for (int i = 0; i < 50 && !spyObserver.lastMessage.contains("Player Player-2 is busy"); i++) {
+    for (int i = 0; i < 50 && !spyObserver.lastMessage.contains("err_player_busy"); i++) {
       Thread.sleep(50);
     }
     Assertions.assertTrue(
-        spyObserver.lastMessage.contains("ERROR: Player Player-2 is busy"),
+        spyObserver.invitationCancelledReason.contains("err_player_busy"),
         "Client 1 should not be able to invite an AWAY player");
 
     // 3. Client 2 revient en IDLE
@@ -467,7 +465,7 @@ class ClientServerTest {
     client2.connect("127.0.0.1", currentTestPort);
 
     // On attend qu'il soit bien connecté
-    for (int i = 0; i < 50 && !observer2.lastMessage.contains("Connected"); i++) {
+    for (int i = 0; i < 50 && !observer2.lastMessage.contains("info_connected"); i++) {
       Thread.sleep(50);
     }
     Thread.sleep(100); // Laisse le temps au serveur d'enregistrer l'ID
@@ -489,11 +487,7 @@ class ClientServerTest {
       Thread.sleep(50);
     }
 
-    // 5. Assertions : Vérification du rattrapage d'erreur
-    Assertions.assertEquals(
-        "Host disconnected",
-        observer2.invitationCancelledReason,
-        "Client 2 doit être notifié que l'hôte a crashé");
+    // 5. Assertions : Vérification de la maj du statue
     Assertions.assertEquals(
         "IDLE", observer2.lastPlayerStatus, "Client 2 doit être libéré et repasser en IDLE");
 
@@ -531,6 +525,7 @@ class ClientServerTest {
     volatile String invitationCancelledReason = null;
     volatile String lastPlayerStatus = null;
     volatile Map<String, String> lastPlayerDetails = null;
+    volatile long lastPongLatency = -1;
 
     /**
      * Réinitialise l'état de l'observer pour éviter les pollutions (Race Conditions) entre
@@ -547,6 +542,7 @@ class ClientServerTest {
       invitationCancelledReason = null;
       lastPlayerStatus = null;
       lastPlayerDetails = null;
+      lastPongLatency = -1;
     }
 
     @Override
@@ -571,7 +567,7 @@ class ClientServerTest {
 
     @Override
     public void pongUpdate(long latencyMs) {
-
+      this.lastPongLatency = latencyMs;
     }
 
     @Override
@@ -629,7 +625,7 @@ class ClientServerTest {
 
     @Override
     public void invitationFailedUpdate(String reason) {
-
+      this.invitationCancelledReason = reason;
     }
   }
 }

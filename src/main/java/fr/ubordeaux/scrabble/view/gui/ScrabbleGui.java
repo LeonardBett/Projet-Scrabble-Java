@@ -316,8 +316,14 @@ public class ScrabbleGui extends Application {
   public void switchToOnlineGame(Game onlineGame) {
     gameInstance = onlineGame;
     onlineMode = true;
+
+    // Disable useless button in network client mode
     controlPanel.getUndoButton().setDisable(true);
     controlPanel.getRedoButton().setDisable(true);
+    controlPanel.getHintButton().setDisable(true);
+    saveMenuItem.setDisable(true);
+    loadMenuItem.setDisable(true);
+
     boardPanel.setBoard(gameInstance.getBoard());
     pendingTiles.clear();
     refreshAll();
@@ -331,8 +337,13 @@ public class ScrabbleGui extends Application {
   public void exitOnlineMode() {
     onlineMode = false;
     scorePanel.stopBlitzTimers();
+
+    // Re enable theses button when exiting online client mode
     controlPanel.getUndoButton().setDisable(false);
     controlPanel.getRedoButton().setDisable(false);
+    controlPanel.getHintButton().setDisable(false);
+    saveMenuItem.setDisable(false);
+    loadMenuItem.setDisable(false);
   }
 
   /**
@@ -505,7 +516,7 @@ public class ScrabbleGui extends Application {
       networkBridge = new NetworkGameBridge(networkManager);
       networkBridge.setGui(this);
       lobbyView = null;
-      onlineMode = false;
+      exitOnlineMode();
     }
 
     gameInstance = new Game();

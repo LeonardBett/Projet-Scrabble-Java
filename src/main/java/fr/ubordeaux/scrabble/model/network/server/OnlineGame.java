@@ -143,7 +143,7 @@ public class OnlineGame {
     Player currentPlayer = game.getPlayers().get(game.getCurrentPlayerIndex());
     // The sender can only play if it's his turn
     if (!sender.getClientInfo().getName().equals(currentPlayer.getName())) {
-      sender.sendMessage("ERROR: It is not your turn!");
+      sender.sendMessage("ERROR:REASON=err_not_your_turn");
       return;
     }
 
@@ -155,10 +155,10 @@ public class OnlineGame {
         case "PLAY" -> handlePlay(sender, data, currentPlayer);
         case "EXCHANGE" -> handleExchange(sender, data, currentPlayer);
         case "PASS" -> handlePass(sender, currentPlayer);
-        default -> sender.sendMessage("ERROR: Unknown move type");
+        default -> sender.sendMessage("ERROR:REASON=err_unknown_move_type");
       }
     } catch (Exception e) {
-      sender.sendMessage("ERROR: Invalid move type - " + e.getMessage());
+      sender.sendMessage("ERROR:REASON=err_invalid_move_type");
     }
   }
 

@@ -103,7 +103,7 @@ public class GameClient {
     } catch (IOException e) {
       GameLogger.logError("Client Error: Could not connect to server ", e);
       for (NetworkObserver obs : new java.util.ArrayList<>(observers)) {
-        obs.connectionFailedUpdate("Can't connect to server : " + e.getMessage());
+        obs.connectionFailedUpdate("err_connection_failed");
       }
     }
   }
@@ -131,7 +131,7 @@ public class GameClient {
               GameLogger.logVerbose("Client : My ID is " + myId);
               for (NetworkObserver obs : observers) {
                 obs.serverWelcomeUpdate(myId);
-                obs.messageUpdate("Client : Connected to server, my ID on it is " + myId);
+                obs.messageUpdate("info_connected");
               }
             }
             break;
@@ -395,6 +395,19 @@ public class GameClient {
             }
             break;
 
+          case "ERROR":
+            if (!packetParser.getEntries().isEmpty()) {
+              // On get the error code for translating it later in GUI/CLI
+              String errorKey = packetParser.getEntries().getFirst().get("REASON");
+
+              if (errorKey != null) {
+                for (NetworkObserver obs : observers) {
+                  obs.messageUpdate(errorKey);
+                }
+              }
+            }
+            break;
+
           default:
             GameLogger.logVerbose("Client : Received: " + serverMessage);
             for (NetworkObserver obs : observers) {
@@ -447,7 +460,7 @@ public class GameClient {
 
     List<NetworkObserver> observersCopy = new ArrayList<>(observers);
     for (NetworkObserver obs : observersCopy) {
-      obs.clientDisconnectedUpdate("Connection to server closed.");
+      obs.clientDisconnectedUpdate("info_connection_closed");
     }
   }
 

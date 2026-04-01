@@ -47,7 +47,7 @@ class OnlineGameTest {
     // Player 2 tries to play while it is Player 1's turn
     onlineGame.processMove(player2, passPacket);
 
-    assertTrue(player2.lastMessage.contains("ERROR: It is not your turn!"));
+    assertTrue(player2.lastMessage.contains("ERROR:REASON=err_not_your_turn"));
   }
 
   @Test
