@@ -258,7 +258,7 @@ class GameControllerTest {
     GameController controller = new GameController(game, view);
     setDictionary(controller, minimalDictionary("AA", "ART"));
 
-    runCliWithInput(controller, "help\nshow configuration\npass\nquit\no\n");
+    runCliWithInput(controller, "help\nshow configuration\npass\nquit\nn\n");
 
     assertTrue(game.getUndoRedo().getHistory().size() >= 1);
   }
@@ -330,7 +330,7 @@ class GameControllerTest {
     GameController controller = new GameController(game, view);
     setDictionary(controller, minimalDictionary("AA", "ART"));
 
-    runCliWithInput(controller, "bad\nexchange Z\npass\nundo\nredo\nquit\no\n");
+    runCliWithInput(controller, "bad\nexchange Z\npass\nundo\nredo\nquit\nn\n");
   }
 
   @Test
@@ -350,7 +350,7 @@ class GameControllerTest {
     GameController controller = new GameController(game, view);
     setDictionary(controller, minimalDictionary("AA", "ART"));
 
-    runCliWithInput(controller, "h8h AA\nquit\no\n");
+    runCliWithInput(controller, "h8h AA\nquit\nn\n");
   }
 
   @Test
@@ -391,7 +391,7 @@ class GameControllerTest {
     GameController controller = new GameController(game, view);
     setDictionary(controller, minimalDictionary("AA", "ART"));
 
-    runCliWithInput(controller, "exchange AB\nquit\no\n");
+    runCliWithInput(controller, "exchange AB\nquit\nn\n");
   }
 
   @Test
@@ -462,7 +462,7 @@ class GameControllerTest {
     controller.setUseMl(true);
     setDictionary(controller, minimalDictionary("AA", "ART"));
 
-    runCliWithInput(controller, "quit\no\n");
+    runCliWithInput(controller, "quit\nn\n");
 
     assertNotNull(getAiMlAgent(ai));
   }
@@ -475,7 +475,7 @@ class GameControllerTest {
     controller.setUseMl(true);
     controller.setPlayerCount(2);
 
-    runCliWithInput(controller, "IAbot\nBob\nquit\no\n");
+    runCliWithInput(controller, "IAbot\nBob\nquit\nn\n");
 
     assertEquals(2, game.getPlayers().size());
     assertInstanceOf(AiPlayer.class, game.getPlayers().get(0));
@@ -646,7 +646,7 @@ class GameControllerTest {
     GameController controller = new GameController(game, view);
     setDictionary(controller, minimalDictionary("AA", "ART"));
 
-    runCliWithInputSilencingErr(controller, "quit\no\n");
+    runCliWithInputSilencingErr(controller, "quit\nn\n");
     assertTrue(game.getCurrentPlayer() instanceof HumanPlayer
         || game.getCurrentPlayer() instanceof AiPlayer);
   }
@@ -663,7 +663,7 @@ class GameControllerTest {
     GameController controller = new GameController(game, view);
     setDictionary(controller, minimalDictionary("AA", "ART"));
 
-    runCliWithInput(controller, "quit\no\n");
+    runCliWithInput(controller, "quit\nn\n");
     assertTrue(game.getCurrentPlayer() instanceof HumanPlayer
         || game.getCurrentPlayer() instanceof AiPlayer);
   }

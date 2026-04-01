@@ -270,6 +270,17 @@ public class CliInputHandler {
   }
 
   /**
+   * Asks for a free text input.
+   *
+   * @param prompt prompt to display
+   * @return entered text (trimmed)
+   */
+  public String askText(String prompt) {
+    System.out.print(prompt + " ");
+    return scanner.nextLine().trim();
+  }
+
+  /**
    * Ferme le scanner.
    */
   public void close() {
