@@ -5,9 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -60,16 +58,14 @@ class GaddagTest {
     Character[] rack = {'A', 'T', 'R'};
     char hook = 'C';
 
-    HashSet<Gaddag.GaddagResult> results = gaddag.findWordsWithRackAndHook(rack, hook);
-
-    // Extract words from results for easier assertion
-    Set<String> foundWords = results.stream().map(res -> res.word).collect(Collectors.toSet());
+    // Correction : La méthode retourne maintenant un Set<String>
+    Set<String> results = gaddag.findWordsWithRackAndHook(rack, hook);
 
     assertNotNull(results);
     assertEquals(2, results.size());
-    assertTrue(foundWords.contains("CAT"));
-    assertTrue(foundWords.contains("CAR"));
-    assertFalse(foundWords.contains("DOG"));
+    assertTrue(results.contains("CAT"));
+    assertTrue(results.contains("CAR"));
+    assertFalse(results.contains("DOG"));
   }
 
   /**
@@ -93,7 +89,8 @@ class GaddagTest {
     gaddag.add("APPLE");
     Character[] emptyRack = {};
 
-    HashSet<Gaddag.GaddagResult> results = gaddag.findWordsWithRackAndHook(emptyRack, 'Z');
+    // Correction : Utilisation de Set<String>
+    Set<String> results = gaddag.findWordsWithRackAndHook(emptyRack, 'Z');
 
     assertTrue(results.isEmpty());
   }

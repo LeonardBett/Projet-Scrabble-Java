@@ -14,7 +14,7 @@ import java.util.Set;
  * It optimizes memory by merging nodes with identical suffixes.
  * An alternative of GADDAG.
  */
-public class Dawg {
+public class Dawg implements Dictionary {
   private final DawgNode root = new DawgNode('~');
   private String lastWord = "";
 
