@@ -1,5 +1,6 @@
 package fr.ubordeaux.scrabble.model.savefiles;
 
+import fr.ubordeaux.scrabble.model.ai.AiPlayer;
 import fr.ubordeaux.scrabble.model.core.Board;
 import fr.ubordeaux.scrabble.model.core.Game;
 import fr.ubordeaux.scrabble.model.core.Move;
@@ -7,6 +8,7 @@ import fr.ubordeaux.scrabble.model.core.Square;
 import fr.ubordeaux.scrabble.model.enums.Direction;
 import fr.ubordeaux.scrabble.model.enums.MoveType;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
+import fr.ubordeaux.scrabble.model.utils.GameLogger;
 import fr.ubordeaux.scrabble.model.utils.Point;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -29,7 +31,7 @@ public class SaveManager {
   /**
    * Saves the current game state, including settings, board, and history, into a text file.
    *
-   * @param game The current game instance to be saved.
+   * @param game     The current game instance to be saved.
    * @param filePath The destination path of the save file.
    * @throws IOException If an error occurs during file writing.
    */
@@ -37,13 +39,28 @@ public class SaveManager {
     try (PrintWriter writer = new PrintWriter(new FileWriter(filePath))) {
 
       writer.println("[settings] # Global game parameters");
-      writer.println("blitz " + game.isBlitzModeEnabled());
-      writer.println("super-scrabble " + "TODO");
-      writer.println("players-count " + game.getPlayers().size());
-      writer.println("turn-limit " + "TODO");
-      writer.println("debug " + "TODO");
-      writer.println("verbose " + "TODO");
-      writer.println("ai-mode " + "TODO");
+      writer.println("blitz=" + game.isBlitzModeEnabled());
+      writer.println("super-scrabble=" + (game.getBoard().getSize() == 21));
+      writer.println("players-count=" + game.getPlayers().size());
+      writer.println("debug=" + GameLogger.isDebug());
+      writer.println("verbose=" + GameLogger.isVerbose());
+      List<Player> allPlayers = game.getPlayers();
+      for (int i = 0; i < allPlayers.size(); i++) {
+        Player p = allPlayers.get(i);
+        if (p instanceof AiPlayer ia) {
+          String aiMode;
+          if (ia.isExpectiminimaxMode()) {
+            aiMode = "Expectiminimax";
+          } else if (ia.getMlAgent() != null) {
+            aiMode = "Machine Learning";
+          } else {
+            aiMode = "MinMax";
+          }
+          writer.println("player-" + (i + 1) + "-type=ai");
+          writer.println("player-" + (i + 1) + "-ai-mode=" + aiMode);
+          writer.println("player-" + (i + 1) + "-name=" + ia.getName());
+        }
+      }
       writer.println();
 
       writer.println("[game]");
@@ -63,7 +80,7 @@ public class SaveManager {
       }
 
       writer.println();
-      writer.println("language " + game.getLanguage());
+      writer.println("language en");
       writer.println();
 
       writer.println("[history]");
@@ -72,15 +89,17 @@ public class SaveManager {
   }
 
   /**
-   * Serializes the 15x15 board into the save file using characters and dashes.
+   * Serializes the board into the save file using uppercase letters for tiles and dashes for
+   * empty squares. Supports boards of any size (standard 15x15 or super 21x21).
    *
    * @param writer The PrintWriter used to write the board state.
-   * @param board The game board containing the squares and tiles.
+   * @param board  The game board containing the squares and tiles.
    */
   private void saveBoard(PrintWriter writer, Board board) {
-    for (int y = 0; y < 15; y++) {
+    int size = board.getSize();
+    for (int y = 0; y < size; y++) {
       StringBuilder line = new StringBuilder();
-      for (int x = 0; x < 15; x++) {
+      for (int x = 0; x < size; x++) {
         Square sq = board.getSquare(new Point(x, y));
         if (sq == null || sq.isEmpty()) {
           line.append("-");
@@ -95,8 +114,8 @@ public class SaveManager {
   /**
    * Serializes the list of moves performed during the game into the save file.
    *
-   * @param writer The PrintWriter used to write the history.
-   * @param game The current game instance (used for player mapping).
+   * @param writer  The PrintWriter used to write the history.
+   * @param game    The current game instance (used for player mapping).
    * @param history The list of moves to record.
    */
   private void saveHistory(PrintWriter writer, Game game, List<Move> history) {
@@ -105,12 +124,15 @@ public class SaveManager {
 
       if (move.getType() == MoveType.PASS) {
         writer.println(playerIndex + " pass");
+      } else if (move.getType() == MoveType.EXCHANGE) {
+        String exchanged = move.getTiles().stream()
+            .map(t -> String.valueOf(t.getCharacter()))
+            .collect(Collectors.joining());
+        writer.println(playerIndex + " exchange " + exchanged);
       } else if (move.getType() == MoveType.PLAY) {
         String coord = convertPointToCoord(move.getStartPosition());
         String dir = (move.getDirection() == Direction.HORIZONTAL) ? "h" : "v";
-        String word = move.getTiles().stream()
-            .map(t -> String.valueOf(t.getCharacter()))
-            .collect(Collectors.joining());
+        String word = readFullWordFromBoard(game.getBoard(), move);
 
         writer.println(playerIndex + " " + coord + dir + " " + word);
       }
@@ -125,6 +147,40 @@ public class SaveManager {
    */
   private String serializeRack(Player p) {
     return p.getRack().getTiles().stream()
+        .map(t -> String.valueOf(t.getCharacter()))
+        .collect(Collectors.joining());
+  }
+
+  /**
+   * Reads the full word from the board starting at the move's start position and following its
+   * direction, until an empty square is found. This ensures tiles already on the board (not played
+   * from the rack) are included in the saved history.
+   *
+   * @param board The current board state.
+   * @param move  The PLAY move whose full word must be reconstructed.
+   * @return The full word string as it appears on the board.
+   */
+  private String readFullWordFromBoard(Board board, Move move) {
+    StringBuilder word = new StringBuilder();
+    int x = move.getStartPosition().getX();
+    int y = move.getStartPosition().getY();
+    boolean horizontal = move.getDirection() == Direction.HORIZONTAL;
+
+    int boardSize = board.getSize();
+    while (x < boardSize && y < boardSize) {
+      Square sq = board.getSquare(new Point(x, y));
+      if (sq == null || sq.isEmpty()) {
+        break;
+      }
+      word.append(sq.getTile().getCharacter());
+      if (horizontal) {
+        x++;
+      } else {
+        y++;
+      }
+    }
+
+    return !word.isEmpty() ? word.toString() : move.getTiles().stream()
         .map(t -> String.valueOf(t.getCharacter()))
         .collect(Collectors.joining());
   }

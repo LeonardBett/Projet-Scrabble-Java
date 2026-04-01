@@ -48,6 +48,15 @@ public class AiPlayer extends Player {
   }
 
   /**
+   * Get the Machine Learning agent.
+   *
+   * @return the mlAgent of the player.
+   */
+  public MlAgent getMlAgent() {
+    return mlAgent;
+  }
+
+  /**
    * Toggles the AI into Expectiminimax mode or standard Minimax mode.
    *
    * @param enable True to enable Expectiminimax, false for standard Minimax.

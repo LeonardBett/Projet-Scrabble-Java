@@ -396,7 +396,7 @@ public class ScrabbleGui extends Application {
         }
       } else if (!"en".equals(configuredLanguage)) {
         try (InputStream fallback =
-                getClass().getClassLoader().getResourceAsStream("dictionaries/lexicon_en.txt")) {
+                 getClass().getClassLoader().getResourceAsStream("dictionaries/lexicon_en.txt")) {
           if (fallback != null) {
             try (BufferedReader br = new BufferedReader(new InputStreamReader(fallback))) {
               String line;
@@ -420,7 +420,8 @@ public class ScrabbleGui extends Application {
       return;
     }
 
-    Move move = PendingMoveBuilder.build(pendingTiles, gameInstance.getCurrentPlayer());
+    Player tmp = gameInstance.getCurrentPlayer();
+    Move move = PendingMoveBuilder.build(pendingTiles, tmp, gameInstance);
     if (move == null) {
       showError(I18n.translate("scrabble.invalidAlignment"));
       cancelPendingTiles();

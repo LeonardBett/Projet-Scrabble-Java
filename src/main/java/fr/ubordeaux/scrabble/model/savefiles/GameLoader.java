@@ -1,26 +1,34 @@
 package fr.ubordeaux.scrabble.model.savefiles;
 
+import fr.ubordeaux.scrabble.model.ai.AiPlayer;
 import fr.ubordeaux.scrabble.model.core.Game;
 import fr.ubordeaux.scrabble.model.core.HumanPlayer;
 import fr.ubordeaux.scrabble.model.core.Move;
 import fr.ubordeaux.scrabble.model.core.Tile;
 import fr.ubordeaux.scrabble.model.enums.Direction;
+import fr.ubordeaux.scrabble.model.enums.GameMode;
 import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
+import fr.ubordeaux.scrabble.model.utils.GameLogger;
 import fr.ubordeaux.scrabble.model.utils.Point;
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Robust loader for Scrabble save files.
  * Handles single-line (#) and multi-line ({}) comments (Requirement F22).
  */
 public class GameLoader {
-  private boolean isInBlockComment = false;
+  private boolean isInBlockComment;
+  /**
+   * Stores AI settings keyed by player index (0-based): "type", "ai-mode", "name".
+   */
+  private final Map<Integer, Map<String, String>> playerSettings = new HashMap<>();
 
   /**
    * Constructs a new GameLoader instance.
@@ -37,9 +45,9 @@ public class GameLoader {
    * @throws Exception if format is invalid, specifying the line number (F24).
    */
   public Game loadGame(String filePath) throws Exception {
-    String detectedLanguage = detectLanguage(filePath);
-    Game game = new Game(detectedLanguage);
+    Game game = getGame(filePath);
     this.isInBlockComment = false;
+    this.playerSettings.clear();
     int lineCount = 0;
 
     try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
@@ -87,6 +95,44 @@ public class GameLoader {
   }
 
   /**
+   * Pre-reads the save file to detect whether the game was played in Super-Scrabble mode,
+   * then constructs and returns the appropriate {@link Game} instance (21x21 board if super,
+   * standard 15x15 otherwise). This pre-pass is necessary because the board size must be
+   * known before the main parsing loop begins.
+   *
+   * @param filePath Path to the .scrabble save file.
+   * @return A new {@link Game} instance with the correct board size.
+   * @throws IOException If the file cannot be read.
+   */
+  private static Game getGame(String filePath) throws IOException {
+    boolean superScrabble = false;
+    try (BufferedReader preReader
+             = new BufferedReader(new FileReader(filePath))) {
+      String preLine;
+      boolean inSettings = false;
+      while ((preLine = preReader.readLine()) != null) {
+        preLine = preLine.replaceAll("#.*", "").trim();
+        if (preLine.equals("[settings]")) {
+          inSettings = true;
+          continue;
+        }
+        if (preLine.startsWith("[")) {
+          if (inSettings) {
+            break;
+          }
+          continue;
+        }
+        if (inSettings && (preLine.startsWith("super-scrabble=")
+            || preLine.startsWith("super-scrabble "))) {
+          superScrabble = preLine.replaceFirst("super-scrabble[= ]", "").trim().equals("true");
+          break;
+        }
+      }
+    }
+    return superScrabble ? new Game(GameMode.SUPER) : new Game();
+  }
+
+  /**
    * Cleans an input line by removing single-line (#) and multi-line ({}) comments.
    *
    * @param line The raw line from the save file.
@@ -121,12 +167,44 @@ public class GameLoader {
    * @param line The current line containing setting data.
    */
   private void parseSettings(Game game, String line) {
-    String[] parts = line.split("\\s+");
+    String[] parts = line.contains("=") ? line.split("=", 2) : line.split("\\s+", 2);
     if (parts.length < 2) {
       return;
     }
-    if (parts[0].equals("blitz") && parts[1].equals("true")) {
+    String key = parts[0];
+    String value = parts[1].trim();
+
+    if (key.equals("blitz") && value.equals("true")) {
       game.enableBlitzMode();
+      return;
+    }
+
+    if (key.equals("debug")) {
+      GameLogger.setDebug(Boolean.parseBoolean(value));
+      return;
+    }
+
+    if (key.equals("super-scrabble") || key.equals("players-count")) {
+      return; // handled elsewhere
+    }
+
+    if (key.equals("verbose")) {
+      // debug mode already implies verbose; only set verbose if debug is not active
+      if (!GameLogger.isDebug()) {
+        GameLogger.setVerbose(Boolean.parseBoolean(value));
+      }
+      return;
+    }
+
+    // player-X-type, player-X-ai-mode, player-X-name
+    if (key.startsWith("player-")) {
+      String[] keyParts = key.split("-", 3); // ["player", "X", "type|ai-mode|name"]
+      if (keyParts.length < 3) {
+        return;
+      }
+      int playerIdx = Integer.parseInt(keyParts[1]) - 1;
+      String setting = keyParts[2]; // "type", "ai-mode", or "name"
+      playerSettings.computeIfAbsent(playerIdx, k -> new HashMap<>()).put(setting, value);
     }
   }
 
@@ -139,17 +217,17 @@ public class GameLoader {
    * @return The updated board row index.
    */
   private int parseGameState(Game game, String line, int boardRow) {
-    if (line.startsWith("language ")) {
-      return boardRow;
-    }
-
     if (line.length() == 1 && Character.isDigit(line.charAt(0))) {
+      int currentPlayerIdx = Character.getNumericValue(line.charAt(0)) - 1;
+      game.setCurrentPlayerIndex(currentPlayerIdx); // <-- C'est cette ligne qui manque !
       return boardRow;
     }
 
     // Ajout de la condition "boardRow < 15" pour éviter de déborder du plateau
-    if (boardRow < 15 && line.length() == 15 && (line.contains("-") || line.matches(".*[A-Z].*"))) {
-      for (int x = 0; x < 15; x++) {
+    int boardSize = game.getBoard().getSize();
+    if (boardRow < boardSize && line.length() == boardSize && (line.contains("-")
+        || line.matches(".*[A-Z].*"))) {
+      for (int x = 0; x < boardSize; x++) {
         char c = line.charAt(x);
         if (c != '-') {
           game.getBoard().getSquare(new Point(x, boardRow)).setTile(new Tile(c));
@@ -195,6 +273,12 @@ public class GameLoader {
 
     if (parts.length == 2 && parts[1].equalsIgnoreCase("pass")) {
       game.getUndoRedo().addMove(Move.createPass(player));
+    } else if (parts.length == 3 && parts[1].equalsIgnoreCase("exchange")) {
+      List<Tile> exchangedTiles = new ArrayList<>();
+      for (char c : parts[2].toCharArray()) {
+        exchangedTiles.add(new Tile(c));
+      }
+      game.getUndoRedo().addMove(Move.createExchange(player, exchangedTiles));
     } else if (parts.length == 3) {
       String moveData = parts[1];
       String wordStr = parts[2];
@@ -221,46 +305,20 @@ public class GameLoader {
     while (game.getPlayers().size() <= index) {
       int nextIdx = game.getPlayers().size();
       PlayerColor color = PlayerColor.values()[nextIdx % PlayerColor.values().length];
-      game.addPlayer(new HumanPlayer("Player " + (nextIdx + 1), color));
-    }
-  }
+      Map<String, String> settings = playerSettings.getOrDefault(nextIdx, new HashMap<>());
+      String type = settings.getOrDefault("type", "human");
+      String name = settings.getOrDefault("name", "Player " + (nextIdx + 1));
 
-  private String detectLanguage(String filePath) {
-    boolean inBlockComment = false;
-
-    try {
-      List<String> lines = Files.readAllLines(Path.of(filePath));
-      for (String rawLine : lines) {
-        StringBuilder cleaned = new StringBuilder();
-        for (char c : rawLine.toCharArray()) {
-          if (inBlockComment) {
-            if (c == '}') {
-              inBlockComment = false;
-            }
-            continue;
-          }
-          if (c == '{') {
-            inBlockComment = true;
-            continue;
-          }
-          if (c == '#') {
-            break;
-          }
-          cleaned.append(c);
+      if ("ai".equalsIgnoreCase(type)) {
+        AiPlayer ai = new AiPlayer(name, 3, 5, color);
+        String aiMode = settings.getOrDefault("ai-mode", "MinMax");
+        if ("Expectiminimax".equalsIgnoreCase(aiMode)) {
+          ai.setExpectiminimaxMode(true);
         }
-
-        String line = cleaned.toString().trim();
-        if (line.startsWith("language")) {
-          String[] parts = line.split("\\s+");
-          if (parts.length >= 2) {
-            return Tile.normalizeLanguage(parts[1]);
-          }
-        }
+        game.addPlayer(ai);
+      } else {
+        game.addPlayer(new HumanPlayer(name, color));
       }
-    } catch (Exception ignored) {
-      // Ignore and fallback to English.
     }
-
-    return "en";
   }
 }

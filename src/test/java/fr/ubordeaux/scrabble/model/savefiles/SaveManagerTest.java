@@ -86,7 +86,7 @@ class SaveManagerTest {
 
     // Verify [settings]
     assertTrue(content.contains("[settings] # Global game parameters"));
-    assertTrue(content.contains("blitz true"));
+    assertTrue(content.contains("blitz=true"));
 
     // Verify [game] current player
     assertTrue(content.contains("[game]"));
@@ -134,7 +134,7 @@ class SaveManagerTest {
     saveManager.saveGame(game, savePath.toString());
 
     List<String> content = Files.readAllLines(savePath);
-    assertTrue(content.contains("players-count 0"));
+    assertTrue(content.contains("players-count=0"));
 
     long dashLinesCount = content.stream().filter(line -> line.equals("---------------")).count();
     assertEquals(15, dashLinesCount, "Le plateau vide doit comporter 15 lignes de tirets");

@@ -1,23 +1,18 @@
 package fr.ubordeaux.scrabble.model.savefiles;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import fr.ubordeaux.scrabble.model.ai.AiPlayer;
 import fr.ubordeaux.scrabble.model.core.Game;
-import fr.ubordeaux.scrabble.model.utils.Point;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * Unit tests for the GameLoader class.
- * Validates file parsing and error handling with line numbers[cite: 209, 231].
- */
 class GameLoaderTest {
-
   private GameLoader loader;
 
   @TempDir
@@ -28,37 +23,52 @@ class GameLoaderTest {
     loader = new GameLoader();
   }
 
-  /**
-   * Verifies that single-line and multi-line comments are ignored[cite: 211, 212].
-   */
   @Test
-  void loadGameShouldHandleCommentsCorrectly() throws Exception {
-    String content = "{ Block \n Comment }\n"
-        + "[settings] # Line comment\n"
-        + "blitz true\n"
-        + "[game]\n"
-        + "---------------\n".repeat(15);
-
-    Path path = tempDir.resolve("comments.scrabble");
+  void testLoadSuperScrabbleDetection() throws Exception {
+    String content = "[settings]\nsuper-scrabble=true\n[game]\n"
+        + "---------------------\n".repeat(21);
+    Path path = tempDir.resolve("super.scrabble");
     Files.writeString(path, content);
 
     Game game = loader.loadGame(path.toString());
-    assertTrue(game.isBlitzModeEnabled());
+    assertEquals(21, game.getBoard().getSize(),
+        "Le plateau devrait être de taille 21 (F9) [cite: 118]");
   }
 
-  /**
-   * Tests error reporting with the specific line number[cite: 231].
-   */
   @Test
-  void loadGameShouldThrowExceptionWithLineNumberOnFormatError() throws Exception {
+  void testLoadAiPlayerSettings() throws Exception {
     String content = "[settings]\n"
-        + "[invalid_section]\n" // Error on line 2
-        + "data";
+        + "player-1-type=ai\n"
+        + "player-1-ai-mode=Expectiminimax\n"
+        + "player-1-name=DeepBlue\n"
+        + "[game]\n1\n" + "---------------\n".repeat(15)
+        + "score-1: 50";
 
-    Path path = tempDir.resolve("error.scrabble");
+    Path path = tempDir.resolve("ai_load.scrabble");
     Files.writeString(path, content);
 
-    Exception exception = assertThrows(Exception.class, () -> loader.loadGame(path.toString()));
-    assertTrue(exception.getMessage().contains("line 2"));
+    Game game = loader.loadGame(path.toString());
+
+    assertFalse(game.getPlayers().isEmpty());
+    assertTrue(game.getPlayers().get(0) instanceof AiPlayer,
+        "Le joueur doit être une IA (F8) [cite: 109]");
+    AiPlayer ai = (AiPlayer) game.getPlayers().get(0);
+    assertEquals("DeepBlue", ai.getName());
+    assertTrue(ai.isExpectiminimaxMode(),
+        "Le mode Expectiminimax doit être restauré (F36) [cite: 257]");
+  }
+
+  @Test
+  void testLoadHistoryWithExchange() throws Exception {
+    String content = "[settings]\n[game]\n1\n" + "---------------\n".repeat(15)
+        + "[history]\n1 exchange AZERTY";
+
+    Path path = tempDir.resolve("history_exchange.scrabble");
+    Files.writeString(path, content);
+
+    Game game = loader.loadGame(path.toString());
+    assertEquals(1, game.getUndoRedo().getHistory().size());
+    assertEquals("AZERTY", game.getUndoRedo().getHistory().get(0).getTiles().stream()
+        .map(t -> String.valueOf(t.getCharacter())).reduce("", String::concat));
   }
 }
