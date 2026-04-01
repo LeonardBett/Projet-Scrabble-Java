@@ -187,7 +187,6 @@ public class App {
     boolean useExptiminimax = false;
     boolean useMl = false;
     String lang = languageFromEnvironment();
-    String saveFilePath = null;
     boolean timeOptionProvided = false;
     boolean contestMode = false;
     String contestFilePath = null;
@@ -320,9 +319,14 @@ public class App {
         }
 
         default -> {
+          // Accept a single positional argument as save file path.
+          if (args.length == 1 && !args[i].startsWith("-")) {
+            continue;
+          }
           System.err.println(I18n.translate("app.err.unknownOption", args[i]));
           System.err.println(I18n.translate("app.err.helpHint"));
           exitHandler.exit(1);
+          return;
         }
       }
     }
@@ -390,7 +394,7 @@ public class App {
       throw new IllegalStateException("Game mode should never be null.");
     }
 
-    String saveFilePath = null;
+    String saveFilePath = (args.length == 1 && !args[0].startsWith("-")) ? args[0] : null;
 
     if (guiMode) {
       launchGui(

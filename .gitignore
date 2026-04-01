@@ -31,4 +31,7 @@ dependency-reduced-pom.xml
 
 # Machine Learning generated models and labels
 src/main/resources/ai/model_*/
+
+# Local implementation tracking sheet
+/specs_impl_status.csv
 src/main/resources/ai/labels_*.txt
