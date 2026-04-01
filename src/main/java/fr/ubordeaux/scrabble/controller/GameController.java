@@ -34,7 +34,8 @@ public class GameController {
   private UserInterface view;
   private Gaddag gaddag;
   private List<String> dictionaryList;
-  private String lang = "en"; // Default
+  private String lang = "en";
+  private boolean isPaused = false;
 
   // AI Configuration fields
   private int aiTime = 5;
@@ -508,5 +509,32 @@ public class GameController {
    */
   public void setPlayerCount(int count) {
     this.playerCount = count;
+  }
+
+  /**
+   * Toggles the pause state of the game.
+   * Pauses the blitz timer if running and prevents gameplay until resumed.
+   */
+  public void togglePause() {
+    if (game.isGameOver() || !game.isBlitzModeEnabled()) {
+      return;
+    }
+
+    Player current = game.getCurrentPlayer();
+    if (current == null) {
+      return;
+    }
+
+    if (!isPaused) {
+      current.pauseTurnTimer();
+      isPaused = true;
+      GameLogger.logVerbose("The timer is PAUSED.");
+    } else {
+      current.startTurnTimer();
+      isPaused = false;
+      GameLogger.logVerbose("Timer is UNPAUSED.");
+    }
+
+    view.refresh();
   }
 }
