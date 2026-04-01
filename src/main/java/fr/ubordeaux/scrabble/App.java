@@ -187,11 +187,6 @@ public class App {
     lang = configLoader.getOption("language", lang);
 
     // Set language
-    // 3. On initialise l'internationalisation
-    boolean timeOptionProvided = false;
-    boolean contestMode = false;
-    String contestFilePath = null;
-    String customDictionaryPath = null;
     I18n.setLanguage(lang);
 
     // Load the parameters from the config file
@@ -208,6 +203,10 @@ public class App {
     boolean useExptiminimax = Boolean.parseBoolean(configLoader.getOption("ai-exptiminimax",
         "false"));
     boolean useMl = Boolean.parseBoolean(configLoader.getOption("ai-ml", "false"));
+    boolean timeOptionProvided = false;
+    boolean contestMode = false;
+    String contestFilePath = null;
+    String customDictionaryPath = null;
 
     // Network arguments
     boolean startServer = false; // Server mode
