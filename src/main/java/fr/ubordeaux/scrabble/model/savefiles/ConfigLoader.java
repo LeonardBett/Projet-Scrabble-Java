@@ -22,7 +22,7 @@ public class ConfigLoader {
    * Loads the configuration from the user's HOME directory at startup (F2, F4).
    */
   public void loadConfig() {
-    Path configPath = Paths.get(System.getProperty("user.home"), FILE_NAME);
+    Path configPath = Paths.get(System.getProperty("user.dir"), FILE_NAME);
 
     // F2: Si le fichier n'est pas présent, en créer un minimal [cite: 86]
     if (!Files.exists(configPath)) {
@@ -36,18 +36,21 @@ public class ConfigLoader {
       boolean inDefaultsSection = false;
 
       while ((line = reader.readLine()) != null) {
-        line = line.trim();
-        // F22: Gestion des commentaires simples (Requirement F22) [cite: 212]
-        if (line.isEmpty() || line.startsWith("#")) {
+        // 1. Supprimer les commentaires (tout ce qui est après #) et trimmer
+        line = line.split("#")[0].trim();
+
+        // 2. Ignorer les lignes vides
+        if (line.isEmpty()) {
           continue;
         }
 
+        // 3. Détecter la section (Maintenant ça marchera même avec un commentaire !)
         if (line.equalsIgnoreCase("[defaults]")) {
           inDefaultsSection = true;
           continue;
         }
 
-        // F2: Format INI clé = valeur [cite: 82, 89]
+        // 4. Parser les clés
         if (inDefaultsSection && line.contains("=")) {
           String[] parts = line.split("=", 2);
           if (parts.length == 2) {
