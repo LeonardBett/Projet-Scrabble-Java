@@ -8,7 +8,6 @@ import fr.ubordeaux.scrabble.model.core.Square;
 import fr.ubordeaux.scrabble.model.enums.Direction;
 import fr.ubordeaux.scrabble.model.enums.MoveType;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
-import fr.ubordeaux.scrabble.model.utils.GameLogger;
 import fr.ubordeaux.scrabble.model.utils.Point;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -39,11 +38,12 @@ public class SaveManager {
     try (PrintWriter writer = new PrintWriter(new FileWriter(filePath))) {
 
       writer.println("[settings] # Global game parameters");
-      writer.println("blitz=" + game.isBlitzModeEnabled());
-      writer.println("super-scrabble=" + (game.getBoard().getSize() == 21));
-      writer.println("players-count=" + game.getPlayers().size());
-      writer.println("debug=" + GameLogger.isDebug());
-      writer.println("verbose=" + GameLogger.isVerbose());
+      writer.println("blitz " + game.isBlitzModeEnabled());
+      writer.println("super-scrabble " + "TODO");
+      writer.println("players-count " + game.getPlayers().size());
+      writer.println("turn-limit " + "TODO");
+      writer.println("debug " + "TODO");
+      writer.println("verbose " + "TODO");
       List<Player> allPlayers = game.getPlayers();
       for (int i = 0; i < allPlayers.size(); i++) {
         Player p = allPlayers.get(i);
@@ -56,9 +56,9 @@ public class SaveManager {
           } else {
             aiMode = "MinMax";
           }
-          writer.println("player-" + (i + 1) + "-type=ai");
-          writer.println("player-" + (i + 1) + "-ai-mode=" + aiMode);
-          writer.println("player-" + (i + 1) + "-name=" + ia.getName());
+          writer.println("player-" + (i + 1) + "-type ai");
+          writer.println("player-" + (i + 1) + "-ai-mode " + aiMode);
+          writer.println("player-" + (i + 1) + "-name " + ia.getName());
         }
       }
       writer.println();
@@ -89,17 +89,15 @@ public class SaveManager {
   }
 
   /**
-   * Serializes the board into the save file using uppercase letters for tiles and dashes for
-   * empty squares. Supports boards of any size (standard 15x15 or super 21x21).
+   * Serializes the 15x15 board into the save file using characters and dashes.
    *
    * @param writer The PrintWriter used to write the board state.
    * @param board  The game board containing the squares and tiles.
    */
   private void saveBoard(PrintWriter writer, Board board) {
-    int size = board.getSize();
-    for (int y = 0; y < size; y++) {
+    for (int y = 0; y < 15; y++) {
       StringBuilder line = new StringBuilder();
-      for (int x = 0; x < size; x++) {
+      for (int x = 0; x < 15; x++) {
         Square sq = board.getSquare(new Point(x, y));
         if (sq == null || sq.isEmpty()) {
           line.append("-");
@@ -124,11 +122,6 @@ public class SaveManager {
 
       if (move.getType() == MoveType.PASS) {
         writer.println(playerIndex + " pass");
-      } else if (move.getType() == MoveType.EXCHANGE) {
-        String exchanged = move.getTiles().stream()
-            .map(t -> String.valueOf(t.getCharacter()))
-            .collect(Collectors.joining());
-        writer.println(playerIndex + " exchange " + exchanged);
       } else if (move.getType() == MoveType.PLAY) {
         String coord = convertPointToCoord(move.getStartPosition());
         String dir = (move.getDirection() == Direction.HORIZONTAL) ? "h" : "v";
@@ -166,8 +159,7 @@ public class SaveManager {
     int y = move.getStartPosition().getY();
     boolean horizontal = move.getDirection() == Direction.HORIZONTAL;
 
-    int boardSize = board.getSize();
-    while (x < boardSize && y < boardSize) {
+    while (x < 15 && y < 15) {
       Square sq = board.getSquare(new Point(x, y));
       if (sq == null || sq.isEmpty()) {
         break;
@@ -180,6 +172,7 @@ public class SaveManager {
       }
     }
 
+    // Fallback: if board read failed (e.g. move not yet applied), use rack tiles
     return !word.isEmpty() ? word.toString() : move.getTiles().stream()
         .map(t -> String.valueOf(t.getCharacter()))
         .collect(Collectors.joining());

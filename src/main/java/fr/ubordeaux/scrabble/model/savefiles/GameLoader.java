@@ -6,14 +6,11 @@ import fr.ubordeaux.scrabble.model.core.HumanPlayer;
 import fr.ubordeaux.scrabble.model.core.Move;
 import fr.ubordeaux.scrabble.model.core.Tile;
 import fr.ubordeaux.scrabble.model.enums.Direction;
-import fr.ubordeaux.scrabble.model.enums.GameMode;
 import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
-import fr.ubordeaux.scrabble.model.utils.GameLogger;
 import fr.ubordeaux.scrabble.model.utils.Point;
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -25,9 +22,7 @@ import java.util.Map;
  */
 public class GameLoader {
   private boolean isInBlockComment;
-  /**
-   * Stores AI settings keyed by player index (0-based): "type", "ai-mode", "name".
-   */
+  /** Stores AI settings keyed by player index (0-based): "type", "ai-mode", "name". */
   private final Map<Integer, Map<String, String>> playerSettings = new HashMap<>();
 
   /**
@@ -45,7 +40,7 @@ public class GameLoader {
    * @throws Exception if format is invalid, specifying the line number (F24).
    */
   public Game loadGame(String filePath) throws Exception {
-    Game game = getGame(filePath);
+    Game game = new Game();
     this.isInBlockComment = false;
     this.playerSettings.clear();
     int lineCount = 0;
@@ -95,44 +90,6 @@ public class GameLoader {
   }
 
   /**
-   * Pre-reads the save file to detect whether the game was played in Super-Scrabble mode,
-   * then constructs and returns the appropriate {@link Game} instance (21x21 board if super,
-   * standard 15x15 otherwise). This pre-pass is necessary because the board size must be
-   * known before the main parsing loop begins.
-   *
-   * @param filePath Path to the .scrabble save file.
-   * @return A new {@link Game} instance with the correct board size.
-   * @throws IOException If the file cannot be read.
-   */
-  private static Game getGame(String filePath) throws IOException {
-    boolean superScrabble = false;
-    try (BufferedReader preReader
-             = new BufferedReader(new FileReader(filePath))) {
-      String preLine;
-      boolean inSettings = false;
-      while ((preLine = preReader.readLine()) != null) {
-        preLine = preLine.replaceAll("#.*", "").trim();
-        if (preLine.equals("[settings]")) {
-          inSettings = true;
-          continue;
-        }
-        if (preLine.startsWith("[")) {
-          if (inSettings) {
-            break;
-          }
-          continue;
-        }
-        if (inSettings && (preLine.startsWith("super-scrabble=")
-            || preLine.startsWith("super-scrabble "))) {
-          superScrabble = preLine.replaceFirst("super-scrabble[= ]", "").trim().equals("true");
-          break;
-        }
-      }
-    }
-    return superScrabble ? new Game(GameMode.SUPER) : new Game();
-  }
-
-  /**
    * Cleans an input line by removing single-line (#) and multi-line ({}) comments.
    *
    * @param line The raw line from the save file.
@@ -167,7 +124,7 @@ public class GameLoader {
    * @param line The current line containing setting data.
    */
   private void parseSettings(Game game, String line) {
-    String[] parts = line.contains("=") ? line.split("=", 2) : line.split("\\s+", 2);
+    String[] parts = line.split("\\s+", 2);
     if (parts.length < 2) {
       return;
     }
@@ -176,23 +133,6 @@ public class GameLoader {
 
     if (key.equals("blitz") && value.equals("true")) {
       game.enableBlitzMode();
-      return;
-    }
-
-    if (key.equals("debug")) {
-      GameLogger.setDebug(Boolean.parseBoolean(value));
-      return;
-    }
-
-    if (key.equals("super-scrabble") || key.equals("players-count")) {
-      return; // handled elsewhere
-    }
-
-    if (key.equals("verbose")) {
-      // debug mode already implies verbose; only set verbose if debug is not active
-      if (!GameLogger.isDebug()) {
-        GameLogger.setVerbose(Boolean.parseBoolean(value));
-      }
       return;
     }
 
@@ -224,10 +164,8 @@ public class GameLoader {
     }
 
     // Ajout de la condition "boardRow < 15" pour éviter de déborder du plateau
-    int boardSize = game.getBoard().getSize();
-    if (boardRow < boardSize && line.length() == boardSize && (line.contains("-")
-        || line.matches(".*[A-Z].*"))) {
-      for (int x = 0; x < boardSize; x++) {
+    if (boardRow < 15 && line.length() == 15 && (line.contains("-") || line.matches(".*[A-Z].*"))) {
+      for (int x = 0; x < 15; x++) {
         char c = line.charAt(x);
         if (c != '-') {
           game.getBoard().getSquare(new Point(x, boardRow)).setTile(new Tile(c));
@@ -237,19 +175,19 @@ public class GameLoader {
       return boardRow + 1;
     }
 
-    String trim = line.substring(line.indexOf(":") + 1).trim();
     if (line.startsWith("score-")) {
       int playerIdx = Integer.parseInt(line.substring(6, line.indexOf(":"))) - 1;
-      int scoreValue = Integer.parseInt(trim);
+      int scoreValue = Integer.parseInt(line.substring(line.indexOf(":") + 1).trim());
       ensurePlayerExists(game, playerIdx);
       game.getPlayers().get(playerIdx).addScore(scoreValue);
     }
 
     if (line.startsWith("rack-")) {
       int playerIdx = Integer.parseInt(line.substring(5, line.indexOf(":"))) - 1;
+      String tilesStr = line.substring(line.indexOf(":") + 1).trim();
       ensurePlayerExists(game, playerIdx);
-      Player p = game.getPlayers().get(playerIdx);
-      for (char c : trim.toCharArray()) {
+      fr.ubordeaux.scrabble.model.interfaces.Player p = game.getPlayers().get(playerIdx);
+      for (char c : tilesStr.toCharArray()) {
         p.getRack().addTile(new Tile(c));
       }
     }
@@ -273,12 +211,6 @@ public class GameLoader {
 
     if (parts.length == 2 && parts[1].equalsIgnoreCase("pass")) {
       game.getUndoRedo().addMove(Move.createPass(player));
-    } else if (parts.length == 3 && parts[1].equalsIgnoreCase("exchange")) {
-      List<Tile> exchangedTiles = new ArrayList<>();
-      for (char c : parts[2].toCharArray()) {
-        exchangedTiles.add(new Tile(c));
-      }
-      game.getUndoRedo().addMove(Move.createExchange(player, exchangedTiles));
     } else if (parts.length == 3) {
       String moveData = parts[1];
       String wordStr = parts[2];
