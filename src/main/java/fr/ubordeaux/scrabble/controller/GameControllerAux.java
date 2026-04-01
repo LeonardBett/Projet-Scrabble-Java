@@ -351,8 +351,7 @@ class GameControllerAux {
       cliView.displayError(I18n.translate("cli.shell.blitzNotEnabled"));
       return;
     }
-    current.pauseTurnTimer();
-    cliView.displayMessage(I18n.translate("cli.shell.blitzPaused"));
+    controller.togglePause();
   }
 
   private void handleShow(String[] tokens, CliView cliView) {

@@ -162,6 +162,7 @@ public class ScrabbleGui extends Application {
     stage.setOnCloseRequest(e -> networkBridge.dispose());
     stage.setTitle(I18n.translate("scrabble.windowTitle"));
     Scene scene = new Scene(root, 1200, 800);
+    setupShortcuts(scene);
     stage.setScene(scene);
     stage.setFullScreen(true);
     stage.show();
@@ -1110,4 +1111,44 @@ public class ScrabbleGui extends Application {
   public static void main(String[] args) {
     launch(args);
   }
+
+  /**
+   * Configure global keyboard shortcuts.
+   *
+   * @param scene main scene of the application.
+   */
+  private void setupShortcuts(Scene scene) {
+
+    scene.getAccelerators().put(new KeyCodeCombination(KeyCode.N, KeyCombination.CONTROL_DOWN),
+        () -> newGameMenuItem.fire());
+    scene.getAccelerators().put(new KeyCodeCombination(KeyCode.L, KeyCombination.CONTROL_DOWN),
+        () -> loadMenuItem.fire());
+    scene.getAccelerators().put(new KeyCodeCombination(KeyCode.S, KeyCombination.CONTROL_DOWN),
+        () -> saveMenuItem.fire());
+    scene.getAccelerators().put(new KeyCodeCombination(KeyCode.Q, KeyCombination.CONTROL_DOWN),
+        () -> quitMenuItem.fire());
+
+    scene.getAccelerators().put(new KeyCodeCombination(KeyCode.COMMA, KeyCombination.CONTROL_DOWN),
+        () -> showInfo("Configuration", "Show config (TODO)"));
+
+    scene.getAccelerators().put(new KeyCodeCombination(KeyCode.I, KeyCombination.CONTROL_DOWN),
+        () -> showInfo("Informations", "Scrabble U-Bordeaux\nVersion 1.0\n"));
+
+    scene.getAccelerators().put(new KeyCodeCombination(KeyCode.U, KeyCombination.CONTROL_DOWN),
+        () -> controlPanel.getUndoButton().fire());
+
+    scene.getAccelerators().put(new KeyCodeCombination(KeyCode.R, KeyCombination.CONTROL_DOWN),
+        () -> controlPanel.getRedoButton().fire());
+
+    scene.getAccelerators().put(new KeyCodeCombination(KeyCode.H, KeyCombination.CONTROL_DOWN),
+        () -> controlPanel.getHintButton().fire());
+
+    scene.getAccelerators().put(new KeyCodeCombination(KeyCode.P, KeyCombination.CONTROL_DOWN),
+        () -> {
+          if (!onlineMode && !gameInstance.isGameOver()) {
+            controller.togglePause();
+          }
+        });
+  }
+
 }
