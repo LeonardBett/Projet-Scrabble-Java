@@ -33,15 +33,7 @@ public class CliInputHandler {
    * @return the action string chosen by the player
    */
   public String askAction() {
-    messageRenderer.sectionTitle(I18n.translate("cli.action.title"));
-    System.out.println(I18n.translate("cli.action.play"));
-    System.out.println(I18n.translate("cli.action.exchange"));
-    System.out.println(I18n.translate("cli.action.pass"));
-    System.out.println(I18n.translate("cli.action.undo"));
-    System.out.println(I18n.translate("cli.action.redo"));
-    System.out.println(I18n.translate("cli.action.quit"));
-    System.out.println(I18n.translate("cli.action.hint"));
-    System.out.print("\n" + I18n.translate("cli.action.choicePrompt"));
+    System.out.print("\n>> ");
     return scanner.nextLine().trim();
   }
 
@@ -52,9 +44,19 @@ public class CliInputHandler {
    * @return the constructed Move, or null if input is invalid
    */
   public Move askPlayMove(Player player) {
+    System.out.print("\n" + I18n.translate("cli.play.notationPrompt"));
+    return parsePlayMoveNotation(player, scanner.nextLine().trim());
+  }
+
+  /**
+   * Parses a move notation entered directly in the shell (for example: g5v COUNT).
+   *
+   * @param player player who is playing
+   * @param input raw notation to parse
+   * @return the constructed Move, or null if input is invalid
+   */
+  public Move parsePlayMoveNotation(Player player, String input) {
     try {
-      System.out.print("\n" + I18n.translate("cli.play.notationPrompt"));
-      String input = scanner.nextLine().trim();
       if (input.isEmpty()) {
         throw new IllegalArgumentException(I18n.translate("cli.play.emptyInput"));
       }
@@ -173,9 +175,20 @@ public class CliInputHandler {
    * @return the constructed Move, or null if input is invalid
    */
   public Move askExchangeMove(Player player) {
+    System.out.print("\n" + I18n.translate("cli.exchange.prompt"));
+    return parseExchangeLetters(player, scanner.nextLine().trim());
+  }
+
+  /**
+   * Parses an exchange command payload (letters only).
+   *
+   * @param player player who is exchanging tiles
+   * @param lettersInput letters to exchange
+   * @return the constructed Move, or null if input is invalid
+   */
+  public Move parseExchangeLetters(Player player, String lettersInput) {
     try {
-      System.out.print("\n" + I18n.translate("cli.exchange.prompt"));
-      String lettersInput = scanner.nextLine().trim().toUpperCase();
+      lettersInput = lettersInput.trim().toUpperCase();
 
       List<Tile> tiles = new ArrayList<>();
       List<Tile> rack = player.getRack().getTiles();

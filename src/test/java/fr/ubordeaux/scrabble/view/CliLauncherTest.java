@@ -15,7 +15,7 @@ class CliLauncherTest {
   void launchShouldRunAndQuitImmediatelyWithValidInput() {
     InputStream originalIn = System.in;
     try {
-      String input = "6\no\n";
+      String input = "quit\no\n";
       System.setIn(new ByteArrayInputStream(input.getBytes(StandardCharsets.UTF_8)));
 
       assertDoesNotThrow(() -> CliLauncher.launch(2, List.of(), false, 30, 2, false, false, "en"));

@@ -111,6 +111,17 @@ public class GameController {
     return lang;
   }
 
+  void adoptLoadedCliState(Game loadedGame, CliView loadedView) {
+    if (loadedGame == null || loadedView == null) {
+      throw new IllegalArgumentException("Loaded game and view must not be null.");
+    }
+    this.game = loadedGame;
+    this.view = loadedView;
+    this.lang = Tile.normalizeLanguage(loadedGame.getLanguage());
+    this.gaddag = null;
+    this.dictionaryList = null;
+  }
+
   /** Thread de surveillance blitz — affiche un avertissement toutes les minutes. */
   private volatile Thread blitzWatcherThread;
 

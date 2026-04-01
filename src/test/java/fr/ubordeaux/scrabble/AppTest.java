@@ -154,6 +154,9 @@ class AppTest {
   @Test
   void mainShouldAcceptHelpAndVersionOptions() {
     assertDoesNotThrow(() -> App.main(new String[] {"--help"}));
+    assertNull(cliCall);
+    assertNull(guiCall);
+
     assertDoesNotThrow(() -> App.main(new String[] {"--version"}));
 
     assertNotNull(cliCall);

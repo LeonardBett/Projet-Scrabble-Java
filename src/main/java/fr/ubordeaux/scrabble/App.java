@@ -10,6 +10,8 @@ import fr.ubordeaux.scrabble.view.optionlancement.HelpPrinter;
 import fr.ubordeaux.scrabble.view.optionlancement.OptionPlayer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.Scanner;
 
 /**
  * Main entry point of the application. Parses command-line arguments and launches the appropriate
@@ -54,6 +56,42 @@ public class App {
   private static ExitHandler exitHandler = System::exit;
   private static CliLauncherHandler cliLauncherHandler = CliLauncher::launch;
   private static GuiLauncherHandler guiLauncherHandler = GuiLauncher::launch;
+
+  private enum HelpLaunchChoice {
+    CLI,
+    GUI,
+    NONE
+  }
+
+  private enum HelpLaunchMode {
+    NONE,
+    SHORTCUT,
+    ARGS
+  }
+
+  private static final class HelpLaunchRequest {
+    private final HelpLaunchMode mode;
+    private final String[] args;
+    private final HelpLaunchChoice shortcut;
+
+    private HelpLaunchRequest(HelpLaunchMode mode, String[] args, HelpLaunchChoice shortcut) {
+      this.mode = mode;
+      this.args = args;
+      this.shortcut = shortcut;
+    }
+
+    private static HelpLaunchRequest none() {
+      return new HelpLaunchRequest(HelpLaunchMode.NONE, new String[] {}, HelpLaunchChoice.NONE);
+    }
+
+    private static HelpLaunchRequest shortcut(HelpLaunchChoice shortcut) {
+      return new HelpLaunchRequest(HelpLaunchMode.SHORTCUT, new String[] {}, shortcut);
+    }
+
+    private static HelpLaunchRequest args(String[] args) {
+      return new HelpLaunchRequest(HelpLaunchMode.ARGS, args, HelpLaunchChoice.NONE);
+    }
+  }
 
   /** Default constructor for App. Should not be instantiated directly. */
   public App() {}
@@ -142,13 +180,14 @@ public class App {
     boolean daemonMode = false; // Headless mode
     int serverPort =
         NetworkManager.DEFAULT_TCP_PORT; // Server port, default value for headless start
+    boolean helpRequested = false;
 
     // List to store the colors of players that should be controlled by AI
     List<String> aiColors = new ArrayList<>();
 
     for (int i = 0; i < args.length; i++) {
       switch (args[i]) {
-        case "-h", "--help" -> HelpPrinter.printHelp();
+        case "-h", "--help" -> helpRequested = true;
         case "-V", "--version" -> HelpPrinter.printVersion();
         case "-g", "--gui" -> guiMode = true;
         case "-s", "--super" -> superMode = true;
@@ -244,6 +283,20 @@ public class App {
       }
     }
 
+    if (helpRequested) {
+      HelpPrinter.printHelp();
+      HelpLaunchRequest request = promptLaunchRequestAfterHelp();
+      if (request.mode == HelpLaunchMode.NONE) {
+        return;
+      }
+      if (request.mode == HelpLaunchMode.SHORTCUT) {
+        guiMode = request.shortcut == HelpLaunchChoice.GUI;
+      } else {
+        main(request.args);
+        return;
+      }
+    }
+
     // Check program start with server start
     if (startServer) {
       NetworkManager tempManager = new NetworkManager();
@@ -278,6 +331,41 @@ public class App {
     } else {
       launchCli(players, aiColors, blitzMode, blitzMinutes, aiTime, useExptiminimax, useMl, lang);
     }
+  }
+
+  private static HelpLaunchRequest promptLaunchRequestAfterHelp() {
+    if (System.console() == null) {
+      return HelpLaunchRequest.none();
+    }
+
+    System.out.print(I18n.translate("app.help.launchPrompt") + " ");
+    Scanner scanner = new Scanner(System.in);
+    String answer = scanner.nextLine();
+    if (answer == null) {
+      return HelpLaunchRequest.none();
+    }
+
+    String normalized = answer.trim().toLowerCase(Locale.ROOT);
+    if (normalized.isBlank() || normalized.equals("n") || normalized.equals("no")
+        || normalized.equals("non") || normalized.equals("q") || normalized.equals("quit")) {
+      return HelpLaunchRequest.none();
+    }
+
+    if (normalized.equals("c") || normalized.equals("cli")) {
+      return HelpLaunchRequest.shortcut(HelpLaunchChoice.CLI);
+    }
+
+    if (normalized.equals("g") || normalized.equals("gui")) {
+      return HelpLaunchRequest.shortcut(HelpLaunchChoice.GUI);
+    }
+
+    String[] launchArgs = normalized.split("\\s+");
+    if (launchArgs.length == 0) {
+      System.out.println(I18n.translate("app.help.launchInvalidChoice"));
+      return HelpLaunchRequest.none();
+    }
+
+    return HelpLaunchRequest.args(launchArgs);
   }
 
   /**

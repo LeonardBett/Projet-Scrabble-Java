@@ -17,6 +17,7 @@ import fr.ubordeaux.scrabble.model.core.Tile;
 import fr.ubordeaux.scrabble.model.dictionary.Gaddag;
 import fr.ubordeaux.scrabble.model.enums.Direction;
 import fr.ubordeaux.scrabble.model.enums.PlayerColor;
+import fr.ubordeaux.scrabble.model.savefiles.SaveManager;
 import fr.ubordeaux.scrabble.model.utils.Point;
 import fr.ubordeaux.scrabble.view.UserInterface;
 import fr.ubordeaux.scrabble.view.cli.CliView;
@@ -28,6 +29,8 @@ import java.io.PrintStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -227,7 +230,7 @@ class GameControllerTest {
     GameController controller = new GameController(game, view);
     setDictionary(controller, minimalDictionary("AA", "ART"));
 
-    runCliWithInput(controller, "6\no\n");
+    runCliWithInput(controller, "quit\no\n");
 
     assertNotNull(game.determineWinner());
   }
@@ -242,7 +245,71 @@ class GameControllerTest {
     GameController controller = new GameController(game, view);
     setDictionary(controller, minimalDictionary("AA", "ART"));
 
-    runCliWithInput(controller, "x\n6\no\n");
+    runCliWithInput(controller, "x\nquit\no\n");
+  }
+
+  @Test
+  void runCliShouldAcceptShellQuitHelpAndPassCommands() throws Exception {
+    Game game = new Game();
+    game.addPlayer(new HumanPlayer("Alice", PlayerColor.BLUE));
+    game.addPlayer(new HumanPlayer("Bob", PlayerColor.RED));
+
+    CliView view = new CliView(game);
+    GameController controller = new GameController(game, view);
+    setDictionary(controller, minimalDictionary("AA", "ART"));
+
+    runCliWithInput(controller, "help\nshow configuration\npass\nquit\no\n");
+
+    assertTrue(game.getUndoRedo().getHistory().size() >= 1);
+  }
+
+  @Test
+  void runCliShouldSaveFromShellCommand() throws Exception {
+    Game game = new Game();
+    game.addPlayer(new HumanPlayer("Alice", PlayerColor.BLUE));
+    game.addPlayer(new HumanPlayer("Bob", PlayerColor.RED));
+
+    CliView view = new CliView(game);
+    GameController controller = new GameController(game, view);
+    setDictionary(controller, minimalDictionary("AA", "ART"));
+
+    Path saveFile = Files.createTempFile("scrabble-cli-", ".sav");
+    Files.deleteIfExists(saveFile);
+
+    runCliWithInput(controller, "save " + saveFile.toString() + "\nquit\no\n");
+
+    assertTrue(Files.exists(saveFile));
+    Files.deleteIfExists(saveFile);
+  }
+
+  @Test
+  void runCliShouldLoadGameFromShellCommand() throws Exception {
+    Game source = new Game();
+    HumanPlayer sourceA = new HumanPlayer("SrcA", PlayerColor.BLUE);
+    HumanPlayer sourceB = new HumanPlayer("SrcB", PlayerColor.RED);
+    source.addPlayer(sourceA);
+    source.addPlayer(sourceB);
+    sourceA.addScore(42);
+    sourceB.addScore(17);
+
+    Path saveFile = Files.createTempFile("scrabble-cli-load-", ".sav");
+    new SaveManager().saveGame(source, saveFile.toString());
+
+    Game game = new Game();
+    game.addPlayer(new HumanPlayer("Alice", PlayerColor.BLUE));
+    game.addPlayer(new HumanPlayer("Bob", PlayerColor.RED));
+
+    CliView view = new CliView(game);
+    GameController controller = new GameController(game, view);
+    setDictionary(controller, minimalDictionary("AA", "ART"));
+
+    runCliWithInput(controller, "load " + saveFile + "\nquit\no\n");
+
+    assertEquals(2, controller.getGame().getPlayers().size());
+    assertEquals(42, controller.getGame().getPlayers().get(0).getScore());
+    assertEquals(17, controller.getGame().getPlayers().get(1).getScore());
+
+    Files.deleteIfExists(saveFile);
   }
 
   @Test
@@ -263,9 +330,7 @@ class GameControllerTest {
     GameController controller = new GameController(game, view);
     setDictionary(controller, minimalDictionary("AA", "ART"));
 
-    // 1: invalid play format (move null), 2: invalid exchange (move null),
-    // 3: pass, 4: undo, 5: redo, 6: quit.
-    runCliWithInput(controller, "1\nbad\n2\nZ\n3\n4\n5\n6\no\n");
+    runCliWithInput(controller, "bad\nexchange Z\npass\nundo\nredo\nquit\no\n");
   }
 
   @Test
@@ -285,7 +350,7 @@ class GameControllerTest {
     GameController controller = new GameController(game, view);
     setDictionary(controller, minimalDictionary("AA", "ART"));
 
-    runCliWithInput(controller, "1\nh 8\nH\nAA\n6\no\n");
+    runCliWithInput(controller, "h8h AA\nquit\no\n");
   }
 
   @Test
@@ -306,7 +371,7 @@ class GameControllerTest {
     setDictionary(controller, minimalDictionary("AA", "ART"));
 
     // Validly parsed move but invalid placement (first word does not cover center).
-    runCliWithInput(controller, "1\na 1\nH\nAA\n6\no\n");
+    runCliWithInput(controller, "a1h AA\nquit\no\n");
   }
 
   @Test
@@ -326,7 +391,7 @@ class GameControllerTest {
     GameController controller = new GameController(game, view);
     setDictionary(controller, minimalDictionary("AA", "ART"));
 
-    runCliWithInput(controller, "2\nAB\n6\no\n");
+    runCliWithInput(controller, "exchange AB\nquit\no\n");
   }
 
   @Test
@@ -350,7 +415,7 @@ class GameControllerTest {
     GameController controller = new GameController(game, view);
     setDictionary(controller, minimalDictionary("AA", "ART"));
 
-    runCliWithInput(controller, "2\nAB\n6\no\n");
+    runCliWithInput(controller, "exchange AB\nquit\no\n");
   }
 
   @Test
@@ -363,7 +428,7 @@ class GameControllerTest {
     GameController controller = new GameController(game, view);
     setDictionary(controller, minimalDictionary("AA", "ART"));
 
-    runCliWithInput(controller, "6\nn\n6\no\n");
+    runCliWithInput(controller, "quit\nn\nquit\no\n");
   }
 
   @Test
@@ -375,7 +440,7 @@ class GameControllerTest {
 
     controller.setUseExptiminimax(true);
 
-    runCliWithInput(controller, "2\nBob\nIAbot\n6\no\n");
+    runCliWithInput(controller, "2\nBob\nIAbot\nquit\no\n");
 
     assertEquals(2, game.getPlayers().size());
     assertInstanceOf(AiPlayer.class, game.getPlayers().get(1));
@@ -397,7 +462,7 @@ class GameControllerTest {
     controller.setUseMl(true);
     setDictionary(controller, minimalDictionary("AA", "ART"));
 
-    runCliWithInput(controller, "6\no\n");
+    runCliWithInput(controller, "quit\no\n");
 
     assertNotNull(getAiMlAgent(ai));
   }
@@ -410,7 +475,7 @@ class GameControllerTest {
     controller.setUseMl(true);
     controller.setPlayerCount(2);
 
-    runCliWithInput(controller, "IAbot\nBob\n6\no\n");
+    runCliWithInput(controller, "IAbot\nBob\nquit\no\n");
 
     assertEquals(2, game.getPlayers().size());
     assertInstanceOf(AiPlayer.class, game.getPlayers().get(0));
@@ -426,7 +491,7 @@ class GameControllerTest {
     controller.setPlayerCount(2);
 
     // No numeric input for number of players here; only names then quit.
-    runCliWithInput(controller, "Alice\nBob\n6\no\n");
+    runCliWithInput(controller, "Alice\nBob\nquit\no\n");
 
     assertEquals(2, game.getPlayers().size());
     assertEquals("Alice", game.getPlayers().get(0).getName());
@@ -581,7 +646,7 @@ class GameControllerTest {
     GameController controller = new GameController(game, view);
     setDictionary(controller, minimalDictionary("AA", "ART"));
 
-    runCliWithInputSilencingErr(controller, "6\no\n");
+    runCliWithInputSilencingErr(controller, "quit\no\n");
     assertTrue(game.getCurrentPlayer() instanceof HumanPlayer
         || game.getCurrentPlayer() instanceof AiPlayer);
   }
@@ -598,7 +663,7 @@ class GameControllerTest {
     GameController controller = new GameController(game, view);
     setDictionary(controller, minimalDictionary("AA", "ART"));
 
-    runCliWithInput(controller, "6\no\n");
+    runCliWithInput(controller, "quit\no\n");
     assertTrue(game.getCurrentPlayer() instanceof HumanPlayer
         || game.getCurrentPlayer() instanceof AiPlayer);
   }
@@ -636,8 +701,7 @@ class GameControllerTest {
     System.setOut(new PrintStream(outContent));
 
     try {
-      // Simulates the user inputs: '7' (Hint), '6' (Quit), 'o' (Confirm)
-      runCliWithInput(controller, "7\n6\no\n");
+      runCliWithInput(controller, "hint\nquit\no\n");
 
       String consoleOutput = outContent.toString();
 
@@ -681,7 +745,7 @@ class GameControllerTest {
     System.setOut(new PrintStream(outContent));
 
     try {
-      runCliWithInput(controller, "7\n6\no\n");
+      runCliWithInput(controller, "hint\nquit\no\n");
 
       String consoleOutput = outContent.toString();
 
