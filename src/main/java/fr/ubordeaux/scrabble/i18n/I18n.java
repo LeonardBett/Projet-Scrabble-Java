@@ -1,6 +1,8 @@
 package fr.ubordeaux.scrabble.i18n;
 
 import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
@@ -62,6 +64,25 @@ public final class I18n {
    */
   public static synchronized String translate(String key, Object... args) {
     return MessageFormat.format(translate(key), args);
+  }
+
+  /**
+   * Lists supported language codes based on available message bundles.
+   *
+   * @return supported language codes (e.g. en, fr)
+   */
+  public static synchronized List<String> getSupportedLanguages() {
+    List<String> languages = new ArrayList<>();
+    for (String code : List.of("en", "fr")) {
+      String resourceName = "i18n/messages_" + code + ".properties";
+      if (I18n.class.getClassLoader().getResource(resourceName) != null) {
+        languages.add(code);
+      }
+    }
+    if (!languages.contains(DEFAULT_LANG)) {
+      languages.add(DEFAULT_LANG);
+    }
+    return languages;
   }
 
   private static ResourceBundle loadBundle(String lang) {

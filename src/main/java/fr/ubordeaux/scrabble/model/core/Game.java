@@ -536,7 +536,14 @@ public class Game {
     }
 
     boolean redoneHumanMove = false;
-    while (!redoneHumanMove && undoRedo.canRedo()) {
+    while (undoRedo.canRedo()) {
+      if (redoneHumanMove) {
+        Move next = undoRedo.peekRedo();
+        if (next != null && next.getPlayer() instanceof HumanPlayer) {
+          break;
+        }
+      }
+
       Move move = undoRedo.redo();
 
       applyMove(move);
