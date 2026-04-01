@@ -1,23 +1,17 @@
 package fr.ubordeaux.scrabble.model.savefiles;
 
-import fr.ubordeaux.scrabble.model.ai.AiPlayer;
 import fr.ubordeaux.scrabble.model.core.Game;
 import fr.ubordeaux.scrabble.model.core.HumanPlayer;
 import fr.ubordeaux.scrabble.model.core.Move;
 import fr.ubordeaux.scrabble.model.core.Tile;
 import fr.ubordeaux.scrabble.model.enums.Direction;
-import fr.ubordeaux.scrabble.model.enums.GameMode;
 import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
-import fr.ubordeaux.scrabble.model.utils.GameLogger;
 import fr.ubordeaux.scrabble.model.utils.Point;
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Robust loader for Scrabble save files.
@@ -25,10 +19,13 @@ import java.util.Map;
  */
 public class GameLoader {
   private boolean isInBlockComment;
+
   /**
-   * Stores AI settings keyed by player index (0-based): "type", "ai-mode", "name".
+   * Constructs a new GameLoader instance.
    */
-  private final Map<Integer, Map<String, String>> playerSettings = new HashMap<>();
+  public GameLoader() {
+    this.isInBlockComment = false;
+  }
 
   /**
    * Constructs a new GameLoader instance.
@@ -45,9 +42,8 @@ public class GameLoader {
    * @throws Exception if format is invalid, specifying the line number (F24).
    */
   public Game loadGame(String filePath) throws Exception {
-    Game game = getGame(filePath);
+    Game game = new Game();
     this.isInBlockComment = false;
-    this.playerSettings.clear();
     int lineCount = 0;
 
     try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
@@ -94,33 +90,6 @@ public class GameLoader {
     return game;
   }
 
-  private static Game getGame(String filePath) throws IOException {
-    boolean superScrabble = false;
-    try (BufferedReader preReader
-             = new BufferedReader(new FileReader(filePath))) {
-      String preLine;
-      boolean inSettings = false;
-      while ((preLine = preReader.readLine()) != null) {
-        preLine = preLine.replaceAll("#.*", "").trim();
-        if (preLine.equals("[settings]")) {
-          inSettings = true;
-          continue;
-        }
-        if (preLine.startsWith("[")) {
-          if (inSettings) {
-            break;
-          }
-          continue;
-        }
-        if (inSettings && preLine.startsWith("super-scrabble ")) {
-          superScrabble = preLine.substring("super-scrabble ".length()).trim().equals("true");
-          break;
-        }
-      }
-    }
-    return superScrabble ? new Game(GameMode.SUPER) : new Game();
-  }
-
   /**
    * Cleans an input line by removing single-line (#) and multi-line ({}) comments.
    *
@@ -156,44 +125,12 @@ public class GameLoader {
    * @param line The current line containing setting data.
    */
   private void parseSettings(Game game, String line) {
-    String[] parts = line.split("\\s+", 2);
+    String[] parts = line.split("\\s+");
     if (parts.length < 2) {
       return;
     }
-    String key = parts[0];
-    String value = parts[1].trim();
-
-    if (key.equals("blitz") && value.equals("true")) {
+    if (parts[0].equals("blitz") && parts[1].equals("true")) {
       game.enableBlitzMode();
-      return;
-    }
-
-    if (key.equals("debug")) {
-      GameLogger.setDebug(Boolean.parseBoolean(value));
-      return;
-    }
-
-    if (key.equals("super-scrabble") || key.equals("players-count")) {
-      return; // handled elsewhere
-    }
-
-    if (key.equals("verbose")) {
-      // debug mode already implies verbose; only set verbose if debug is not active
-      if (!GameLogger.isDebug()) {
-        GameLogger.setVerbose(Boolean.parseBoolean(value));
-      }
-      return;
-    }
-
-    // player-X-type, player-X-ai-mode, player-X-name
-    if (key.startsWith("player-")) {
-      String[] keyParts = key.split("-", 3); // ["player", "X", "type|ai-mode|name"]
-      if (keyParts.length < 3) {
-        return;
-      }
-      int playerIdx = Integer.parseInt(keyParts[1]) - 1;
-      String setting = keyParts[2]; // "type", "ai-mode", or "name"
-      playerSettings.computeIfAbsent(playerIdx, k -> new HashMap<>()).put(setting, value);
     }
   }
 
@@ -207,16 +144,12 @@ public class GameLoader {
    */
   private int parseGameState(Game game, String line, int boardRow) {
     if (line.length() == 1 && Character.isDigit(line.charAt(0))) {
-      int currentPlayerIdx = Character.getNumericValue(line.charAt(0)) - 1;
-      game.setCurrentPlayerIndex(currentPlayerIdx); // <-- C'est cette ligne qui manque !
       return boardRow;
     }
 
     // Ajout de la condition "boardRow < 15" pour éviter de déborder du plateau
-    int boardSize = game.getBoard().getSize();
-    if (boardRow < boardSize && line.length() == boardSize && (line.contains("-")
-        || line.matches(".*[A-Z].*"))) {
-      for (int x = 0; x < boardSize; x++) {
+    if (boardRow < 15 && line.length() == 15 && (line.contains("-") || line.matches(".*[A-Z].*"))) {
+      for (int x = 0; x < 15; x++) {
         char c = line.charAt(x);
         if (c != '-') {
           game.getBoard().getSquare(new Point(x, boardRow)).setTile(new Tile(c));
@@ -288,20 +221,7 @@ public class GameLoader {
     while (game.getPlayers().size() <= index) {
       int nextIdx = game.getPlayers().size();
       PlayerColor color = PlayerColor.values()[nextIdx % PlayerColor.values().length];
-      Map<String, String> settings = playerSettings.getOrDefault(nextIdx, new HashMap<>());
-      String type = settings.getOrDefault("type", "human");
-      String name = settings.getOrDefault("name", "Player " + (nextIdx + 1));
-
-      if ("ai".equalsIgnoreCase(type)) {
-        AiPlayer ai = new AiPlayer(name, 3, 5, color);
-        String aiMode = settings.getOrDefault("ai-mode", "MinMax");
-        if ("Expectiminimax".equalsIgnoreCase(aiMode)) {
-          ai.setExpectiminimaxMode(true);
-        }
-        game.addPlayer(ai);
-      } else {
-        game.addPlayer(new HumanPlayer(name, color));
-      }
+      game.addPlayer(new HumanPlayer("Player " + (nextIdx + 1), color));
     }
   }
 }
