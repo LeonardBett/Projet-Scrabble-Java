@@ -515,6 +515,12 @@ public class ScrabbleGui extends Application {
       networkManager = new NetworkManager();
       networkBridge = new NetworkGameBridge(networkManager);
       networkBridge.setGui(this);
+
+      // We close this old network tab
+      if (lobbyView != null) {
+        lobbyView.close();
+      }
+
       lobbyView = null;
       exitOnlineMode();
     }
@@ -644,8 +650,10 @@ public class ScrabbleGui extends Application {
     onlineButton.setOnAction(e -> onlineMenuItem.fire());
     Button saveButton = createMenuActionButton(saveMenuItem.getText());
     saveButton.setOnAction(e -> saveMenuItem.fire());
+    saveButton.disableProperty().bind(saveMenuItem.disableProperty());
     Button loadButton = createMenuActionButton(loadMenuItem.getText());
     loadButton.setOnAction(e -> loadMenuItem.fire());
+    loadButton.disableProperty().bind(loadMenuItem.disableProperty());
     Button quitButton = createMenuActionButton(quitMenuItem.getText());
     quitButton.setOnAction(e -> quitMenuItem.fire());
 
