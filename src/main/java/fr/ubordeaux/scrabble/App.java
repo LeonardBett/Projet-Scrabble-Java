@@ -165,26 +165,19 @@ public class App {
    * @param args Application command-line arguments.
    */
   public static void main(String[] args) {
-    // 1. Charger la configuration globale (~/.scrabblerc) - Exigence F2
+    // Load configuration (user/home/.scrabblerc) (f2)
     ConfigLoader configLoader = new ConfigLoader();
-    configLoader.loadConfig(); // Crée le fichier si absent
-
-    // Ces valeurs seront supplantées par la ligne de commande plus bas
+    configLoader.loadConfig();
 
     String lang = languageFromEnvironment();
     lang = configLoader.getOption("language", lang);
-    System.out.println(lang);
 
-    // 3. On initialise l'internationalisation
+    // Set language
     I18n.setLanguage(lang);
-    // Paramètres de log initiaux (F2)
+
+    // Load the parameters from the config file
     GameLogger.setVerbose(Boolean.parseBoolean(configLoader.getOption("verbose", "false")));
     GameLogger.setDebug(Boolean.parseBoolean(configLoader.getOption("debug", "false")));
-
-    System.out.println(lang);
-
-    I18n.setLanguage(lang);
-
     int players = Integer.parseInt(configLoader.getOption("players-count",
         String.valueOf(OptionPlayer.DEFAULT)));
     boolean guiMode = Boolean.parseBoolean(configLoader.getOption("gui", "false"));
@@ -339,7 +332,6 @@ public class App {
         return;
       }
     }
-    System.out.println(lang);
     I18n.setLanguage(lang);
 
     GameMode mode = superMode ? GameMode.SUPER : GameMode.STANDARD;
