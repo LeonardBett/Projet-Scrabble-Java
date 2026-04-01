@@ -11,46 +11,55 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Handles the global configuration file ~/.scrabblerc (Requirement F2).
- * Manages defaults, auto-creation, and supression by CLI options.
+ * Handles the global configuration file .scrabblerc (Requirement F2).
+ * This class is responsible for loading default settings from the project root
+ * or home directory, managing automatic file creation, and providing fallback
+ * values for game parameters.
  */
 public class ConfigLoader {
   private static final String FILE_NAME = ".scrabblerc";
   private final Map<String, String> configMap = new HashMap<>();
 
   /**
-   * Loads the configuration from the user's HOME directory at startup (F2, F4).
+   * Initializes a new ConfigLoader instance with an empty configuration map.
+   */
+  public ConfigLoader() {
+  }
+
+  /**
+   * Loads the configuration from the file system at startup (Requirement F2, F4).
+   * It looks for the file in the project root directory. If the file is missing,
+   * it triggers the creation of a minimal configuration file with standard
+   * defaults.
    */
   public void loadConfig() {
-    Path configPath = Paths.get(System.getProperty("user.dir"), FILE_NAME);
+    Path configPath = Paths.get(System.getProperty("user.home"), FILE_NAME);
 
-    // F2: Si le fichier n'est pas présent, en créer un minimal [cite: 86]
+    // If no files found, create a new one
     if (!Files.exists(configPath)) {
       createMinimalConfig(configPath);
       return;
     }
 
-    // F2: Lecture du fichier s'il est présent
+    // If file exists, read it
     try (BufferedReader reader = Files.newBufferedReader(configPath)) {
       String line;
       boolean inDefaultsSection = false;
 
       while ((line = reader.readLine()) != null) {
-        // 1. Supprimer les commentaires (tout ce qui est après #) et trimmer
+        // Requirement F22: Remove comments (content after #) and trim whitespace
         line = line.split("#")[0].trim();
 
-        // 2. Ignorer les lignes vides
         if (line.isEmpty()) {
           continue;
         }
 
-        // 3. Détecter la section (Maintenant ça marchera même avec un commentaire !)
         if (line.equalsIgnoreCase("[defaults]")) {
           inDefaultsSection = true;
           continue;
         }
 
-        // 4. Parser les clés
+        // Parse key=value pairs within the [defaults] section
         if (inDefaultsSection && line.contains("=")) {
           String[] parts = line.split("=", 2);
           if (parts.length == 2) {
@@ -59,13 +68,15 @@ public class ConfigLoader {
         }
       }
     } catch (IOException e) {
-      // F2: Si le fichier est présent mais invalide, afficher un avertissement
       System.err.println("Warning: .scrabblerc is present but invalid. Using standard defaults.");
     }
   }
 
   /**
    * Creates a minimal .scrabblerc file with default values (Requirement F2).
+   * Standard defaults include verbose=false, blitz=false, timeout=30, and language=en.
+   *
+   * @param path The file system path where the minimal configuration should be created.
    */
   private void createMinimalConfig(Path path) {
     try (BufferedWriter writer = Files.newBufferedWriter(path);
@@ -76,12 +87,16 @@ public class ConfigLoader {
       out.println("timeout=30");
       out.println("language=en");
     } catch (IOException e) {
-      // Échec silencieux de la création (le programme continue normalement) [cite: 86]
+      // Quiet error, the program continues normally
     }
   }
 
   /**
-   * Returns a configured value or a fallback if the key is missing.
+   * Retrieves a configuration option by its key.
+   *
+   * @param key The name of the configuration parameter (e.g., "language", "blitz").
+   * @param fallback The value to return if the key is not found in the configuration.
+   * @return The configured value as a String, or the fallback value if the key is missing.
    */
   public String getOption(String key, String fallback) {
     return configMap.getOrDefault(key, fallback);
