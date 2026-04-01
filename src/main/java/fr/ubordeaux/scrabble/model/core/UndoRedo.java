@@ -75,6 +75,18 @@ public class UndoRedo {
   }
 
   /**
+   * Returns the next move that would be replayed by redo without consuming it.
+   *
+   * @return next redo move, or null when redo is unavailable.
+   */
+  public Move peekRedo() {
+    if (!canRedo()) {
+      return null;
+    }
+    return redoStack.peek();
+  }
+
+  /**
    * Returns the underlying move history stack.
    *
    * @return move history stack.

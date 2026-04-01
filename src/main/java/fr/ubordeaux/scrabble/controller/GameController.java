@@ -19,8 +19,11 @@ import fr.ubordeaux.scrabble.model.utils.Point;
 import fr.ubordeaux.scrabble.view.UserInterface;
 import fr.ubordeaux.scrabble.view.cli.CliView;
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,6 +38,7 @@ public class GameController {
   private Gaddag gaddag;
   private List<String> dictionaryList;
   private String lang = "en"; // Default
+  private String dictionaryPathOverride;
 
   // AI Configuration fields
   private int aiTime = 5;
@@ -53,6 +57,7 @@ public class GameController {
   public GameController(Game game, UserInterface view) {
     this.game = game;
     this.view = view;
+    this.dictionaryPathOverride = System.getProperty("scrabble.dictionary.path");
   }
 
   /**
@@ -225,7 +230,7 @@ public class GameController {
       view.refresh();
 
     } catch (IllegalArgumentException | IllegalStateException e) {
-      throw new RuntimeException("Invalid move: " + e.getMessage(), e);
+      throw new RuntimeException(I18n.translate("scrabble.invalidMove", e.getMessage()), e);
     }
   }
 
@@ -240,18 +245,12 @@ public class GameController {
     }
 
     dictionaryList = new ArrayList<>();
-    String dictPath = "dictionaries/lexicon_" + this.lang + ".txt";
-
-    try (InputStream is = getClass().getClassLoader().getResourceAsStream(dictPath)) {
-      if (is != null) {
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
-          String line;
-          while ((line = br.readLine()) != null) {
-            String cleanWord = line.trim().toUpperCase();
-            if (!cleanWord.isEmpty()) {
-              dictionaryList.add(cleanWord);
-            }
-          }
+    try (BufferedReader br = openDictionaryReader()) {
+      String line;
+      while ((line = br.readLine()) != null) {
+        String cleanWord = line.trim().toUpperCase();
+        if (!cleanWord.isEmpty()) {
+          dictionaryList.add(cleanWord);
         }
       }
     } catch (Exception e) {
@@ -271,23 +270,17 @@ public class GameController {
     }
 
     gaddag = new Gaddag();
-    String dictPath = "dictionaries/lexicon_" + this.lang + ".txt";
+    String dictPath = resolvedDictionarySourceLabel();
     GameLogger.logVerbose("\nLoading Gaddag dictionary (" + dictPath + ") please wait...");
 
-    try (InputStream is = getClass().getClassLoader().getResourceAsStream(dictPath)) {
-      if (is == null) {
-        throw new IllegalStateException("Dictionary file " + dictPath + " not found in resources.");
-      }
-
+    try (BufferedReader br = openDictionaryReader()) {
       int wordCount = 0;
-      try (BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
-        String line;
-        while ((line = br.readLine()) != null) {
-          String cleanWord = line.trim().toUpperCase();
-          if (!cleanWord.isEmpty()) {
-            gaddag.add(cleanWord);
-            wordCount++;
-          }
+      String line;
+      while ((line = br.readLine()) != null) {
+        String cleanWord = line.trim().toUpperCase();
+        if (!cleanWord.isEmpty()) {
+          gaddag.add(cleanWord);
+          wordCount++;
         }
       }
 
@@ -387,6 +380,37 @@ public class GameController {
   }
 
   /**
+   * Sets an explicit dictionary file path to override the built-in language dictionaries.
+   *
+   * @param dictionaryPath path to a text dictionary file (one word per line)
+   */
+  public void setDictionaryPath(String dictionaryPath) {
+    this.dictionaryPathOverride = dictionaryPath;
+    this.gaddag = null;
+    this.dictionaryList = null;
+  }
+
+  private String resolvedDictionarySourceLabel() {
+    if (dictionaryPathOverride != null && !dictionaryPathOverride.isBlank()) {
+      return dictionaryPathOverride;
+    }
+    return "dictionaries/lexicon_" + this.lang + ".txt";
+  }
+
+  private BufferedReader openDictionaryReader() throws IOException {
+    if (dictionaryPathOverride != null && !dictionaryPathOverride.isBlank()) {
+      return Files.newBufferedReader(Path.of(dictionaryPathOverride));
+    }
+
+    String dictPath = "dictionaries/lexicon_" + this.lang + ".txt";
+    InputStream is = getClass().getClassLoader().getResourceAsStream(dictPath);
+    if (is == null) {
+      throw new IllegalStateException("Dictionary file " + dictPath + " not found in resources.");
+    }
+    return new BufferedReader(new InputStreamReader(is));
+  }
+
+  /**
    * Generates and displays a hint for the current human player without ending their turn.
    * Searches for the highest-scoring move that specifically uses fewer than 7 letters
    * from the rack to avoid giving away a bingo/scrabble.
@@ -402,8 +426,7 @@ public class GameController {
     for (PlayableWord move : possibleMoves) {
       List<Character> lettersFromRack = getLettersFromRack(game.getBoard(), move);
 
-      // Strict constraint: The hint must never give away a 7-letter play
-      if (!lettersFromRack.isEmpty() && lettersFromRack.size() < 7) {
+      if (!lettersFromRack.isEmpty()) {
         int score = simulateScoreForHint(game.getBoard(), move);
         if (score > bestScore) {
           bestScore = score;
@@ -414,10 +437,29 @@ public class GameController {
     }
 
     if (bestHintMove != null) {
-      view.displayMessage(I18n.translate("cli.hint.found", bestLettersToUse.toString(), bestScore));
+      view.displayMessage(I18n.translate(
+          "cli.hint.foundDetailed",
+          formatHintMove(bestHintMove),
+          bestLettersToUse.toString(),
+          bestScore));
     } else {
       view.displayMessage(I18n.translate("cli.hint.notFound"));
     }
+  }
+
+  private String formatHintMove(PlayableWord move) {
+    int hookIndex = move.getGaddagRepresentation().indexOf('>') - 1;
+    int startX = move.getDirection() == Direction.HORIZONTAL
+        ? move.getHookX() - hookIndex
+        : move.getHookX();
+    int startY = move.getDirection() == Direction.VERTICAL
+        ? move.getHookY() - hookIndex
+        : move.getHookY();
+
+    char row = (char) ('a' + startY);
+    int col = startX + 1;
+    char dir = move.getDirection() == Direction.HORIZONTAL ? 'h' : 'v';
+    return "" + row + col + dir + " " + move.getWord();
   }
 
   /**

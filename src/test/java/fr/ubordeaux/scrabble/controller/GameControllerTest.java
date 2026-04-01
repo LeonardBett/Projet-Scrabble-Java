@@ -715,7 +715,7 @@ class GameControllerTest {
   }
 
   @Test
-  void runCliShouldNotProvideHintForSevenLetterWords() throws Exception {
+  void runCliShouldProvideHintForSevenLetterWords() throws Exception {
     Game game = new Game();
     HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
     HumanPlayer bob = new HumanPlayer("Bob", PlayerColor.RED);
@@ -749,8 +749,8 @@ class GameControllerTest {
 
       String consoleOutput = outContent.toString();
 
-      // Asserts that the hint algorithm correctly filtered out the 7-letter word
-      assertTrue(consoleOutput.contains("shorter than 7"));
+      // The improved hint flow now accepts best 7-letter moves when available.
+      assertTrue(consoleOutput.contains("PARKING"));
     } finally {
       System.setOut(originalOut);
     }

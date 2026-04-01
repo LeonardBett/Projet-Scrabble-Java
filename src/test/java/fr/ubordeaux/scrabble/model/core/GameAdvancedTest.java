@@ -28,6 +28,29 @@ class GameAdvancedTest {
   }
 
   @Test
+  void executeMoveShouldRejectMoveFromNonCurrentPlayer() {
+    Game game = new Game();
+    HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
+    HumanPlayer bob = new HumanPlayer("Bob", PlayerColor.RED);
+    game.addPlayer(alice);
+    game.addPlayer(bob);
+
+    assertThrows(IllegalArgumentException.class, () -> game.executeMove(Move.createPass(bob)));
+  }
+
+  @Test
+  void setLanguageShouldFailAfterGameHasStarted() {
+    Game game = new Game();
+    HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
+    HumanPlayer bob = new HumanPlayer("Bob", PlayerColor.RED);
+    game.addPlayer(alice);
+    game.addPlayer(bob);
+    game.startGame();
+
+    assertThrows(IllegalStateException.class, () -> game.setLanguage("fr"));
+  }
+
+  @Test
   void undoRedoShouldWorkForHumanPlayAndResetFirstMoveFlag() {
     Game game = new Game();
     HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
@@ -60,6 +83,28 @@ class GameAdvancedTest {
     assertDoesNotThrow(game::undo);
     assertDoesNotThrow(game::redo);
     assertEquals(0, game.getUndoRedo().getHistory().size());
+  }
+
+  @Test
+  void redoShouldReplayAssociatedAiMovesAfterHumanMove() {
+    Game game = new Game();
+    HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
+    AiPlayer bot = new AiPlayer("Bot", 1, 5, PlayerColor.RED);
+    game.addPlayer(alice);
+    game.addPlayer(bot);
+
+    game.executeMove(Move.createPass(alice));
+    game.executeMove(Move.createPass(bot));
+
+    assertEquals(2, game.getUndoRedo().getHistory().size());
+
+    game.undo();
+    assertEquals(0, game.getUndoRedo().getHistory().size());
+
+    game.redo();
+    assertEquals(2, game.getUndoRedo().getHistory().size());
+    assertEquals(alice, game.getCurrentPlayer());
+    assertTrue(!game.getUndoRedo().canRedo());
   }
 
   @Test
