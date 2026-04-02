@@ -82,9 +82,14 @@ public class ConfigLoader {
     try (BufferedWriter writer = Files.newBufferedWriter(path);
          PrintWriter out = new PrintWriter(writer)) {
       out.println("[defaults] # Scrabble default configuration");
+      out.println("players-count=2");
       out.println("verbose=false");
       out.println("blitz=false");
       out.println("timeout=30");
+      out.println("super-scrabble=false");
+      out.println("ai-time=5");
+      out.println("ai-exptiminimax=false");
+      out.println("ai-ml=false");
       out.println("language=en");
     } catch (IOException e) {
       // Quiet error, the program continues normally

@@ -13,7 +13,7 @@ import fr.ubordeaux.scrabble.model.enums.MoveType;
 import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
 import fr.ubordeaux.scrabble.model.utils.Point;
-import fr.ubordeaux.scrabble.view.gui.PendingMoveBuilder;
+import fr.ubordeaux.scrabble.view.gui.builders.PendingMoveBuilder;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;

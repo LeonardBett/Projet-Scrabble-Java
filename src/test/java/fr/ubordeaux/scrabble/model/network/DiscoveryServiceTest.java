@@ -65,7 +65,10 @@ class DiscoveryServiceTest {
     }
 
     Assertions.assertTrue(found, "Server list remained empty. Packet was dropped by the OS.");
-    Assertions.assertEquals("TestJUnit", discoveryService.getActiveServer().getFirst().getName());
+    boolean fakePacketServerFound = discoveryService.getActiveServer().stream()
+        .anyMatch(server -> server.getPort() == 12345 && "TestJUnit".equals(server.getName()));
+    Assertions.assertTrue(fakePacketServerFound,
+        "Fake discovery packet server was not found in active server list.");
   }
 
   @Test

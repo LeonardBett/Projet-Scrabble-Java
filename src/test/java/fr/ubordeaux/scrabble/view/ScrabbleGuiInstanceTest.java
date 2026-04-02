@@ -14,8 +14,9 @@ import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.model.network.NetworkManager;
 import fr.ubordeaux.scrabble.model.utils.Point;
 import fr.ubordeaux.scrabble.view.gui.JavaFxView;
-import fr.ubordeaux.scrabble.view.gui.NetworkGameBridge;
 import fr.ubordeaux.scrabble.view.gui.ScrabbleGui;
+import fr.ubordeaux.scrabble.view.gui.config.ControllerConfigSnapshot;
+import fr.ubordeaux.scrabble.view.gui.network.NetworkGameBridge;
 import fr.ubordeaux.scrabble.view.gui.panel.BoardPanel;
 import fr.ubordeaux.scrabble.view.gui.panel.ControlPanel;
 import fr.ubordeaux.scrabble.view.gui.panel.MessagePanel;
@@ -377,6 +378,47 @@ class ScrabbleGuiInstanceTest {
   @Test
   void refreshRackAfterPlayerChanges() {
     assertDoesNotThrow(() -> gui.refreshRack());
+  }
+
+  @Test
+  void applyConfigurationAssignmentsHandlesInvalidAndValidData() throws Exception {
+    runOnFxThread(() -> invokePrivate(gui, "applyConfigurationAssignments",
+        String.class, "invalid-entry"));
+
+    runOnFxThread(() -> invokePrivate(gui, "applyConfigurationAssignments",
+        String.class,
+        "language=fr; players=2; blitz=true; timeout=1; ai-time=2; "
+            + "ai-exptiminimax=false; ai-ml=false; debug=false; verbose=false"));
+  }
+
+  @Test
+  void refreshLocalizedTextsWithBoundControls() {
+    setField(gui, "newGameMenuItem", new javafx.scene.control.MenuItem());
+    setField(gui, "onlineMenuItem", new javafx.scene.control.MenuItem());
+    setField(gui, "saveMenuItem", new javafx.scene.control.MenuItem());
+    setField(gui, "loadMenuItem", new javafx.scene.control.MenuItem());
+    setField(gui, "configurationMenuItem", new javafx.scene.control.MenuItem());
+    setField(gui, "infoMenuItem", new javafx.scene.control.MenuItem());
+    setField(gui, "quitMenuItem", new javafx.scene.control.MenuItem());
+    setField(gui, "newGameButton", new javafx.scene.control.Button());
+    setField(gui, "onlineButton", new javafx.scene.control.Button());
+    setField(gui, "saveButton", new javafx.scene.control.Button());
+    setField(gui, "loadButton", new javafx.scene.control.Button());
+    setField(gui, "configurationButton", new javafx.scene.control.Button());
+    setField(gui, "infoButton", new javafx.scene.control.Button());
+    setField(gui, "quitButton", new javafx.scene.control.Button());
+    setField(gui, "appMenuButton", new javafx.scene.control.MenuButton());
+
+    assertDoesNotThrow(() -> invokePrivate(gui, "refreshLocalizedTexts"));
+  }
+
+  @Test
+  void controllerConfigSnapshotCaptureAndApplyToController() {
+    assertDoesNotThrow(() -> {
+      final ControllerConfigSnapshot snapshot = ControllerConfigSnapshot.capture(controller);
+      assertNotNull(snapshot);
+      snapshot.applyTo(controller);
+    });
   }
 
   private Game createOnlineGame() {

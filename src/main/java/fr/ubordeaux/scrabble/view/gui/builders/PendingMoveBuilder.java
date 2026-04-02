@@ -1,4 +1,4 @@
-package fr.ubordeaux.scrabble.view.gui;
+package fr.ubordeaux.scrabble.view.gui.builders;
 
 import fr.ubordeaux.scrabble.model.core.Board;
 import fr.ubordeaux.scrabble.model.core.Game;

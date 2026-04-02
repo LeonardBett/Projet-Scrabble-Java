@@ -1,6 +1,7 @@
 package fr.ubordeaux.scrabble.controller;
 
 import fr.ubordeaux.scrabble.i18n.I18n;
+import fr.ubordeaux.scrabble.model.ai.MlAgent;
 import fr.ubordeaux.scrabble.model.core.Board;
 import fr.ubordeaux.scrabble.model.core.Game;
 import fr.ubordeaux.scrabble.model.core.Move;
@@ -12,7 +13,9 @@ import fr.ubordeaux.scrabble.model.core.Square;
 import fr.ubordeaux.scrabble.model.core.Tile;
 import fr.ubordeaux.scrabble.model.dictionary.Gaddag;
 import fr.ubordeaux.scrabble.model.enums.Direction;
+import fr.ubordeaux.scrabble.model.enums.GameMode;
 import fr.ubordeaux.scrabble.model.enums.MoveType;
+import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
 import fr.ubordeaux.scrabble.model.utils.GameLogger;
 import fr.ubordeaux.scrabble.model.utils.Point;
@@ -24,6 +27,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,8 +41,12 @@ public class GameController {
   private UserInterface view;
   private Gaddag gaddag;
   private List<String> dictionaryList;
-  private String lang = "en"; // Default
+  private String lang = "en";
+  private boolean isPaused = false;
   private String dictionaryPathOverride;
+  private boolean superScrabbleMode;
+  private boolean blitzMode;
+  private int blitzMinutes = 30;
 
   // AI Configuration fields
   private int aiTime = 5;
@@ -58,6 +66,8 @@ public class GameController {
     this.game = game;
     this.view = view;
     this.dictionaryPathOverride = System.getProperty("scrabble.dictionary.path");
+    this.superScrabbleMode = game != null && game.getBoard().getSize() == 21;
+    this.blitzMode = game != null && game.isBlitzModeEnabled();
   }
 
   /**
@@ -96,24 +106,47 @@ public class GameController {
     return view;
   }
 
-  int configuredAiTime() {
+  public int configuredAiTime() {
     return aiTime;
   }
 
-  boolean isExpectiminimaxEnabled() {
+  public int configuredBlitzMinutes() {
+    return blitzMinutes;
+  }
+
+  public boolean configuredBlitzMode() {
+    return blitzMode;
+  }
+
+  public boolean configuredSuperMode() {
+    return superScrabbleMode;
+  }
+
+  public boolean isExpectiminimaxEnabled() {
     return useExptiminimax;
   }
 
-  boolean isMlEnabled() {
+  public boolean isMlEnabled() {
     return useMl;
   }
 
-  int configuredPlayerCount() {
+  public int configuredPlayerCount() {
     return playerCount;
   }
 
-  String configuredLanguage() {
+  public String configuredLanguage() {
     return lang;
+  }
+
+  /**
+   * Returns the configured dictionary path override, or the default language dictionary.
+   *
+   * @return the dictionary path used by the controller
+   */
+  public String getDictionaryPathOverride() {
+    return dictionaryPathOverride == null || dictionaryPathOverride.isBlank()
+        ? "dictionaries/lexicon_" + lang + ".txt"
+        : dictionaryPathOverride;
   }
 
   void adoptLoadedCliState(Game loadedGame, CliView loadedView) {
@@ -390,6 +423,119 @@ public class GameController {
     this.dictionaryList = null;
   }
 
+  /**
+   * Applies one configuration entry to the current controller state and, when possible,
+   * to the active game.
+   *
+   * @param key configuration key
+   * @param value configuration value
+   */
+  public void applyConfiguration(String key, String value) {
+    if (key == null || key.isBlank()) {
+      throw new IllegalArgumentException("Configuration key must not be empty.");
+    }
+
+    String normalizedKey = key.trim().toLowerCase();
+    String normalizedValue = value == null ? "" : value.trim();
+
+    switch (normalizedKey) {
+      case "debug" -> GameLogger.setDebug(parseBoolean(normalizedValue));
+      case "verbose" -> GameLogger.setVerbose(parseBoolean(normalizedValue));
+      case "language", "lang" -> applyLanguage(normalizedValue);
+      case "players", "players-count" -> setPlayerCount(parseInt(normalizedValue, "players"));
+      case "blitz" -> applyBlitzMode(parseBoolean(normalizedValue));
+      case "timeout" -> applyBlitzTimeout(parseInt(normalizedValue, "timeout"));
+      case "ai-time" -> {
+        setAiTime(parseInt(normalizedValue, "ai-time"));
+        refreshAiPlayerSettings();
+      }
+      case "ai-exptiminimax" -> {
+        setUseExptiminimax(parseBoolean(normalizedValue));
+        refreshAiPlayerSettings();
+      }
+      case "ai-ml" -> {
+        setUseMl(parseBoolean(normalizedValue));
+        refreshAiPlayerSettings();
+      }
+      case "dictionary", "dictionary-path" -> setDictionaryPath(normalizedValue);
+      case "super", "super-scrabble" -> superScrabbleMode = parseBoolean(normalizedValue);
+      default -> throw new IllegalArgumentException("Unsupported parameter: " + key);
+    }
+  }
+
+  private void applyLanguage(String language) {
+    String normalized = Tile.normalizeLanguage(language);
+    this.lang = normalized;
+    I18n.setLanguage(normalized);
+    Tile.setActiveLanguage(normalized);
+    this.gaddag = null;
+    this.dictionaryList = null;
+
+    try {
+      if (game != null) {
+        game.setLanguage(normalized);
+      }
+    } catch (IllegalStateException ignored) {
+      // Current games can only change language before start; keep the new setting for next game.
+    }
+  }
+
+  private void applyBlitzMode(boolean enabled) {
+    this.blitzMode = enabled;
+    if (game == null) {
+      return;
+    }
+    if (enabled) {
+      game.enableBlitzMode(Duration.ofMinutes(blitzMinutes));
+    } else {
+      game.disableBlitzMode();
+    }
+  }
+
+  private void applyBlitzTimeout(int minutes) {
+    if (minutes <= 0) {
+      throw new IllegalArgumentException("timeout must be positive");
+    }
+    this.blitzMinutes = minutes;
+    if (game != null && blitzMode) {
+      game.enableBlitzMode(Duration.ofMinutes(minutes));
+    }
+  }
+
+  private void refreshAiPlayerSettings() {
+    if (game == null) {
+      return;
+    }
+
+    MlAgent sharedMlAgent = null;
+    if (useMl) {
+      sharedMlAgent = new MlAgent("src/main/resources/ai/model_" + lang,
+          getOrLoadDictionaryList());
+    }
+
+    for (Player player : game.getPlayers()) {
+      if (player instanceof fr.ubordeaux.scrabble.model.ai.AiPlayer aiPlayer) {
+        aiPlayer.setTimeLimitSeconds(aiTime);
+        aiPlayer.setExpectiminimaxMode(useExptiminimax);
+        aiPlayer.setMlAgent(useMl ? sharedMlAgent : null);
+      }
+    }
+  }
+
+  private int parseInt(String value, String key) {
+    try {
+      return Integer.parseInt(value);
+    } catch (NumberFormatException e) {
+      throw new IllegalArgumentException("Invalid integer for " + key + ": " + value, e);
+    }
+  }
+
+  private boolean parseBoolean(String value) {
+    String normalized = value == null ? "" : value.trim().toLowerCase();
+    return normalized.equals("true") || normalized.equals("1") || normalized.equals("yes")
+        || normalized.equals("y") || normalized.equals("oui") || normalized.equals("o");
+  }
+
   private String resolvedDictionarySourceLabel() {
     if (dictionaryPathOverride != null && !dictionaryPathOverride.isBlank()) {
       return dictionaryPathOverride;
@@ -550,5 +696,32 @@ public class GameController {
    */
   public void setPlayerCount(int count) {
     this.playerCount = count;
+  }
+
+  /**
+   * Toggles the pause state of the game.
+   * Pauses the blitz timer if running and prevents gameplay until resumed.
+   */
+  public void togglePause() {
+    if (game.isGameOver() || !game.isBlitzModeEnabled()) {
+      return;
+    }
+
+    Player current = game.getCurrentPlayer();
+    if (current == null) {
+      return;
+    }
+
+    if (!isPaused) {
+      current.pauseTurnTimer();
+      isPaused = true;
+      GameLogger.logVerbose("The timer is PAUSED.");
+    } else {
+      current.startTurnTimer();
+      isPaused = false;
+      GameLogger.logVerbose("Timer is UNPAUSED.");
+    }
+
+    view.refresh();
   }
 }

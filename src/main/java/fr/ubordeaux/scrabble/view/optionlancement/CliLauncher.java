@@ -37,6 +37,27 @@ public class CliLauncher {
    */
   public static void launch(int players, List<String> aiColors, boolean blitzMode, int blitzMinutes,
       int aiTime, boolean useExptiminimax, boolean useMl, String lang, String saveFilePath) {
+    launch(GameMode.STANDARD, players, aiColors, blitzMode, blitzMinutes, aiTime,
+        useExptiminimax, useMl, lang, saveFilePath);
+  }
+
+  /**
+   * Starts the game in CLI mode with the given configuration and game mode.
+   *
+   * @param gameMode the board mode (standard or super)
+   * @param players the total number of players (0 = ask, 2-4 = use directly)
+   * @param aiColors the list of colors that should be controlled by AI
+   * @param blitzMode true to enable blitz mode
+   * @param blitzMinutes time limit per player in minutes (only used when blitzMode is true)
+   * @param aiTime AI thinking time in seconds
+   * @param useExptiminimax true to enable the Expectiminimax algorithm
+   * @param useMl true to enable the Machine Learning agent
+   * @param lang the dictionary language ("en" or "fr")
+   * @param saveFilePath path to a save file to load, or null to start a new game
+   */
+  public static void launch(GameMode gameMode, int players, List<String> aiColors,
+      boolean blitzMode, int blitzMinutes, int aiTime, boolean useExptiminimax,
+      boolean useMl, String lang, String saveFilePath) {
     Game game;
     if (saveFilePath != null) {
       try {
@@ -45,7 +66,7 @@ public class CliLauncher {
         throw new IllegalArgumentException("Could not load save file: " + saveFilePath, e);
       }
     } else {
-      game = new Game();
+      game = new Game(gameMode == null ? GameMode.STANDARD : gameMode);
     }
 
     if (blitzMode) {
@@ -103,7 +124,27 @@ public class CliLauncher {
    */
   public static void launch(int players, List<String> aiColors, boolean blitzMode, int blitzMinutes,
       int aiTime, boolean useExptiminimax, boolean useMl, String lang) {
-    launch(players, aiColors, blitzMode, blitzMinutes, aiTime, useExptiminimax, useMl, lang,
-        null);
+    launch(GameMode.STANDARD, players, aiColors, blitzMode, blitzMinutes, aiTime,
+        useExptiminimax, useMl, lang, null);
+  }
+
+  /**
+   * Starts the game in CLI mode without loading a save file, with an explicit mode.
+   *
+   * @param gameMode the board mode (standard or super)
+   * @param players the total number of players (0 = ask, 2-4 = use directly)
+   * @param aiColors the list of colors that should be controlled by AI
+   * @param blitzMode true to enable blitz mode
+   * @param blitzMinutes time limit per player in minutes (only used when blitzMode is true)
+   * @param aiTime AI thinking time in seconds
+   * @param useExptiminimax true to enable the Expectiminimax algorithm
+   * @param useMl true to enable the Machine Learning agent
+   * @param lang the dictionary language ("en" or "fr")
+   */
+  public static void launch(GameMode gameMode, int players, List<String> aiColors,
+      boolean blitzMode, int blitzMinutes, int aiTime, boolean useExptiminimax,
+      boolean useMl, String lang) {
+    launch(gameMode, players, aiColors, blitzMode, blitzMinutes, aiTime, useExptiminimax,
+        useMl, lang, null);
   }
 }

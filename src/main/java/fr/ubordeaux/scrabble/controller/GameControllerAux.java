@@ -9,12 +9,14 @@ import fr.ubordeaux.scrabble.model.core.Move;
 import fr.ubordeaux.scrabble.model.dictionary.Gaddag;
 import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
+import fr.ubordeaux.scrabble.model.network.NetworkManager;
 import fr.ubordeaux.scrabble.model.savefiles.GameLoader;
 import fr.ubordeaux.scrabble.model.savefiles.SaveManager;
 import fr.ubordeaux.scrabble.model.utils.GameLogger;
 import fr.ubordeaux.scrabble.model.utils.Point;
-import fr.ubordeaux.scrabble.view.cli.CliInputHandler;
 import fr.ubordeaux.scrabble.view.cli.CliView;
+import fr.ubordeaux.scrabble.view.cli.input.CliInputHandler;
+import fr.ubordeaux.scrabble.view.cli.network.CliNetworkLobby;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +30,7 @@ class GameControllerAux {
   private final GameController controller;
   private Game pendingLoadedGame;
   private boolean restartRequested;
+  private boolean hasUnsavedChanges;
 
   GameControllerAux(GameController controller) {
     this.controller = controller;
@@ -135,6 +138,7 @@ class GameControllerAux {
 
   private void startCliGame(CliView cliView) {
     controller.startGame();
+    hasUnsavedChanges = false;
 
     if (controller.internalGame().isBlitzModeEnabled()) {
       cliView.displayMessage(I18n.translate(
@@ -187,6 +191,7 @@ class GameControllerAux {
     }
 
     loadedView.refresh();
+    hasUnsavedChanges = false;
   }
 
   private boolean isBlitzTimeElapsed(Player current, CliView cliView, boolean showEndGameError) {
@@ -209,10 +214,12 @@ class GameControllerAux {
       player.playTurn(controller.internalGame(), currentGaddag);
       // AI moves bypass controller.handlePlayerMove(), so refresh explicitly on successful move.
       cliView.refresh();
+      hasUnsavedChanges = true;
       Thread.sleep(2000);
     } catch (Exception e) {
       cliView.displayError(I18n.translate("cli.game.aiTurnError", e.getMessage()));
       controller.handlePlayerMove(Move.createPass(player));
+      hasUnsavedChanges = true;
     }
   }
 
@@ -253,13 +260,14 @@ class GameControllerAux {
         displayHelp(cliView, tokens.length > 1 ? tokens[1].toLowerCase(Locale.ROOT) : null);
         return true;
       case "quit":
-        return !input.askConfirmation(I18n.translate("scrabble.quitConfirmation"));
+        return handleQuitCommand(input, cliView);
       case "hint":
         controller.provideHint();
         return true;
       case "pass":
         try {
           controller.handlePlayerMove(Move.createPass(current));
+          hasUnsavedChanges = true;
           cliView.displayMessage(I18n.translate("cli.game.playerSkips", current.getName()));
         } catch (RuntimeException e) {
           cliView.displayError(e.getMessage());
@@ -285,6 +293,9 @@ class GameControllerAux {
         return true;
       case "load":
         handleLoad(tokens, cliView);
+        return true;
+      case "network":
+        handleNetwork(input, cliView);
         return true;
       case "new":
         cliView.displayError(I18n.translate("cli.shell.commandNotSupportedInSession"));
@@ -331,6 +342,7 @@ class GameControllerAux {
       } else {
         controller.redo();
       }
+      hasUnsavedChanges = true;
     }
   }
 
@@ -339,8 +351,7 @@ class GameControllerAux {
       cliView.displayError(I18n.translate("cli.shell.blitzNotEnabled"));
       return;
     }
-    current.pauseTurnTimer();
-    cliView.displayMessage(I18n.translate("cli.shell.blitzPaused"));
+    controller.togglePause();
   }
 
   private void handleShow(String[] tokens, CliView cliView) {
@@ -434,84 +445,61 @@ class GameControllerAux {
 
   private void showConfiguration(CliView cliView) {
     Game game = controller.internalGame();
+    int configuredPlayers = controller.configuredPlayerCount() > 0
+        ? controller.configuredPlayerCount()
+        : game.getPlayers().size();
     String config = I18n.translate(
         "cli.shell.config",
         controller.configuredLanguage(),
-        game.getPlayers().size(),
-        game.isBlitzModeEnabled(),
+        configuredPlayers,
+        controller.configuredSuperMode(),
+        controller.configuredBlitzMode(),
+        controller.configuredBlitzMinutes(),
         controller.configuredAiTime(),
         controller.isExpectiminimaxEnabled(),
         controller.isMlEnabled(),
+        controller.getDictionaryPathOverride(),
         GameLogger.isDebug(),
         GameLogger.isVerbose());
     cliView.displayMessage(config);
   }
 
   private void handleSet(String[] tokens, CliView cliView) {
-    String[] kv = parseSetArguments(tokens);
-    if (kv == null) {
+    if (tokens.length < 2) {
       cliView.displayError(I18n.translate("cli.shell.set.usage"));
       return;
     }
 
-    String key = kv[0].trim().toLowerCase(Locale.ROOT);
-    String value = kv.length > 1 ? kv[1].trim().toLowerCase(Locale.ROOT) : "";
+    String rawAssignments = String.join(" ",
+        java.util.Arrays.copyOfRange(tokens, 1, tokens.length));
+    String[] assignments = rawAssignments.split("[;]");
+    boolean anyApplied = false;
 
-    switch (key) {
-      case "debug": {
-        Boolean enabled = parseBoolean(value, cliView);
-        if (enabled == null) {
-          return;
-        }
-        GameLogger.setDebug(enabled);
-        cliView.displayMessage(I18n.translate("cli.shell.set.updated", "debug", enabled));
+    for (String assignment : assignments) {
+      String normalizedAssignment = assignment.trim();
+      if (normalizedAssignment.isEmpty()) {
+        continue;
+      }
+
+      String[] kv = normalizedAssignment.split("=", 2);
+      if (kv.length != 2) {
+        cliView.displayError(I18n.translate("cli.shell.set.usage"));
         return;
       }
-      case "verbose": {
-        Boolean enabled = parseBoolean(value, cliView);
-        if (enabled == null) {
-          return;
-        }
-        GameLogger.setVerbose(enabled);
-        cliView.displayMessage(I18n.translate("cli.shell.set.updated", "verbose", enabled));
+
+      try {
+        controller.applyConfiguration(kv[0].trim(), kv[1].trim());
+        cliView.displayMessage(I18n.translate("cli.shell.set.updated", kv[0].trim(), kv[1].trim()));
+        anyApplied = true;
+      } catch (IllegalArgumentException e) {
+        cliView.displayError(e.getMessage());
         return;
       }
-      default:
-        cliView.displayError(I18n.translate("cli.shell.set.unsupportedParam", key));
-    }
-  }
-
-  private String[] parseSetArguments(String[] tokens) {
-    if (tokens.length < 2) {
-      return null;
     }
 
-    if (tokens.length >= 4 && "=".equals(tokens[2])) {
-      return new String[] {tokens[1], tokens[3]};
+    if (!anyApplied) {
+      cliView.displayError(I18n.translate("cli.shell.set.usage"));
     }
-
-    if (tokens.length >= 3 && !tokens[1].contains("=")) {
-      return new String[] {tokens[1], tokens[2]};
-    }
-
-    if (tokens[1].contains("=")) {
-      return tokens[1].split("=", 2);
-    }
-
-    return null;
-  }
-
-  private Boolean parseBoolean(String value, CliView cliView) {
-    if ("true".equals(value) || "1".equals(value) || "yes".equals(value)
-        || "y".equals(value) || "oui".equals(value) || "o".equals(value)) {
-      return Boolean.TRUE;
-    }
-    if ("false".equals(value) || "0".equals(value) || "no".equals(value)
-        || "n".equals(value) || "non".equals(value)) {
-      return Boolean.FALSE;
-    }
-    cliView.displayError(I18n.translate("cli.shell.set.invalidBoolean"));
-    return null;
   }
 
   private void handleSave(String[] tokens, CliView cliView) {
@@ -522,6 +510,7 @@ class GameControllerAux {
 
     try {
       new SaveManager().saveGame(controller.internalGame(), tokens[1]);
+      hasUnsavedChanges = false;
       cliView.displaySuccess(I18n.translate("cli.shell.save.success", tokens[1]));
     } catch (IOException e) {
       cliView.displayError(I18n.translate("cli.shell.save.failure", e.getMessage()));
@@ -542,6 +531,12 @@ class GameControllerAux {
     } catch (Exception e) {
       cliView.displayError(I18n.translate("cli.shell.load.failure", e.getMessage()));
     }
+  }
+
+  private void handleNetwork(CliInputHandler input, CliView cliView) {
+    NetworkManager networkManager = new NetworkManager();
+    CliNetworkLobby lobby = new CliNetworkLobby(networkManager, cliView, input);
+    lobby.showMenu();
   }
 
   private void displayHelp(CliView cliView, String cmd) {
@@ -584,6 +579,9 @@ class GameControllerAux {
       case "set":
         cliView.displayMessage(I18n.translate("cli.shell.help.set"));
         return;
+      case "network":
+        cliView.displayMessage(I18n.translate("cli.shell.help.network"));
+        return;
       default:
         cliView.displayError(I18n.translate("cli.shell.help.unknown", cmd));
     }
@@ -596,9 +594,42 @@ class GameControllerAux {
 
     try {
       controller.handlePlayerMove(move);
+      hasUnsavedChanges = true;
       cliView.displaySuccess(successMessage);
     } catch (RuntimeException e) {
       cliView.displayError(e.getMessage());
+    }
+  }
+
+  private boolean handleQuitCommand(CliInputHandler input, CliView cliView) {
+    if (!hasUnsavedChanges) {
+      return !input.askConfirmation(I18n.translate("scrabble.quitConfirmation"));
+    }
+
+    boolean saveBeforeQuit = input.askConfirmation(I18n.translate("cli.quit.savePrompt"));
+    if (!saveBeforeQuit) {
+      return false;
+    }
+
+    while (true) {
+      String path = input.askText(I18n.translate("cli.quit.savePathPrompt"));
+      if (path.isBlank()) {
+        cliView.displayError(I18n.translate("cli.quit.save.failure", "empty path"));
+      } else {
+        try {
+          new SaveManager().saveGame(controller.internalGame(), path);
+          hasUnsavedChanges = false;
+          cliView.displaySuccess(I18n.translate("cli.quit.save.success", path));
+          return false;
+        } catch (IOException e) {
+          cliView.displayError(I18n.translate("cli.quit.save.failure", e.getMessage()));
+        }
+      }
+
+      boolean retry = input.askConfirmation(I18n.translate("cli.quit.save.retryPrompt"));
+      if (!retry) {
+        return false;
+      }
     }
   }
 

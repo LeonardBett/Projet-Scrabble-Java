@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import fr.ubordeaux.scrabble.model.enums.GameMode;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -27,12 +28,14 @@ class AppTest {
     App.setExitHandlerForTests(status -> {
       throw new ExitCalledException(status);
     });
-    App.setCliDelegateForTests((players, aiColors, blitzMode, blitzMinutes, aiTime,
-        useExptiminimax, useMl, lang, saveFilePath) -> cliCall = new CliLaunchCall(players,
-        aiColors, blitzMode, blitzMinutes, aiTime, useExptiminimax, useMl, lang, saveFilePath));
-    App.setGuiDelegateForTests((args, players, aiColors, blitzMode, blitzMinutes, aiTime,
-        useExptiminimax, useMl, lang, saveFilePath) -> guiCall = new GuiLaunchCall(args, players,
-        aiColors, blitzMode, blitzMinutes, aiTime, useExptiminimax, useMl, lang, saveFilePath));
+    App.setCliDelegateForTests((gameMode, players, aiColors, blitzMode, blitzMinutes, aiTime,
+        useExptiminimax, useMl, lang, saveFilePath) -> cliCall = new CliLaunchCall(gameMode,
+        players, aiColors, blitzMode, blitzMinutes, aiTime, useExptiminimax, useMl, lang,
+        saveFilePath));
+    App.setGuiDelegateForTests((args, gameMode, players, aiColors, blitzMode, blitzMinutes,
+        aiTime, useExptiminimax, useMl, lang, saveFilePath) -> guiCall = new GuiLaunchCall(args,
+        gameMode, players, aiColors, blitzMode, blitzMinutes, aiTime, useExptiminimax, useMl,
+        lang, saveFilePath));
   }
 
   @AfterEach
@@ -70,6 +73,7 @@ class AppTest {
 
     assertNotNull(guiCall);
     assertNull(cliCall);
+    assertEquals(GameMode.SUPER, guiCall.gameMode);
     assertEquals(3, guiCall.players);
     assertEquals(List.of("BLUE"), guiCall.aiColors);
     assertTrue(guiCall.blitzMode);
@@ -323,6 +327,7 @@ class AppTest {
   }
 
   private static final class CliLaunchCall {
+    private final GameMode gameMode;
     private final int players;
     private final List<String> aiColors;
     private final boolean blitzMode;
@@ -333,8 +338,10 @@ class AppTest {
     private final String lang;
     private final String saveFilePath;
 
-    private CliLaunchCall(int players, List<String> aiColors, boolean blitzMode, int blitzMinutes,
-        int aiTime, boolean useExptiminimax, boolean useMl, String lang, String saveFilePath) {
+    private CliLaunchCall(GameMode gameMode, int players, List<String> aiColors,
+        boolean blitzMode, int blitzMinutes, int aiTime, boolean useExptiminimax, boolean useMl,
+        String lang, String saveFilePath) {
+      this.gameMode = gameMode;
       this.players = players;
       this.aiColors = new ArrayList<>(aiColors);
       this.blitzMode = blitzMode;
@@ -349,6 +356,7 @@ class AppTest {
 
   private static final class GuiLaunchCall {
     private final String[] args;
+    private final GameMode gameMode;
     private final int players;
     private final List<String> aiColors;
     private final boolean blitzMode;
@@ -359,10 +367,11 @@ class AppTest {
     private final String lang;
     private final String saveFilePath;
 
-    private GuiLaunchCall(String[] args, int players, List<String> aiColors, boolean blitzMode,
-        int blitzMinutes, int aiTime, boolean useExptiminimax, boolean useMl, String lang,
-        String saveFilePath) {
+    private GuiLaunchCall(String[] args, GameMode gameMode, int players, List<String> aiColors,
+        boolean blitzMode, int blitzMinutes, int aiTime, boolean useExptiminimax, boolean useMl,
+        String lang, String saveFilePath) {
       this.args = args.clone();
+      this.gameMode = gameMode;
       this.players = players;
       this.aiColors = new ArrayList<>(aiColors);
       this.blitzMode = blitzMode;

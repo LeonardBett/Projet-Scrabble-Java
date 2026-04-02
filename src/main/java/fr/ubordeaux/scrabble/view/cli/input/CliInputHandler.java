@@ -1,4 +1,4 @@
-package fr.ubordeaux.scrabble.view.cli;
+package fr.ubordeaux.scrabble.view.cli.input;
 
 import fr.ubordeaux.scrabble.i18n.I18n;
 import fr.ubordeaux.scrabble.model.core.Move;
@@ -6,25 +6,77 @@ import fr.ubordeaux.scrabble.model.core.Tile;
 import fr.ubordeaux.scrabble.model.enums.Direction;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
 import fr.ubordeaux.scrabble.model.utils.Point;
+import fr.ubordeaux.scrabble.view.cli.CliView;
 import fr.ubordeaux.scrabble.view.cli.renderer.MessageRenderer;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
+import org.jline.reader.EndOfFileException;
+import org.jline.reader.LineReader;
+import org.jline.reader.LineReaderBuilder;
+import org.jline.reader.UserInterruptException;
+import org.jline.reader.impl.DefaultParser;
+import org.jline.reader.impl.completer.StringsCompleter;
+import org.jline.terminal.Terminal;
+import org.jline.terminal.TerminalBuilder;
 
 /**
  * Handles user input in the CLI.
  */
 public class CliInputHandler {
 
-  private final Scanner scanner;
+  private LineReader lineReader;
   private final MessageRenderer messageRenderer;
 
   /**
-   * Creates a new CliInputHandler with a stdin scanner.
+   * Creates a new CliInputHandler with a JLine3 terminal.
    */
   public CliInputHandler() {
-    this.scanner = new Scanner(System.in);
     this.messageRenderer = new MessageRenderer();
+    try {
+      TerminalBuilder builder = TerminalBuilder.builder();
+
+      StringsCompleter completer = new StringsCompleter(
+          "new", "help", "quit", "load", "save", "pause", "hint",
+          "undo", "redo", "show board", "show history", "show time",
+          "show configuration", "set", "exchange", "pass"
+      );
+
+      if (System.in instanceof java.io.ByteArrayInputStream) {
+        builder.streams(System.in, System.out);
+      } else {
+        builder.system(true);
+      }
+
+      Terminal terminal = builder.build();
+
+      DefaultParser parser = new DefaultParser();
+      parser.setEscapeChars(new char[0]);
+
+      this.lineReader = LineReaderBuilder.builder()
+          .terminal(terminal)
+          .parser(parser)
+          .completer(completer)
+          .build();
+    } catch (IOException e) {
+      messageRenderer.error("Failed to initialize JLine terminal: " + e.getMessage());
+      throw new RuntimeException("CLI initialization failed", e);
+    }
+  }
+
+  /**
+   * Helper method to safely read a line from JLine, handling interruptions.
+   *
+   * @param prompt the prompt to display to the user
+   * @return the trimmed input string
+   */
+  private String safeReadLine(String prompt) {
+    try {
+      String line = lineReader.readLine(prompt);
+      return line == null ? "" : line.trim();
+    } catch (UserInterruptException | EndOfFileException e) {
+      return "quit";
+    }
   }
 
   /**
@@ -33,8 +85,7 @@ public class CliInputHandler {
    * @return the action string chosen by the player
    */
   public String askAction() {
-    System.out.print("\n>> ");
-    return scanner.nextLine().trim();
+    return safeReadLine("\n>> ");
   }
 
   /**
@@ -44,8 +95,8 @@ public class CliInputHandler {
    * @return the constructed Move, or null if input is invalid
    */
   public Move askPlayMove(Player player) {
-    System.out.print("\n" + I18n.translate("cli.play.notationPrompt"));
-    return parsePlayMoveNotation(player, scanner.nextLine().trim());
+    String input = safeReadLine("\n" + I18n.translate("cli.play.notationPrompt"));
+    return parsePlayMoveNotation(player, input);
   }
 
   /**
@@ -175,8 +226,8 @@ public class CliInputHandler {
    * @return the constructed Move, or null if input is invalid
    */
   public Move askExchangeMove(Player player) {
-    System.out.print("\n" + I18n.translate("cli.exchange.prompt"));
-    return parseExchangeLetters(player, scanner.nextLine().trim());
+    String input = safeReadLine("\n" + I18n.translate("cli.exchange.prompt"));
+    return parseExchangeLetters(player, input);
   }
 
   /**
@@ -232,9 +283,12 @@ public class CliInputHandler {
    */
   public int askNumberOfPlayers() {
     while (true) {
-      System.out.print("\n" + I18n.translate("cli.players.countPrompt"));
+      String input = safeReadLine("\n" + I18n.translate("cli.players.countPrompt"));
+      if (input.equals("quit")) {
+        System.exit(0);
+      }
       try {
-        int num = Integer.parseInt(scanner.nextLine().trim());
+        int num = Integer.parseInt(input);
         if (num >= 2 && num <= 4) {
           return num;
         }
@@ -252,8 +306,7 @@ public class CliInputHandler {
    * @return the name entered by the user
    */
   public String askPlayerName(int playerNumber) {
-    System.out.print(I18n.translate("cli.players.namePrompt", playerNumber));
-    return scanner.nextLine().trim();
+    return safeReadLine(I18n.translate("cli.players.namePrompt", playerNumber));
   }
 
   /**
@@ -263,16 +316,26 @@ public class CliInputHandler {
    * @return true if the user confirmed, false otherwise
    */
   public boolean askConfirmation(String question) {
-    System.out.print(question + " " + I18n.translate("cli.confirm.suffix"));
-    String response = scanner.nextLine().trim().toLowerCase();
+    String prompt = question + " " + I18n.translate("cli.confirm.suffix");
+    String response = safeReadLine(prompt).toLowerCase();
     return response.equals("o") || response.equals("oui") || response.equals("y")
         || response.equals("yes");
+  }
+
+  /**
+   * Asks for a free text input.
+   *
+   * @param prompt prompt to display
+   * @return entered text (trimmed)
+   */
+  public String askText(String prompt) {
+    return safeReadLine(prompt + " ");
   }
 
   /**
    * Ferme le scanner.
    */
   public void close() {
-    scanner.close();
+    // No action needed for JLine, but kept for interface compatibility
   }
 }

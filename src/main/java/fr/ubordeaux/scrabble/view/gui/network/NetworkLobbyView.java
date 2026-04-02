@@ -1,4 +1,4 @@
-package fr.ubordeaux.scrabble.view.gui;
+package fr.ubordeaux.scrabble.view.gui.network;
 
 import fr.ubordeaux.scrabble.i18n.I18n;
 import fr.ubordeaux.scrabble.model.network.NetworkManager;
@@ -37,18 +37,6 @@ import javafx.stage.Stage;
  */
 public class NetworkLobbyView extends Stage {
 
-  private static String windowTitleText() {
-    return "🌐 Scrabble — Multijoueur en ligne";
-  }
-
-  private static String mainTitleText() {
-    return "🌐 Multijoueur en ligne";
-  }
-
-  private static String consoleLabelText() {
-    return "Console :";
-  }
-
   private static String rootBackgroundStyle() {
     return "-fx-background-color: #1a2a3a;";
   }
@@ -59,14 +47,6 @@ public class NetworkLobbyView extends Stage {
 
   private static int rootPadding() {
     return 15;
-  }
-
-  private static String titleFontFamily() {
-    return "Arial";
-  }
-
-  private static int titleFontSize() {
-    return 20;
   }
 
   private static String tabPaneBackgroundStyle() {
@@ -81,33 +61,12 @@ public class NetworkLobbyView extends Stage {
     return "-fx-control-inner-background: #1a2a3a; -fx-text-fill: white;";
   }
 
-  private static String consoleAreaStyle() {
-    return "-fx-control-inner-background: #0d1b2a; -fx-text-fill: #00ff88; "
-        + "-fx-font-family: monospace; -fx-font-size: 11;";
-  }
-
-  private static int consoleAreaPrefHeight() {
-    return 100;
-  }
-
-  private static String consolePromptText() {
-    return "Logs réseau...";
-  }
-
   private static String consoleLabelFontFamily() {
     return "Arial";
   }
 
   private static int consoleLabelFontSize() {
     return 12;
-  }
-
-  private static String statusLabelFontFamily() {
-    return "Arial";
-  }
-
-  private static int statusLabelFontSize() {
-    return 13;
   }
 
   private static int tabContentSpacing() {
@@ -130,114 +89,6 @@ public class NetworkLobbyView extends Stage {
     return 800;
   }
 
-  private static String hostTabTitleText() {
-    return "🖥  Héberger";
-  }
-
-  private static String joinTabTitleText() {
-    return "🔍 Rejoindre";
-  }
-
-  private static String lobbyTabTitleText() {
-    return "🎮 Salon";
-  }
-
-  private static String hostDescriptionText() {
-    return "Démarrez un serveur. Les joueurs sur le réseau local vous verront automatiquement.";
-  }
-
-  private static String hostPortLabelText() {
-    return "Port TCP :";
-  }
-
-  private static String startServerButtonText() {
-    return "▶  Démarrer le serveur";
-  }
-
-  private static String stopServerButtonText() {
-    return "■  Arrêter le serveur";
-  }
-
-  private static String startGameButtonText() {
-    return "🎮 Lancer la partie";
-  }
-
-  private static String hostPlayersTitleText() {
-    return "Joueurs connectés au salon :";
-  }
-
-  private static String hostSectionTitleText() {
-    return "Héberger une partie";
-  }
-
-  private static String joinSelectedButtonText() {
-    return "🎮 Rejoindre le serveur sélectionné";
-  }
-
-  private static String ipLabelText() {
-    return "IP :";
-  }
-
-  private static String portLabelText() {
-    return "Port :";
-  }
-
-  private static String connectButtonText() {
-    return "🔗 Se connecter";
-  }
-
-  private static String disconnectButtonText() {
-    return "✖  Se déconnecter";
-  }
-
-  private static String autoServersTitleText() {
-    return "Serveurs détectés automatiquement :";
-  }
-
-  private static String manualConnectionTitleText() {
-    return "Ou connexion manuelle :";
-  }
-
-  private static String lobbyWaitingText() {
-    return "En attente que l'hôte lance la partie...";
-  }
-
-  private static String refreshScoreboardButtonText() {
-    return "🏆 Voir le classement";
-  }
-
-  private static String lobbyPlayersTitleText() {
-    return "Joueurs connectés :";
-  }
-
-  private static String scoreboardTitleText() {
-    return "Classement du serveur :";
-  }
-
-  private static String startServerButtonColor() {
-    return "#4CAF50";
-  }
-
-  private static String stopServerButtonColor() {
-    return "#F44336";
-  }
-
-  private static String startGameButtonColor() {
-    return "#FF9800";
-  }
-
-  private static String connectButtonColor() {
-    return "#4CAF50";
-  }
-
-  private static String disconnectButtonColor() {
-    return "#F44336";
-  }
-
-  private static String refreshScoreboardColor() {
-    return "#9C27B0";
-  }
-
   private static String defaultHostPortText() {
     return String.valueOf(NetworkManager.DEFAULT_TCP_PORT);
   }
@@ -254,136 +105,12 @@ public class NetworkLobbyView extends Stage {
     return String.format("%-20s  %s:%d", name, ip, port);
   }
 
-  private static String formatPlayerLine(String id, String name, String status) {
-    return String.format("#%-4s %-16s [%s]", id, name, status);
-  }
-
-  private static String formatScoreboardLine(int rank, String name, String wins,
-      String losses, String total) {
-    return String.format("%d. %-14s  V:%s  D:%s  T:%s", rank, name, wins, losses, total);
-  }
-
   private static List<String> formatServerList(List<ServerInfo> servers) {
     return servers.stream()
         .map(s -> formatServerLine(s.getName(), s.getIp(), s.getPort()))
         .toList();
   }
 
-  private static List<String> formatPlayers(List<Map<String, String>> players) {
-    return players.stream()
-        .map(p -> formatPlayerLine(p.getOrDefault("ID", "?"), p.getOrDefault("NAME", "Inconnu"),
-            p.getOrDefault("STATUS", "?")))
-        .toList();
-  }
-
-  private static List<String> formatScoreboard(List<Map<String, String>> scoreboard) {
-    final int[] rank = { 1 };
-    return scoreboard.stream()
-        .map(entry -> formatScoreboardLine(rank[0]++, entry.getOrDefault("NAME", "?"),
-            entry.getOrDefault("WINS", "0"), entry.getOrDefault("LOSSES", "0"),
-            entry.getOrDefault("TOTAL", "0")))
-        .toList();
-  }
-
-  private static String formatServerStatus(Map<String, String> info) {
-    return "📊 Serveur — Port: " + info.get("PORT")
-        + " | Clients: " + info.get("CLIENTS")
-        + " | Parties: " + info.get("GAMES");
-  }
-
-  private static String serverRunningStatusText(int port) {
-    return "● Serveur en écoute sur le port " + port;
-  }
-
-  private static String serverStoppedStatusText() {
-    return "● Serveur arrêté";
-  }
-
-  private static String serverStartedLogMessage(int port) {
-    return "Serveur démarré sur le port " + port;
-  }
-
-  private static String serverStoppedLogMessage() {
-    return "Serveur arrêté.";
-  }
-
-  private static String invalidHostPortMessage(String value) {
-    return "❌ Port invalide : " + value;
-  }
-
-  private static String invalidJoinPortMessage() {
-    return "❌ Port invalide.";
-  }
-
-  private static String invalidServerSelectionMessage() {
-    return "❌ Sélectionnez un serveur dans la liste.";
-  }
-
-  private static String notConnectedMessage() {
-    return "❌ Non connecté.";
-  }
-
-  private static String connectingMessage(String ip, int port) {
-    return "🔗 Connexion à " + ip + ":" + port + "...";
-  }
-
-  private static String playersReadyMessage(int count) {
-    return "✅ " + count + " joueur(s) connecté(s) — vous pouvez lancer la partie.";
-  }
-
-  private static String gameEndedMessage(String reason) {
-    return "🏁 Partie terminée : " + reason;
-  }
-
-  private static String startingGameLogMessage() {
-    return "🎮 Lancement de la partie...";
-  }
-
-  private static String disconnectedMessage() {
-    return "✖ Déconnecté du serveur.";
-  }
-
-  private static boolean isValidSelectedServerIndex(int index, int size) {
-    return size > 0 && index >= 0 && index < size;
-  }
-
-  private static boolean canRefreshScoreboard(boolean connected) {
-    return connected;
-  }
-
-  private static boolean canHostStartGame(int playerCount) {
-    return playerCount >= 2;
-  }
-
-  private static boolean shouldDisableStartServer(boolean running) {
-    return running;
-  }
-
-  private static boolean shouldDisableStopServer(boolean running) {
-    return !running;
-  }
-
-  private static boolean shouldDisableConnect(boolean connected) {
-    return connected;
-  }
-
-  private static boolean shouldDisableDisconnect(boolean connected) {
-    return !connected;
-  }
-
-  private static boolean shouldDisableRefreshScoreboard(boolean connected) {
-    return !connected;
-  }
-
-  private static boolean shouldDisableStartGame(boolean running, int playerCount) {
-    return !running || !canHostStartGame(playerCount);
-  }
-
-  private static boolean shouldLogPlayersReady(int playerCount) {
-    return playerCount >= 2;
-  }
-
-  private final NetworkGameBridge bridge;
   private final NetworkManager networkManager;
   private TabPane tabPane;
 
@@ -430,8 +157,8 @@ public class NetworkLobbyView extends Stage {
    *
    * @param bridge the network bridge connecting this view to the backend.
    */
+  @SuppressWarnings("this-escape")
   public NetworkLobbyView(NetworkGameBridge bridge) {
-    this.bridge = bridge;
     this.networkManager = bridge.getNetworkManager();
     bridge.setLobbyView(this);
 
@@ -587,12 +314,6 @@ public class NetworkLobbyView extends Stage {
     connectButton.setOnAction(e -> onConnect());
     disconnectButton.setOnAction(e -> onDisconnect());
 
-    final Label autoTitle =
-        styledLabel(I18n.translate("lobby.autoServersTitle"), Color.WHITE, 13, true);
-    final Label manualTitle =
-        styledLabel(
-        I18n.translate("lobby.manualTitle"), Color.WHITE, 13, true);
-
     content
         .getChildren()
         .addAll(
@@ -656,10 +377,6 @@ public class NetworkLobbyView extends Stage {
     viewPlayerDetailsButton =
         createBtn(I18n.translate("lobby.viewPlayerDetailsButton"), "#009688");
     viewPlayerDetailsButton.setOnAction(e -> onViewPlayerDetails());
-    final Label playersTitle = styledLabel(
-        I18n.translate("lobby.roomPlayersTitle"), Color.WHITE, 13, true);
-    final Label sbTitle =
-        styledLabel(I18n.translate("lobby.scoreboardTitle"), Color.WHITE, 13, true);
 
     content
         .getChildren()
@@ -724,15 +441,6 @@ public class NetworkLobbyView extends Stage {
 
     log(I18n.translate("lobby.serverStoppedLog"));
     updateButtonStates();
-  }
-
-  /**
-   * Called by the host to start the game with all currently connected players. Sends NEW commands
-   * targeting each connected player ID.
-   */
-  private void onStartGame() {
-    bridge.requestGameStart();
-    log(I18n.translate("lobby.startingGame"));
   }
 
   private void onJoinSelected() {
@@ -852,8 +560,8 @@ public class NetworkLobbyView extends Stage {
       // We extract player id from the selected item
       String idStr = selected.getFirst().split("\\s+")[0].replace("#", "");
       networkManager.playersPlayerId(Integer.parseInt(idStr));
-    } catch (Exception ignored) {
-      log(I18n.translate("lobby.errorReadingId", ignored.getMessage()));
+    } catch (RuntimeException ex) {
+      log(I18n.translate("lobby.errorReadingId", ex.getMessage()));
     }
   }
 
@@ -886,11 +594,10 @@ public class NetworkLobbyView extends Stage {
     java.util.List<Integer> targetIds = new java.util.ArrayList<>();
     for (String s : selected) {
       try {
-        // Parse the string formatted as "#12  PlayerName [STATUS]" to extract '12'
-        String idStr = s.split("\\s+")[0].replace("#", "");
-        targetIds.add(Integer.parseInt(idStr));
-      } catch (Exception ignored) {
-        log(I18n.translate("lobby.errorReadingIDMessage", ignored.getMessage()));
+        // Parse the string formatted as "#12  PlayerName [STATUS]" to extract '12'.
+        targetIds.add(Integer.valueOf(s.split("\\s+")[0].replace("#", "")));
+      } catch (RuntimeException ex) {
+        log(I18n.translate("lobby.errorReadingIDMessage", ex.getMessage()));
       }
     }
 

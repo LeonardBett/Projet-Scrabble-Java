@@ -35,3 +35,5 @@ src/main/resources/ai/model_*/
 # Local implementation tracking sheet
 /specs_impl_status.csv
 src/main/resources/ai/labels_*.txt
+
+**.scrabble
