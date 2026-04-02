@@ -94,6 +94,7 @@ class ScrabbleGuiInstanceTest {
         new NetworkGameBridge(new NetworkManager()));
     setField(gui, "saveMenuItem", new javafx.scene.control.MenuItem());
     setField(gui, "loadMenuItem", new javafx.scene.control.MenuItem());
+    setField(gui, "configurationMenuItem", new javafx.scene.control.MenuItem());
     view.setGui(gui);
     setFieldStatic("viewInstance", view);
   }

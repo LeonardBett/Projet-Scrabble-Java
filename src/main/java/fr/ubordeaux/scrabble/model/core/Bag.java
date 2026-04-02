@@ -16,9 +16,7 @@ public class Bag {
   // Size of the bag, only use in online client mode
   private int onlineSize = -1;
 
-  /**
-   * Constructor: initializes the bag with the standard distribution of tiles.
-   */
+  /** Constructor: initializes the bag with the standard distribution of tiles. */
   public Bag() {
     this(Tile.getActiveLanguage());
   }
@@ -66,7 +64,7 @@ public class Bag {
       addTiles('Z', 1, language);
       addJokers(2, language);
       return;
-    } else {     // English Scrabble distribution (100 tiles).
+    } else { // English Scrabble distribution (100 tiles).
       addTiles('A', 9, language);
       addTiles('B', 2, language);
       addTiles('C', 2, language);
@@ -130,9 +128,7 @@ public class Bag {
     return language;
   }
 
-  /**
-   * Shuffles the content of the bag.
-   */
+  /** Shuffles the content of the bag. */
   public void shuffle() {
     Collections.shuffle(tiles, random);
   }
@@ -184,7 +180,7 @@ public class Bag {
    * @return the local bag size.
    */
   public int size() {
-    return tiles.size();
+    return onlineSize != -1 ? onlineSize : tiles.size();
   }
 
   /**

@@ -28,8 +28,7 @@ class NetworkGameBridgeTest {
   @BeforeAll
   static void initToolkit() {
     try {
-      com.sun.javafx.application.PlatformImpl.startup(() -> {
-      });
+      com.sun.javafx.application.PlatformImpl.startup(() -> {});
     } catch (Exception e) {
       // Toolkit already initialized
     }
@@ -58,23 +57,29 @@ class NetworkGameBridgeTest {
 
   @Test
   void helpersShouldParseAndDispatchIdsAcrossBranches() {
-    assertTrue((boolean) invokeStatic("shouldDispatchGameStart",
-        new Class<?>[] { boolean.class, int.class }, true, 2));
-    assertFalse((boolean) invokeStatic("shouldDispatchGameStart",
-        new Class<?>[] { boolean.class, int.class }, true, 1));
-    assertFalse((boolean) invokeStatic("shouldDispatchGameStart",
-        new Class<?>[] { boolean.class, int.class }, false, 4));
+    assertTrue(
+        (boolean)
+            invokeStatic(
+                "shouldDispatchGameStart", new Class<?>[] {boolean.class, int.class}, true, 2));
+    assertFalse(
+        (boolean)
+            invokeStatic(
+                "shouldDispatchGameStart", new Class<?>[] {boolean.class, int.class}, true, 1));
+    assertFalse(
+        (boolean)
+            invokeStatic(
+                "shouldDispatchGameStart", new Class<?>[] {boolean.class, int.class}, false, 4));
 
-    assertEquals(7, invokeStatic("parsePlayerId",
-        new Class<?>[] { Map.class }, Map.of("ID", "7")));
-    assertEquals(0, invokeStatic("parsePlayerId",
-        new Class<?>[] { Map.class }, Map.of("ID", "abc")));
-    assertEquals(0, invokeStatic("parsePlayerId",
-        new Class<?>[] { Map.class }, Map.of()));
+    assertEquals(7, invokeStatic("parsePlayerId", new Class<?>[] {Map.class}, Map.of("ID", "7")));
+    assertEquals(0, invokeStatic("parsePlayerId", new Class<?>[] {Map.class}, Map.of("ID", "abc")));
+    assertEquals(0, invokeStatic("parsePlayerId", new Class<?>[] {Map.class}, Map.of()));
 
-    int[] ids = (int[]) invokeStatic("extractPositivePlayerIds",
-        new Class<?>[] { List.class },
-        List.of(Map.of("ID", "1"), Map.of("ID", "x"), Map.of("ID", "3"), Map.of()));
+    int[] ids =
+        (int[])
+            invokeStatic(
+                "extractPositivePlayerIds",
+                new Class<?>[] {List.class},
+                List.of(Map.of("ID", "1"), Map.of("ID", "x"), Map.of("ID", "3"), Map.of()));
     assertEquals(2, ids.length);
     assertEquals(1, ids[0]);
     assertEquals(3, ids[1]);
@@ -83,16 +88,34 @@ class NetworkGameBridgeTest {
   @Test
   void dispatchHelperShouldChooseCorrectNewPlayerOverload() {
     FakeNetworkManager manager = new FakeNetworkManager();
-    assertEquals(0, invokeStatic("dispatchNewGame",
-        new Class<?>[] { NetworkManager.class, int[].class }, manager, new int[] { 1 }));
-    assertEquals(1, invokeStatic("dispatchNewGame",
-        new Class<?>[] { NetworkManager.class, int[].class }, manager, new int[] { 1, 2 }));
-    assertEquals(2, invokeStatic("dispatchNewGame",
-        new Class<?>[] { NetworkManager.class, int[].class }, manager,
-        new int[] { 1, 2, 3 }));
-    assertEquals(3, invokeStatic("dispatchNewGame",
-        new Class<?>[] { NetworkManager.class, int[].class }, manager,
-        new int[] { 1, 2, 3, 4 }));
+    assertEquals(
+        0,
+        invokeStatic(
+            "dispatchNewGame",
+            new Class<?>[] {NetworkManager.class, int[].class},
+            manager,
+            new int[] {1}));
+    assertEquals(
+        1,
+        invokeStatic(
+            "dispatchNewGame",
+            new Class<?>[] {NetworkManager.class, int[].class},
+            manager,
+            new int[] {1, 2}));
+    assertEquals(
+        2,
+        invokeStatic(
+            "dispatchNewGame",
+            new Class<?>[] {NetworkManager.class, int[].class},
+            manager,
+            new int[] {1, 2, 3}));
+    assertEquals(
+        3,
+        invokeStatic(
+            "dispatchNewGame",
+            new Class<?>[] {NetworkManager.class, int[].class},
+            manager,
+            new int[] {1, 2, 3, 4}));
     assertEquals(1, manager.new1Calls);
     assertEquals(1, manager.new2Calls);
     assertEquals(1, manager.new3Calls);
@@ -101,16 +124,25 @@ class NetworkGameBridgeTest {
   @Test
   void dispatchNewGameReturnsZeroForEmptyIds() {
     FakeNetworkManager manager = new FakeNetworkManager();
-    assertEquals(0, invokeStatic("dispatchNewGame",
-        new Class<?>[] { NetworkManager.class, int[].class }, manager, new int[] {}));
+    assertEquals(
+        0,
+        invokeStatic(
+            "dispatchNewGame",
+            new Class<?>[] {NetworkManager.class, int[].class},
+            manager,
+            new int[] {}));
   }
 
   @Test
   void dispatchNewGameHandlesFiveIds() {
     FakeNetworkManager manager = new FakeNetworkManager();
-    assertEquals(3, invokeStatic("dispatchNewGame",
-        new Class<?>[] { NetworkManager.class, int[].class }, manager,
-        new int[] { 1, 2, 3, 4, 5 }));
+    assertEquals(
+        3,
+        invokeStatic(
+            "dispatchNewGame",
+            new Class<?>[] {NetworkManager.class, int[].class},
+            manager,
+            new int[] {1, 2, 3, 4, 5}));
   }
 
   @Test
@@ -258,46 +290,150 @@ class NetworkGameBridgeTest {
 
   @Test
   void shouldDispatchGameStartEdgeCases() {
-    assertFalse((boolean) invokeStatic("shouldDispatchGameStart",
-        new Class<?>[] { boolean.class, int.class }, false, 2));
-    assertTrue((boolean) invokeStatic("shouldDispatchGameStart",
-        new Class<?>[] { boolean.class, int.class }, true, 3));
-    assertTrue((boolean) invokeStatic("shouldDispatchGameStart",
-        new Class<?>[] { boolean.class, int.class }, true, 4));
+    assertFalse(
+        (boolean)
+            invokeStatic(
+                "shouldDispatchGameStart", new Class<?>[] {boolean.class, int.class}, false, 2));
+    assertTrue(
+        (boolean)
+            invokeStatic(
+                "shouldDispatchGameStart", new Class<?>[] {boolean.class, int.class}, true, 3));
+    assertTrue(
+        (boolean)
+            invokeStatic(
+                "shouldDispatchGameStart", new Class<?>[] {boolean.class, int.class}, true, 4));
   }
 
   @Test
   void parsePlayerIdVariousInputs() {
-    assertEquals(0, invokeStatic("parsePlayerId",
-        new Class<?>[] { Map.class }, Map.of("ID", "0")));
-    assertEquals(99, invokeStatic("parsePlayerId",
-        new Class<?>[] { Map.class }, Map.of("ID", "99")));
+    assertEquals(0, invokeStatic("parsePlayerId", new Class<?>[] {Map.class}, Map.of("ID", "0")));
+    assertEquals(99, invokeStatic("parsePlayerId", new Class<?>[] {Map.class}, Map.of("ID", "99")));
   }
 
   @Test
   void extractPositivePlayerIdsAllZeros() {
-    int[] ids = (int[]) invokeStatic("extractPositivePlayerIds",
-        new Class<?>[] { List.class },
-        List.of(Map.of("ID", "0"), Map.of("ID", "0")));
+    int[] ids =
+        (int[])
+            invokeStatic(
+                "extractPositivePlayerIds",
+                new Class<?>[] {List.class},
+                List.of(Map.of("ID", "0"), Map.of("ID", "0")));
     assertEquals(0, ids.length);
   }
 
   @Test
   void extractPositivePlayerIdsAllPositive() {
-    int[] ids = (int[]) invokeStatic("extractPositivePlayerIds",
-        new Class<?>[] { List.class },
-        List.of(Map.of("ID", "1"), Map.of("ID", "2"), Map.of("ID", "3")));
+    int[] ids =
+        (int[])
+            invokeStatic(
+                "extractPositivePlayerIds",
+                new Class<?>[] {List.class},
+                List.of(Map.of("ID", "1"), Map.of("ID", "2"), Map.of("ID", "3")));
     assertEquals(3, ids.length);
   }
 
-  private static Object invokeStatic(String methodName, Class<?>[] argTypes,
-      Object... args) {
+  @Test
+  void serverWelcomeUpdateNullLobbyNotThrow() throws InterruptedException {
+    FakeNetworkManager manager = new FakeNetworkManager();
+    NetworkGameBridge bridge = new NetworkGameBridge(manager);
+    bridge.serverWelcomeUpdate(1);
+    waitFx();
+  }
+
+  @Test
+  void pongUpdateNullLobbyNotThrow() throws InterruptedException {
+    FakeNetworkManager manager = new FakeNetworkManager();
+    NetworkGameBridge bridge = new NetworkGameBridge(manager);
+    bridge.pongUpdate(50L);
+    waitFx();
+  }
+
+  @Test
+  void invitationReceivedUpdateNullLobbyNotThrow() throws InterruptedException {
+    FakeNetworkManager manager = new FakeNetworkManager();
+    NetworkGameBridge bridge = new NetworkGameBridge(manager);
+    bridge.invitationReceivedUpdate("Player2");
+    waitFx();
+  }
+
+  @Test
+  void invitationAcceptedUpdateNullLobbyNotThrow() throws InterruptedException {
+    FakeNetworkManager manager = new FakeNetworkManager();
+    NetworkGameBridge bridge = new NetworkGameBridge(manager);
+    bridge.invitationAcceptedUpdate("Player2");
+    waitFx();
+  }
+
+  @Test
+  void invitationDeclinedUpdateNullLobbyNotThrow() throws InterruptedException {
+    FakeNetworkManager manager = new FakeNetworkManager();
+    NetworkGameBridge bridge = new NetworkGameBridge(manager);
+    bridge.invitationDeclinedUpdate("Player2");
+    waitFx();
+  }
+
+  @Test
+  void invitationCancelledUpdateNullLobbyNotThrow() throws InterruptedException {
+    FakeNetworkManager manager = new FakeNetworkManager();
+    NetworkGameBridge bridge = new NetworkGameBridge(manager);
+    bridge.invitationCancelledUpdate("reason");
+    waitFx();
+  }
+
+  @Test
+  void playersPlayerIdUpdateNullLobbyNotThrow() throws InterruptedException {
+    FakeNetworkManager manager = new FakeNetworkManager();
+    NetworkGameBridge bridge = new NetworkGameBridge(manager);
+    bridge.playersPlayerIdUpdate(Map.of("ID", "1"));
+    waitFx();
+  }
+
+  @Test
+  void playerStatusUpdateNullLobbyNotThrow() throws InterruptedException {
+    FakeNetworkManager manager = new FakeNetworkManager();
+    NetworkGameBridge bridge = new NetworkGameBridge(manager);
+    bridge.playerStatusUpdate("AWAY");
+    waitFx();
+  }
+
+  @Test
+  void clientDisconnectedUpdateNullLobbyNotThrow() throws InterruptedException {
+    FakeNetworkManager manager = new FakeNetworkManager();
+    NetworkGameBridge bridge = new NetworkGameBridge(manager);
+    bridge.clientDisconnectedUpdate("reason");
+    waitFx();
+  }
+
+  @Test
+  void connectionFailedUpdateNullLobbyNotThrow() throws InterruptedException {
+    FakeNetworkManager manager = new FakeNetworkManager();
+    NetworkGameBridge bridge = new NetworkGameBridge(manager);
+    bridge.connectionFailedUpdate("reason");
+    waitFx();
+  }
+
+  @Test
+  void invitationFailedUpdateNullLobbyNotThrow() throws InterruptedException {
+    FakeNetworkManager manager = new FakeNetworkManager();
+    NetworkGameBridge bridge = new NetworkGameBridge(manager);
+    bridge.invitationFailedUpdate("reason");
+    waitFx();
+  }
+
+  @Test
+  void gameInterruptedUpdateNullLobbyNotThrow() throws InterruptedException {
+    FakeNetworkManager manager = new FakeNetworkManager();
+    NetworkGameBridge bridge = new NetworkGameBridge(manager);
+    bridge.gameInterruptedUpdate("reason");
+    waitFx();
+  }
+
+  private static Object invokeStatic(String methodName, Class<?>[] argTypes, Object... args) {
     try {
       Method method = NetworkGameBridge.class.getDeclaredMethod(methodName, argTypes);
       method.setAccessible(true);
       return method.invoke(null, args);
-    } catch (NoSuchMethodException | IllegalAccessException
-        | InvocationTargetException e) {
+    } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
       throw new RuntimeException(e);
     }
   }
@@ -305,8 +441,7 @@ class NetworkGameBridgeTest {
   private static void waitFx() throws InterruptedException {
     CountDownLatch latch = new CountDownLatch(1);
     Platform.runLater(latch::countDown);
-    assertTrue(latch.await(2, TimeUnit.SECONDS),
-        "Timeout waiting for JavaFX event queue");
+    assertTrue(latch.await(2, TimeUnit.SECONDS), "Timeout waiting for JavaFX event queue");
   }
 
   private static class FakeNetworkManager extends NetworkManager {
@@ -344,8 +479,7 @@ class NetworkGameBridgeTest {
     }
 
     @Override
-    public void removeObserver(
-        fr.ubordeaux.scrabble.model.network.NetworkObserver observer) {
+    public void removeObserver(fr.ubordeaux.scrabble.model.network.NetworkObserver observer) {
       removeObserverCalled = true;
     }
 

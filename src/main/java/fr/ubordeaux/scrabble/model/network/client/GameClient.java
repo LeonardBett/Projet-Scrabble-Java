@@ -203,8 +203,12 @@ public class GameClient {
 
           case "GAME_START":
             GameLogger.logVerbose("\n--- Game Started ---");
+
+            // We extract game language
+            String lang = packetParser.getEntries().getFirst().getOrDefault("LANG", "en");
+
             // We create a local model, which will only be updated with server data
-            localGame = new Game();
+            localGame = new Game(lang);
 
             // Extracting bag size and updating the local model
             int bagSize = Integer.parseInt(packetParser.getEntries().getFirst().get("BAG"));

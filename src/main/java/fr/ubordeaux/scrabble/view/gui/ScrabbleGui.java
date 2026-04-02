@@ -181,7 +181,10 @@ public class ScrabbleGui extends Application {
     root.setRight(right);
     root.setBottom(rackPanel);
 
-    stage.setOnCloseRequest(e -> networkBridge.dispose());
+    stage.setOnCloseRequest(e -> {
+      networkBridge.dispose();
+      Platform.exit(); // We close the network window
+    });
     stage.setTitle(I18n.translate("scrabble.windowTitle"));
     Scene scene = new Scene(root, 1200, 800);
     setupShortcuts(scene);
@@ -354,8 +357,12 @@ public class ScrabbleGui extends Application {
     controlPanel.getRedoButton().setDisable(true);
     controlPanel.getHintButton().setDisable(true);
     controlPanel.getPauseButton().setDisable(true);
+    configurationMenuItem.setDisable(true);
     saveMenuItem.setDisable(true);
     loadMenuItem.setDisable(true);
+
+    // We disable timer in client mode
+    scorePanel.stopBlitzTimers();
 
     boardPanel.setBoard(gameInstance.getBoard());
     pendingTiles.clear();
@@ -376,6 +383,7 @@ public class ScrabbleGui extends Application {
     controlPanel.getRedoButton().setDisable(false);
     controlPanel.getHintButton().setDisable(false);
     controlPanel.getPauseButton().setDisable(false);
+    configurationMenuItem.setDisable(false);
     saveMenuItem.setDisable(false);
     loadMenuItem.setDisable(false);
   }
@@ -922,6 +930,7 @@ public class ScrabbleGui extends Application {
     loadButton.disableProperty().bind(loadMenuItem.disableProperty());
     configurationButton = createMenuActionButton(configurationMenuItem.getText());
     configurationButton.setOnAction(e -> configurationMenuItem.fire());
+    configurationButton.disableProperty().bind(configurationMenuItem.disableProperty());
     infoButton = createMenuActionButton(infoMenuItem.getText());
     infoButton.setOnAction(e -> infoMenuItem.fire());
     quitButton = createMenuActionButton(quitMenuItem.getText());

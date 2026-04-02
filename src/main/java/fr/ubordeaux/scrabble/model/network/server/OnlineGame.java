@@ -295,6 +295,9 @@ public class OnlineGame {
     // Add the info of the bag size
     sb.append("BAG=").append(game.getBag().size()).append("|");
 
+    // Add language info
+    sb.append("LANG=").append(game.getLanguage()).append("|");
+
     // Add the info of all participating players (ID have is not use client side for
     // now)
     for (int i = 0; i < handlers.size(); i++) {
