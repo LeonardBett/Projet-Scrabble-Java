@@ -106,34 +106,74 @@ public class GameController {
     return view;
   }
 
+  /**
+   * Returns the configured AI thinking time in seconds.
+   *
+   * @return the AI time limit in seconds
+   */
   public int configuredAiTime() {
     return aiTime;
   }
 
+  /**
+   * Returns the configured blitz timeout in minutes.
+   *
+   * @return the blitz timeout in minutes
+   */
   public int configuredBlitzMinutes() {
     return blitzMinutes;
   }
 
+  /**
+   * Indicates whether blitz mode is enabled.
+   *
+   * @return true when blitz mode is enabled
+   */
   public boolean configuredBlitzMode() {
     return blitzMode;
   }
 
+  /**
+   * Indicates whether super Scrabble mode is enabled.
+   *
+   * @return true when super Scrabble mode is enabled
+   */
   public boolean configuredSuperMode() {
     return superScrabbleMode;
   }
 
+  /**
+   * Indicates whether expectiminimax is enabled for AI.
+   *
+   * @return true when expectiminimax is enabled
+   */
   public boolean isExpectiminimaxEnabled() {
     return useExptiminimax;
   }
 
+  /**
+   * Indicates whether the ML agent is enabled for AI.
+   *
+   * @return true when ML is enabled
+   */
   public boolean isMlEnabled() {
     return useMl;
   }
 
+  /**
+   * Returns the configured player count for launch.
+   *
+   * @return the configured player count
+   */
   public int configuredPlayerCount() {
     return playerCount;
   }
 
+  /**
+   * Returns the configured game language.
+   *
+   * @return the configured language code
+   */
   public String configuredLanguage() {
     return lang;
   }

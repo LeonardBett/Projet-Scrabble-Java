@@ -78,22 +78,47 @@ public final class ControllerConfigSnapshot {
     controller.applyConfiguration("verbose", String.valueOf(verbose));
   }
 
+  /**
+   * Returns the captured language code.
+   *
+   * @return the language code
+   */
   public String language() {
     return language;
   }
 
+  /**
+   * Returns the captured player count.
+   *
+   * @return the player count
+   */
   public int playerCount() {
     return playerCount;
   }
 
+  /**
+   * Indicates whether super Scrabble mode was captured.
+   *
+   * @return true when super Scrabble mode is enabled
+   */
   public boolean superScrabbleMode() {
     return superScrabbleMode;
   }
 
+  /**
+   * Indicates whether blitz mode was captured.
+   *
+   * @return true when blitz mode is enabled
+   */
   public boolean blitzMode() {
     return blitzMode;
   }
 
+  /**
+   * Returns the captured blitz timeout in minutes.
+   *
+   * @return the blitz timeout in minutes
+   */
   public int blitzMinutes() {
     return blitzMinutes;
   }
