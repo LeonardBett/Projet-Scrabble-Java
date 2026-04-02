@@ -33,14 +33,22 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.Spinner;
+import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -73,6 +81,7 @@ public class ScrabbleGui extends Application {
   private ScorePanel scorePanel;
   private ControlPanel controlPanel;
   private MessagePanel messagePanel;
+  private Stage primaryStage;
 
   private final Map<Point, Tile> pendingTiles = new HashMap<>();
   private Tile currentlyDraggedTile = null;
@@ -87,7 +96,16 @@ public class ScrabbleGui extends Application {
   private MenuItem onlineMenuItem;
   private MenuItem saveMenuItem;
   private MenuItem loadMenuItem;
+  private MenuItem configurationMenuItem;
+  private MenuItem infoMenuItem;
   private MenuItem quitMenuItem;
+  private Button newGameButton;
+  private Button onlineButton;
+  private Button saveButton;
+  private Button loadButton;
+  private Button configurationButton;
+  private Button infoButton;
+  private Button quitButton;
 
   /**
    * Sets the game instance for static access.
@@ -124,6 +142,7 @@ public class ScrabbleGui extends Application {
     }
 
     networkManager = new NetworkManager();
+    primaryStage = stage;
     networkBridge = new NetworkGameBridge(networkManager);
     networkBridge.setGui(this);
 
@@ -220,6 +239,11 @@ public class ScrabbleGui extends Application {
         controller.provideHint();
       }
     });
+    controlPanel.getPauseButton().setOnAction(e -> {
+      if (!onlineMode && !gameInstance.isGameOver()) {
+        controller.togglePause();
+      }
+    });
 
     newGameMenuItem.setOnAction(e -> handleNewGame());
     onlineMenuItem.setOnAction(e -> openNetworkLobby());
@@ -293,6 +317,10 @@ public class ScrabbleGui extends Application {
         showError(I18n.translate("scrabble.loadGenericError"));
       }
     });
+    configurationMenuItem.setOnAction(
+        e -> showConfigurationDialog());
+    infoMenuItem.setOnAction(
+        e -> showInfo(I18n.translate("scrabble.menu.info"), I18n.translate("scrabble.info.text")));
     quitMenuItem.setOnAction(e -> {
       if (messagePanel.showConfirmation(I18n.translate("scrabble.quitConfirmation"))) {
         networkBridge.dispose();
@@ -322,6 +350,7 @@ public class ScrabbleGui extends Application {
     controlPanel.getUndoButton().setDisable(true);
     controlPanel.getRedoButton().setDisable(true);
     controlPanel.getHintButton().setDisable(true);
+    controlPanel.getPauseButton().setDisable(true);
     saveMenuItem.setDisable(true);
     loadMenuItem.setDisable(true);
 
@@ -343,6 +372,7 @@ public class ScrabbleGui extends Application {
     controlPanel.getUndoButton().setDisable(false);
     controlPanel.getRedoButton().setDisable(false);
     controlPanel.getHintButton().setDisable(false);
+    controlPanel.getPauseButton().setDisable(false);
     saveMenuItem.setDisable(false);
     loadMenuItem.setDisable(false);
   }
@@ -501,11 +531,20 @@ public class ScrabbleGui extends Application {
   }
 
   private void handleNewGame() {
-    if (!messagePanel.showConfirmation(I18n.translate("scrabble.newGameConfirmation"))) {
+    recreateGameFromCurrentConfiguration(true);
+  }
+
+  private void recreateGameFromCurrentConfiguration(boolean askConfirmation) {
+    if (askConfirmation
+        && !messagePanel.showConfirmation(I18n.translate("scrabble.newGameConfirmation"))) {
       return;
     }
 
-    Optional<Integer> countOpt = PlayerSetup.showDialog();
+    ControllerConfigSnapshot configSnapshot = ControllerConfigSnapshot.capture(controller);
+
+    Optional<Integer> countOpt = controller.configuredPlayerCount() > 0
+        ? Optional.of(controller.configuredPlayerCount())
+        : PlayerSetup.showDialog();
     if (countOpt.isEmpty()) {
       return;
     }
@@ -526,9 +565,19 @@ public class ScrabbleGui extends Application {
       exitOnlineMode();
     }
 
-    gameInstance = new Game();
-    int count = countOpt.get();
+    gameInstance = new Game(
+        configSnapshot.superScrabbleMode ? fr.ubordeaux.scrabble.model.enums.GameMode.SUPER
+            : fr.ubordeaux.scrabble.model.enums.GameMode.STANDARD,
+        configSnapshot.language);
+    final int count = countOpt.get();
 
+    if (configSnapshot.blitzMode) {
+      gameInstance.enableBlitzMode(
+          java.time.Duration.ofMinutes(configSnapshot.blitzMinutes));
+    }
+
+    configuredLanguage = configSnapshot.language;
+    gaddag = null;
     if (gaddag == null) {
       loadDictionary();
     }
@@ -540,6 +589,7 @@ public class ScrabbleGui extends Application {
     viewInstance = new JavaFxView(gameInstance);
     viewInstance.setGui(this);
     controller = new GameController(gameInstance, viewInstance);
+    configSnapshot.applyTo(controller);
 
     setGameplayControlsDisabled(false);
 
@@ -577,10 +627,305 @@ public class ScrabbleGui extends Application {
    * Refreshes all GUI panels: board, rack, scores, and checks if it is the AI's turn.
    */
   public void refreshAll() {
+    updatePauseAvailability();
     refreshBoard();
     refreshRack();
     refreshScores();
     checkAiTurn();
+  }
+
+  private void showConfigurationDialog() {
+    Dialog<ButtonType> dialog = new Dialog<>();
+    dialog.setTitle(I18n.translate("scrabble.config.dialog.title"));
+    dialog.setHeaderText(I18n.translate("scrabble.config.dialogHeader"));
+
+    DialogPane dialogPane = dialog.getDialogPane();
+    ButtonType applyRestartButton = new ButtonType(
+        I18n.translate("scrabble.config.dialog.applyRestart"),
+        javafx.scene.control.ButtonBar.ButtonData.LEFT);
+    dialogPane.getButtonTypes().addAll(ButtonType.OK, applyRestartButton, ButtonType.CANCEL);
+
+    ChoiceBox<String> languageChoice = new ChoiceBox<>();
+    languageChoice.getItems().addAll("en", "fr");
+    languageChoice.setValue(controller.configuredLanguage());
+
+    final Spinner<Integer> playerSpinner = new Spinner<>(
+        new SpinnerValueFactory.IntegerSpinnerValueFactory(2, 8,
+            Math.max(2, controller.configuredPlayerCount() > 0
+                ? controller.configuredPlayerCount()
+                : gameInstance.getPlayers().size())));
+
+    CheckBox superScrabbleBox = new CheckBox();
+    superScrabbleBox.setSelected(controller.configuredSuperMode());
+
+    CheckBox blitzBox = new CheckBox();
+    blitzBox.setSelected(controller.configuredBlitzMode());
+
+    Spinner<Integer> blitzTimeoutSpinner = new Spinner<>(
+        new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 120,
+            controller.configuredBlitzMinutes()));
+    blitzTimeoutSpinner.setEditable(true);
+    blitzTimeoutSpinner.disableProperty().bind(blitzBox.selectedProperty().not());
+
+    Spinner<Integer> aiTimeSpinner = new Spinner<>(
+        new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 60,
+            controller.configuredAiTime()));
+    aiTimeSpinner.setEditable(true);
+
+    CheckBox expectiminimaxBox = new CheckBox();
+    expectiminimaxBox.setSelected(controller.isExpectiminimaxEnabled());
+
+    CheckBox mlBox = new CheckBox();
+    mlBox.setSelected(controller.isMlEnabled());
+
+    CheckBox debugBox = new CheckBox();
+    debugBox.setSelected(fr.ubordeaux.scrabble.model.utils.GameLogger.isDebug());
+
+    CheckBox verboseBox = new CheckBox();
+    verboseBox.setSelected(fr.ubordeaux.scrabble.model.utils.GameLogger.isVerbose());
+
+    javafx.scene.control.TextField dictionaryField = new javafx.scene.control.TextField(
+        controller.getDictionaryPathOverride());
+    dictionaryField.setPrefColumnCount(28);
+
+    GridPane grid = new GridPane();
+    grid.setHgap(12);
+    grid.setVgap(10);
+    grid.setPadding(new Insets(12, 0, 0, 0));
+
+    int row = 0;
+    grid.addRow(row++,
+        new Label(I18n.translate("scrabble.config.label.language")),
+        languageChoice);
+    grid.addRow(row++,
+        new Label(I18n.translate("scrabble.config.label.players")),
+        playerSpinner);
+    grid.addRow(row++,
+        new Label(I18n.translate("scrabble.config.label.super")),
+        superScrabbleBox);
+    grid.addRow(row++, new Label(I18n.translate("scrabble.config.label.blitz")), blitzBox);
+    grid.addRow(row++,
+        new Label(I18n.translate("scrabble.config.label.timeout")),
+        blitzTimeoutSpinner);
+    grid.addRow(row++, new Label(I18n.translate("scrabble.config.label.aitime")), aiTimeSpinner);
+    grid.addRow(row++,
+        new Label(I18n.translate("scrabble.config.label.expectiminimax")),
+        expectiminimaxBox);
+    grid.addRow(row++, new Label(I18n.translate("scrabble.config.label.ml")), mlBox);
+    grid.addRow(row++,
+        new Label(I18n.translate("scrabble.config.label.dictionary")),
+        dictionaryField);
+    grid.addRow(row++, new Label(I18n.translate("scrabble.config.label.debug")), debugBox);
+    grid.addRow(row, new Label(I18n.translate("scrabble.config.label.verbose")), verboseBox);
+
+    dialogPane.setContent(grid);
+
+    Optional<ButtonType> result = dialog.showAndWait();
+    if (result.isEmpty() || (result.get() != ButtonType.OK && result.get() != applyRestartButton)) {
+      return;
+    }
+
+    applyConfigurationAssignments(String.join("; ",
+        "language=" + languageChoice.getValue(),
+        "players=" + playerSpinner.getValue(),
+        "super-scrabble=" + superScrabbleBox.isSelected(),
+        "blitz=" + blitzBox.isSelected(),
+        "timeout=" + blitzTimeoutSpinner.getValue(),
+        "ai-time=" + aiTimeSpinner.getValue(),
+        "ai-exptiminimax=" + expectiminimaxBox.isSelected(),
+        "ai-ml=" + mlBox.isSelected(),
+        "dictionary=" + dictionaryField.getText().trim(),
+        "debug=" + debugBox.isSelected(),
+        "verbose=" + verboseBox.isSelected()));
+
+    if (result.get() == applyRestartButton) {
+      recreateGameFromCurrentConfiguration(false);
+    }
+  }
+
+  private void applyConfigurationAssignments(String rawAssignments) {
+    String[] assignments = rawAssignments.split("[;]");
+    boolean blitzChanged = false;
+    boolean languageChanged = false;
+    boolean dictionaryChanged = false;
+
+    for (String assignment : assignments) {
+      String normalized = assignment.trim();
+      if (normalized.isEmpty()) {
+        continue;
+      }
+
+      String[] kv = normalized.split("=", 2);
+      if (kv.length != 2) {
+        showError(I18n.translate("scrabble.config.invalidEntry", normalized));
+        return;
+      }
+
+      try {
+        String key = kv[0].trim();
+        controller.applyConfiguration(key, kv[1].trim());
+        if (key.equalsIgnoreCase("blitz") || key.equalsIgnoreCase("timeout")) {
+          blitzChanged = true;
+        }
+        if (key.equalsIgnoreCase("language") || key.equalsIgnoreCase("lang")) {
+          languageChanged = true;
+        }
+        if (key.equalsIgnoreCase("dictionary") || key.equalsIgnoreCase("dictionary-path")) {
+          dictionaryChanged = true;
+        }
+      } catch (IllegalArgumentException ex) {
+        showError(ex.getMessage());
+        return;
+      }
+    }
+
+    if (languageChanged) {
+      configuredLanguage = controller.configuredLanguage();
+      refreshLocalizedTexts();
+    }
+
+    if (languageChanged || dictionaryChanged) {
+      gaddag = null;
+    }
+
+    if (blitzChanged) {
+      if (gameInstance.isBlitzModeEnabled()) {
+        scorePanel.startBlitzTimers(gameInstance.getPlayers(),
+            this::onBlitzTimeExpired);
+      } else {
+        scorePanel.stopBlitzTimers();
+      }
+    }
+
+    updatePauseAvailability();
+    refreshAll();
+    showInfo(I18n.translate("scrabble.menu.configuration"),
+        I18n.translate("scrabble.config.saved"));
+  }
+
+  private void refreshLocalizedTexts() {
+    if (primaryStage != null) {
+      primaryStage.setTitle(I18n.translate("scrabble.windowTitle"));
+    }
+
+    if (appMenuButton != null) {
+      appMenuButton.setText(I18n.translate("scrabble.menuButton"));
+    }
+
+    if (newGameMenuItem != null && newGameButton != null) {
+      String label = I18n.translate("scrabble.menu.newGame");
+      newGameMenuItem.setText(label);
+      newGameButton.setText(label);
+    }
+    if (onlineMenuItem != null && onlineButton != null) {
+      String label = I18n.translate("scrabble.menu.multiplayer");
+      onlineMenuItem.setText(label);
+      onlineButton.setText(label);
+    }
+    if (saveMenuItem != null && saveButton != null) {
+      String label = I18n.translate("scrabble.menu.save");
+      saveMenuItem.setText(label);
+      saveButton.setText(label);
+    }
+    if (loadMenuItem != null && loadButton != null) {
+      String label = I18n.translate("scrabble.menu.load");
+      loadMenuItem.setText(label);
+      loadButton.setText(label);
+    }
+    if (configurationMenuItem != null && configurationButton != null) {
+      String label = I18n.translate("scrabble.menu.configuration");
+      configurationMenuItem.setText(label);
+      configurationButton.setText(label);
+    }
+    if (infoMenuItem != null && infoButton != null) {
+      String label = I18n.translate("scrabble.menu.info");
+      infoMenuItem.setText(label);
+      infoButton.setText(label);
+    }
+    if (quitMenuItem != null && quitButton != null) {
+      String label = I18n.translate("scrabble.menu.quit");
+      quitMenuItem.setText(label);
+      quitButton.setText(label);
+    }
+
+    if (controlPanel != null) {
+      controlPanel.getPlayButton().setText(I18n.translate("control.play"));
+      controlPanel.getPassButton().setText(I18n.translate("control.pass"));
+      controlPanel.getExchangeButton().setText(I18n.translate("control.exchange"));
+      controlPanel.getCancelPlacementButton().setText(I18n.translate("control.cancelPlacement"));
+      controlPanel.getUndoButton().setText(I18n.translate("control.undo"));
+      controlPanel.getRedoButton().setText(I18n.translate("control.redo"));
+      controlPanel.getHintButton().setText(I18n.translate("control.hint"));
+      controlPanel.getPauseButton().setText(I18n.translate("control.pause"));
+    }
+  }
+
+  private static class ControllerConfigSnapshot {
+    private final String language;
+    private final int playerCount;
+    private final boolean superScrabbleMode;
+    private final boolean blitzMode;
+    private final int blitzMinutes;
+    private final int aiTime;
+    private final boolean expectiminimax;
+    private final boolean ml;
+    private final String dictionaryPath;
+    private final boolean debug;
+    private final boolean verbose;
+
+    private ControllerConfigSnapshot(String language, int playerCount, boolean superScrabbleMode,
+        boolean blitzMode, int blitzMinutes, int aiTime, boolean expectiminimax, boolean ml,
+        String dictionaryPath, boolean debug, boolean verbose) {
+      this.language = language;
+      this.playerCount = playerCount;
+      this.superScrabbleMode = superScrabbleMode;
+      this.blitzMode = blitzMode;
+      this.blitzMinutes = blitzMinutes;
+      this.aiTime = aiTime;
+      this.expectiminimax = expectiminimax;
+      this.ml = ml;
+      this.dictionaryPath = dictionaryPath;
+      this.debug = debug;
+      this.verbose = verbose;
+    }
+
+    private static ControllerConfigSnapshot capture(GameController controller) {
+      return new ControllerConfigSnapshot(
+          controller.configuredLanguage(),
+          controller.configuredPlayerCount(),
+          controller.configuredSuperMode(),
+          controller.configuredBlitzMode(),
+          controller.configuredBlitzMinutes(),
+          controller.configuredAiTime(),
+          controller.isExpectiminimaxEnabled(),
+          controller.isMlEnabled(),
+          controller.getDictionaryPathOverride(),
+          fr.ubordeaux.scrabble.model.utils.GameLogger.isDebug(),
+          fr.ubordeaux.scrabble.model.utils.GameLogger.isVerbose());
+    }
+
+    private void applyTo(GameController controller) {
+      controller.applyConfiguration("language", language);
+      if (playerCount > 0) {
+        controller.applyConfiguration("players", String.valueOf(playerCount));
+      }
+      controller.applyConfiguration("super-scrabble", String.valueOf(superScrabbleMode));
+      controller.applyConfiguration("blitz", String.valueOf(blitzMode));
+      controller.applyConfiguration("timeout", String.valueOf(blitzMinutes));
+      controller.applyConfiguration("ai-time", String.valueOf(aiTime));
+      controller.applyConfiguration("ai-exptiminimax", String.valueOf(expectiminimax));
+      controller.applyConfiguration("ai-ml", String.valueOf(ml));
+      controller.applyConfiguration("dictionary", dictionaryPath);
+      controller.applyConfiguration("debug", String.valueOf(debug));
+      controller.applyConfiguration("verbose", String.valueOf(verbose));
+    }
+  }
+
+  private void updatePauseAvailability() {
+    if (controlPanel == null || gameInstance == null) {
+      return;
+    }
+    controlPanel.setPauseVisible(gameInstance.isBlitzModeEnabled());
   }
 
   private void checkAiTurn() {
@@ -638,28 +983,35 @@ public class ScrabbleGui extends Application {
     onlineMenuItem = new MenuItem(I18n.translate("scrabble.menu.multiplayer"));
     saveMenuItem = new MenuItem(I18n.translate("scrabble.menu.save"));
     loadMenuItem = new MenuItem(I18n.translate("scrabble.menu.load"));
+    configurationMenuItem = new MenuItem(I18n.translate("scrabble.menu.configuration"));
+    infoMenuItem = new MenuItem(I18n.translate("scrabble.menu.info"));
     quitMenuItem = new MenuItem(I18n.translate("scrabble.menu.quit"));
 
     appMenuButton = new MenuButton(I18n.translate("scrabble.menuButton"), null,
-        newGameMenuItem, onlineMenuItem, saveMenuItem, loadMenuItem, quitMenuItem);
+      newGameMenuItem, onlineMenuItem, saveMenuItem, loadMenuItem, configurationMenuItem,
+      infoMenuItem, quitMenuItem);
     appMenuButton.setPrefWidth(190);
     appMenuButton.setStyle("-fx-background-color: #0B3D1D; -fx-text-fill: white;");
 
-    Button newGameButton = createMenuActionButton(newGameMenuItem.getText());
+    newGameButton = createMenuActionButton(newGameMenuItem.getText());
     newGameButton.setOnAction(e -> newGameMenuItem.fire());
-    Button onlineButton = createMenuActionButton(onlineMenuItem.getText());
+    onlineButton = createMenuActionButton(onlineMenuItem.getText());
     onlineButton.setOnAction(e -> onlineMenuItem.fire());
-    Button saveButton = createMenuActionButton(saveMenuItem.getText());
+    saveButton = createMenuActionButton(saveMenuItem.getText());
     saveButton.setOnAction(e -> saveMenuItem.fire());
     saveButton.disableProperty().bind(saveMenuItem.disableProperty());
-    Button loadButton = createMenuActionButton(loadMenuItem.getText());
+    loadButton = createMenuActionButton(loadMenuItem.getText());
     loadButton.setOnAction(e -> loadMenuItem.fire());
     loadButton.disableProperty().bind(loadMenuItem.disableProperty());
-    Button quitButton = createMenuActionButton(quitMenuItem.getText());
+    configurationButton = createMenuActionButton(configurationMenuItem.getText());
+    configurationButton.setOnAction(e -> configurationMenuItem.fire());
+    infoButton = createMenuActionButton(infoMenuItem.getText());
+    infoButton.setOnAction(e -> infoMenuItem.fire());
+    quitButton = createMenuActionButton(quitMenuItem.getText());
     quitButton.setOnAction(e -> quitMenuItem.fire());
 
     VBox panel = new VBox(8, menuLabel, newGameButton, onlineButton, saveButton, loadButton,
-        quitButton);
+        configurationButton, infoButton, quitButton);
     panel.setAlignment(Pos.TOP_CENTER);
     panel.setPadding(new Insets(15, 10, 10, 10));
     panel.setStyle("-fx-background-color: rgba(0,0,0,0.4); -fx-background-radius: 10;");

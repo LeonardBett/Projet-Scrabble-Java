@@ -22,9 +22,9 @@ public class BoardPanel extends VBox {
 
   private static final int CELL_SIZE = 40;
 
-  private final int gridSize;
+  private int gridSize;
   private final GridPane gridPane;
-  private final Label[][] cellLabels;
+  private Label[][] cellLabels;
   private Board board;
 
   private BiConsumer<Integer, Integer> onTileDropped;
@@ -64,6 +64,15 @@ public class BoardPanel extends VBox {
     gridPane.setMaxWidth(GridPane.USE_PREF_SIZE);
     gridPane.setMaxHeight(GridPane.USE_PREF_SIZE);
 
+    rebuildGrid();
+
+    this.setAlignment(Pos.CENTER);
+    this.getChildren().addAll(title, gridPane);
+  }
+
+  private void rebuildGrid() {
+    gridPane.getChildren().clear();
+
     for (int row = 0; row < gridSize; row++) {
       for (int col = 0; col < gridSize; col++) {
         Label cell = createCell(row, col);
@@ -71,9 +80,6 @@ public class BoardPanel extends VBox {
         gridPane.add(cell, col, row);
       }
     }
-
-    this.setAlignment(Pos.CENTER);
-    this.getChildren().addAll(title, gridPane);
   }
 
   private Label createCell(int row, int col) {
@@ -240,6 +246,18 @@ public class BoardPanel extends VBox {
    * @param newBoard the new board to display
    */
   public void setBoard(Board newBoard) {
+    if (newBoard == null) {
+      throw new IllegalArgumentException("newBoard must not be null");
+    }
+
+    if (newBoard.getSize() != gridSize) {
+      gridSize = newBoard.getSize();
+      cellLabels = new Label[gridSize][gridSize];
+      this.board = newBoard;
+      rebuildGrid();
+      return;
+    }
+
     this.board = newBoard;
     updateBoard();
   }

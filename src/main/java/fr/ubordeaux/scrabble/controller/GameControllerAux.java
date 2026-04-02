@@ -445,84 +445,61 @@ class GameControllerAux {
 
   private void showConfiguration(CliView cliView) {
     Game game = controller.internalGame();
+    int configuredPlayers = controller.configuredPlayerCount() > 0
+        ? controller.configuredPlayerCount()
+        : game.getPlayers().size();
     String config = I18n.translate(
         "cli.shell.config",
         controller.configuredLanguage(),
-        game.getPlayers().size(),
-        game.isBlitzModeEnabled(),
+        configuredPlayers,
+        controller.configuredSuperMode(),
+        controller.configuredBlitzMode(),
+        controller.configuredBlitzMinutes(),
         controller.configuredAiTime(),
         controller.isExpectiminimaxEnabled(),
         controller.isMlEnabled(),
+        controller.getDictionaryPathOverride(),
         GameLogger.isDebug(),
         GameLogger.isVerbose());
     cliView.displayMessage(config);
   }
 
   private void handleSet(String[] tokens, CliView cliView) {
-    String[] kv = parseSetArguments(tokens);
-    if (kv == null) {
+    if (tokens.length < 2) {
       cliView.displayError(I18n.translate("cli.shell.set.usage"));
       return;
     }
 
-    String key = kv[0].trim().toLowerCase(Locale.ROOT);
-    String value = kv.length > 1 ? kv[1].trim().toLowerCase(Locale.ROOT) : "";
+    String rawAssignments = String.join(" ",
+        java.util.Arrays.copyOfRange(tokens, 1, tokens.length));
+    String[] assignments = rawAssignments.split("[;]");
+    boolean anyApplied = false;
 
-    switch (key) {
-      case "debug": {
-        Boolean enabled = parseBoolean(value, cliView);
-        if (enabled == null) {
-          return;
-        }
-        GameLogger.setDebug(enabled);
-        cliView.displayMessage(I18n.translate("cli.shell.set.updated", "debug", enabled));
+    for (String assignment : assignments) {
+      String normalizedAssignment = assignment.trim();
+      if (normalizedAssignment.isEmpty()) {
+        continue;
+      }
+
+      String[] kv = normalizedAssignment.split("=", 2);
+      if (kv.length != 2) {
+        cliView.displayError(I18n.translate("cli.shell.set.usage"));
         return;
       }
-      case "verbose": {
-        Boolean enabled = parseBoolean(value, cliView);
-        if (enabled == null) {
-          return;
-        }
-        GameLogger.setVerbose(enabled);
-        cliView.displayMessage(I18n.translate("cli.shell.set.updated", "verbose", enabled));
+
+      try {
+        controller.applyConfiguration(kv[0].trim(), kv[1].trim());
+        cliView.displayMessage(I18n.translate("cli.shell.set.updated", kv[0].trim(), kv[1].trim()));
+        anyApplied = true;
+      } catch (IllegalArgumentException e) {
+        cliView.displayError(e.getMessage());
         return;
       }
-      default:
-        cliView.displayError(I18n.translate("cli.shell.set.unsupportedParam", key));
-    }
-  }
-
-  private String[] parseSetArguments(String[] tokens) {
-    if (tokens.length < 2) {
-      return null;
     }
 
-    if (tokens.length >= 4 && "=".equals(tokens[2])) {
-      return new String[] {tokens[1], tokens[3]};
+    if (!anyApplied) {
+      cliView.displayError(I18n.translate("cli.shell.set.usage"));
     }
-
-    if (tokens.length >= 3 && !tokens[1].contains("=")) {
-      return new String[] {tokens[1], tokens[2]};
-    }
-
-    if (tokens[1].contains("=")) {
-      return tokens[1].split("=", 2);
-    }
-
-    return null;
-  }
-
-  private Boolean parseBoolean(String value, CliView cliView) {
-    if ("true".equals(value) || "1".equals(value) || "yes".equals(value)
-        || "y".equals(value) || "oui".equals(value) || "o".equals(value)) {
-      return Boolean.TRUE;
-    }
-    if ("false".equals(value) || "0".equals(value) || "no".equals(value)
-        || "n".equals(value) || "non".equals(value)) {
-      return Boolean.FALSE;
-    }
-    cliView.displayError(I18n.translate("cli.shell.set.invalidBoolean"));
-    return null;
   }
 
   private void handleSave(String[] tokens, CliView cliView) {

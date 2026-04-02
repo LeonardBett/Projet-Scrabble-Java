@@ -25,6 +25,7 @@ public class ControlPanel extends VBox {
   private final Button undoButton;
   private final Button redoButton;
   private final Button hintButton;
+  private final Button pauseButton;
 
   /**
    * Creates the ControlPanel and initializes all buttons.
@@ -37,7 +38,10 @@ public class ControlPanel extends VBox {
     undoButton = createButton(I18n.translate("control.undo"), "#9E9E9E");
     redoButton = createButton(I18n.translate("control.redo"), "#9E9E9E");
     hintButton = createButton(I18n.translate("control.hint"), "#1E88E5");
+    pauseButton = createButton(I18n.translate("control.pause"), "#6A1B9A");
     hintButton.setPrefWidth(96);
+    pauseButton.setVisible(false);
+    pauseButton.setManaged(false);
     initializeUi();
   }
 
@@ -60,7 +64,7 @@ public class ControlPanel extends VBox {
     titleBar.setPadding(new Insets(0, 0, 8, 0));
 
     this.getChildren().addAll(titleBar, playButton, passButton, exchangeButton,
-        cancelPlacementButton, separator(), undoButton, redoButton);
+        cancelPlacementButton, separator(), undoButton, redoButton, pauseButton);
   }
 
   private Button createButton(String text, String color) {
@@ -145,6 +149,25 @@ public class ControlPanel extends VBox {
   }
 
   /**
+   * Returns the pause button.
+   *
+   * @return the pause button.
+   */
+  public Button getPauseButton() {
+    return pauseButton;
+  }
+
+  /**
+   * Shows or hides the pause button while preserving layout consistency.
+   *
+   * @param visible true to show the pause button
+   */
+  public void setPauseVisible(boolean visible) {
+    pauseButton.setVisible(visible);
+    pauseButton.setManaged(visible);
+  }
+
+  /**
    * Backward-compatible alias for the hint button.
    *
    * @return the hint/help button.
@@ -165,5 +188,6 @@ public class ControlPanel extends VBox {
     cancelPlacementButton.setDisable(disabled);
     undoButton.setDisable(disabled);
     redoButton.setDisable(disabled);
+    pauseButton.setDisable(disabled);
   }
 }
