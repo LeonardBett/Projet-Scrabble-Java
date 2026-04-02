@@ -42,6 +42,7 @@ public class App {
   @FunctionalInterface
   interface CliLauncherHandler {
     void launch(
+        GameMode gameMode,
         int players,
         List<String> aiColors,
         boolean blitzMode,
@@ -57,6 +58,7 @@ public class App {
   interface GuiLauncherHandler {
     void launch(
         String[] args,
+        GameMode gameMode,
         int players,
         List<String> aiColors,
         boolean blitzMode,
@@ -414,6 +416,7 @@ public class App {
     if (guiMode) {
       launchGui(
           args,
+          mode,
           players,
           aiColors,
           blitzMode,
@@ -425,6 +428,7 @@ public class App {
           saveFilePath);
     } else {
       launchCli(
+          mode,
           players,
           aiColors,
           blitzMode,
@@ -485,6 +489,7 @@ public class App {
    * @param lang The language of the dictionary to load ("en" or "fr").
    */
   private static void launchCli(
+      GameMode gameMode,
       int players,
       List<String> aiColors,
       boolean blitzMode,
@@ -495,6 +500,7 @@ public class App {
       String lang,
       String saveFilePath) {
     cliLauncherHandler.launch(
+        gameMode,
         players,
         aiColors,
         blitzMode,
@@ -521,6 +527,7 @@ public class App {
    */
   private static void launchGui(
       String[] args,
+      GameMode gameMode,
       int players,
       List<String> aiColors,
       boolean blitzMode,
@@ -532,6 +539,7 @@ public class App {
       String saveFilePath) {
     guiLauncherHandler.launch(
         args,
+        gameMode,
         players,
         aiColors,
         blitzMode,

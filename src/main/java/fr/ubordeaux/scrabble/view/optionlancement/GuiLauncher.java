@@ -36,8 +36,14 @@ public class GuiLauncher {
 
   static Game createConfiguredGame(int players, List<String> aiColors, boolean blitzMode,
       int blitzMinutes, int aiTime, boolean useExptiminimax) {
+    return createConfiguredGame(GameMode.STANDARD, players, aiColors, blitzMode, blitzMinutes,
+        aiTime, useExptiminimax);
+  }
+
+  static Game createConfiguredGame(GameMode gameMode, int players, List<String> aiColors,
+      boolean blitzMode, int blitzMinutes, int aiTime, boolean useExptiminimax) {
     int count = players > 0 ? players : OptionPlayer.DEFAULT;
-    Game game = new Game();
+    Game game = new Game(gameMode == null ? GameMode.STANDARD : gameMode);
     if (blitzMode) {
       game.enableBlitzMode(Duration.ofMinutes(blitzMinutes));
     }
@@ -79,6 +85,28 @@ public class GuiLauncher {
   public static void launch(String[] args, int players, List<String> aiColors, boolean blitzMode,
       int blitzMinutes, int aiTime, boolean useExptiminimax, boolean useMl, String lang,
       String saveFilePath) {
+    launch(args, GameMode.STANDARD, players, aiColors, blitzMode, blitzMinutes, aiTime,
+        useExptiminimax, useMl, lang, saveFilePath);
+  }
+
+  /**
+   * Starts the game in GUI mode with the given configuration and game mode.
+   *
+   * @param args the command-line arguments passed to JavaFX
+   * @param gameMode the board mode (standard or super)
+   * @param players the number of players (between 2 and 4)
+   * @param aiColors colors controlled by AI players
+   * @param blitzMode true to enable blitz mode
+   * @param blitzMinutes time limit per player in minutes (only used when blitzMode is true)
+   * @param aiTime AI thinking time in seconds
+   * @param useExptiminimax true to enable the Expectiminimax algorithm
+   * @param useMl true to enable the Machine Learning agent
+   * @param lang the dictionary language ("en" or "fr")
+   * @param saveFilePath path to a save file to load, or null to start a new game
+   */
+  public static void launch(String[] args, GameMode gameMode, int players, List<String> aiColors,
+      boolean blitzMode, int blitzMinutes, int aiTime, boolean useExptiminimax, boolean useMl,
+      String lang, String saveFilePath) {
     Game game;
     if (saveFilePath != null) {
       try {
@@ -87,7 +115,7 @@ public class GuiLauncher {
         throw new IllegalArgumentException("Could not load save file: " + saveFilePath, e);
       }
     } else {
-      game = createConfiguredGame(players, aiColors, blitzMode, blitzMinutes, aiTime,
+      game = createConfiguredGame(gameMode, players, aiColors, blitzMode, blitzMinutes, aiTime,
           useExptiminimax);
     }
 
@@ -123,7 +151,28 @@ public class GuiLauncher {
    */
   public static void launch(String[] args, int players, List<String> aiColors, boolean blitzMode,
       int blitzMinutes, int aiTime, boolean useExptiminimax, boolean useMl, String lang) {
-    launch(args, players, aiColors, blitzMode, blitzMinutes, aiTime, useExptiminimax, useMl,
-        lang, null);
+    launch(args, GameMode.STANDARD, players, aiColors, blitzMode, blitzMinutes, aiTime,
+        useExptiminimax, useMl, lang, null);
+  }
+
+  /**
+   * Starts the game in GUI mode without loading a save file, with an explicit mode.
+   *
+   * @param args the command-line arguments passed to JavaFX
+   * @param gameMode the board mode (standard or super)
+   * @param players the number of players (between 2 and 4)
+   * @param aiColors colors controlled by AI players
+   * @param blitzMode true to enable blitz mode
+   * @param blitzMinutes time limit per player in minutes (only used when blitzMode is true)
+   * @param aiTime AI thinking time in seconds
+   * @param useExptiminimax true to enable the Expectiminimax algorithm
+   * @param useMl true to enable the Machine Learning agent
+   * @param lang the dictionary language ("en" or "fr")
+   */
+  public static void launch(String[] args, GameMode gameMode, int players,
+      List<String> aiColors, boolean blitzMode, int blitzMinutes, int aiTime,
+      boolean useExptiminimax, boolean useMl, String lang) {
+    launch(args, gameMode, players, aiColors, blitzMode, blitzMinutes, aiTime,
+        useExptiminimax, useMl, lang, null);
   }
 }
