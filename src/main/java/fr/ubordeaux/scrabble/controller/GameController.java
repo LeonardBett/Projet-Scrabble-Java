@@ -6,7 +6,6 @@ import fr.ubordeaux.scrabble.model.core.Board;
 import fr.ubordeaux.scrabble.model.core.Game;
 import fr.ubordeaux.scrabble.model.core.Move;
 import fr.ubordeaux.scrabble.model.core.MoveGenerator;
-import fr.ubordeaux.scrabble.model.core.MoveHandler;
 import fr.ubordeaux.scrabble.model.core.PlayableWord;
 import fr.ubordeaux.scrabble.model.core.Scoring;
 import fr.ubordeaux.scrabble.model.core.Square;
@@ -14,7 +13,6 @@ import fr.ubordeaux.scrabble.model.core.Tile;
 import fr.ubordeaux.scrabble.model.dictionary.Gaddag;
 import fr.ubordeaux.scrabble.model.enums.Direction;
 import fr.ubordeaux.scrabble.model.enums.GameMode;
-import fr.ubordeaux.scrabble.model.enums.MoveType;
 import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
 import fr.ubordeaux.scrabble.model.utils.GameLogger;
@@ -65,7 +63,9 @@ public class GameController {
   public GameController(Game game, UserInterface view) {
     this.game = game;
     this.view = view;
-    this.dictionaryPathOverride = System.getProperty("scrabble.dictionary.path");
+    this.dictionaryPathOverride = game != null && game.getDictionaryPathOverride() != null
+        ? game.getDictionaryPathOverride()
+        : System.getProperty("scrabble.dictionary.path");
     this.superScrabbleMode = game != null && game.getBoard().getSize() == 21;
     this.blitzMode = game != null && game.isBlitzModeEnabled();
   }
@@ -156,6 +156,7 @@ public class GameController {
     this.game = loadedGame;
     this.view = loadedView;
     this.lang = Tile.normalizeLanguage(loadedGame.getLanguage());
+    this.dictionaryPathOverride = loadedGame.getDictionaryPathOverride();
     this.gaddag = null;
     this.dictionaryList = null;
   }
@@ -245,18 +246,6 @@ public class GameController {
     try {
       if (move == null) {
         return;
-      }
-
-      if (move.getType() == MoveType.PLAY) {
-        Gaddag dictionary = getOrLoadGaddag();
-        MoveHandler moveHandler = new MoveHandler(game);
-        for (String formedWord : moveHandler.getFormedWords(move.getStartPosition(),
-            move.getDirection(), move.getTiles())) {
-          if (formedWord == null || formedWord.isBlank()
-              || !dictionary.containsWord(formedWord.toUpperCase())) {
-            throw new IllegalArgumentException("Word not found in dictionary: " + formedWord);
-          }
-        }
       }
 
       game.executeMove(move);
@@ -419,6 +408,9 @@ public class GameController {
    */
   public void setDictionaryPath(String dictionaryPath) {
     this.dictionaryPathOverride = dictionaryPath;
+    if (game != null) {
+      game.setDictionaryPathOverride(dictionaryPath);
+    }
     this.gaddag = null;
     this.dictionaryList = null;
   }

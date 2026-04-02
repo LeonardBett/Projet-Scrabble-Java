@@ -30,7 +30,7 @@ public class OnlineGame {
    * @param handlers the clients
    */
   public OnlineGame(List<ClientHandler> handlers) {
-    this.game = new Game();
+    this.game = new Game("fr");
     this.handlers = handlers;
 
     // Loop for adding each handler to the game

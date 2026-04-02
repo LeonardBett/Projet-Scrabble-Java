@@ -221,9 +221,9 @@ public class Gaddag extends Trie implements Dictionary {
       return false;
     }
 
-    // Cas des lettres uniques : on cherche directement car la rotation n'a pas de sens
+    // Cas des lettres uniques : elles sont stockées sous la forme "A>".
     if (word.length() < 2) {
-      return super.contains(word.toUpperCase());
+      return super.contains(word.toUpperCase() + separator);
     }
 
     String upperWord = word.toUpperCase();

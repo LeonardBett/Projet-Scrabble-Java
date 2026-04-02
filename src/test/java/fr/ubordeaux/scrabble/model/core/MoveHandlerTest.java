@@ -11,6 +11,8 @@ import fr.ubordeaux.scrabble.model.enums.Direction;
 import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.model.utils.Point;
 import java.lang.reflect.Method;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -41,12 +43,12 @@ class MoveHandlerTest {
     game.getBoard().getSquare(new Point(7, 7)).setTile(new Tile('a'));
     game.setFirstMoveDone(true);
 
-    alice.getRack().setTiles(new ArrayList<>(List.of(new Tile('b'))));
+    alice.getRack().setTiles(new ArrayList<>(List.of(new Tile('t'))));
     Move move =
-        Move.createPlay(alice, List.of(new Tile('b')), new Point(7, 8), Direction.HORIZONTAL);
+        Move.createPlay(alice, List.of(new Tile('t')), new Point(8, 7), Direction.HORIZONTAL);
 
     assertDoesNotThrow(() -> handler.handlePlayMove(move));
-    assertNotNull(game.getBoard().getSquare(new Point(7, 8)).getTile());
+    assertNotNull(game.getBoard().getSquare(new Point(8, 7)).getTile());
   }
 
   @Test
@@ -81,16 +83,17 @@ class MoveHandlerTest {
     game.addPlayer(alice);
     MoveHandler handler = new MoveHandler(game);
 
-    alice.getRack().setTiles(new ArrayList<>(List.of(new Tile('a'))));
-    Move move =
-        Move.createPlay(alice, List.of(new Tile('a')), new Point(7, 7), Direction.HORIZONTAL);
+    alice.getRack().setTiles(new ArrayList<>(List.of(new Tile('a'), new Tile('n'))));
+    Move move = Move.createPlay(alice, List.of(new Tile('a'), new Tile('n')), new Point(7, 7),
+        Direction.HORIZONTAL);
 
     handler.handlePlayMove(move);
 
     assertNotNull(game.getBoard().getSquare(new Point(7, 7)).getTile());
+    assertNotNull(game.getBoard().getSquare(new Point(8, 7)).getTile());
     assertTrue(alice.getScore() > 0);
-    assertEquals(1, move.getPlacedPositions().size());
-    assertEquals(1, move.getPlacedTiles().size());
+    assertEquals(2, move.getPlacedPositions().size());
+    assertEquals(2, move.getPlacedTiles().size());
     assertNotNull(move.getDrawnTiles());
   }
 
@@ -117,21 +120,21 @@ class MoveHandlerTest {
 
     alice.getRack().setTiles(new ArrayList<>(List.of(new Tile('A'), new Tile(' ', true))));
 
-    Move move = Move.createPlay(alice, List.of(new Tile('A'), new Tile('Z', true)),
+    Move move = Move.createPlay(alice, List.of(new Tile('A'), new Tile('N', true)),
         new Point(7, 7), Direction.HORIZONTAL);
 
     handler.handlePlayMove(move);
 
     Tile placedA = game.getBoard().getSquare(new Point(7, 7)).getTile();
-    Tile placedZ = game.getBoard().getSquare(new Point(8, 7)).getTile();
+    Tile placedN = game.getBoard().getSquare(new Point(8, 7)).getTile();
 
     assertNotNull(placedA);
-    assertNotNull(placedZ);
+    assertNotNull(placedN);
     assertEquals('A', placedA.getCharacter());
     assertEquals(1, placedA.getValue());
-    assertEquals('Z', placedZ.getCharacter());
-    assertEquals(0, placedZ.getValue());
-    assertTrue(placedZ.isJoker());
+    assertEquals('N', placedN.getCharacter());
+    assertEquals(0, placedN.getValue());
+    assertTrue(placedN.isJoker());
   }
 
   @Test
@@ -163,6 +166,25 @@ class MoveHandlerTest {
         Direction.HORIZONTAL);
 
     assertThrows(IllegalArgumentException.class, () -> handler.handlePlayMove(move));
+  }
+
+  @Test
+  void handlePlayMoveShouldUseCustomDictionaryPathFromGame() throws Exception {
+    Path customDictionary = Files.createTempFile("scrabble-custom-dict", ".txt");
+    Files.writeString(customDictionary, "AA\n");
+
+    Game game = new Game();
+    game.setDictionaryPathOverride(customDictionary.toString());
+
+    HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
+    game.addPlayer(alice);
+    MoveHandler handler = new MoveHandler(game);
+
+    alice.getRack().setTiles(new ArrayList<>(List.of(new Tile('a'), new Tile('a'))));
+    Move move = Move.createPlay(alice, List.of(new Tile('a'), new Tile('a')), new Point(7, 7),
+        Direction.HORIZONTAL);
+
+    assertDoesNotThrow(() -> handler.handlePlayMove(move));
   }
 
   @Test
@@ -199,9 +221,9 @@ class MoveHandlerTest {
 
     assertDoesNotThrow(() -> handler.revertMove(Move.createPass(alice)));
 
-    alice.getRack().setTiles(new ArrayList<>(List.of(new Tile('a'))));
-    Move play =
-        Move.createPlay(alice, List.of(new Tile('a')), new Point(7, 7), Direction.HORIZONTAL);
+    alice.getRack().setTiles(new ArrayList<>(List.of(new Tile('a'), new Tile('n'))));
+    Move play = Move.createPlay(alice, List.of(new Tile('a'), new Tile('n')), new Point(7, 7),
+        Direction.HORIZONTAL);
     handler.handlePlayMove(play);
     int scoreAfterPlay = alice.getScore();
 
@@ -209,8 +231,9 @@ class MoveHandlerTest {
 
     assertTrue(scoreAfterPlay > 0);
     assertEquals(0, alice.getScore());
-    assertEquals(1, alice.getRack().getTiles().size());
+    assertEquals(2, alice.getRack().getTiles().size());
     assertNull(game.getBoard().getSquare(new Point(7, 7)).getTile());
+    assertNull(game.getBoard().getSquare(new Point(8, 7)).getTile());
   }
 
   @Test

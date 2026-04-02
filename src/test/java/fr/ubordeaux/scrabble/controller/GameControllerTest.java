@@ -200,6 +200,17 @@ class GameControllerTest {
   }
 
   @Test
+  void setDictionaryPathShouldPropagateToGame() {
+    Game game = new Game();
+    GameController controller = new GameController(game, new RecordingView());
+
+    controller.setDictionaryPath("/tmp/custom-dictionary.txt");
+
+    assertEquals("/tmp/custom-dictionary.txt", controller.getDictionaryPathOverride());
+    assertEquals("/tmp/custom-dictionary.txt", game.getDictionaryPathOverride());
+  }
+
+  @Test
   void setLangShouldFallbackToEnglishForUnknownLanguage() throws Exception {
     Game game = new Game();
     GameController controller = new GameController(game, new RecordingView());

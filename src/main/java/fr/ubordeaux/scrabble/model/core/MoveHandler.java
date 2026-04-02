@@ -1,10 +1,14 @@
 package fr.ubordeaux.scrabble.model.core;
 
+import fr.ubordeaux.scrabble.model.dictionary.Gaddag;
 import fr.ubordeaux.scrabble.model.enums.Direction;
 import fr.ubordeaux.scrabble.model.enums.MoveType;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
 import fr.ubordeaux.scrabble.model.utils.GameLogger;
 import fr.ubordeaux.scrabble.model.utils.Point;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,6 +18,8 @@ import java.util.List;
  */
 public class MoveHandler {
   private final Game game;
+  private Gaddag dictionary;
+  private String dictionaryLanguage;
 
   /**
    * Creates a move handler bound to a game instance.
@@ -149,6 +155,7 @@ public class MoveHandler {
     List<Tile> newlyPlacedTiles = new ArrayList<>();
     buildWordForMove(startPosition, direction, tiles, wordSquares, wordPositions,
         newlyPlacedSquares, newlyPlacedPositions, newlyPlacedTiles);
+    validateWordsAgainstDictionary(getFormedWords(startPosition, direction, tiles));
     // Resolve concrete rack tiles to consume (supports jokers replacing letters)
     List<Tile> resolvedTiles = resolveTilesFromRack(player.getRack().getTiles(), newlyPlacedTiles);
 
@@ -194,6 +201,72 @@ public class MoveHandler {
 
     GameLogger.logVerbose(
         "Player " + player.getName() + " played a word for " + totalScore + " points.");
+  }
+
+  private void validateWordsAgainstDictionary(List<String> formedWords) {
+    Gaddag gaddagDictionary = getOrLoadDictionary();
+
+    for (String formedWord : formedWords) {
+      if (formedWord == null || formedWord.isBlank()) {
+        continue;
+      }
+      ensureWordInDictionary(formedWord, gaddagDictionary);
+    }
+  }
+
+  private void ensureWordInDictionary(String word, Gaddag gaddagDictionary) {
+    if (word == null || word.isBlank() || word.length() < 2) {
+      return;
+    }
+
+    if (!gaddagDictionary.containsWord(word.toUpperCase())) {
+      throw new IllegalArgumentException("Word not found in dictionary: " + word);
+    }
+  }
+
+  private Gaddag getOrLoadDictionary() {
+    String dictionarySource = resolveDictionarySource();
+    if (dictionary != null && dictionarySource.equals(dictionaryLanguage)) {
+      return dictionary;
+    }
+
+    Gaddag loadedDictionary = new Gaddag();
+    try (BufferedReader br = openDictionaryReader(dictionarySource)) {
+      String line;
+      while ((line = br.readLine()) != null) {
+        String cleanWord = line.trim().toUpperCase();
+        if (!cleanWord.isEmpty()) {
+          loadedDictionary.add(cleanWord);
+        }
+      }
+    } catch (Exception e) {
+      throw new IllegalStateException("Error while loading the dictionary: " + e.getMessage(), e);
+    }
+
+    dictionary = loadedDictionary;
+    dictionaryLanguage = dictionarySource;
+    return dictionary;
+  }
+
+  private String resolveDictionarySource() {
+    String customDictionaryPath = game.getDictionaryPathOverride();
+    if (customDictionaryPath != null && !customDictionaryPath.isBlank()) {
+      return customDictionaryPath;
+    }
+    return "dictionaries/lexicon_" + Tile.normalizeLanguage(game.getLanguage()) + ".txt";
+  }
+
+  private BufferedReader openDictionaryReader(String dictionarySource) throws Exception {
+    if (dictionarySource.startsWith("dictionaries/")) {
+      InputStream is = getClass().getClassLoader().getResourceAsStream(dictionarySource);
+      if (is == null) {
+        throw new IllegalStateException(
+            "Dictionary file " + dictionarySource + " not found in resources.");
+      }
+      return new BufferedReader(new InputStreamReader(is));
+    }
+
+    return java.nio.file.Files.newBufferedReader(java.nio.file.Path.of(dictionarySource));
   }
 
   private List<Tile> resolveTilesFromRack(List<Tile> rackTiles, List<Tile> tilesToPlace) {

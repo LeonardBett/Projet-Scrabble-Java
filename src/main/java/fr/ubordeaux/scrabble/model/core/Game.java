@@ -25,6 +25,7 @@ public class Game {
   private final MoveHandler moveHandler;
   private final UndoRedo undoRedo;
   private String language;
+  private String dictionaryPathOverride;
   /**
    * True once the first PLAY move has been successfully executed.
    */
@@ -78,6 +79,7 @@ public class Game {
     this.started = false;
     this.blitzModeEnabled = false;
     this.blitzTimePerPlayer = DEFAULT_BLITZ_TIME;
+    this.dictionaryPathOverride = System.getProperty("scrabble.dictionary.path");
   }
 
   /**
@@ -461,6 +463,24 @@ public class Game {
    */
   public String getLanguage() {
     return language;
+  }
+
+  /**
+   * Returns the configured custom dictionary path, if any.
+   *
+   * @return custom dictionary path or null/blank when using built-in resources.
+   */
+  public String getDictionaryPathOverride() {
+    return dictionaryPathOverride;
+  }
+
+  /**
+   * Sets an explicit dictionary file path for move validation.
+   *
+   * @param dictionaryPathOverride path to a custom dictionary file.
+   */
+  public void setDictionaryPathOverride(String dictionaryPathOverride) {
+    this.dictionaryPathOverride = dictionaryPathOverride;
   }
 
   /**
