@@ -1,4 +1,4 @@
-package fr.ubordeaux.scrabble.view.cli;
+package fr.ubordeaux.scrabble.view.cli.network;
 
 import fr.ubordeaux.scrabble.i18n.I18n;
 import fr.ubordeaux.scrabble.model.core.Game;
@@ -8,6 +8,8 @@ import fr.ubordeaux.scrabble.model.network.NetworkManager;
 import fr.ubordeaux.scrabble.model.network.server.ServerInfo;
 import fr.ubordeaux.scrabble.model.utils.GameLogger;
 import fr.ubordeaux.scrabble.model.utils.Point;
+import fr.ubordeaux.scrabble.view.cli.CliView;
+import fr.ubordeaux.scrabble.view.cli.input.CliInputHandler;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;

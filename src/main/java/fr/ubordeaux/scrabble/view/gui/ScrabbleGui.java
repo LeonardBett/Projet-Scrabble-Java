@@ -14,15 +14,18 @@ import fr.ubordeaux.scrabble.model.interfaces.Player;
 import fr.ubordeaux.scrabble.model.network.NetworkManager;
 import fr.ubordeaux.scrabble.model.savefiles.GameLoader;
 import fr.ubordeaux.scrabble.model.utils.Point;
+import fr.ubordeaux.scrabble.view.gui.builders.ExchangeMoveBuilder;
+import fr.ubordeaux.scrabble.view.gui.builders.PendingMoveBuilder;
+import fr.ubordeaux.scrabble.view.gui.config.ControllerConfigSnapshot;
+import fr.ubordeaux.scrabble.view.gui.dictionary.GuiDictionaryLoader;
+import fr.ubordeaux.scrabble.view.gui.network.NetworkGameBridge;
+import fr.ubordeaux.scrabble.view.gui.network.NetworkLobbyView;
 import fr.ubordeaux.scrabble.view.gui.panel.BoardPanel;
 import fr.ubordeaux.scrabble.view.gui.panel.ControlPanel;
 import fr.ubordeaux.scrabble.view.gui.panel.MessagePanel;
 import fr.ubordeaux.scrabble.view.gui.panel.RackPanel;
 import fr.ubordeaux.scrabble.view.gui.panel.ScorePanel;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -423,34 +426,9 @@ public class ScrabbleGui extends Application {
   private static Gaddag gaddag;
 
   private void loadDictionary() {
-    gaddag = new Gaddag();
     System.out.println("Loading Gaddag for GUI (" + configuredLanguage + ")...");
-    String dictPath = "dictionaries/lexicon_" + configuredLanguage + ".txt";
-    try (InputStream is = getClass().getClassLoader().getResourceAsStream(dictPath)) {
-      if (is != null) {
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
-          String line;
-          while ((line = br.readLine()) != null) {
-            if (!line.trim().isEmpty()) {
-              gaddag.add(line.trim());
-            }
-          }
-        }
-      } else if (!"en".equals(configuredLanguage)) {
-        try (InputStream fallback =
-                 getClass().getClassLoader().getResourceAsStream("dictionaries/lexicon_en.txt")) {
-          if (fallback != null) {
-            try (BufferedReader br = new BufferedReader(new InputStreamReader(fallback))) {
-              String line;
-              while ((line = br.readLine()) != null) {
-                if (!line.trim().isEmpty()) {
-                  gaddag.add(line.trim());
-                }
-              }
-            }
-          }
-        }
-      }
+    try {
+      gaddag = GuiDictionaryLoader.load(getClass().getClassLoader(), configuredLanguage);
     } catch (IOException e) {
       showError(I18n.translate("scrabble.dictLoadError", e.getMessage()));
     }
@@ -566,17 +544,17 @@ public class ScrabbleGui extends Application {
     }
 
     gameInstance = new Game(
-        configSnapshot.superScrabbleMode ? fr.ubordeaux.scrabble.model.enums.GameMode.SUPER
+      configSnapshot.superScrabbleMode() ? fr.ubordeaux.scrabble.model.enums.GameMode.SUPER
             : fr.ubordeaux.scrabble.model.enums.GameMode.STANDARD,
-        configSnapshot.language);
+      configSnapshot.language());
     final int count = countOpt.get();
 
-    if (configSnapshot.blitzMode) {
+    if (configSnapshot.blitzMode()) {
       gameInstance.enableBlitzMode(
-          java.time.Duration.ofMinutes(configSnapshot.blitzMinutes));
+          java.time.Duration.ofMinutes(configSnapshot.blitzMinutes()));
     }
 
-    configuredLanguage = configSnapshot.language;
+    configuredLanguage = configSnapshot.language();
     gaddag = null;
     if (gaddag == null) {
       loadDictionary();
@@ -857,67 +835,6 @@ public class ScrabbleGui extends Application {
       controlPanel.getRedoButton().setText(I18n.translate("control.redo"));
       controlPanel.getHintButton().setText(I18n.translate("control.hint"));
       controlPanel.getPauseButton().setText(I18n.translate("control.pause"));
-    }
-  }
-
-  private static class ControllerConfigSnapshot {
-    private final String language;
-    private final int playerCount;
-    private final boolean superScrabbleMode;
-    private final boolean blitzMode;
-    private final int blitzMinutes;
-    private final int aiTime;
-    private final boolean expectiminimax;
-    private final boolean ml;
-    private final String dictionaryPath;
-    private final boolean debug;
-    private final boolean verbose;
-
-    private ControllerConfigSnapshot(String language, int playerCount, boolean superScrabbleMode,
-        boolean blitzMode, int blitzMinutes, int aiTime, boolean expectiminimax, boolean ml,
-        String dictionaryPath, boolean debug, boolean verbose) {
-      this.language = language;
-      this.playerCount = playerCount;
-      this.superScrabbleMode = superScrabbleMode;
-      this.blitzMode = blitzMode;
-      this.blitzMinutes = blitzMinutes;
-      this.aiTime = aiTime;
-      this.expectiminimax = expectiminimax;
-      this.ml = ml;
-      this.dictionaryPath = dictionaryPath;
-      this.debug = debug;
-      this.verbose = verbose;
-    }
-
-    private static ControllerConfigSnapshot capture(GameController controller) {
-      return new ControllerConfigSnapshot(
-          controller.configuredLanguage(),
-          controller.configuredPlayerCount(),
-          controller.configuredSuperMode(),
-          controller.configuredBlitzMode(),
-          controller.configuredBlitzMinutes(),
-          controller.configuredAiTime(),
-          controller.isExpectiminimaxEnabled(),
-          controller.isMlEnabled(),
-          controller.getDictionaryPathOverride(),
-          fr.ubordeaux.scrabble.model.utils.GameLogger.isDebug(),
-          fr.ubordeaux.scrabble.model.utils.GameLogger.isVerbose());
-    }
-
-    private void applyTo(GameController controller) {
-      controller.applyConfiguration("language", language);
-      if (playerCount > 0) {
-        controller.applyConfiguration("players", String.valueOf(playerCount));
-      }
-      controller.applyConfiguration("super-scrabble", String.valueOf(superScrabbleMode));
-      controller.applyConfiguration("blitz", String.valueOf(blitzMode));
-      controller.applyConfiguration("timeout", String.valueOf(blitzMinutes));
-      controller.applyConfiguration("ai-time", String.valueOf(aiTime));
-      controller.applyConfiguration("ai-exptiminimax", String.valueOf(expectiminimax));
-      controller.applyConfiguration("ai-ml", String.valueOf(ml));
-      controller.applyConfiguration("dictionary", dictionaryPath);
-      controller.applyConfiguration("debug", String.valueOf(debug));
-      controller.applyConfiguration("verbose", String.valueOf(verbose));
     }
   }
 

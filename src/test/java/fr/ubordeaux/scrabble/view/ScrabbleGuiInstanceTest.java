@@ -14,8 +14,9 @@ import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.model.network.NetworkManager;
 import fr.ubordeaux.scrabble.model.utils.Point;
 import fr.ubordeaux.scrabble.view.gui.JavaFxView;
-import fr.ubordeaux.scrabble.view.gui.NetworkGameBridge;
 import fr.ubordeaux.scrabble.view.gui.ScrabbleGui;
+import fr.ubordeaux.scrabble.view.gui.config.ControllerConfigSnapshot;
+import fr.ubordeaux.scrabble.view.gui.network.NetworkGameBridge;
 import fr.ubordeaux.scrabble.view.gui.panel.BoardPanel;
 import fr.ubordeaux.scrabble.view.gui.panel.ControlPanel;
 import fr.ubordeaux.scrabble.view.gui.panel.MessagePanel;
@@ -24,7 +25,6 @@ import fr.ubordeaux.scrabble.view.gui.panel.ScorePanel;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -415,21 +415,9 @@ class ScrabbleGuiInstanceTest {
   @Test
   void controllerConfigSnapshotCaptureAndApplyToController() {
     assertDoesNotThrow(() -> {
-      final Class<?> snapshotClass = Class.forName(
-          "fr.ubordeaux.scrabble.view.gui.ScrabbleGui$ControllerConfigSnapshot");
-
-      assertTrue(Modifier.isPrivate(snapshotClass.getModifiers()));
-
-      final Method capture = snapshotClass.getDeclaredMethod("capture",
-          GameController.class);
-      capture.setAccessible(true);
-      final Object snapshot = capture.invoke(null, controller);
+      final ControllerConfigSnapshot snapshot = ControllerConfigSnapshot.capture(controller);
       assertNotNull(snapshot);
-
-      final Method applyTo = snapshotClass.getDeclaredMethod("applyTo",
-          GameController.class);
-      applyTo.setAccessible(true);
-      applyTo.invoke(snapshot, controller);
+      snapshot.applyTo(controller);
     });
   }
 

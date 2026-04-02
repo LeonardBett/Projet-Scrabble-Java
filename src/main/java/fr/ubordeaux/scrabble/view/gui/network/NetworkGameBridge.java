@@ -1,10 +1,11 @@
-package fr.ubordeaux.scrabble.view.gui;
+package fr.ubordeaux.scrabble.view.gui.network;
 
 import fr.ubordeaux.scrabble.i18n.I18n;
 import fr.ubordeaux.scrabble.model.core.Game;
 import fr.ubordeaux.scrabble.model.network.NetworkManager;
 import fr.ubordeaux.scrabble.model.network.NetworkObserver;
 import fr.ubordeaux.scrabble.model.network.server.ServerInfo;
+import fr.ubordeaux.scrabble.view.gui.ScrabbleGui;
 import java.util.List;
 import java.util.Map;
 import javafx.application.Platform;

@@ -1,4 +1,4 @@
-package fr.ubordeaux.scrabble.view.gui;
+package fr.ubordeaux.scrabble.view.gui.network;
 
 import fr.ubordeaux.scrabble.i18n.I18n;
 import fr.ubordeaux.scrabble.model.network.NetworkManager;

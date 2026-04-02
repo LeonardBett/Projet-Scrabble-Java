@@ -1,4 +1,4 @@
-package fr.ubordeaux.scrabble.view.cli;
+package fr.ubordeaux.scrabble.view.cli.input;
 
 import fr.ubordeaux.scrabble.i18n.I18n;
 import fr.ubordeaux.scrabble.model.core.Move;
@@ -6,6 +6,7 @@ import fr.ubordeaux.scrabble.model.core.Tile;
 import fr.ubordeaux.scrabble.model.enums.Direction;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
 import fr.ubordeaux.scrabble.model.utils.Point;
+import fr.ubordeaux.scrabble.view.cli.CliView;
 import fr.ubordeaux.scrabble.view.cli.renderer.MessageRenderer;
 import java.io.IOException;
 import java.util.ArrayList;

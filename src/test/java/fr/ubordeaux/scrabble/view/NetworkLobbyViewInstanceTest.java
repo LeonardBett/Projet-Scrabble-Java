@@ -7,8 +7,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import fr.ubordeaux.scrabble.model.network.NetworkManager;
 import fr.ubordeaux.scrabble.model.network.server.ServerInfo;
-import fr.ubordeaux.scrabble.view.gui.NetworkGameBridge;
-import fr.ubordeaux.scrabble.view.gui.NetworkLobbyView;
+import fr.ubordeaux.scrabble.view.gui.network.NetworkGameBridge;
+import fr.ubordeaux.scrabble.view.gui.network.NetworkLobbyView;
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
