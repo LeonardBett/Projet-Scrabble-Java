@@ -204,11 +204,8 @@ public class GameClient {
           case "GAME_START":
             GameLogger.logVerbose("\n--- Game Started ---");
 
-            // We extract game language
-            String lang = packetParser.getEntries().getFirst().getOrDefault("LANG", "en");
-
             // We create a local model, which will only be updated with server data
-            localGame = new Game(lang);
+            localGame = new Game();
 
             // Extracting bag size and updating the local model
             int bagSize = Integer.parseInt(packetParser.getEntries().getFirst().get("BAG"));
@@ -296,6 +293,9 @@ public class GameClient {
               player.setScore(score);
 
               // We extract and sync new bag size to the local model
+              int bagSizes = Integer.parseInt(move.get("BAG"));
+              localGame.getBag().setOnlineSize(bagSizes);
+            } else if ("EXCHANGE".equals(type)) {
               int bagSizes = Integer.parseInt(move.get("BAG"));
               localGame.getBag().setOnlineSize(bagSizes);
             }
@@ -399,9 +399,21 @@ public class GameClient {
             }
             break;
 
+          case "MOVE_ERROR":
+            if (!packetParser.getEntries().isEmpty()) {
+              String errorKey = packetParser.getEntries().getFirst().get("REASON");
+
+              if (errorKey != null) {
+                for (NetworkObserver obs : observers) {
+                  obs.moveRefusedUpdate(errorKey);
+                }
+              }
+            }
+            break;
+
           case "ERROR":
             if (!packetParser.getEntries().isEmpty()) {
-              // On get the error code for translating it later in GUI/CLI
+              // We get the error code for translating it later in GUI/CLI
               String errorKey = packetParser.getEntries().getFirst().get("REASON");
 
               if (errorKey != null) {

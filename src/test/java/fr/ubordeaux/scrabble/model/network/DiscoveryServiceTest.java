@@ -154,6 +154,11 @@ class DiscoveryServiceTest {
       public void invitationFailedUpdate(String reason) {
 
       }
+
+      @Override
+      public void moveRefusedUpdate(String reason) {
+
+      }
     };
 
     discoveryService.addObserver(observer);

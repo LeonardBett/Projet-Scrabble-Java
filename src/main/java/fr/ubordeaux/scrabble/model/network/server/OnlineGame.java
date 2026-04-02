@@ -30,7 +30,7 @@ public class OnlineGame {
    * @param handlers the clients
    */
   public OnlineGame(List<ClientHandler> handlers) {
-    this.game = new Game("fr");
+    this.game = new Game();
     this.handlers = handlers;
 
     // Loop for adding each handler to the game
@@ -183,7 +183,12 @@ public class OnlineGame {
 
     // We create and execute a move with these data
     Move playMove = Move.createPlay(player, tilesToPlace, startPosition, direction);
-    game.executeMove(playMove);
+    try {
+      game.executeMove(playMove);
+    } catch (Exception e) {
+      sender.sendMessage("MOVE_ERROR:REASON=err_invalid_move");
+      return;
+    }
 
     GameLogger.logVerbose(
         "Server : "
@@ -230,7 +235,13 @@ public class OnlineGame {
 
     // We create and execute a move with these data
     Move exchangeMove = Move.createExchange(player, tilesToExchange);
-    game.executeMove(exchangeMove);
+
+    try {
+      game.executeMove(exchangeMove);
+    } catch (Exception e) {
+      sender.sendMessage("MOVE_ERROR:REASON=err_invalid_move");
+      return;
+    }
 
     if (game.isGameOver()) {
       finishGame();
@@ -243,7 +254,9 @@ public class OnlineGame {
     // Maybe not useful in this case, but is needed for changing the turn of locals
     // models
     broadcast(
-        String.format("OPPONENT_MOVE:PLAYER=%s;TYPE=EXCHANGE", sender.getClientInfo().getName()));
+        String.format(
+            "OPPONENT_MOVE:PLAYER=%s;TYPE=EXCHANGE;BAG=%s",
+            sender.getClientInfo().getName(), game.getBag().size()));
 
     // We send the new rack to the player who played
     sendRack(sender, player);
@@ -295,11 +308,7 @@ public class OnlineGame {
     // Add the info of the bag size
     sb.append("BAG=").append(game.getBag().size()).append("|");
 
-    // Add language info
-    sb.append("LANG=").append(game.getLanguage()).append("|");
-
-    // Add the info of all participating players (ID have is not use client side for
-    // now)
+    // Add the info of all participating players
     for (int i = 0; i < handlers.size(); i++) {
       ClientInfo info = handlers.get(i).getClientInfo();
       sb.append(String.format("ID=%d;NAME=%s", info.getId(), info.getName()));

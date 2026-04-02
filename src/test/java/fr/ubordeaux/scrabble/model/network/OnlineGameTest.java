@@ -90,11 +90,11 @@ class OnlineGameTest {
     Game game = onlineGame.getGame();
 
     // 1. Force letters to be able to play the word "BON"
-    game.forceTilesToPlayer("Player-1", List.of(new Tile('B'), new Tile('O'), new Tile('N'),
+    game.forceTilesToPlayer("Player-1", List.of(new Tile('L'), new Tile('A'), new Tile('N'),
         new Tile('X'), new Tile('Y'), new Tile('Z'), new Tile('E')));
 
     // 2. The player places "BON" horizontally at (7,7)
-    PacketParser playPacket = new PacketParser("MOVE:TYPE=PLAY;X=7;Y=7;DIR=H;TILES=BON");
+    PacketParser playPacket = new PacketParser("MOVE:TYPE=PLAY;X=7;Y=7;DIR=H;TILES=LA");
     onlineGame.processMove(player1, playPacket);
 
     // 3. Network verification
@@ -102,9 +102,8 @@ class OnlineGameTest {
     assertTrue(player1.lastMessage.contains("SET_RACK:"));
 
     // 4. Model verification (Board)
-    assertEquals('B', game.getBoard().getSquare(new Point(7, 7)).getTile().getCharacter());
-    assertEquals('O', game.getBoard().getSquare(new Point(8, 7)).getTile().getCharacter());
-    assertEquals('N', game.getBoard().getSquare(new Point(9, 7)).getTile().getCharacter());
+    assertEquals('L', game.getBoard().getSquare(new Point(7, 7)).getTile().getCharacter());
+    assertEquals('A', game.getBoard().getSquare(new Point(8, 7)).getTile().getCharacter());
 
     // 5. Model verification (Turn)
     assertEquals("Player-2", game.getCurrentPlayer().getName(), "The turn should pass to Player 2");

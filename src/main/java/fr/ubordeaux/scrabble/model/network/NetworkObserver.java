@@ -145,4 +145,11 @@ public interface NetworkObserver {
    * @param reason the error message
    */
   void invitationFailedUpdate(String reason);
+
+  /**
+   * Call when a move send by this client is refused.
+   *
+   * @param reason the error message
+   */
+  void moveRefusedUpdate(String reason);
 }

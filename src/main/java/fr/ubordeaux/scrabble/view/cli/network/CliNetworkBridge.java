@@ -9,9 +9,7 @@ import fr.ubordeaux.scrabble.view.cli.CliView;
 import java.util.List;
 import java.util.Map;
 
-/**
- * CLI observer for network events.
- */
+/** CLI observer for network events. */
 public class CliNetworkBridge implements NetworkObserver {
 
   private final NetworkManager networkManager;
@@ -147,5 +145,10 @@ public class CliNetworkBridge implements NetworkObserver {
   @Override
   public void invitationFailedUpdate(String reason) {
     cliView.displayError(I18n.translate("cli.network.event.invitationFailed", reason));
+  }
+
+  @Override
+  public void moveRefusedUpdate(String reason) {
+    cliView.displayError(I18n.translate("cli.network.event.moveRefused", reason));
   }
 }

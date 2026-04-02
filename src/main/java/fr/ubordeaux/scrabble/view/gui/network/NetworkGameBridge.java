@@ -424,6 +424,16 @@ public class NetworkGameBridge implements NetworkObserver {
         });
   }
 
+  @Override
+  public void moveRefusedUpdate(String reason) {
+    Platform.runLater(
+        () -> {
+          if (gui != null) {
+            gui.handleMoveRefused(reason);
+          }
+        });
+  }
+
   // --- Cleanup --------------------------------------------------------------
 
   /**

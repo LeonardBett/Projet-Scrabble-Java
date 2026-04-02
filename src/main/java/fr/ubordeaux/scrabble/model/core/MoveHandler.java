@@ -35,8 +35,8 @@ public class MoveHandler {
    * existing tiles on the board (prefix and suffix) combined with new tiles.
    *
    * @param startPosition Starting position of the word.
-   * @param direction     Direction of the word (HORIZONTAL or VERTICAL).
-   * @param tiles         Tiles to be placed.
+   * @param direction Direction of the word (HORIZONTAL or VERTICAL).
+   * @param tiles Tiles to be placed.
    * @return The complete word as a String (including existing tiles from the board).
    */
   public String getCompleteWord(Point startPosition, Direction direction, List<Tile> tiles) {
@@ -49,8 +49,8 @@ public class MoveHandler {
    * first, followed by any perpendicular words created.
    *
    * @param startPosition starting position of the move.
-   * @param direction     direction of the move.
-   * @param tiles         tiles to be placed.
+   * @param direction direction of the move.
+   * @param tiles tiles to be placed.
    * @return ordered list of formed words.
    */
   public List<String> getFormedWords(Point startPosition, Direction direction, List<Tile> tiles) {
@@ -60,8 +60,15 @@ public class MoveHandler {
     List<Point> newlyPlacedPositions = new ArrayList<>();
     List<Tile> newlyPlacedTiles = new ArrayList<>();
 
-    buildWordForMove(startPosition, direction, tiles, wordSquares, wordPositions,
-        newlyPlacedSquares, newlyPlacedPositions, newlyPlacedTiles);
+    buildWordForMove(
+        startPosition,
+        direction,
+        tiles,
+        wordSquares,
+        wordPositions,
+        newlyPlacedSquares,
+        newlyPlacedPositions,
+        newlyPlacedTiles);
 
     List<String> formedWords = new ArrayList<>();
     formedWords.add(buildWord(wordSquares, newlyPlacedSquares, newlyPlacedTiles));
@@ -77,8 +84,8 @@ public class MoveHandler {
     return formedWords;
   }
 
-  private String buildWord(List<Square> wordSquares, List<Square> newlyPlacedSquares,
-                           List<Tile> newlyPlacedTiles) {
+  private String buildWord(
+      List<Square> wordSquares, List<Square> newlyPlacedSquares, List<Tile> newlyPlacedTiles) {
     StringBuilder word = new StringBuilder();
     for (Square square : wordSquares) {
       if (!square.isEmpty()) {
@@ -153,8 +160,15 @@ public class MoveHandler {
     List<Square> newlyPlacedSquares = new ArrayList<>();
     List<Point> newlyPlacedPositions = new ArrayList<>();
     List<Tile> newlyPlacedTiles = new ArrayList<>();
-    buildWordForMove(startPosition, direction, tiles, wordSquares, wordPositions,
-        newlyPlacedSquares, newlyPlacedPositions, newlyPlacedTiles);
+    buildWordForMove(
+        startPosition,
+        direction,
+        tiles,
+        wordSquares,
+        wordPositions,
+        newlyPlacedSquares,
+        newlyPlacedPositions,
+        newlyPlacedTiles);
     validateWordsAgainstDictionary(getFormedWords(startPosition, direction, tiles));
     // Resolve concrete rack tiles to consume (supports jokers replacing letters)
     List<Tile> resolvedTiles = resolveTilesFromRack(player.getRack().getTiles(), newlyPlacedTiles);
@@ -276,8 +290,8 @@ public class MoveHandler {
     for (Tile requested : tilesToPlace) {
       Tile fromRack = findAndConsumeMatchingTile(remaining, requested);
       if (fromRack == null) {
-        throw new IllegalArgumentException("Player does not have the tile "
-            + requested.getCharacter());
+        throw new IllegalArgumentException(
+            "Player does not have the tile " + requested.getCharacter());
       }
 
       if (fromRack.isJoker() && requested.getCharacter() != ' ') {
@@ -335,12 +349,25 @@ public class MoveHandler {
       throw new IllegalStateException("Cannot exchange tiles: bag has fewer than 7 tiles left.");
     }
 
-    // 1. Verify player has these tiles (and remove them)
+    // 1. Verify player has these tiles
+    // We use a copy to avoid modifying the original rack until we are sur than he has all of them
+    List<Tile> rackCopy = new ArrayList<>(player.getRack().getTiles());
     for (Tile tile : tilesToExchange) {
-      if (!player.getRack().removeTile(tile)) {
-        // In a real scenario, we should probably rollback or check beforehand
-        throw new IllegalArgumentException("Player does not have the tile " + tile.getCharacter());
+      boolean found = false;
+      for (int i = 0; i < rackCopy.size(); i++) {
+        if (rackCopy.get(i).getCharacter() == tile.getCharacter()) {
+          rackCopy.remove(i);
+          found = true;
+          break;
+        }
       }
+      if (!found) {
+        throw new IllegalArgumentException(
+            "The player does not have the tile " + tile.getCharacter());
+      }
+    }
+    for (Tile tile : tilesToExchange) {
+      player.getRack().removeTile(tile);
     }
 
     // 2. Put them back in the bag
@@ -429,10 +456,15 @@ public class MoveHandler {
    * squares/positions and validate first-move/adjacency rules. Throws IllegalArgumentException on
    * invalid placements.
    */
-  private void buildWordForMove(Point startPosition, Direction direction, List<Tile> tiles,
-                                List<Square> wordSquares, List<Point> wordPositions,
-                                List<Square> newlyPlacedSquares,
-                                List<Point> newlyPlacedPositions, List<Tile> newlyPlacedTiles) {
+  private void buildWordForMove(
+      Point startPosition,
+      Direction direction,
+      List<Tile> tiles,
+      List<Square> wordSquares,
+      List<Point> wordPositions,
+      List<Square> newlyPlacedSquares,
+      List<Point> newlyPlacedPositions,
+      List<Tile> newlyPlacedTiles) {
 
     int x = startPosition.getX();
     int y = startPosition.getY();
@@ -526,8 +558,10 @@ public class MoveHandler {
           Square sd = game.getBoard().getSquare(down);
           Square sl = game.getBoard().getSquare(left);
           Square sr = game.getBoard().getSquare(right);
-          if ((su != null && !su.isEmpty()) || (sd != null && !sd.isEmpty())
-              || (sl != null && !sl.isEmpty()) || (sr != null && !sr.isEmpty())) {
+          if ((su != null && !su.isEmpty())
+              || (sd != null && !sd.isEmpty())
+              || (sl != null && !sl.isEmpty())
+              || (sr != null && !sr.isEmpty())) {
             touchesExisting = true;
             break;
           }
@@ -630,8 +664,10 @@ public class MoveHandler {
       Square sd = game.getBoard().getSquare(down);
       Square sl = game.getBoard().getSquare(left);
       Square sr = game.getBoard().getSquare(right);
-      if ((su != null && !su.isEmpty()) || (sd != null && !sd.isEmpty())
-          || (sl != null && !sl.isEmpty()) || (sr != null && !sr.isEmpty())) {
+      if ((su != null && !su.isEmpty())
+          || (sd != null && !sd.isEmpty())
+          || (sl != null && !sl.isEmpty())
+          || (sr != null && !sr.isEmpty())) {
         touchesExisting = true;
         break;
       }

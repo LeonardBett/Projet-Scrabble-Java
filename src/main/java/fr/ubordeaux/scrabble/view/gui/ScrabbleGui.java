@@ -1002,6 +1002,18 @@ public class ScrabbleGui extends Application {
   }
 
   /**
+   * Call when by observer reaction when a move send by this client is refused.
+   *
+   * @param reason the reason why the move was refused
+   */
+  public void handleMoveRefused(String reason) {
+    showError(I18n.translate(reason));
+    boardPanel.clearAllPending();
+    pendingTiles.clear();
+    refreshRack();
+  }
+
+  /**
    * Displays an informational dialog.
    *
    * @param title the dialog title

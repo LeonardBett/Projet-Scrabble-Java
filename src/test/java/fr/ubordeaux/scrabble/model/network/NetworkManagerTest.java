@@ -79,6 +79,11 @@ class NetworkManagerTest {
 
           @Override
           public void invitationFailedUpdate(String reason) {}
+
+            @Override
+            public void moveRefusedUpdate(String reason) {
+
+            }
         };
   }
 

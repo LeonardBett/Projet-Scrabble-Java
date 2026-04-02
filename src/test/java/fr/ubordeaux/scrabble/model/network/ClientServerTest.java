@@ -627,5 +627,10 @@ class ClientServerTest {
     public void invitationFailedUpdate(String reason) {
       this.invitationCancelledReason = reason;
     }
+
+    @Override
+    public void moveRefusedUpdate(String reason) {
+
+    }
   }
 }
