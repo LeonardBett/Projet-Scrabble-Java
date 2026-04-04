@@ -14,6 +14,7 @@ import fr.ubordeaux.scrabble.model.interfaces.Player;
 import fr.ubordeaux.scrabble.model.network.NetworkManager;
 import fr.ubordeaux.scrabble.model.savefiles.ConfigLoader;
 import fr.ubordeaux.scrabble.model.savefiles.GameLoader;
+import fr.ubordeaux.scrabble.model.utils.GameLogger;
 import fr.ubordeaux.scrabble.model.utils.Point;
 import fr.ubordeaux.scrabble.view.gui.builders.ExchangeMoveBuilder;
 import fr.ubordeaux.scrabble.view.gui.builders.PendingMoveBuilder;
@@ -47,6 +48,7 @@ import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
+import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
@@ -345,16 +347,103 @@ public class ScrabbleGui extends Application {
   }
 
   /**
-   * Bind a String to an action.
+   * Open the window to edits the keybinds.
+   * If user validate, reload the scene to update the key shortcuts.
    */
-  private void addDynamicShortcut(Scene scene, String keyString, Runnable action) {
+  private void openConfigDialog() {
+    // Load configuration
+    ConfigLoader config = new ConfigLoader();
+    config.loadConfig();
+
+    Dialog<Map<String, String>> dialog = new Dialog<>();
+    dialog.setTitle("Keybinds configuration");
+    dialog.setHeaderText("Edit your key bindings (ex: CTRL+S, F5)");
+
+    GridPane grid = new GridPane();
+    grid.setHgap(15);
+    grid.setVgap(10);
+    grid.setPadding(new Insets(20));
+
+    Map<String, TextField> fields = new HashMap<>();
+    String[][] binds = {
+        {"bind-new", "Nouveau Jeu"}, {"bind-load", "Charger"},
+        {"bind-save", "Sauvegarder"}, {"bind-quit", "Quitter"},
+        {"bind-undo", "Annuler (Undo)"}, {"bind-redo", "Refaire (Redo)"},
+        {"bind-hint", "Indice (Hint)"}, {"bind-pause", "Pause"},
+        {"bind-info", "Informations"}
+    };
+
+    for (int i = 0; i < binds.length; i++) {
+      String key = binds[i][0];
+      String label = binds[i][1];
+      TextField tf = new TextField(config.getOption(key, ""));
+      fields.put(key, tf);
+      grid.add(new Label(label + " :"), 0, i);
+      grid.add(tf, 1, i);
+    }
+
+    dialog.getDialogPane().setContent(grid);
+    dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+
+    dialog.setResultConverter(btn -> {
+      if (btn == ButtonType.OK) {
+        Map<String, String> results = new HashMap<>();
+        fields.forEach((k, tf) -> results.put(k, tf.getText().trim()));
+        return results;
+      }
+      return null;
+    });
+
+    dialog.showAndWait().ifPresent(updates -> {
+      config.updateAndSave(updates);
+      Scene scene = controlPanel.getScene();
+      if (scene != null) {
+        Platform.runLater(() -> {
+          scene.getAccelerators().clear();
+          setupShortcuts(scene);
+          showInfo("Success", "All bindings were saved.");
+        });
+      }
+    });
+  }
+
+  /**
+   * Binds a keyboard shortcut to a visible menu item and updates its display text.
+   *
+   * @param scene     the main application scene
+   * @param keyString the shortcut string (e.g., "Ctrl+N")
+   * @param menuItem  the menu item to bind and update
+   */
+  private void addMenuShortcut(Scene scene, String keyString, MenuItem menuItem) {
     try {
       if (keyString != null && !keyString.isBlank()) {
-        KeyCombination combination = KeyCombination.valueOf(keyString);
+        String formattedKey = keyString.replaceAll("\\s+", "").toUpperCase();
+        KeyCombination combination = KeyCombination.valueOf(formattedKey);
+        menuItem.setAccelerator(combination);
+        scene.getAccelerators().put(combination, menuItem::fire);
+      }
+    } catch (Exception e) {
+      GameLogger.logError("Invalid shortcut ignored : " + keyString, e);
+    }
+  }
+
+
+  /**
+   * Binds a keyboard shortcut to a background action (invisible in menus).
+   *
+   * @param scene     the main application scene
+   * @param keyString the shortcut string (e.g., "P" or "Ctrl+P")
+   * @param action    the runnable action to execute
+   */
+  private void addActionShortcut(Scene scene, String keyString, Runnable action) {
+    try {
+      if (keyString != null && !keyString.isBlank()) {
+        String formattedKey = keyString.replaceAll("\\s+", "").toUpperCase();
+        KeyCombination combination = KeyCombination.valueOf(formattedKey);
         scene.getAccelerators().put(combination, action);
       }
-    } catch (IllegalArgumentException e) {
-      System.err.println("Raccourci clavier invalide ignoré : " + keyString);
+    } catch (Exception e) {
+      GameLogger.logError("Invalid shortcut ignonred : " + keyString, e);
     }
   }
 
@@ -1062,39 +1151,36 @@ public class ScrabbleGui extends Application {
   }
 
   /**
-   * Configure global keyboard shortcuts.
+   * Configures global keyboard shortcuts from the configuration file.
    *
-   * @param scene main scene of the application.
+   * @param scene the main application scene
    */
   private void setupShortcuts(Scene scene) {
+    scene.getAccelerators().put(new KeyCodeCombination(KeyCode.COMMA, KeyCombination.CONTROL_DOWN),
+        this::openConfigDialog);
+
     ConfigLoader config = new ConfigLoader();
     config.loadConfig();
 
-    addDynamicShortcut(scene, config.getOption("bind-new", "Ctrl+N"),
-        () -> newGameMenuItem.fire());
-    addDynamicShortcut(scene, config.getOption("bind-load", "Ctrl+L"),
-        () -> loadMenuItem.fire());
-    addDynamicShortcut(scene, config.getOption("bind-save", "Ctrl+S"),
-        () -> saveMenuItem.fire());
-    addDynamicShortcut(scene, config.getOption("bind-quit", "Ctrl+Q"),
-        () -> quitMenuItem.fire());
+    addMenuShortcut(scene, config.getOption("bind-new", "Ctrl+N"), newGameMenuItem);
+    addMenuShortcut(scene, config.getOption("bind-load", "Ctrl+L"), loadMenuItem);
+    addMenuShortcut(scene, config.getOption("bind-save", "Ctrl+S"), saveMenuItem);
+    addMenuShortcut(scene, config.getOption("bind-quit", "Ctrl+Q"), quitMenuItem);
 
-    addDynamicShortcut(scene, config.getOption("bind-undo", "Ctrl+U"),
+    addActionShortcut(scene, config.getOption("bind-undo", "Ctrl+U"),
         () -> controlPanel.getUndoButton().fire());
-    addDynamicShortcut(scene, config.getOption("bind-redo", "Ctrl+R"),
+    addActionShortcut(scene, config.getOption("bind-redo", "Ctrl+R"),
         () -> controlPanel.getRedoButton().fire());
-    addDynamicShortcut(scene, config.getOption("bind-hint", "Ctrl+H"),
+    addActionShortcut(scene, config.getOption("bind-hint", "Ctrl+H"),
         () -> controlPanel.getHintButton().fire());
+    addActionShortcut(scene, config.getOption("bind-info", "Ctrl+I"),
+        () -> showInfo("Infos", "Scrabble v1.0"));
 
-    addDynamicShortcut(scene, config.getOption("bind-info", "Ctrl+I"),
-        () -> showInfo("Informations", "Scrabble U-Bordeaux\nVersion 1.0\n"));
-
-    addDynamicShortcut(scene, config.getOption("bind-pause", "Ctrl+P"),
-        () -> {
-          if (!onlineMode && !gameInstance.isGameOver()) {
-            controller.togglePause();
-          }
-        });
+    addActionShortcut(scene, config.getOption("bind-pause", "Ctrl+P"), () -> {
+      if (!onlineMode && !gameInstance.isGameOver()) {
+        controller.togglePause();
+      }
+    });
   }
 
 }

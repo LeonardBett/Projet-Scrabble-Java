@@ -1,5 +1,6 @@
 package fr.ubordeaux.scrabble.model.savefiles;
 
+import fr.ubordeaux.scrabble.model.utils.GameLogger;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -114,5 +115,22 @@ public class ConfigLoader {
    */
   public String getOption(String key, String fallback) {
     return configMap.getOrDefault(key, fallback);
+  }
+
+  /**
+   * Update the settings and rewrite .scrabblerc file.
+   *
+   * @param newSettings a map containing the new values to save
+   */
+  public void updateAndSave(Map<String, String> newSettings) {
+    configMap.putAll(newSettings);
+    Path configPath = Paths.get(System.getProperty("user.home"), FILE_NAME);
+    try (BufferedWriter writer = Files.newBufferedWriter(configPath);
+         PrintWriter out = new PrintWriter(writer)) {
+      out.println("[defaults] # Scrabble configuration");
+      configMap.forEach((k, v) -> out.println(k + "=" + v));
+    } catch (IOException e) {
+      GameLogger.logError("Error while saving: ", e);
+    }
   }
 }
