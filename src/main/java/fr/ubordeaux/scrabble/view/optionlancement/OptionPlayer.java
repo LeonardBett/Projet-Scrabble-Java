@@ -53,6 +53,7 @@ public class OptionPlayer {
       if (n < MIN || n > MAX) {
         System.err.println(I18n.translate("optionplayer.err.invalidCount", n, MIN, MAX));
         exitHandler.exit(1);
+        return DEFAULT;
       }
       return n;
     } catch (NumberFormatException e) {

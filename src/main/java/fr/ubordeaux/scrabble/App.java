@@ -175,6 +175,17 @@ public class App {
     return DEFAULT_LANG;
   }
 
+  private static int parseConfigInt(ConfigLoader configLoader, String key, int fallback) {
+    String rawValue = configLoader.getOption(key, String.valueOf(fallback));
+    try {
+      return Integer.parseInt(rawValue);
+    } catch (NumberFormatException e) {
+      System.err.println("Warning: invalid value for " + key + ": " + rawValue
+          + ". Using default " + fallback + ".");
+      return fallback;
+    }
+  }
+
   /**
    * Starts the application and routes to CLI or GUI mode based on command-line options.
    *
@@ -194,14 +205,13 @@ public class App {
     // Load the parameters from the config file
     GameLogger.setVerbose(Boolean.parseBoolean(configLoader.getOption("verbose", "false")));
     GameLogger.setDebug(Boolean.parseBoolean(configLoader.getOption("debug", "false")));
-    int players = Integer.parseInt(configLoader.getOption("players-count",
-        String.valueOf(OptionPlayer.DEFAULT)));
+    int players = parseConfigInt(configLoader, "players-count", OptionPlayer.DEFAULT);
     boolean guiMode = Boolean.parseBoolean(configLoader.getOption("gui", "false"));
     boolean superMode = Boolean.parseBoolean(configLoader.getOption("super-scrabble",
         "false"));
     boolean blitzMode = Boolean.parseBoolean(configLoader.getOption("blitz", "false"));
-    int blitzMinutes = Integer.parseInt(configLoader.getOption("timeout", "30"));
-    int aiTime = Integer.parseInt(configLoader.getOption("ai-time", "5"));
+    int blitzMinutes = parseConfigInt(configLoader, "timeout", 30);
+    int aiTime = parseConfigInt(configLoader, "ai-time", 5);
     boolean useExptiminimax = Boolean.parseBoolean(configLoader.getOption("ai-exptiminimax",
         "false"));
     boolean useMl = Boolean.parseBoolean(configLoader.getOption("ai-ml", "false"));
@@ -278,7 +288,7 @@ public class App {
           }
           players = OptionPlayer.parsePlayers(args[++i]);
         }
-        case "-l", "--lang" -> {
+        case "-l", "--lang", "--language" -> {
           if (i + 1 >= args.length) {
             System.err.println(I18n.translate("app.warn.missingLanguageValue"));
           } else {
@@ -342,6 +352,7 @@ public class App {
           }
           System.err.println(I18n.translate("app.err.unknownOption", args[i]));
           System.err.println(I18n.translate("app.err.helpHint"));
+          HelpPrinter.printHelp();
           exitHandler.exit(1);
           return;
         }

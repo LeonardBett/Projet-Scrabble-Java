@@ -92,6 +92,14 @@ class AppTest {
     assertEquals("en", cliCall.lang);
   }
 
+  @Test
+  void mainShouldAcceptLanguageLongOption() {
+    App.main(new String[] {"--language", "fr"});
+
+    assertNotNull(cliCall);
+    assertEquals("fr", cliCall.lang);
+  }
+
   /*
   @Test
   void mainShouldKeepDefaultLanguageWhenMissingValue() {
@@ -290,6 +298,28 @@ class AppTest {
 
     assertNotNull(cliCall);
     assertEquals("custom-dict.txt", System.getProperty("scrabble.dictionary.path"));
+  }
+
+  @Test
+  void mainShouldFallbackToDefaultValuesWhenConfigNumbersAreInvalid() throws Exception {
+    Path tempHome = Files.createTempDirectory("scrabble-home-");
+    String originalHome = System.getProperty("user.home");
+    try {
+      System.setProperty("user.home", tempHome.toString());
+      Files.writeString(tempHome.resolve(".scrabblerc"), "[defaults]\n"
+          + "players-count=oops\n"
+          + "timeout=bad\n"
+          + "ai-time=nan\n");
+
+      App.main(new String[] {});
+
+      assertNotNull(cliCall);
+      assertEquals(2, cliCall.players);
+      assertEquals(30, cliCall.blitzMinutes);
+      assertEquals(5, cliCall.aiTime);
+    } finally {
+      System.setProperty("user.home", originalHome);
+    }
   }
 
   @Test
