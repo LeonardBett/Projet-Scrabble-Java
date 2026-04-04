@@ -300,7 +300,8 @@ public class GameServer {
    * initiator and all targets are available before creating a pending invitation.
    *
    * @param initiator The client who sent the "new" command
-   * @param targetIds The list of IDs of the players to invite*/
+   * @param targetIds The list of IDs of the players to invite
+   */
   public synchronized void createNewGame(ClientHandler initiator, List<Integer> targetIds) {
     if (initiator.getClientInfo().getStatus() != PlayerStatus.IDLE) {
       initiator.sendMessage("INVITATION_FAILED:REASON=err_not_available");
@@ -365,44 +366,44 @@ public class GameServer {
           break;
         }
       }
-    }
 
-    if (currentInv == null) {
-      player.sendMessage("ERROR:REASON=err_no_pending_invitation");
-      return;
-    }
+      if (currentInv == null) {
+        player.sendMessage("ERROR:REASON=err_no_pending_invitation");
+        return;
+      }
 
-    if (accepted) {
-      currentInv.acceptPlayer(player);
-      currentInv
-          .getHost()
-          .sendMessage("INVITATION_ACCEPTED:PLAYER=" + player.getClientInfo().getName());
-    } else {
-      currentInv.declinePlayer(player);
-      player.getClientInfo().setStatus(PlayerStatus.IDLE);
-      player.sendMessage("STATUS_UPDATE:STATUS=IDLE");
-      currentInv
-          .getHost()
-          .sendMessage("INVITATION_DECLINED:PLAYER=" + player.getClientInfo().getName());
-    }
-
-    if (currentInv.isComplete()) {
-      activeInvitations.remove(currentInv);
-
-      if (currentInv.hasEnoughPlayers()) {
-        OnlineGame session = new OnlineGame(currentInv.getAcceptedPlayers());
-        onlineGames.add(session);
-        for (ClientHandler p : currentInv.getAcceptedPlayers()) {
-          p.getClientInfo().setStatus(PlayerStatus.INGAME);
-          p.sendMessage("STATUS_UPDATE:STATUS=INGAME");
-        }
+      if (accepted) {
+        currentInv.acceptPlayer(player);
+        currentInv
+            .getHost()
+            .sendMessage("INVITATION_ACCEPTED:PLAYER=" + player.getClientInfo().getName());
       } else {
-        for (ClientHandler p : currentInv.getAcceptedPlayers()) {
-          p.getClientInfo().setStatus(PlayerStatus.IDLE);
-          p.sendMessage("STATUS_UPDATE:STATUS=IDLE");
+        currentInv.declinePlayer(player);
+        player.getClientInfo().setStatus(PlayerStatus.IDLE);
+        player.sendMessage("STATUS_UPDATE:STATUS=IDLE");
+        currentInv
+            .getHost()
+            .sendMessage("INVITATION_DECLINED:PLAYER=" + player.getClientInfo().getName());
+      }
+
+      if (currentInv.isComplete()) {
+        activeInvitations.remove(currentInv);
+
+        if (currentInv.hasEnoughPlayers()) {
+          OnlineGame session = new OnlineGame(currentInv.getAcceptedPlayers());
+          onlineGames.add(session);
+          for (ClientHandler p : currentInv.getAcceptedPlayers()) {
+            p.getClientInfo().setStatus(PlayerStatus.INGAME);
+            p.sendMessage("STATUS_UPDATE:STATUS=INGAME");
+          }
+        } else {
+          for (ClientHandler p : currentInv.getAcceptedPlayers()) {
+            p.getClientInfo().setStatus(PlayerStatus.IDLE);
+            p.sendMessage("STATUS_UPDATE:STATUS=IDLE");
+          }
+          currentInv.getHost().sendMessage("INVITATION_FAILED:REASON=err_not_enough_players");
+          currentInv.getHost().sendMessage("ERROR:REASON=err_not_enough_players");
         }
-        currentInv.getHost().sendMessage("INVITATION_FAILED:REASON=err_not_enough_players");
-        currentInv.getHost().sendMessage("ERROR:REASON=err_not_enough_players");
       }
     }
   }

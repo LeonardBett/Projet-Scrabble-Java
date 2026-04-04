@@ -149,6 +149,10 @@ public class OnlineGame {
 
     Map<String, String> data = packetParser.getEntries().getFirst();
     String type = data.get("TYPE");
+    if (type == null) {
+      sender.sendMessage("ERROR:REASON=err_missing_move_type");
+      return;
+    }
 
     try {
       switch (type) {
@@ -164,17 +168,30 @@ public class OnlineGame {
 
   /** Handles the logic for placing a word on the board. */
   private void handlePlay(ClientHandler sender, Map<String, String> data, Player player) {
-    // We get the start position of the word
-    int x = Integer.parseInt(data.get("X"));
-    int y = Integer.parseInt(data.get("Y"));
-    Point startPosition = new Point(x, y);
+    Point startPosition;
+    int x;
+    int y;
+    try {
+      // We get the start position of the word
+      x = Integer.parseInt(data.get("X"));
+      y = Integer.parseInt(data.get("Y"));
+      startPosition = new Point(x, y);
+    } catch (NumberFormatException e) {
+      sender.sendMessage("ERROR:REASON=err_invalid_move");
+      return;
+    }
 
-    // We get the direction of the word
+    // We get the direction of the word and tiles
     String dirStr = data.get("DIR");
-    Direction direction = dirStr.equalsIgnoreCase("H") ? Direction.HORIZONTAL : Direction.VERTICAL;
-
-    // We extract and create a list of tiles to place
     String tilesStr = data.get("TILES");
+
+    if (dirStr == null || tilesStr == null) {
+      sender.sendMessage("ERROR:REASON=err_invalid_move_format");
+      return;
+    }
+
+    // We extract and create a list of tiles to place and direction
+    Direction direction = dirStr.equalsIgnoreCase("H") ? Direction.HORIZONTAL : Direction.VERTICAL;
     tilesStr = tilesStr.replaceAll("[\\[\\]\\s,]", "").toUpperCase();
     List<Tile> tilesToPlace = new ArrayList<>();
     for (char c : tilesStr.toCharArray()) {
@@ -227,6 +244,11 @@ public class OnlineGame {
   private void handleExchange(ClientHandler sender, Map<String, String> data, Player player) {
     // We extract, clean and create a list of tiles to exchange
     String tilesStr = data.get("TILES");
+    if (tilesStr == null) {
+      sender.sendMessage("ERROR:REASON=err_invalid_move_format");
+      return;
+    }
+
     tilesStr = tilesStr.replaceAll("[\\[\\]\\s,]", "").toUpperCase();
     List<Tile> tilesToExchange = new ArrayList<>();
     for (char c : tilesStr.toCharArray()) {

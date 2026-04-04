@@ -127,11 +127,15 @@ public class GameClient {
           case "WELCOME":
             // The server send us our ID when connecting for the first time
             if (!packetParser.getEntries().isEmpty()) {
-              this.myId = Integer.parseInt(packetParser.getEntries().getFirst().get("ID"));
-              GameLogger.logVerbose("Client : My ID is " + myId);
-              for (NetworkObserver obs : observers) {
-                obs.serverWelcomeUpdate(myId);
-                obs.messageUpdate("info_connected");
+              try {
+                this.myId = Integer.parseInt(packetParser.getEntries().getFirst().get("ID"));
+                GameLogger.logVerbose("Client : My ID is " + myId);
+                for (NetworkObserver obs : observers) {
+                  obs.serverWelcomeUpdate(myId);
+                  obs.messageUpdate("info_connected");
+                }
+              } catch (NumberFormatException e) {
+                GameLogger.logError("Client : Invalid ID format", e);
               }
             }
             break;
@@ -202,14 +206,21 @@ public class GameClient {
             break;
 
           case "GAME_START":
+            if (packetParser.getEntries().isEmpty()) {
+              break;
+            }
             GameLogger.logVerbose("\n--- Game Started ---");
 
             // We create a local model, which will only be updated with server data
             localGame = new Game();
 
             // Extracting bag size and updating the local model
-            int bagSize = Integer.parseInt(packetParser.getEntries().getFirst().get("BAG"));
-            localGame.getBag().setOnlineSize(bagSize);
+            try {
+              int bagSize = Integer.parseInt(packetParser.getEntries().getFirst().get("BAG"));
+              localGame.getBag().setOnlineSize(bagSize);
+            } catch (NumberFormatException e) {
+              GameLogger.logError("Client : Invalid bag size format", e);
+            }
 
             // Extracting player info and adding them to the local model
             int playerIndex = 0;
@@ -270,6 +281,10 @@ public class GameClient {
             break;
 
           case "OPPONENT_MOVE":
+            if (localGame == null || packetParser.getEntries().isEmpty()) {
+              break;
+            }
+
             Map<String, String> move = packetParser.getEntries().getFirst();
             String type = move.get("TYPE");
 
@@ -281,23 +296,28 @@ public class GameClient {
               break;
             }
 
-            if ("PLAY".equals(type)) {
-              // We extract and sync the new board to the local model
-              String boardData = move.get("BOARD");
-              if (boardData != null) {
-                localGame.syncBoard(boardData);
+            try {
+              if ("PLAY".equals(type)) {
+                // We extract and sync the new board to the local model
+                String boardData = move.get("BOARD");
+                if (boardData != null) {
+                  localGame.syncBoard(boardData);
+                }
+
+                // We extract and sync new score to the local model
+                int score = Integer.parseInt(move.get("SCORE"));
+                player.setScore(score);
+
+                // We extract and sync new bag size to the local model
+                int bagSizes = Integer.parseInt(move.get("BAG"));
+                localGame.getBag().setOnlineSize(bagSizes);
+              } else if ("EXCHANGE".equals(type)) {
+                int bagSizes = Integer.parseInt(move.get("BAG"));
+                localGame.getBag().setOnlineSize(bagSizes);
               }
-
-              // We extract and sync new score to the local model
-              int score = Integer.parseInt(move.get("SCORE"));
-              player.setScore(score);
-
-              // We extract and sync new bag size to the local model
-              int bagSizes = Integer.parseInt(move.get("BAG"));
-              localGame.getBag().setOnlineSize(bagSizes);
-            } else if ("EXCHANGE".equals(type)) {
-              int bagSizes = Integer.parseInt(move.get("BAG"));
-              localGame.getBag().setOnlineSize(bagSizes);
+            } catch (NumberFormatException e) {
+              GameLogger.logError("Client : Invalid move format", e);
+              break;
             }
 
             // Change the turn of the local model
@@ -379,6 +399,9 @@ public class GameClient {
             break;
 
           case "GAME_INTERRUPTED":
+            if (packetParser.getEntries().isEmpty()) {
+              break;
+            }
             String reason = packetParser.getEntries().getFirst().get("REASON");
             for (NetworkObserver obs : new ArrayList<>(observers)) {
               obs.gameInterruptedUpdate(reason);
@@ -393,6 +416,9 @@ public class GameClient {
             break;
 
           case "INVITATION_FAILED":
+            if (packetParser.getEntries().isEmpty()) {
+              break;
+            }
             String invitationFailedReason = packetParser.getEntries().getFirst().get("REASON");
             for (NetworkObserver obs : observers) {
               obs.invitationFailedUpdate(invitationFailedReason);

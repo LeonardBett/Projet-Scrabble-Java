@@ -214,20 +214,24 @@ public class DiscoveryService {
       // Verifying if the message is correctly formed
       if (parts.length == 3 && parts[0].equals("SCRABBLE_SERVER")) {
         // We get server name, TCP port and address
-        String name = parts[1];
-        int port = Integer.parseInt(parts[2]);
-        String ip = senderAddress.getHostAddress();
+        try {
+          String name = parts[1];
+          int port = Integer.parseInt(parts[2]);
+          String ip = senderAddress.getHostAddress();
 
-        // We build the key for the map
-        String key = ip + ":" + port;
+          // We build the key for the map
+          String key = ip + ":" + port;
 
-        // If we know this server, we update his timer
-        // Else, we add it to the map
-        ServerInfo existing = discoveredServer.putIfAbsent(key, new ServerInfo(ip, port, name));
-        if (existing != null) {
-          existing.updateLastSeen();
+          // If we know this server, we update his timer
+          // Else, we add it to the map
+          ServerInfo existing = discoveredServer.putIfAbsent(key, new ServerInfo(ip, port, name));
+          if (existing != null) {
+            existing.updateLastSeen();
+          }
+          notifyListeners();
+        } catch (NumberFormatException e) {
+          GameLogger.logError("Malformed packet received (Invalid port)", e);
         }
-        notifyListeners();
       }
     } catch (NumberFormatException e) {
       GameLogger.logError("Malformed packet received (Invalid port)", e);

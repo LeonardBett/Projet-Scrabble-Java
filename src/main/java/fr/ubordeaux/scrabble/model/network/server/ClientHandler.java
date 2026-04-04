@@ -165,6 +165,10 @@ public class ClientHandler implements Runnable {
    * @param packet the NEW command
    */
   private void handleNewGameRequest(PacketParser packet) {
+    if (packet.getEntries().isEmpty()) {
+      sendMessage("ERROR:REASON=err_protocol_error");
+      return;
+    }
     try {
       Map<String, String> data = packet.getEntries().getFirst();
 
@@ -198,6 +202,11 @@ public class ClientHandler implements Runnable {
   }
 
   private void handlePlayersRequest(PacketParser packet) {
+    if (packet.getEntries().isEmpty()) {
+      sendMessage("ERROR:REASON=err_protocol_error");
+      return;
+    }
+
     Map<String, String> data = packet.getEntries().getFirst();
     if (data != null && data.containsKey("PLAYER")) {
       try {
