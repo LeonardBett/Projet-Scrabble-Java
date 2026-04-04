@@ -8,8 +8,17 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import fr.ubordeaux.scrabble.model.core.Board;
+import fr.ubordeaux.scrabble.model.core.PlayableWord;
+import fr.ubordeaux.scrabble.model.dictionary.Gaddag;
+import fr.ubordeaux.scrabble.model.enums.Direction;
 import fr.ubordeaux.scrabble.model.enums.GameMode;
+import java.io.ByteArrayInputStream;
+import java.io.Console;
+import java.io.InputStream;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -98,6 +107,14 @@ class AppTest {
 
     assertNotNull(cliCall);
     assertEquals("fr", cliCall.lang);
+  }
+
+  @Test
+  void mainShouldKeepDefaultLanguageWhenMissingValue() {
+    App.main(new String[] {"-l"});
+
+    assertNotNull(cliCall);
+    assertEquals("en", cliCall.lang);
   }
 
   /*
@@ -206,6 +223,33 @@ class AppTest {
   }
 
   @Test
+  void promptLaunchRequestShouldReturnNoneWithoutConsole() throws Exception {
+    Method prompt = App.class.getDeclaredMethod("promptLaunchRequestAfterHelp");
+    prompt.setAccessible(true);
+
+    Object request = prompt.invoke(null);
+
+    assertNotNull(request);
+  }
+
+  @Test
+  void promptLaunchRequestShouldReturnCliShortcutWhenRequested() throws Exception {
+    Object request = invokePromptWithConsoleInput("cli\n");
+    assertNotNull(request);
+    assertEquals("SHORTCUT", readPrivateField(request, "mode").toString());
+    assertEquals("CLI", readPrivateField(request, "shortcut").toString());
+  }
+
+  @Test
+  void promptLaunchRequestShouldReturnArgsWhenUserTypesLaunchArguments() throws Exception {
+    Object request = invokePromptWithConsoleInput("-g -s\n");
+    assertNotNull(request);
+    assertEquals("ARGS", readPrivateField(request, "mode").toString());
+    String[] args = (String[]) readPrivateField(request, "args");
+    assertEquals(List.of("-g", "-s"), List.of(args));
+  }
+
+  @Test
   void mainShouldExitWhenServerPortIsMissing() {
     ExitCalledException ex =
         assertThrows(ExitCalledException.class, () -> App.main(new String[] {"-S"}));
@@ -293,6 +337,55 @@ class AppTest {
   }
 
   @Test
+  void loadContestDictionaryShouldLoadBuiltinDictionary() throws Exception {
+    Method loadDictionary = App.class.getDeclaredMethod("loadContestDictionary", String.class);
+    loadDictionary.setAccessible(true);
+
+    Object dictionary = loadDictionary.invoke(null, "en");
+
+    assertNotNull(dictionary);
+    assertTrue(dictionary instanceof Gaddag);
+  }
+
+  @Test
+  void formatContestMoveShouldBuildScrabbleNotation() throws Exception {
+    Method formatMove = App.class.getDeclaredMethod("formatContestMove", PlayableWord.class);
+    formatMove.setAccessible(true);
+
+    PlayableWord move = new PlayableWord(7, 7, "COUNT", Direction.VERTICAL, "C>OUNT");
+    String formatted = (String) formatMove.invoke(null, move);
+
+    assertEquals("h8v COUNT", formatted);
+  }
+
+  @Test
+  void estimateMoveScoreShouldSumLettersFromRackOnly() throws Exception {
+    Method estimate = App.class.getDeclaredMethod("estimateMoveScore", Board.class,
+        PlayableWord.class);
+    estimate.setAccessible(true);
+
+    Board board = new Board();
+    PlayableWord move = new PlayableWord(0, 0, "AB", Direction.HORIZONTAL, "A>B");
+    int score = (int) estimate.invoke(null, board, move);
+
+    assertEquals(4, score);
+  }
+
+  @Test
+  void getLettersFromRackShouldReturnLettersOnEmptySquares() throws Exception {
+    Method getLetters = App.class.getDeclaredMethod("getLettersFromRack", Board.class,
+        PlayableWord.class);
+    getLetters.setAccessible(true);
+
+    Board board = new Board();
+    PlayableWord move = new PlayableWord(0, 0, "AB", Direction.HORIZONTAL, "A>B");
+    @SuppressWarnings("unchecked")
+    List<Character> letters = (List<Character>) getLetters.invoke(null, board, move);
+
+    assertEquals(List.of('A', 'B'), letters);
+  }
+
+  @Test
   void mainShouldAcceptDictionaryOptionAndSetProperty() {
     App.main(new String[] {"-D", "custom-dict.txt"});
 
@@ -346,6 +439,40 @@ class AppTest {
     sb.append("language en\n");
     sb.append("[history]\n");
     return sb.toString();
+  }
+
+  private Object invokePromptWithConsoleInput(String input) throws Exception {
+    Method prompt = App.class.getDeclaredMethod("promptLaunchRequestAfterHelp");
+    prompt.setAccessible(true);
+
+    java.lang.reflect.Field consoleField = System.class.getDeclaredField("cons");
+    sun.misc.Unsafe unsafe = getUnsafe();
+    Object consoleBase = unsafe.staticFieldBase(consoleField);
+    long consoleOffset = unsafe.staticFieldOffset(consoleField);
+    Object originalConsole = unsafe.getObject(consoleBase, consoleOffset);
+    InputStream originalIn = System.in;
+
+    try {
+      Console fakeConsole = (Console) unsafe.allocateInstance(Console.class);
+      unsafe.putObject(consoleBase, consoleOffset, fakeConsole);
+      System.setIn(new ByteArrayInputStream(input.getBytes(StandardCharsets.UTF_8)));
+      return prompt.invoke(null);
+    } finally {
+      unsafe.putObject(consoleBase, consoleOffset, originalConsole);
+      System.setIn(originalIn);
+    }
+  }
+
+  private Object readPrivateField(Object target, String fieldName) throws Exception {
+    Field field = target.getClass().getDeclaredField(fieldName);
+    field.setAccessible(true);
+    return field.get(target);
+  }
+
+  private sun.misc.Unsafe getUnsafe() throws Exception {
+    Field field = sun.misc.Unsafe.class.getDeclaredField("theUnsafe");
+    field.setAccessible(true);
+    return (sun.misc.Unsafe) field.get(null);
   }
 
   private static final class ExitCalledException extends RuntimeException {
