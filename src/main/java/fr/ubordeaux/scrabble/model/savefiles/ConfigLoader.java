@@ -91,6 +91,15 @@ public class ConfigLoader {
       out.println("ai-exptiminimax=false");
       out.println("ai-ml=false");
       out.println("language=en");
+      out.println("bind-new=Ctrl+N");
+      out.println("bind-load=Ctrl+L");
+      out.println("bind-save=Ctrl+S");
+      out.println("bind-quit=Ctrl+Q");
+      out.println("bind-undo=Ctrl+U");
+      out.println("bind-redo=Ctrl+R");
+      out.println("bind-hint=Ctrl+H");
+      out.println("bind-pause=Ctrl+P");
+      out.println("bind-info=Ctrl+I");
     } catch (IOException e) {
       // Quiet error, the program continues normally
     }

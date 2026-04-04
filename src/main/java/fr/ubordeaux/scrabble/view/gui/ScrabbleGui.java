@@ -12,6 +12,7 @@ import fr.ubordeaux.scrabble.model.dictionary.Gaddag;
 import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
 import fr.ubordeaux.scrabble.model.network.NetworkManager;
+import fr.ubordeaux.scrabble.model.savefiles.ConfigLoader;
 import fr.ubordeaux.scrabble.model.savefiles.GameLoader;
 import fr.ubordeaux.scrabble.model.utils.Point;
 import fr.ubordeaux.scrabble.view.gui.builders.ExchangeMoveBuilder;
@@ -341,6 +342,20 @@ public class ScrabbleGui extends Application {
     }
     lobbyView.show();
     lobbyView.toFront();
+  }
+
+  /**
+   * Bind a String to an action.
+   */
+  private void addDynamicShortcut(Scene scene, String keyString, Runnable action) {
+    try {
+      if (keyString != null && !keyString.isBlank()) {
+        KeyCombination combination = KeyCombination.valueOf(keyString);
+        scene.getAccelerators().put(combination, action);
+      }
+    } catch (IllegalArgumentException e) {
+      System.err.println("Raccourci clavier invalide ignoré : " + keyString);
+    }
   }
 
   /**
@@ -1052,32 +1067,29 @@ public class ScrabbleGui extends Application {
    * @param scene main scene of the application.
    */
   private void setupShortcuts(Scene scene) {
+    ConfigLoader config = new ConfigLoader();
+    config.loadConfig();
 
-    scene.getAccelerators().put(new KeyCodeCombination(KeyCode.N, KeyCombination.CONTROL_DOWN),
+    addDynamicShortcut(scene, config.getOption("bind-new", "Ctrl+N"),
         () -> newGameMenuItem.fire());
-    scene.getAccelerators().put(new KeyCodeCombination(KeyCode.L, KeyCombination.CONTROL_DOWN),
+    addDynamicShortcut(scene, config.getOption("bind-load", "Ctrl+L"),
         () -> loadMenuItem.fire());
-    scene.getAccelerators().put(new KeyCodeCombination(KeyCode.S, KeyCombination.CONTROL_DOWN),
+    addDynamicShortcut(scene, config.getOption("bind-save", "Ctrl+S"),
         () -> saveMenuItem.fire());
-    scene.getAccelerators().put(new KeyCodeCombination(KeyCode.Q, KeyCombination.CONTROL_DOWN),
+    addDynamicShortcut(scene, config.getOption("bind-quit", "Ctrl+Q"),
         () -> quitMenuItem.fire());
 
-    scene.getAccelerators().put(new KeyCodeCombination(KeyCode.COMMA, KeyCombination.CONTROL_DOWN),
-        () -> showInfo("Configuration", "Show config (TODO)"));
-
-    scene.getAccelerators().put(new KeyCodeCombination(KeyCode.I, KeyCombination.CONTROL_DOWN),
-        () -> showInfo("Informations", "Scrabble U-Bordeaux\nVersion 1.0\n"));
-
-    scene.getAccelerators().put(new KeyCodeCombination(KeyCode.U, KeyCombination.CONTROL_DOWN),
+    addDynamicShortcut(scene, config.getOption("bind-undo", "Ctrl+U"),
         () -> controlPanel.getUndoButton().fire());
-
-    scene.getAccelerators().put(new KeyCodeCombination(KeyCode.R, KeyCombination.CONTROL_DOWN),
+    addDynamicShortcut(scene, config.getOption("bind-redo", "Ctrl+R"),
         () -> controlPanel.getRedoButton().fire());
-
-    scene.getAccelerators().put(new KeyCodeCombination(KeyCode.H, KeyCombination.CONTROL_DOWN),
+    addDynamicShortcut(scene, config.getOption("bind-hint", "Ctrl+H"),
         () -> controlPanel.getHintButton().fire());
 
-    scene.getAccelerators().put(new KeyCodeCombination(KeyCode.P, KeyCombination.CONTROL_DOWN),
+    addDynamicShortcut(scene, config.getOption("bind-info", "Ctrl+I"),
+        () -> showInfo("Informations", "Scrabble U-Bordeaux\nVersion 1.0\n"));
+
+    addDynamicShortcut(scene, config.getOption("bind-pause", "Ctrl+P"),
         () -> {
           if (!onlineMode && !gameInstance.isGameOver()) {
             controller.togglePause();
