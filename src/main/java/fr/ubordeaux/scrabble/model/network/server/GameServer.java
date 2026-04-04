@@ -47,8 +47,16 @@ public class GameServer {
   // Is used to give a unique id to each player
   private int idCounter = 1;
 
+  // Thread-safe list of pending invitations
   private final List<PendingInvitation> activeInvitations =
       Collections.synchronizedList(new ArrayList<>());
+
+  /*
+   * Global lock ensuring the atomicity of state transitions.
+   * Simultaneously protects player statuses (PlayerStatus) and active invitations
+   * to prevent race conditions (e.g., simultaneous ACCEPT and CANCEL).
+   */
+  private final Object stateLock = new Object();
 
   // =========================================================================
   // SERVER LIFECYCLE METHODS
@@ -89,7 +97,7 @@ public class GameServer {
                 try {
                   Thread.sleep(10000);
                   long now = System.currentTimeMillis();
-                  synchronized (activeInvitations) {
+                  synchronized (stateLock) {
                     activeInvitations.removeIf(
                         inv -> {
                           if (inv.isExpired(now)) {
@@ -302,51 +310,53 @@ public class GameServer {
    * @param initiator The client who sent the "new" command
    * @param targetIds The list of IDs of the players to invite
    */
-  public synchronized void createNewGame(ClientHandler initiator, List<Integer> targetIds) {
-    if (initiator.getClientInfo().getStatus() != PlayerStatus.IDLE) {
-      initiator.sendMessage("INVITATION_FAILED:REASON=err_not_available");
-      return;
-    }
-
-    List<ClientHandler> targets = new ArrayList<>();
-    synchronized (clients) {
-      for (int id : targetIds) {
-        ClientHandler target = null;
-        for (ClientHandler c : clients) {
-          if (c.getClientInfo().getId() == id) {
-            target = c;
-            break;
-          }
-        }
-        if (target == null) {
-          initiator.sendMessage("INVITATION_FAILED:REASON=err_player_not_found");
-          return;
-        }
-        if (target == initiator) {
-          initiator.sendMessage("INVITATION_FAILED:REASON=err_cannot_play_self");
-          return;
-        }
-        if (target.getClientInfo().getStatus() != PlayerStatus.IDLE) {
-          initiator.sendMessage("INVITATION_FAILED:REASON=err_player_busy");
-          return;
-        }
-        targets.add(target);
+  public void createNewGame(ClientHandler initiator, List<Integer> targetIds) {
+    synchronized (stateLock) {
+      if (initiator.getClientInfo().getStatus() != PlayerStatus.IDLE) {
+        initiator.sendMessage("INVITATION_FAILED:REASON=err_not_available");
+        return;
       }
-    }
 
-    // We create the invitation
-    PendingInvitation invitation = new PendingInvitation(initiator, targets);
-    activeInvitations.add(invitation);
+      List<ClientHandler> targets = new ArrayList<>();
+      synchronized (clients) {
+        for (int id : targetIds) {
+          ClientHandler target = null;
+          for (ClientHandler c : clients) {
+            if (c.getClientInfo().getId() == id) {
+              target = c;
+              break;
+            }
+          }
+          if (target == null) {
+            initiator.sendMessage("INVITATION_FAILED:REASON=err_player_not_found");
+            return;
+          }
+          if (target == initiator) {
+            initiator.sendMessage("INVITATION_FAILED:REASON=err_cannot_play_self");
+            return;
+          }
+          if (target.getClientInfo().getStatus() != PlayerStatus.IDLE) {
+            initiator.sendMessage("INVITATION_FAILED:REASON=err_player_busy");
+            return;
+          }
+          targets.add(target);
+        }
+      }
 
-    // We update status of initiator and targets
-    initiator.getClientInfo().setStatus(PlayerStatus.WAITGAME);
-    initiator.sendMessage("STATUS_UPDATE:STATUS=WAITGAME");
-    for (ClientHandler t : targets) {
-      t.getClientInfo().setStatus(PlayerStatus.WAITGAME);
-      t.sendMessage("STATUS_UPDATE:STATUS=WAITGAME");
-      t.sendMessage("INVITATION_RECEIVED:FROM=" + initiator.getClientInfo().getName());
+      // We create the invitation
+      PendingInvitation invitation = new PendingInvitation(initiator, targets);
+      activeInvitations.add(invitation);
+
+      // We update status of initiator and targets
+      initiator.getClientInfo().setStatus(PlayerStatus.WAITGAME);
+      initiator.sendMessage("STATUS_UPDATE:STATUS=WAITGAME");
+      for (ClientHandler t : targets) {
+        t.getClientInfo().setStatus(PlayerStatus.WAITGAME);
+        t.sendMessage("STATUS_UPDATE:STATUS=WAITGAME");
+        t.sendMessage("INVITATION_RECEIVED:FROM=" + initiator.getClientInfo().getName());
+      }
+      initiator.sendMessage("INVITATION_SENT");
     }
-    initiator.sendMessage("INVITATION_SENT");
   }
 
   /**
@@ -356,10 +366,16 @@ public class GameServer {
    * @param player The client handler representing the player responding.
    * @param accepted true if the player accepted the invitation, false if they declined.
    */
-  public synchronized void processInvitationResponse(ClientHandler player, boolean accepted) {
-    PendingInvitation currentInv = null;
+  public void processInvitationResponse(ClientHandler player, boolean accepted) {
+    synchronized (stateLock) {
+      // Check if player status is in a valid stats
+      if (player.getClientInfo().getStatus() != PlayerStatus.WAITGAME) {
+        player.sendMessage("ERROR:REASON=err_invalid_state");
+        return;
+      }
 
-    synchronized (activeInvitations) {
+      PendingInvitation currentInv = null;
+
       for (PendingInvitation inv : activeInvitations) {
         if (inv.containsPendingPlayer(player)) {
           currentInv = inv;
@@ -413,20 +429,22 @@ public class GameServer {
    *
    * @param player the client requesting to go away
    */
-  public synchronized void processAway(ClientHandler player) {
-    PlayerStatus currentStatus = player.getClientInfo().getStatus();
+  public void processAway(ClientHandler player) {
+    synchronized (stateLock) {
+      PlayerStatus currentStatus = player.getClientInfo().getStatus();
 
-    if (currentStatus == PlayerStatus.WAITGAME) {
-      player.sendMessage("ERROR:REASON=err_cannot_away_pending");
-      return;
-    }
-    if (currentStatus == PlayerStatus.INGAME) {
-      player.sendMessage("ERROR:REASON=err_cannot_away_ingame");
-      return;
-    }
+      if (currentStatus == PlayerStatus.WAITGAME) {
+        player.sendMessage("ERROR:REASON=err_cannot_away_pending");
+        return;
+      }
+      if (currentStatus == PlayerStatus.INGAME) {
+        player.sendMessage("ERROR:REASON=err_cannot_away_ingame");
+        return;
+      }
 
-    player.getClientInfo().setStatus(PlayerStatus.AWAY);
-    player.sendMessage("STATUS_UPDATE:STATUS=AWAY");
+      player.getClientInfo().setStatus(PlayerStatus.AWAY);
+      player.sendMessage("STATUS_UPDATE:STATUS=AWAY");
+    }
   }
 
   /**
@@ -435,11 +453,13 @@ public class GameServer {
    * @param player the client requesting to go back to idle
    */
   public void processBack(ClientHandler player) {
-    if (player.getClientInfo().getStatus() == PlayerStatus.AWAY) {
-      player.getClientInfo().setStatus(PlayerStatus.IDLE);
-      player.sendMessage("STATUS_UPDATE:STATUS=IDLE");
-    } else {
-      player.sendMessage("ERROR:REASON=err_not_away");
+    synchronized (stateLock) {
+      if (player.getClientInfo().getStatus() == PlayerStatus.AWAY) {
+        player.getClientInfo().setStatus(PlayerStatus.IDLE);
+        player.sendMessage("STATUS_UPDATE:STATUS=IDLE");
+      } else {
+        player.sendMessage("ERROR:REASON=err_not_away");
+      }
     }
   }
 
@@ -449,45 +469,49 @@ public class GameServer {
    * @param player the client requesting to cancel their own invitation
    */
   public void processCancel(ClientHandler player) {
-    PendingInvitation currentInv = null;
+    synchronized (stateLock) {
+      // Check if player status is in a valid stats
+      if (player.getClientInfo().getStatus() != PlayerStatus.WAITGAME) {
+        player.sendMessage("ERROR:REASON=err_invalid_state");
+        return;
+      }
 
-    // We look for the current invitation
-    synchronized (activeInvitations) {
+      PendingInvitation currentInv = null;
+
+      // We look for the current invitation
       for (PendingInvitation inv : activeInvitations) {
         if (inv.getHost() == player) {
           currentInv = inv;
           break;
         }
       }
-    }
 
-    if (currentInv == null) {
-      player.sendMessage("ERROR:REASON=err_no_pending_invitation_cancel");
-      return;
-    }
+      if (currentInv == null) {
+        player.sendMessage("ERROR:REASON=err_no_pending_invitation_cancel");
+        return;
+      }
 
-    // We delete it
-    synchronized (activeInvitations) {
+      // We delete it
       activeInvitations.remove(currentInv);
-    }
 
-    // We update all player from this invitation
-    for (ClientHandler p : currentInv.getAcceptedPlayers()) {
-      p.getClientInfo().setStatus(PlayerStatus.IDLE);
-      p.sendMessage("STATUS_UPDATE:STATUS=IDLE");
+      // We update all player from this invitation
+      for (ClientHandler p : currentInv.getAcceptedPlayers()) {
+        p.getClientInfo().setStatus(PlayerStatus.IDLE);
+        p.sendMessage("STATUS_UPDATE:STATUS=IDLE");
 
-      if (p == player) {
-        p.sendMessage("info_invitation_cancelled_success");
-      } else {
+        if (p == player) {
+          p.sendMessage("info_invitation_cancelled_success");
+        } else {
+          p.sendMessage("INVITATION_CANCELLED:REASON=info_host_cancelled");
+        }
+      }
+
+      // We free invited players who didn't respond
+      for (ClientHandler p : currentInv.getPendingPlayers()) {
+        p.getClientInfo().setStatus(PlayerStatus.IDLE);
+        p.sendMessage("STATUS_UPDATE:STATUS=IDLE");
         p.sendMessage("INVITATION_CANCELLED:REASON=info_host_cancelled");
       }
-    }
-
-    // We free invited players who didn't respond
-    for (ClientHandler p : currentInv.getPendingPlayers()) {
-      p.getClientInfo().setStatus(PlayerStatus.IDLE);
-      p.sendMessage("STATUS_UPDATE:STATUS=IDLE");
-      p.sendMessage("INVITATION_CANCELLED:REASON=info_host_cancelled");
     }
   }
 
@@ -496,8 +520,8 @@ public class GameServer {
    *
    * @param player the client that is disconnecting.
    */
-  public synchronized void removePlayerFromInvitations(ClientHandler player) {
-    synchronized (activeInvitations) {
+  public void removePlayerFromInvitations(ClientHandler player) {
+    synchronized (stateLock) {
       activeInvitations.removeIf(
           inv -> {
             if (inv.getHost() == player

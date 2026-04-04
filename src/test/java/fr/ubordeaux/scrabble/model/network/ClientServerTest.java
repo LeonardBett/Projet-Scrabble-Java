@@ -376,7 +376,7 @@ class ClientServerTest {
     // Wait a bit for the error message
     Thread.sleep(200);
     Assertions.assertTrue(
-        observer2.lastMessage.contains("err_no_pending_invitation"),
+        observer2.lastMessage.contains("err_invalid_state"),
         "Client 2 should receive an error for accepting without invitation");
 
     // --- SCENARIO C: Player tries to invite a busy player ---

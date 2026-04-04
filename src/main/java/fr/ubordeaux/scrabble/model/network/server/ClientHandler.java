@@ -185,6 +185,16 @@ public class ClientHandler implements Runnable {
         }
       }
 
+      // Check for empty and duplicate targets
+      if (targetIds.isEmpty()) {
+        sendMessage("ERROR:REASON=err_no_targets_provided");
+        return;
+      }
+      if (new java.util.HashSet<>(targetIds).size() != targetIds.size()) {
+        sendMessage("ERROR:REASON=err_duplicate_targets");
+        return;
+      }
+
       // We give the target list to the server to create a new game
       server.createNewGame(this, targetIds);
 
