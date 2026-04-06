@@ -157,8 +157,9 @@ public class CliInputHandler {
         throw new IllegalArgumentException(I18n.translate("cli.play.invalidCoordinates"));
       }
 
-      String lettersInput = String.join(" ",
-          java.util.Arrays.copyOfRange(parts, lettersStartIndex, parts.length)).toUpperCase();
+      String lettersInput = String.join("",
+          java.util.Arrays.copyOfRange(parts, lettersStartIndex, parts.length));
+
       if (lettersInput.trim().isEmpty()) {
         throw new IllegalArgumentException(I18n.translate("cli.play.missingLetters"));
       }
@@ -166,28 +167,37 @@ public class CliInputHandler {
       final Point startPoint = new Point(x, y);
 
       List<Tile> tiles = new ArrayList<>();
-      List<Tile> rack = player.getRack().getTiles();
 
-      for (char letter : lettersInput.toCharArray()) {
+      List<Tile> availableRack = new ArrayList<>(player.getRack().getTiles());
+
+      for (char inputChar : lettersInput.toCharArray()) {
+        boolean isJokerRequested = Character.isLowerCase(inputChar);
+        char targetChar = Character.toUpperCase(inputChar);
         boolean found = false;
-        for (Tile tile : rack) {
-          if (tile.getCharacter() == letter) {
-            boolean alreadyUsed = false;
-            for (Tile t : tiles) {
-              if (t == tile) {
-                alreadyUsed = true;
-                break;
-              }
+
+        for (int i = 0; i < availableRack.size(); i++) {
+          Tile tile = availableRack.get(i);
+
+          if (isJokerRequested) {
+            if (tile.isJoker() || tile.getCharacter() == ' ') {
+              tiles.add(new Tile(targetChar, true));
+              availableRack.remove(i);
+              found = true;
+              break;
             }
-            if (!alreadyUsed) {
+          } else {
+            if (tile.getCharacter() == targetChar && !tile.isJoker()
+                && tile.getCharacter() != ' ') {
               tiles.add(tile);
+              availableRack.remove(i);
               found = true;
               break;
             }
           }
         }
+
         if (!found) {
-          messageRenderer.error(I18n.translate("cli.play.letterNotInRack", letter));
+          messageRenderer.error(I18n.translate("cli.play.letterNotInRack", inputChar));
           return null;
         }
       }

@@ -161,11 +161,16 @@ class AppTest {
   }
 
   @Test
-  void mainShouldExitWhenAiColorValueMissing() {
-    ExitCalledException ex =
-        assertThrows(ExitCalledException.class, () -> App.main(new String[] {"-a"}));
+  void mainShouldUseDefaultColorWhenAiColorValueMissing() {
+    App.setCliDelegateForTests((gameMode, players, aiColors,
+                                blitzMode, blitzMinutes, aiTime, useExptiminimax,
+                                useMl, lang, savePath) -> {
+      assertTrue(aiColors.contains("RED"), "L'IA devrait avoir la couleur par défaut RED.");
+    });
 
-    assertEquals(1, ex.status);
+    App.main(new String[] {"-a"});
+
+    App.resetHandlersForTests();
   }
 
   @Test

@@ -21,7 +21,7 @@ public class Tile {
   public Tile(char character) {
     this.character = character;
     this.value = getStandardValue(character);
-    this.isJoker = false;
+    this.isJoker = (character == ' ');
   }
 
   /**

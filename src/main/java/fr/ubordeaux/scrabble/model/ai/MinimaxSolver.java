@@ -74,12 +74,14 @@ public class MinimaxSolver {
    * @return The best PlayableWord found, or null if no moves are possible.
    */
   public PlayableWord findBestMove(Game game, Gaddag gaddag) {
-    long startTime = System.currentTimeMillis();
+
 
     List<PlayableWord> possibleMoves = moveGenerator.getPlayableWordsList(game, gaddag);
     if (possibleMoves.isEmpty()) {
       return null;
     }
+
+    long startTime = System.currentTimeMillis();
 
     PlayableWord bestMove = null;
     double bestScore = Double.NEGATIVE_INFINITY;
@@ -396,9 +398,14 @@ public class MinimaxSolver {
           dir == Direction.VERTICAL ? startY + i : startY);
       Square s = board.getSquare(p);
 
-      // If the square is empty, the letter is taken from the hand
       if (s != null && s.isEmpty()) {
-        rackLetters.remove(String.valueOf(word.charAt(i)));
+        String neededLetter = String.valueOf(word.charAt(i));
+
+        if (rackLetters.contains(neededLetter)) {
+          rackLetters.remove(neededLetter);
+        } else {
+          rackLetters.remove(" ");
+        }
       }
     }
 

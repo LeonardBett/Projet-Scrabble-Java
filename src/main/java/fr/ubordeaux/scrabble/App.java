@@ -273,12 +273,11 @@ public class App {
         case "-d", "--debug" -> GameLogger.setDebug(true);
         case "--ai-ml" -> useMl = true;
         case "-a", "--ai" -> {
-          if (i + 1 >= args.length) {
-            System.err.println(I18n.translate("app.err.missingAiColor"));
-            exitHandler.exit(1);
-            return;
+          if (i + 1 < args.length && !args[i + 1].startsWith("-")) {
+            aiColors.add(args[++i].toUpperCase());
+          } else {
+            aiColors.add("RED");
           }
-          aiColors.add(args[++i].toUpperCase());
         }
         case "-p", "--players" -> {
           if (i + 1 >= args.length) {

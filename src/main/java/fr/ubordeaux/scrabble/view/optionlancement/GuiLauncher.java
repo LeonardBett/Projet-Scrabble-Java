@@ -50,8 +50,15 @@ public class GuiLauncher {
     int humanCount = 1;
     for (int i = 1; i <= count; i++) {
       PlayerColor color = PlayerColor.fromIndex(i - 1);
-      boolean isAi =
-          aiColors != null && aiColors.stream().anyMatch(c -> c.equalsIgnoreCase(color.name()));
+      boolean isAi = false;
+
+      if (aiColors != null) {
+        if (aiColors.contains("A")) {
+          isAi = true;
+        } else if (aiColors.stream().anyMatch(c -> c.equalsIgnoreCase(color.name()))) {
+          isAi = true;
+        }
+      }
 
       if (isAi) {
         AiPlayer ai = new AiPlayer("IA-" + color.name(), 3, aiTime, color);

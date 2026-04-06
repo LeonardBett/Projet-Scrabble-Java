@@ -33,6 +33,7 @@ public class Game {
   private boolean started;
   private boolean blitzModeEnabled;
   private Duration blitzTimePerPlayer;
+  private int consecutivePasses;
 
   /**
    * Builds a new game with an empty player list and initialized board/bag.
@@ -80,6 +81,7 @@ public class Game {
     this.blitzModeEnabled = false;
     this.blitzTimePerPlayer = DEFAULT_BLITZ_TIME;
     this.dictionaryPathOverride = System.getProperty("scrabble.dictionary.path");
+    this.consecutivePasses = 0;
   }
 
   /**
@@ -197,6 +199,22 @@ public class Game {
     // 3. Add move to history
     undoRedo.addMove(move);
 
+    if (move.getType() == MoveType.PASS) {
+      consecutivePasses++;
+    } else {
+      consecutivePasses = 0;
+    }
+
+    int maxPasses = players.size() * 2;
+    if (consecutivePasses >= maxPasses) {
+      setGameOver(true);
+      if (blitzModeEnabled && getCurrentPlayer() != null) {
+        getCurrentPlayer().pauseTurnTimer();
+      }
+      GameLogger.logVerbose("Game Over: Both Players skipped their turns twice.");
+      return;
+    }
+
     // Scrabble end condition: player emptied rack while bag is empty.
     if (shouldEndOnEmptyRackAndBag(move)) {
       applyRemainingRackPointsBonus(move.getPlayer());
@@ -209,6 +227,18 @@ public class Game {
 
     // 4. Prepare next turn
     nextTurn();
+  }
+
+  private void updateConsecutivePasses() {
+    consecutivePasses = 0;
+    List<Move> history = undoRedo.getHistory();
+    for (int i = history.size() - 1; i >= 0; i--) {
+      if (history.get(i).getType() == MoveType.PASS) {
+        consecutivePasses++;
+      } else {
+        break;
+      }
+    }
   }
 
   private boolean shouldEndOnEmptyRackAndBag(Move move) {
@@ -539,6 +569,7 @@ public class Game {
     if (!boardHasAnyTile()) {
       setFirstMoveDone(false);
     }
+    updateConsecutivePasses();
   }
 
   /**
@@ -573,6 +604,7 @@ public class Game {
         redoneHumanMove = true;
       }
     }
+    updateConsecutivePasses();
   }
 
   /**

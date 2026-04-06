@@ -89,16 +89,19 @@ public class CliLauncher {
 
       boolean isAi = false;
       if (aiColors != null) {
-        for (String aiCol : aiColors) {
-          if (color.name().equalsIgnoreCase(aiCol)) {
-            isAi = true;
-            break;
+        if (aiColors.contains("A")) {
+          isAi = true;
+        } else {
+          for (String aiCol : aiColors) {
+            if (color.name().equalsIgnoreCase(aiCol)) {
+              isAi = true;
+              break;
+            }
           }
         }
       }
 
       if (isAi) {
-        // Le temps de réflexion 'aiTime' est maintenant correctement injecté au lieu du 5
         game.addPlayer(new AiPlayer("IA-" + color.name(), 3, aiTime, color));
       } else {
         game.addPlayer(

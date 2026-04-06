@@ -528,9 +528,36 @@ public class ScrabbleGui extends Application {
       return;
     }
 
-    pendingTiles.put(point, currentlyDraggedTile);
-    boardPanel.placeTile(row, col, currentlyDraggedTile.getCharacter(),
-        currentlyDraggedTile.getValue());
+    Tile tileToPlace = currentlyDraggedTile;
+
+    if (tileToPlace.isJoker() || tileToPlace.getCharacter() == ' ') {
+      TextInputDialog dialog = new TextInputDialog();
+      dialog.setTitle("Joker");
+      dialog.setHeaderText("You played a joker!");
+      dialog.setContentText("Which character would you like to place ? (A-Z) :");
+
+      Optional<String> result = dialog.showAndWait();
+
+      if (result.isPresent() && !result.get().trim().isEmpty()) {
+        char chosenChar = result.get().trim().toUpperCase().charAt(0);
+
+        if (chosenChar >= 'A' && chosenChar <= 'Z') {
+          tileToPlace = new Tile(chosenChar, true);
+        } else {
+          showError("Please write a valid character (A-Z).");
+          currentlyDraggedTile = null;
+          return;
+        }
+      } else {
+        currentlyDraggedTile = null;
+        return;
+      }
+    }
+
+    pendingTiles.put(point, tileToPlace);
+
+    boardPanel.placeTile(row, col, tileToPlace.getCharacter(), tileToPlace.getValue());
+
     rackPanel.hideTile(currentlyDraggedTile);
     currentlyDraggedTile = null;
   }

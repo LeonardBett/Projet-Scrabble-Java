@@ -148,50 +148,49 @@ public class MoveHandler {
    * @param move move to apply.
    */
   public void handlePlayMove(Move move) {
-    // 1. Extract move details
     Player player = move.getPlayer();
     List<Tile> tiles = move.getTiles();
     Point startPosition = move.getStartPosition();
     Direction direction = move.getDirection();
 
-    // Build and validate the word (including prefix/suffix).
     List<Square> wordSquares = new ArrayList<>();
     List<Point> wordPositions = new ArrayList<>();
     List<Square> newlyPlacedSquares = new ArrayList<>();
     List<Point> newlyPlacedPositions = new ArrayList<>();
     List<Tile> newlyPlacedTiles = new ArrayList<>();
-    buildWordForMove(
-        startPosition,
-        direction,
-        tiles,
-        wordSquares,
-        wordPositions,
-        newlyPlacedSquares,
-        newlyPlacedPositions,
-        newlyPlacedTiles);
-    validateWordsAgainstDictionary(getFormedWords(startPosition, direction, tiles));
-    // Resolve concrete rack tiles to consume (supports jokers replacing letters)
-    List<Tile> resolvedTiles = resolveTilesFromRack(player.getRack().getTiles(), newlyPlacedTiles);
 
-    // Place the tiles from the move into the recorded newly placed positions
-    for (int i = 0; i < newlyPlacedPositions.size(); i++) {
-      Point p = newlyPlacedPositions.get(i);
-      Square sq = game.getBoard().getSquare(p);
-      Tile tileToPlace = resolvedTiles.get(i);
-      if (!sq.isEmpty()) {
-        throw new IllegalArgumentException("Attempting to place a tile on a non-empty square.");
+    buildWordForMove(startPosition, direction, tiles, wordSquares, wordPositions,
+        newlyPlacedSquares, newlyPlacedPositions, newlyPlacedTiles);
+
+    validateWordsAgainstDictionary(getFormedWords(startPosition, direction, tiles));
+
+    List<Tile> originalTilesFromRack = new ArrayList<>();
+    List<Tile> boardTilesToPlace = new ArrayList<>();
+
+    List<Tile> currentRack = new ArrayList<>(player.getRack().getTiles());
+    for (Tile requested : newlyPlacedTiles) {
+      Tile fromRack = findAndConsumeMatchingTile(currentRack, requested);
+      if (fromRack == null) {
+        throw new IllegalArgumentException(
+            "Player does not have the tile " + requested.getCharacter());
       }
-      sq.setTile(tileToPlace);
+      originalTilesFromRack.add(fromRack);
+
+      if (fromRack.isJoker() && requested.getCharacter() != ' ') {
+        boardTilesToPlace.add(new Tile(requested.getCharacter(), true));
+      } else {
+        boardTilesToPlace.add(fromRack);
+      }
     }
 
-    // Save placed positions in the move for undo
+    for (int i = 0; i < newlyPlacedPositions.size(); i++) {
+      game.getBoard().getSquare(newlyPlacedPositions.get(i)).setTile(boardTilesToPlace.get(i));
+    }
+
     move.setPlacedPositions(newlyPlacedPositions);
-    move.setPlacedTiles(resolvedTiles);
+    move.setPlacedTiles(boardTilesToPlace);
 
-    // 5. Calculate the score using the Scoring utility (main word + crosses)
-    int totalScore = 0;
-    totalScore += Scoring.calculateWordScore(wordSquares, newlyPlacedSquares);
-
+    int totalScore = Scoring.calculateWordScore(wordSquares, newlyPlacedSquares);
     for (Point p : newlyPlacedPositions) {
       List<Square> cross = getPerpendicularWordSquares(p, direction);
       if (cross.size() > 1) {
@@ -200,21 +199,14 @@ public class MoveHandler {
     }
 
     player.addScore(totalScore);
-
-    // Save score in move for undo
     move.setScoreGained(totalScore);
 
-    // 6. Remove the used tiles from the player's rack (resolved from rack content)
-    for (Tile tile : resolvedTiles) {
-      player.getRack().removeTile(tile);
+    for (Tile originalTile : originalTilesFromRack) {
+      player.getRack().removeTile(originalTile);
     }
 
-    // 7. Refill the player's rack from the bag
     List<Tile> drawn = game.refillRack(player);
     move.setDrawnTiles(drawn);
-
-    GameLogger.logVerbose(
-        "Player " + player.getName() + " played a word for " + totalScore + " points.");
   }
 
   private void validateWordsAgainstDictionary(List<String> formedWords) {

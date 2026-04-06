@@ -11,6 +11,7 @@ import fr.ubordeaux.scrabble.model.core.Game;
 import fr.ubordeaux.scrabble.model.core.HumanPlayer;
 import fr.ubordeaux.scrabble.model.core.Tile;
 import fr.ubordeaux.scrabble.model.enums.PlayerColor;
+import fr.ubordeaux.scrabble.model.interfaces.Player;
 import fr.ubordeaux.scrabble.model.network.NetworkManager;
 import fr.ubordeaux.scrabble.model.utils.Point;
 import fr.ubordeaux.scrabble.view.gui.JavaFxView;
@@ -334,17 +335,22 @@ class ScrabbleGuiInstanceTest {
 
   @Test
   void multipleTilesDroppedInSequence() {
-    Tile t1 = game.getCurrentPlayer().getRack()
-        .getTiles().get(0);
-    Tile t2 = game.getCurrentPlayer().getRack()
-        .getTiles().get(1);
+    Player currentPlayer = game.getCurrentPlayer();
+    game.forceTilesToPlayer(currentPlayer.getName(),
+        java.util.List.of(new Tile('A'), new Tile('B')));
+
+    Tile t1 = currentPlayer.getRack().getTiles().get(0);
+    Tile t2 = currentPlayer.getRack().getTiles().get(1);
+
     gui.onTileDragged(t1);
     gui.onTileDropped(7, 7);
+
     gui.onTileDragged(t2);
     gui.onTileDropped(7, 8);
+
     @SuppressWarnings("unchecked")
     Map<Point, Tile> pending = (Map<Point, Tile>) getField(gui, "pendingTiles");
-    assertEquals(2, pending.size());
+    assertEquals(2, pending.size(), "There should be exactly 2 pending tiles on the board.");
   }
 
   @Test
