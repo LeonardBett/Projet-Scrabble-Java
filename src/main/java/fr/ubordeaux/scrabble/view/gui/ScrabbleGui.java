@@ -9,6 +9,7 @@ import fr.ubordeaux.scrabble.model.core.Move;
 import fr.ubordeaux.scrabble.model.core.Rack;
 import fr.ubordeaux.scrabble.model.core.Tile;
 import fr.ubordeaux.scrabble.model.dictionary.Gaddag;
+import fr.ubordeaux.scrabble.model.enums.GameMode;
 import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
 import fr.ubordeaux.scrabble.model.network.NetworkManager;
@@ -144,7 +145,7 @@ public class ScrabbleGui extends Application {
   @Override
   public void start(Stage stage) {
     if (gameInstance == null) {
-      throw new IllegalStateException("Appelez ScrabbleGui.setGame() avant de lancer.");
+      gameInstance = createFallbackGame();
     }
 
     networkManager = new NetworkManager();
@@ -200,6 +201,55 @@ public class ScrabbleGui extends Application {
       scorePanel.startBlitzTimers(gameInstance.getPlayers(), this::onBlitzTimeExpired);
     }
     refreshAll();
+  }
+
+  private Game createFallbackGame() {
+    ConfigLoader config = new ConfigLoader();
+    config.loadConfig();
+
+    String language = config.getOption("language", configuredLanguage);
+    setLanguage(language);
+
+    boolean superScrabble = Boolean.parseBoolean(config.getOption("super-scrabble", "false"));
+    boolean blitzMode = Boolean.parseBoolean(config.getOption("blitz", "false"));
+    int blitzMinutes = readIntConfig(config, "timeout", 30);
+    int aiTimeSeconds = readIntConfig(config, "ai-time", 5);
+    boolean useExpectiminimax = Boolean.parseBoolean(config.getOption("ai-exptiminimax", "false"));
+
+    int playerCount = readIntConfig(config, "players-count", 2);
+    if (playerCount < 2) {
+      playerCount = 2;
+    } else if (playerCount > 4) {
+      playerCount = 4;
+    }
+
+    Game fallbackGame = new Game(superScrabble ? GameMode.SUPER : GameMode.STANDARD, language);
+    if (blitzMode) {
+      fallbackGame.enableBlitzMode(java.time.Duration.ofMinutes(blitzMinutes));
+    }
+
+    for (int index = 0; index < playerCount; index++) {
+      if (index == 0) {
+        fallbackGame.addPlayer(
+            new HumanPlayer("Player" + (index + 1), PlayerColor.fromIndex(index)));
+      } else {
+        AiPlayer ai = new AiPlayer("IA-" + PlayerColor.fromIndex(index).name(), 3, aiTimeSeconds,
+            PlayerColor.fromIndex(index));
+        ai.setExpectiminimaxMode(useExpectiminimax);
+        fallbackGame.addPlayer(ai);
+      }
+    }
+    fallbackGame.startGame();
+    return fallbackGame;
+  }
+
+  private int readIntConfig(ConfigLoader config, String key, int fallback) {
+    String rawValue = config.getOption(key, String.valueOf(fallback));
+    try {
+      return Integer.parseInt(rawValue.trim());
+    } catch (NumberFormatException e) {
+      return fallback;
+    }
   }
 
   private void connectButtons() {
