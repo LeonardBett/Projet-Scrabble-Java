@@ -37,3 +37,6 @@ src/main/resources/ai/model_*/
 src/main/resources/ai/labels_*.txt
 
 **.scrabble
+
+**.pygtex
+**.pygstyle
