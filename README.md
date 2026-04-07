@@ -50,6 +50,23 @@ Use `-s` or `--super` to start a game on a `21x21` board. The standard mode rema
 ./run.sh -s
 ```
 
+### GUI Keyboard Shortcuts
+
+If you are using the Graphical User Interface (GUI), you can easily customize your keyboard shortcuts at any time during the game.
+
+Simply press **`CTRL + ,`** (Control + Comma) to open the shortcut configuration menu.
+
+### Machine Learning AI Setup
+
+To use the Machine Learning option for the artificial intelligence player (e.g., via the `--ai-ml` flag), you must first train the neural network model.
+
+**Prerequisite:** You must have **Python** installed on your system.
+
+Run the following script from the root of the repository to start the training process:
+
+```bash
+./train_ml.sh
+````
 
 
 ## Getting started

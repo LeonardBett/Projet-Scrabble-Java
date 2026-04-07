@@ -1,19 +1,28 @@
 \documentclass[a4paper]{article}
 
 \usepackage{pdp}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{tikz}
+\usetikzlibrary{trees,shapes,arrows}
 
 %------------------------------------------------------------------------------
 %	REPORT INFORMATION
 %------------------------------------------------------------------------------
 
-\title{ProjectName -- C/Java/Python}
+\title{ProjectName -- Java}
 \subtitle{Rapport final}
 \author{Étudiant1, Étudiant2, Étudiant3, Étudiant4, Étudiant5}
 
 %------------------------------------------------------------------------------
 
 \begin{document}
-
+	% Définition des styles TikZ pour les nœuds des schémas
+	\tikzstyle{decisionMax} = [isosceles triangle, draw, shape border rotate=90, minimum width=1.5cm, inner sep=2pt, font=\small, align=center]
+	\tikzstyle{decisionMin} = [isosceles triangle, draw, shape border rotate=270, minimum width=1.5cm, inner sep=2pt, font=\small, align=center]
+	\tikzstyle{chance} = [circle, draw, minimum size=1.2cm, font=\small, align=center]
+	\tikzstyle{leaf} = [text width=1cm, text centered, font=\scriptsize]
 %------------------------------------------------------------------------------
 %	TITLE PAGE
 %------------------------------------------------------------------------------
@@ -25,48 +34,163 @@
 %	MAIN MATTER
 %------------------------------------------------------------------------------
 
-\section*{Introduction}
+	\section{L'Algorithme Minimax :}
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor
-incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis
-nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-culpa qui officia deserunt mollit anim id est laborum.
+	Conçu pour des jeux à information parfaite et à somme nulle comme les Échecs, l'algorithme Minimax modélise l'arbre des coups possibles en alternant un tour où l'IA cherche à maximiser son score, et un tour où elle simule un adversaire cherchant à minimiser l'avantage de l'IA.
 
-Pellentesque iaculis molestie euismod. In hac habitasse platea dictumst. Duis eu
-gravida sem. Vivamus pulvinar, tellus auctor sollicitudin iaculis, quam massa
-blandit ligula, in mollis est tellus et velit. Nulla gravida sapien nibh, nec
-faucibus lorem aliquam sed. Curabitur rutrum elit purus, et congue neque
-venenatis vitae. Sed non magna nisi. Pellentesque euismod non ipsum a hendrerit.
-Pellentesque vehicula tincidunt lacinia. Sed rhoncus porttitor facilisis.
+	Pour adapter cet algorithme au Scrabble (où le chevalet adverse est inconnu), notre implémentation déduit d'abord les tuiles restantes en soustrayant du jeu complet les lettres déjà posées sur le plateau et celles présentes dans le chevalet de l'IA. Ensuite, le solveur utilise une méthode de Monte-Carlo : il simule l'adversaire en tirant aléatoirement 200 chevalets virtuels de 7 lettres parmi ces tuiles restantes. Le Minimax évalue alors le pire scénario possible : parmi ces 200 simulations, il retient le coup adverse qui marque le plus de points, et le soustrait du score du coup envisagé par l'IA.
 
-Etiam sed molestie odio. Nunc cursus sollicitudin est vitae posuere. Nullam
-pellentesque metus eu dui porttitor bibendum. Morbi egestas arcu ut urna dictum
-placerat non non nisl. Quisque non ante in eros cursus pulvinar. Sed augue
-libero, eleifend a urna eget, pellentesque condimentum odio. Sed sed dui non
-diam mattis interdum eget sed urna. Integer consectetur, erat id rutrum posuere,
-dui velit dictum mi, quis tincidunt magna diam sit amet nunc. Etiam dui augue,
-sollicitudin rhoncus nisl a, rhoncus tempor purus.
+	\subsection*{L'impact de l'heuristique}
+	Au Scrabble, évaluer un coup uniquement par les points qu'il rapporte sur le plateau est n'est pas le plus pertinent. L'algorithme intègre donc une fonction heuristique d'évaluation qui note la qualité des lettres conservées sur le chevalet après un coup. Cette heuristique donne des bonus et malus en fonction de:
 
-Suspendisse cursus erat et metus fermentum ullamcorper. Etiam eros arcu, dapibus
-quis efficitur ut, congue id nunc. Pellentesque aliquam venenatis convallis.
-Nulla nisi justo, aliquet quis lacus eget, aliquet maximus velit. Maecenas ex
-turpis, iaculis eget dignissim non, efficitur vel mi. Maecenas pharetra elit
-ornare sem suscipit ornare id id sapien. Vivamus sem neque, consectetur vitae
-aliquet non, finibus eu lectus. Fusce aliquam ipsum ut viverra vehicula. Donec
-ultrices varius nulla vel finibus. Donec convallis fringilla ante id porta.
+	\begin{itemize}
+		\item Un joker conservé rapporte un bonus massif de +15.0 points.
+		\item La lettre 'S' rapporte +8.0 points.
+		\item Les lettres difficiles (J, K, Q, X, Z) appliquent un malus de -6.0 points.
+		\item L'équilibre voyelles/consonnes est récompensé (+5.0 points) tandis qu'un chevalet exclusivement composé de voyelles ou de consonnes est lourdement pénalisé (-12.0 points).
+	\end{itemize}
 
-\section{Première section}
+	\subsection*{Complexité et coût}
+	Dans notre implémentation de Monte-Carlo, l'algorithme ne disposant pas d'élagage Alpha-Beta, la complexité temporelle est strictement identique à celle de l'Expectiminimax, soit $O(B \times N \times B)$ pour une anticipation d'un tour de l'adversaire (où $B$ est le facteur de branchement et $N=200$ le nombre de tirages simulés). La complexité reste modérée car le parcours se fait en profondeur d'abord. Le coût est massif puisqu'il doit évaluer exactement les 200 scénarios complets. L'exécution est donc bridée par une limite de temps stricte (\texttt{timeLimitMs}), l'empêchant de calculer sur plusieurs tours d'anticipation.
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor
-incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis
-nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-culpa qui officia deserunt mollit anim id est laborum.
+	\subsection*{Performances}
+	La performance défensive est excellente. En s'attendant systématiquement au pire, l'IA verrouille le plateau et évite d'ouvrir des cases multiplicatrices dangereuses. Mais ce pessimisme absolu la rend parfois trop peu entreprenante sur le plan offensif. De plus, puisqu'elle paie le même coût que l'Expectiminimax sans bénéficier d'une prise de décision nuancée, cette implémentation se révèle, à temps de calcul égal, moins optimale que l'approche probabiliste.
 
-\section{Seconde section}
+	\section{L'Algorithme Expectiminimax :}
+
+	L'Expectiminimax est l'évolution du Minimax pour les jeux intégrant du hasard. Il introduit un nouveau type de nœud dans l'arbre de recherche : les "nœuds de chance" (chance nodes). Au lieu de considérer que l'adversaire jouera le pire coup absolu, l'algorithme calcule l'espérance mathématique de tous les coups possibles en fonction de leur probabilité.
+
+	Dans notre code, la méthode \texttt{expectiminimax()} utilise la même base de simulation que le Minimax (les 200 tirages aléatoires de chevalets adverses). Cependant, au lieu d'extraire la valeur maximale de ces simulations, l'algorithme calcule la moyenne des meilleurs scores adverses obtenus sur ces 200 échantillons. Il évalue ainsi un coup en soustrayant cette "réponse moyenne attendue" du score du coup de l'IA.
+
+	\subsection*{L'impact de l'heuristique}
+L'Expectiminimax ne se contente pas de calculer mathématiquement les risques sur le plateau. Pour juger de la force réelle d'un coup, l'IA additionne deux éléments concrets :
+\begin{itemize}
+    \item \textbf{Le risque sur le plateau (L'algorithme) :} L'IA vérifie qu'elle ne laisse pas d'opportunités trop faciles et dangereuses à l'adversaire (comme ouvrir l'accès à une case "Mot Compte Triple").
+    \item \textbf{La qualité de sa main (L'heuristique) :} L'IA évalue les lettres qu'elle garde sur son chevalet pour son prochain tour.
+\end{itemize}
+C'est le compromis entre ces deux visions qui rend l'IA véritablement intelligente. Par exemple, si un coup sécurise parfaitement le plateau mais oblige l'IA à conserver une main catastrophique, l'heuristique va agir comme un garde-fou et lourdement pénaliser ce choix. L'IA cherche donc toujours l'équilibre parfait entre "limiter la casse sur le plateau" et "garder de bonnes lettres pour l'avenir".
+
+	\subsection*{Complexité et coût}
+	La complexité est de $O(B \times N \times B)$, ce qui provoque une explosion combinatoire. Bien que son coût soit strictement identique à celui de notre Minimax actuel, l'Expectiminimax a l'inconvénient théorique de ne presque pas pouvoir être optimisé par des techniques d'élagage (comme l'Alpha-Beta). En effet, le calcul d'une espérance mathématique exige d'explorer toutes les probabilités jusqu'au bout, ce qui le coupe quasi systématiquement avant d'atteindre une profondeur de recherche de 2.
+
+	\subsection*{Performances}
+	Sur le papier et dans notre code actuel, c'est la meilleure performance stratégique pour le Scrabble. L'évaluation du risque est mieux gérée : l'IA n'hésitera pas à ouvrir un "Mot Compte Triple" si elle calcule que la probabilité que l'adversaire possède les lettres exactes pour s'y placer est très faible. Le style de jeu devient plus naturel. Étant donné que son coût est identique à celui du Minimax dans notre code, l'Expectiminimax s'avère supérieur dans la prise de ses décisions.
+
+	% ------------------------------------------------------------------------------
+	% Section : Schémas Comparatifs
+	% ------------------------------------------------------------------------------
+	\section{Comparaison Structurelle des Arbres de Décision}
+
+	Les schémas ci-dessous mettent en évidence que la différence entre nos deux algorithmes n'est pas structurelle (l'arbre exploré est identique), mais réside uniquement dans la méthode d'agrégation des nœuds de simulation.
+
+	  \begin{figure*}[h!]
+		\centering
+
+		% ---------- ARBRE MINIMAX (PESSIMISTE) ----------
+		\begin{minipage}{0.48\textwidth}
+			\centering
+			\begin{tikzpicture}[
+				>=stealth,
+				edge from parent/.style={draw, ->},
+				level 1/.style={sibling distance=3.5cm, level distance=2cm},
+				level 2/.style={sibling distance=1.5cm, level distance=2cm},
+				level 3/.style={sibling distance=1.5cm, level distance=1.2cm},
+				decisionMax/.style={isosceles triangle, draw, shape border rotate=90, minimum height=0.8cm, inner sep=2pt, font=\scriptsize\sffamily},
+				decisionMin/.style={isosceles triangle, draw, shape border rotate=270, minimum height=0.8cm, inner sep=2pt, font=\scriptsize\sffamily},
+				pessimist/.style={rectangle, draw, minimum size=0.9cm, font=\scriptsize\sffamily},
+				leaf/.style={font=\scriptsize\sffamily}
+				]
+
+				\node[decisionMax, align=center] {IA\\(MAX)}
+				child { node[pessimist, align=center] (min1) {MIN}
+					child { node[decisionMin, align=center] {Adv.}
+						child { node[leaf] {$s_1$} }
+						edge from parent node[left, font=\tiny\sffamily] {Sim 1}
+					}
+					child { node[font=\scriptsize\sffamily] {\dots} edge from parent[draw=none] }
+					child { node[decisionMin, align=center] {Adv.}
+						child { node[leaf] {$s_{200}$} }
+						edge from parent node[right, font=\tiny\sffamily] {Sim 200}
+					}
+					edge from parent node[left, font=\scriptsize\sffamily, xshift=-0.1cm] {Coup $m_1$}
+				}
+				child { node[font=\scriptsize\sffamily] {\dots} edge from parent[draw=none] }
+				child { node[pessimist, align=center] {MIN}
+					edge from parent node[right, font=\scriptsize\sffamily, xshift=0.1cm] {Coup $m_B$}
+				};
+
+				% CORRECTION ICI : Coordonnées absolues (0, -2.5) pour forcer le placement dans le vide
+				\node[draw, dashed, font=\scriptsize\sffamily, fill=gray!10, align=center] (agg1) at (0, -2.5) {Pire cas\\$\max(s_1..s_{200})$};
+				\draw[->, dotted] (agg1) -- (min1);
+			\end{tikzpicture}
+			\caption{ \textbf{Agrégation Pessimiste}}
+		\end{minipage}
+		\hfill
+		% ---------- ARBRE EXPECTIMINIMAX (PROBABILISTE) ----------
+		\begin{minipage}{0.48\textwidth}
+			\centering
+			\begin{tikzpicture}[
+				>=stealth,
+				edge from parent/.style={draw, ->},
+				level 1/.style={sibling distance=3.5cm, level distance=2cm},
+				level 2/.style={sibling distance=1.5cm, level distance=2cm},
+				level 3/.style={sibling distance=1.5cm, level distance=1.2cm},
+				decisionMax/.style={isosceles triangle, draw, shape border rotate=90, minimum height=0.8cm, inner sep=2pt, font=\scriptsize\sffamily},
+				decisionMin/.style={isosceles triangle, draw, shape border rotate=270, minimum height=0.8cm, inner sep=2pt, font=\scriptsize\sffamily},
+				chance/.style={circle, draw, minimum size=0.9cm, font=\scriptsize\sffamily},
+				leaf/.style={font=\scriptsize\sffamily}
+				]
+
+				\node[decisionMax, align=center] {IA\\(MAX)}
+				child { node[chance, align=center] (chance1) {Hasard}
+					child { node[decisionMin, align=center] {Adv.}
+						child { node[leaf] {$s_1$} }
+						edge from parent node[left, font=\tiny\sffamily] {Sim 1}
+					}
+					child { node[font=\scriptsize\sffamily] {\dots} edge from parent[draw=none] }
+					child { node[decisionMin, align=center] {Adv.}
+						child { node[leaf] {$s_{200}$} }
+						edge from parent node[right, font=\tiny\sffamily] {Sim 200}
+					}
+					edge from parent node[left, font=\scriptsize\sffamily, xshift=-0.1cm] {Coup $m_1$}
+				}
+				child { node[font=\scriptsize\sffamily] {\dots} edge from parent[draw=none] }
+				child { node[chance, align=center] {Hasard}
+					edge from parent node[right, font=\scriptsize\sffamily, xshift=0.1cm] {Coup $m_B$}
+				};
+
+				% CORRECTION ICI : Coordonnées absolues (0, -2.5) pour forcer le placement dans le vide
+				\node[draw, dashed, font=\scriptsize\sffamily, fill=gray!10, align=center] (agg2) at (0, -2.5) {Moyenne\\$\frac{1}{200}\sum s_i$};
+				\draw[->, dotted] (agg2) -- (chance1);
+			\end{tikzpicture}
+			\caption{\textbf{Agrégation Probabiliste}}
+		\end{minipage}
+
+	\end{figure*}
+
+	\section{Le Machine Learning :}
+
+	Contrairement aux algorithmes de recherche arborescente, le Machine Learning propose une approche statistique. Notre implémentation utilise un réseau de neurones conçu avec TensorFlow. L'architecture du modèle traite la recherche de mots comme un problème de classification multiclasse:
+
+	\begin{itemize}
+		\item \textbf{L'entrée :} Le chevalet du joueur est converti en un tenseur de 26 dimensions, représentant la fréquence de chaque lettre (de A à Z).
+		\item \textbf{Les couches cachées :} Deux couches denses de 256 et 512 neurones analysent les motifs et anagrammes.
+		\item \textbf{La sortie :} Une couche Softmax fournit une distribution de probabilités sur l'ensemble du dictionnaire (une probabilité par mot existant).
+	\end{itemize}
+
+	En jeu, l'agent Java interroge ce modèle pré-entraîné, filtre les mots ayant une probabilité de faisabilité supérieure à 0,1\%, et trie les 100 meilleures prédictions.
+
+	\subsection*{Complexité et coût}
+	La complexité est divisée en deux parties. La phase d'entraînement a une complexité linéaire dépendante de la taille du dictionnaire, du nombre d'époques et de la taille des lots. En partie, la complexité d'inférence est constante, soit $O(1)$. Le coût en jeu est faible (quelques millisecondes pour une matrice tensorielle). En revanche, le coût en mémoire vive est élevé en raison du chargement natif des bibliothèques TensorFlow et du graphe du modèle dans l'environnement Java.
+
+	\subsection*{Performances}
+	La performance pure est très efficace pour trouver des anagrammes complexes. Mais la performance de jeu est nulle de manière autonome : le réseau actuel ignore totalement l'état du plateau et les contraintes de placement. Le moteur doit d'ailleurs prévoir une redirection vers les algorithmes arborescents si aucun des mots prédits par l'IA ne peut être légalement posé.
+
+	\section*{Conclusion :}
+
+	La comparaison de ces méthodes met en évidence qu'aucun algorithme n'est parfait s'il est utilisé de manière isolée. L'Expectiminimax est le champion de la stratégie probabiliste, mais son coût le rend peu intéressant pour des recherches profondes. Le Minimax classique est efficace,surtout avec une bonne heuristique, mais excessivement défensif face à l'inconnu, et notre implémentation le prive de son avantage temporel théorique. Le Machine Learning est un très bon calculateur d'anagrammes, mais il est "aveugle" aux règles de placement sur le plateau.
+
+	La solution la plus efficace réside dans la fusion de ces approches. La complexité de l'Expectiminimax provient de son facteur de branchement immense (générer tous les mots possibles). En utilisant le Machine Learning comme un outil d'élagage probabiliste, le modèle TensorFlow peut instantanément suggérer les 20 meilleurs mots possibles depuis le chevalet. L'Expectiminimax n'a plus qu'à évaluer ces 20 branches réduites face aux risques du plateau, obtenant ainsi la certitude mathématique et probabiliste tout en respectant un temps de calcul extrêmement restreint.
 
 Voici un exemple de code en Python :
 
