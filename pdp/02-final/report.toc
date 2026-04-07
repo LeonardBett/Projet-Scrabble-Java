@@ -1,0 +1,31 @@
+\babel@toc {french}{}\relax 
+\contentsline {section}{\numberline {1}Historique et Nature du Sujet}{3}{section.1}%
+\contentsline {subsection}{\numberline {1.1}Historique du sujet}{3}{subsection.1.1}%
+\contentsline {paragraph}{}{3}{subsection.1.1}%
+\contentsline {paragraph}{}{3}{subsection.1.1}%
+\contentsline {paragraph}{}{3}{subsection.1.1}%
+\contentsline {paragraph}{}{3}{subsection.1.1}%
+\contentsline {subsection}{\numberline {1.2}Nature et enjeux du jeu}{3}{subsection.1.2}%
+\contentsline {paragraph}{Deroulement d'une partie}{3}{Item.3}%
+\contentsline {subsection}{\numberline {1.3}Complexite du jeu et defis algorithmiques}{3}{subsection.1.3}%
+\contentsline {paragraph}{Espace des etats}{4}{subsection.1.3}%
+\contentsline {paragraph}{Explosion combinatoire a chaque coup}{4}{subsection.1.3}%
+\contentsline {paragraph}{La qualite du reliquat}{4}{subsection.1.3}%
+\contentsline {paragraph}{La gestion des cases bonus}{4}{subsection.1.3}%
+\contentsline {paragraph}{Conclusion sur la difficulte}{4}{subsection.1.3}%
+\contentsline {subsection}{\numberline {1.4}Existant algorithmique}{4}{subsection.1.4}%
+\contentsline {paragraph}{Structures de donnees pour le dictionnaire}{4}{subsection.1.4}%
+\contentsline {paragraph}{Logiciels de reference}{4}{subsection.1.4}%
+\contentsline {paragraph}{Plateformes de jeu en ligne}{4}{subsection.1.4}%
+\contentsline {paragraph}{Open source}{4}{subsection.1.4}%
+\contentsline {section}{\numberline {2}L'Algorithme Minimax :}{4}{section.2}%
+\contentsline {section}{\numberline {3}L'Algorithme Expectiminimax :}{5}{section.3}%
+\contentsline {section}{\numberline {4}Comparaison des deux Algorithmes}{6}{section.4}%
+\contentsline {section}{\numberline {5}Le Machine Learning :}{7}{section.5}%
+\contentsline {section}{\numberline {6}DAWG et GADDAG}{7}{section.6}%
+\contentsline {paragraph}{Temps de chargement et validation simple.}{10}{table.2}%
+\contentsline {paragraph}{Génération de coups : l'avantage décisif du GADDAG.}{10}{table.2}%
+\contentsline {paragraph}{Conclusion du choix.}{11}{table.2}%
+\contentsline {part}{I\hspace {1em}Spécifications Étendues}{11}{part.1}%
+\contentsline {section}{\numberline {7}F21 — Sauvegarde et restauration d'une partie}{11}{section.7}%
+\contentsline {section}{\numberline {A}Section en annexe}{14}{appendix.A}%

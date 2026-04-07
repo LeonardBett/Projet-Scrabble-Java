@@ -335,6 +335,183 @@ C'est le compromis entre ces deux visions qui rend l'IA véritablement intellige
 
 	La solution la plus efficace réside dans la fusion de ces approches. La complexité de l'Expectiminimax provient de son facteur de branchement immense (générer tous les mots possibles). En utilisant le Machine Learning comme un outil d'élagage probabiliste, le modèle TensorFlow peut instantanément suggérer les 20 meilleurs mots possibles depuis le chevalet. L'Expectiminimax n'a plus qu'à évaluer ces 20 branches réduites face aux risques du plateau, obtenant ainsi la certitude mathématique et probabiliste tout en respectant un temps de calcul extrêmement restreint.
 
+% ==============================================================================
+% SECTION : DAWG ET GADDAG
+% À insérer après la conclusion de l'IA
+% ==============================================================================
+
+\section{DAWG et GADDAG}
+
+\subsection*{1. Introduction et contexte du problème}
+
+La génération de coups légaux au Scrabble impose une contrainte forte : la structure doit, en temps réel, trouver tous les mots jouables à partir d'une lettre déjà posée sur le plateau, que ce soit vers la gauche, la droite, ou les deux. Les structures classiques comme les tableaux de chaînes ou les arbres préfixes naïfs (Trie) sont inadaptées à cette contrainte, soit par leur lenteur de parcours, soit par leur consommation mémoire excessive face à un dictionnaire de 180\,000 mots comme ceux que nous avons utilisés. \newline
+
+Deux structures de données académiques répondent à ce problème : le DAWG (Directed Acyclic Word Graph), conçu pour la validation rapide de mots, et le GADDAG, une extension inventée spécifiquement pour le Scrabble par Steven Gordon en 1994 permettant une recherche bidirectionnelle depuis n'importe quelle ancre. Afin de justifier notre choix final, nous avons implémenté et benchmarké les deux structures sur notre dictionnaire.\newline
+
+% ------------------------------------------------------------------------------
+\subsection*{2. Le DAWG — Directed Acyclic Word Graph}
+
+\subsubsection*{2.1 Principe général}
+
+La structure de données DAWG représente une solution performante alliant vitesse d'exécution et économie de mémoire. Il s'agit d'un automate fini déterministe où chaque chemin partant de la racine correspond à un mot unique du dictionnaire. Sa particularité, qui la distingue d'un arbre préfixe classique, réside dans son optimisation poussée : le DAWG regroupe les mots partageant les mêmes préfixes, mais aussi les mêmes suffixes. \newline
+Par exemple, les mots CHAT et PLAT possèdent des débuts différents mais une terminaison identique ; lors de la construction, la structure va donc fusionner ces deux entrées au niveau de leur suffixe commun AT. \newline
+Cette approche permet de réduire drastiquement la redondance de l'information tout en garantissant une validation très rapide.\newline
+
+ \begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.5\textwidth]{exemple_Dawg.png}
+    \caption{Exemple d'une structure DAWG. (Source : ~\cite{10.1145/42411.42420})}
+    \label{fig:gaddag_care}
+\end{figure}
+
+\subsubsection*{2.2 Construction et complexité}
+
+La création d'un DAWG optimisé repose sur l'algorithme de Daciuk~\cite{10.1162/089120100561601}, qui impose une création des mots selon l'ordre lexicographique. Cette contrainte permet de traiter le dictionnaire de manière séquentielle : lorsqu'un nouveau mot est ajouté, l'algorithme identifie la partie de la structure qui ne sera plus modifiée et procède à la fusion des états équivalents, c'est-à-dire des nœuds possédant les mêmes transitions vers les mêmes états terminaux. \newline
+En matière de performance, la construction affiche une complexité temporelle de $O(|W| \times L)$, où $|W|$ représente le nombre total de mots et $L$ leur longueur moyenne. \newline
+
+Pour la phase de jeu, la recherche d'un mot s'effectue en un temps linéaire $O(N)$ par rapport à la longueur $N$ de la chaîne de caractères, ce qui garantit une validation quasi instantanée. 
+Cependant, cette structure unidirectionnelle montre ses limites dès lors qu'une lettre \og ancre \fg{} est déjà fixée au milieu d'un mot potentiel sur le plateau. 
+Le DAWG ne permettant pas de remonter le chemin vers la racine pour identifier les débuts de mots possibles, le moteur de jeu est alors contraint d'explorer aveuglément tous les préfixes imaginables avant d'atteindre l'ancre, ce qui rend la génération de coups particulièrement inefficace dans ces configurations.\newline
+
+\subsubsection*{2.3 Avantages et limites pour le Scrabble}
+
+L'intérêt majeur du DAWG réside dans sa compacité exceptionnelle, permettant de compresser les centaines de milliers de mots d'un dictionnaire en un volume de données souvent 
+inférieur à deux mégaoctets. Cependant, si cette structure est excellente pour la validation d'un mot saisi par un utilisateur, elle s'avère plus limitée pour la phase de 
+génération automatique de coups. En raison de son parcours strictement unidirectionnel, de la racine vers les feuilles, le DAWG ne peut pas explorer efficacement les 
+possibilités de jeu s'articulant autour d'une ancre déjà présente sur la grille.\newline
+
+Pour placer un mot contenant une lettre fixe en son centre ou à sa fin, l'algorithme est incapable de remonter le graphe pour identifier les préfixes compatibles. Il est alors
+ contraint de tester à l'aveugle une multitude de combinaisons de lettres en espérant atteindre l'ancre, ce qui provoque une inefficacité notoire face à l'explosion 
+ combinatoire des tirages. Cette incapacité à traiter nativement la recherche bidirectionnelle souligne la nécessité d'une structure plus évoluée, capable de s'affranchir 
+ de la contrainte du parcours de gauche à droite : le GADDAG.\newline
+
+% ------------------------------------------------------------------------------
+\subsection*{3. Le GADDAG — la solution pour le Scrabble}
+
+\subsubsection*{3.1 Principe et transformation}
+
+Le GADDAG, conçu par Steven Gordon en 1994, a donc apporté une réponse définitive au problème de l'ancrage en permettant une recherche bidirectionnelle efficace. Contrairement
+ au DAWG qui ne stocke qu'une version linéaire de chaque mot, le GADDAG génère $n$ représentations différentes pour un mot de longueur $n$, une pour chaque position possible
+  d'une lettre sur le plateau. La structure repose sur une transformation : pour chaque lettre choisie comme ancre, la partie située à sa gauche est inversée, puis séparée
+   de la partie droite par un caractère spécial \og{}>\fg{} servant de délimiteur.\newline
+
+À titre d'exemple, le mot \og CHAT \fg{} est décomposé en quatre représentations distinctes :
+\begin{enumerate}
+    \item \textbf{C > H A T} \quad (l'ancre est C)
+    \item \textbf{H C > A T} \quad (l'ancre est H : on place C à gauche, puis on complète A-T à droite)
+    \item \textbf{A H C > T} \quad (l'ancre est A : on place C et H à gauche, puis T à droite)
+    \item \textbf{T A H C >} \quad (l'ancre est T : on complète tout le mot vers la gauche)
+\end{enumerate}
+
+Cette méthode se généralise sans perte d'efficacité pour des mots plus complexes comme \og SCRABBLE \fg{}, qui produira huit entrées allant de \og S>CRABBLE \fg{} jusqu'à 
+la forme totalement inversée \og ELBBARCS> \fg{}. Cette multiplication des chemins garantit que, pour n'importe quelle lettre du mot déjà présente sur la grille, il existe 
+un chemin unique dans l'automate commençant par celle-ci et permettant de créer le reste du mot.\newline
+
+\subsubsection*{3.2 Semi-minimisation}
+
+L'augmentation du nombre de représentations par mot pourrait laisser craindre une explosion de la consommation mémoire, mais le GADDAG compense ce volume par une technique 
+dite de semi-minimisation. Gordon a démontré que si les préfixes inversés divergent souvent, les suffixes situés après le caractère pivot \og > \fg{} présentent une redondance
+massive. La semi-minimisation consiste donc à fusionner tous les états équivalents rencontrés après le délimiteur, exactement comme dans la construction d'un DAWG.\newline
+
+Pour le mot \og CARE \fg{}, les formes \og AC>RE \fg{} et \og RA>CE \fg{} voient leurs branches fusionnées avec n'importe quel autre mot du dictionnaire se terminant 
+par \og RE \fg{} ou \og CE \fg{}. De même, des mots partageant des suffixes verbaux, comme \og MARCHER \fg{} et \og JOUER \fg{}, partageront une structure commune pour 
+leurs formes pivotées au-delà du délimiteur (par exemple \og RAHC>MER \fg{} et \og UOJ>ER \fg{} où la terminaison \og ER \fg{} est mutualisée). Cette optimisation rend la 
+structure déterministe et permet de conserver un seul chemin par couple (mot, ancre), tout en maintenant une empreinte mémoire tout à fait acceptable pour les systèmes modernes. \newline
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.5\textwidth]{semi-minimisation-gaddag.png}
+    \caption{Graphe du GADDAG semi-minimisé pour « CARE ». (Source : ~\cite{10.1002/spe.4380240205})}
+    \label{fig:gaddag_care}
+\end{figure}
+
+\subsubsection*{3.3 Utilisation dans le moteur de jeu}
+
+L'intégration du GADDAG au sein du moteur de jeu transforme radicalement la génération de coups en la rendant purement itérative. Pour chaque case \og ancre \fg{} 
+identifiée sur le plateau, l'algorithme entame un parcours du graphe en deux phases distinctes. Dans un premier temps, il explore les branches correspondant à la partie 
+gauche du mot (le préfixe inversé) en remontant vers les cases vides à gauche ou en haut de l'ancre. Dès qu'il rencontre le caractère \og > \fg{} dans l'automate, il bascule
+ dans la seconde phase pour compléter le mot vers la droite ou vers le bas avec les lettres restantes du tirage.\newline
+
+Cette approche permet de découvrir l'intégralité des coups légaux en un seul passage dans l'automate, sans jamais avoir besoin de revenir en arrière ou de deviner une 
+position de départ. En éliminant les tests de préfixes inutiles propres au DAWG, le GADDAG permet à l'IA d'évaluer des milliers de possibilités par seconde, garantissant
+ une réactivité optimale même face à des dictionnaires extensifs et des contraintes de temps réelles.\newline
+
+% ------------------------------------------------------------------------------
+\subsection*{4. Analyse du benchmark et justification du choix}
+
+\begin{table}[h!]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \caption{Benchmark DAWG vs GADDAG — Lexique : 178\,691 mots}
+    \vspace{0.5em}
+
+    % --- Temps de chargement ---
+    \begin{tabular}{@{}lc@{}}
+        \toprule
+        \textbf{Structure} & \textbf{Temps de chargement} \\
+        \midrule
+        DAWG   & 624 ms \\
+        GADDAG & 1\,443 ms \\
+        \bottomrule
+    \end{tabular}
+
+    \vspace{1em}
+
+    % --- Benchmark CONTAINS ---
+    \begin{tabular}{@{}llcc@{}}
+        \toprule
+        \textbf{Mot} & \textbf{Existe} & \textbf{DAWG} & \textbf{GADDAG} \\
+        \midrule
+        APPLE      & vrai  & 3,79 µs  & 8,91 µs  \\
+        ZYZZYVA    & vrai  & 4,32 µs  & 9,70 µs  \\
+        SCRABBLE   & vrai  & 3,96 µs  & 8,08 µs  \\
+        JAVA       & vrai  & 2,75 µs  & 8,20 µs  \\
+        INEXISTANT & faux  & 4,19 µs  & 13,94 µs \\
+        \bottomrule
+    \end{tabular}
+
+    \vspace{1em}
+
+    % --- Benchmark génération de coups ---
+    \begin{tabular}{@{}llccrr@{}}
+        \toprule
+        \textbf{Ancre} & \textbf{Rack} & \textbf{DAWG} & \textbf{GADDAG} & \textbf{Coups (D)} & \textbf{Coups (G)} \\
+        \midrule
+        E & RSTLNA  & 2,966 ms & 4,752 ms & 170 & 170 \\
+        S & CRABBLE & 1,184 ms & 1,288 ms & 112 & 112 \\
+        Z & AEIOUST & 0,467 ms & 0,269 ms &  16 &  16 \\
+        X & AILNOR  & 0,289 ms & 0,178 ms &  11 &  11 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Les résultats du benchmark, conduits sur un lexique de 178\,691 mots, révèlent une image nuancée qui justifie pleinement le choix du GADDAG comme structure centrale du moteur 
+de jeu.\newline
+
+\paragraph{Temps de chargement et validation simple.}
+Le GADDAG accuse un temps de chargement plus élevé (1\,443 ms contre 624 ms pour le DAWG), ce qui s'explique directement par sa transformation structurelle : chaque mot de 
+longueur $n$ génère $n$ représentations distinctes, alourdissant mécaniquement la phase de construction. De même, sur la validation isolée d'un mot (\textit{contains}), 
+le DAWG reste environ deux fois plus rapide (3 à 4 µs contre 8 à 14 µs). Ces écarts sont cependant sans conséquence pratique : ces opérations sont réalisées une seule fois 
+à l'initialisation ou de manière ponctuelle, et les valeurs absolues restent négligeables à l'échelle d'une partie.\newline
+
+\paragraph{Génération de coups : l'avantage décisif du GADDAG.}
+C'est sur la génération de coups que le choix se justifie pleinement. Les résultats montrent une tendance claire : plus l'espace de jeu est contraint (peu de mots possibles), 
+plus le GADDAG surpasse le DAWG. Pour l'ancre \textbf{Z} avec le rack AEIOUST (16 coups trouvés), le GADDAG est \textbf{42\,\% plus rapide} (0,269 ms contre 0,467 ms) ; pour 
+\textbf{X} avec AILNOR (11 coups), il est \textbf{38\,\% plus rapide} (0,178 ms contre 0,289 ms). Ces cas correspondent précisément aux situations les plus fréquentes en fin 
+de partie ou sur des lettres rares, où l'espace combinatoire est restreint mais où chaque coup compte. En fin de partie, le plateau étant déjà largement occupé, les ancres 
+disponibles sont nombreuses mais les extensions possibles réduites : le GADDAG, en naviguant directement depuis chaque ancre sans exploration aveugle des préfixes, évite une 
+explosion combinatoire inutile et identifie les rares coups légaux restants bien plus efficacement que le DAWG, qui continuerait à tester des chemins stériles.\newline
+
+Sur les racks plus généreux (ancre \textbf{E} avec RSTLNA, 170 coups), le DAWG reprend l'avantage. Cela s'explique par le fait que dans ce cas, la quantité de chemins à 
+explorer est si importante que le surcoût structurel du GADDAG se ressent. Toutefois, les deux structures trouvent \textbf{exactement le même nombre de coups} dans tous 
+les cas testés, ce qui confirme la correction de l'implémentation.\newline
+
+\paragraph{Conclusion du choix.}
+Le DAWG est une structure excellente pour la validation de mots, mais son parcours strictement unidirectionnel le contraint à explorer aveuglément des préfixes inutiles dès 
+qu'une ancre est présente sur la grille. Le GADDAG, en encodant nativement toutes les positions d'ancrage possibles, élimine ce surcoût algorithmique et offre des performances
+ supérieures précisément là où cela importe le plus : les situations tendues, typiques d'une vraie partie de Scrabble. Le léger surcoût en mémoire et en temps de chargement est
+  un compromis largement acceptable au regard du gain en réactivité durant le jeu.\newline
+
 %------------------------------------------------------------------------------
 %	PARTIE 2 — SPÉCIFICATIONS : F21 SAUVEGARDE ET RESTAURATION
 %------------------------------------------------------------------------------
@@ -567,6 +744,15 @@ processLineComments(String line)
     \item \texttt{GameLoader} reconstruit le \texttt{Game} : joueurs, plateau, tour courant et historique.
     \item Si une ligne est invalide, le programme affiche \texttt{Format error at line X: ...} et n'écrase pas l'état courant.
 \end{enumerate}
+
+
+%------------------------------------------------------------------------------
+%	BIBLIOGRAPHY
+%------------------------------------------------------------------------------
+
+\nocite{*}
+\bibliographystyle{plain}
+\bibliography{bibliography}
 
 %------------------------------------------------------------------------------
 % BACK MATTER
