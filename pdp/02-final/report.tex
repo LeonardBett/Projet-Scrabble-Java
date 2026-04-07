@@ -50,8 +50,97 @@
 \maketitle
 \thispagestyle{empty}
 
+\clearpage
+\tableofcontents
+\clearpage
+
 %------------------------------------------------------------------------------
-%	PARTIE 1 — ALGORITHMES
+%	PARTIE 1 — INTrODUCTION
+%------------------------------------------------------------------------------
+
+
+	\section{Historique et Nature du Sujet}
+
+	\subsection{Historique du sujet}
+	\paragraph{}
+  En 1931, l'architecte au chomage Alfred Mosher Butts decide de creer un jeu combinant chance et reflexion. En analysant minutieusement la frequence des lettres a la une du \textit{New York Times}, il elabore un systeme de valeurs specifiques pour chaque jeton, methode qui reste inchangee dans les editions modernes [1]. Initialement baptise \textit{Lexiko}, puis \textit{Criss-Cross Words}, le jeu essuie les refus de nombreux fabricants avant qu'un homme d'affaires, James Brunot, ne rachate les droits en 1948 pour lui donner son nom definitif : Scrabble [2].
+  
+  \paragraph{}
+	Le succes mondial du jeu doit beaucoup a un coup de chance marketing. Dans les annees 1950, Jack Straus, president du grand magasin Macy's a New York, decouvre le jeu pendant ses vacances et s'etonne de ne pas le trouver dans ses rayons. Il passe une commande massive, propulsant le Scrabble au rang de phenomene culturel [2]. Aujourd'hui, avec plus de 150 millions d'exemplaires vendus dans 121 pays et des competitions internationales organisees par la World English-Language Scrabble Players Association (WESPA) et la Federation Internationale de Scrabble Francophone (FISF), il est devenu le jeu de lettres le plus populaire de la planete [3].
+  
+  \paragraph{}
+	Des les annees 1980 et 1990, les premiers logiciels de jeu contre l'ordinateur font leur apparition. L'explosion des plateformes en ligne, notamment l'Internet Scrabble Club (ISC), puis des applications mobiles comme \textit{Scrabble Go} ont elargi considerablement la communaute de joueurs. Au-dela du divertissement, l'informatique a revolutionne la competition de haut niveau grace a des outils d'analyse strategique comme Quackle [4], devenu la reference mondiale pour l'entrainement des joueurs experts. Aujourd'hui, de nombreux projets open source et applications multiplateformes temoignent de la vitalite de l'ecosysteme logiciel autour du Scrabble.
+
+  \paragraph{}
+  \textbf{Sources :} [1] Butts, A.M. (1931), archives de conception du jeu. [2] Fatsis, S. (2001), \textit{Word Freak}, Houghton Mifflin. [3] FISF, Regles officielles du Scrabble francophone, edition 2023. [4] Sheppard, B. et al., \textit{Quackle Scrabble AI}, Computer Scrabble Project, 2006.
+
+	\subsection{Nature et enjeux du jeu}
+	Le Scrabble est un jeu de lettres a information imparfaite (les tirages adverses sont inconnus) et stochastique (soumis a l'alea de la pioche). L'objectif est de maximiser son score sur une grille standard de $15 \times 15$ cases en y placant des mots extraits d'un dictionnaire de reference (ODS en francais, TWL/SOWPODS en anglais).
+
+	Le jeu repose sur trois piliers fondamentaux :
+	\begin{enumerate}
+		\item \textbf{Logique spatiale} Tout mot pose doit respecter deux contraintes simultanees : la connexite (chaque nouveau mot doit s'appuyer sur au moins une lettre deja presente sur le plateau, et toutes les lettres posees en un meme tour doivent etre alignees et contigues) et l'orthogonalite (toute collision avec des lettres adjacentes doit former un mot valide dans le dictionnaire de reference).
+
+		\textit{Exemple :} si le mot FEU est pose horizontalement, un joueur peut placer la lettre R au-dessus du E pour former RE verticalement, a condition de poser simultanement un mot horizontal valide passant par ce R, comme RATS.
+
+		\item \textbf{Logique mathematique} Le score d'un coup se calcule en additionnant la valeur de chaque lettre posee, en appliquant d'abord les multiplicateurs de lettres (case lettre compte double/triple), puis les multiplicateurs de mots (case mot compte double/triple). Un joueur qui utilise ses 7 lettres en un seul coup remporte un bonus de 50 points, appele Scrabble.
+
+		\textit{Exemple :} au premier tour, un joueur pose AXE avec le X sur la case centrale H8 (case mot $\times 2$). La valeur brute est A(1) + X(8) + E(1) = 10, doublee a 20 points. Si la case centrale etait une case lettre $\times 2$ sous le X, on calculerait A(1) + X(16) + E(1) = 18, puis on appliquerait le multiplicateur de mot.
+
+		\item \textbf{Logique linguistique} Chaque mot pose, y compris les mots formes par collision, doit appartenir au dictionnaire de reference choisi pour la partie. Tout mot invalide entraine l'annulation du coup et, selon les regles, une penalite de score.
+	\end{enumerate}
+
+	\paragraph{Deroulement d'une partie}
+	La partie debute obligatoirement par un mot d'au moins deux lettres couvrant la case centrale (H8), dont le score est automatiquement double. A chaque tour, le joueur peut : poser un mot, echanger tout ou partie de ses jetons contre des lettres de la pioche (si le sac contient au moins 7 lettres), ou passer son tour. La partie s'acheve lorsque le sac est vide et qu'un joueur a epuise son chevalet, ou apres trois tours consecutifs sans score. Les lettres restant sur les chevalets sont deduites du score de chaque joueur, et leur valeur totale est ajoutee au score du joueur ayant vide son chevalet en premier.
+
+	\textit{Exemple de fin de partie :} le joueur A termine avec 300 points. Le joueur B possede encore un W (10 pts) et un X (10 pts) : son score final est 280 pts, et le score de A monte a 320 pts.
+
+	\subsection{Complexite du jeu et defis algorithmiques}
+	Il est essentiel de distinguer la complexite intrinseque du jeu de celle des algorithmes qui cherchent a le resoudre.
+
+	\paragraph{Espace des etats}
+	Le nombre de positions legales sur un plateau $15 \times 15$ est estime a environ $10^{30}$. Si ce chiffre reste inferieur a celui des echecs ($\sim 10^{43}$), l'incertitude propre au Scrabble, due aux tirages caches de l'adversaire et a l'alea de la pioche, en fait un probleme fondamentalement different : il releve de la theorie des jeux a information imparfaite, contrairement aux echecs ou aux dames.
+
+	\paragraph{Explosion combinatoire a chaque coup}
+	Meme pour un seul tour, la generation de tous les coups legaux est un probleme non trivial. Pour un chevalet de 7 lettres et un dictionnaire de type ODS ($\sim 380\,000$ mots), il faut explorer toutes les combinaisons de lettres (sous-ensembles du chevalet), toutes les positions et orientations possibles sur la grille, et verifier simultanement la validite de tous les mots formes par collision. Le nombre de placements theoriques au premier tour est deja de l'ordre de plusieurs millions [5].
+
+	\paragraph{La qualite du reliquat}
+	Un des defis strategiques majeurs, et algorithmiques, est que maximiser le score immediat n'est pas toujours optimal. Un bon moteur de jeu doit evaluer la qualite du reliquat (les lettres conservees apres le coup), car des lettres polyvalentes comme les voyelles courantes ou le S offrent de meilleures perspectives pour les tours suivants. A l'inverse, conserver des lettres difficiles comme le W ou le K penalise les coups futurs.
+
+	\paragraph{La gestion des cases bonus}
+	Un autre defi crucial est l'obstruction : ouvrir une case bonus (mot $\times 3$ ou lettre $\times 3$ en bord de grille) pour l'adversaire peut lui offrir un avantage considerable. L'IA doit donc anticiper non seulement son propre score, mais aussi les opportunites qu'elle laisse a son adversaire.
+
+	\paragraph{Conclusion sur la difficulte}
+	Ces contraintes font du Scrabble un probleme d'optimisation combinatoire sous incertitude, a la frontiere entre la recherche arborescente, la linguistique computationnelle et la theorie des jeux stochastiques.
+
+	\textbf{Source :} [5] Appel, A.W. \& Jacobson, G.J. (1988), \textit{The World's Fastest Scrabble Program}, \textit{Communications of the ACM}.
+
+	\subsection{Existant algorithmique}
+	L'etat de l'art repose sur des travaux academiques fondateurs et des logiciels eprouves.
+
+	\paragraph{Structures de donnees pour le dictionnaire}
+	La generation rapide de coups legaux repose sur des automates finis representant le dictionnaire :
+	\begin{itemize}
+		\item le DAWG (\textit{Directed Acyclic Word Graph}), propose par Appel \& Jacobson (1988) [5], compresse le dictionnaire en un graphe oriente acyclique permettant une verification en $O(n)$ de la validite d'un mot ;
+		\item le GADDAG, introduit par Steven Gordon (1994) [6], est une extension permettant de generer directement tous les mots pouvant s'ancrer sur une lettre donnee du plateau, accelerant considerablement la recherche des coups legaux.
+	\end{itemize}
+
+	\paragraph{Logiciels de reference}
+	Quackle [4] est le standard academique et competitif pour l'analyse strategique. Il utilise des simulations de type Monte-Carlo pour estimer l'esperance de gain de chaque coup sur plusieurs tours a venir, en simulant des milliers de parties possibles.
+
+	Elise et Maven sont d'autres moteurs historiques ayant contribue a l'etablissement des meilleures pratiques en IA Scrabble.
+
+	\paragraph{Plateformes de jeu en ligne}
+	L'ISC (\textit{Internet Scrabble Club}) demeure la reference pour la pratique competitive, garantissant une application stricte des regles internationales. Des plateformes plus recentes comme Woogles.io proposent egalement des outils d'analyse integres.
+
+	\paragraph{Open source}
+	De nombreux projets open source (notamment en Python, Java et C++) sont disponibles sur des plateformes comme GitHub, rendant accessible l'implementation d'un moteur de jeu a partir des algorithmes decrits dans la litterature.
+
+	\textbf{Source :} [6] Gordon, S. (1994), \textit{A Faster Scrabble Move Generation Algorithm}, \textit{Software---Practice and Experience}.
+
+  
+%------------------------------------------------------------------------------
+%	PARTIE 2 — ALGORITHMES
 %------------------------------------------------------------------------------
 
 	\section{L'Algorithme Minimax :}
