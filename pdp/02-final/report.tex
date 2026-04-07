@@ -1,6 +1,7 @@
 \documentclass[a4paper]{article}
 
 \usepackage{pdp}
+\usepackage{booktabs}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage[french]{babel}
@@ -41,7 +42,7 @@
 	Pour adapter cet algorithme au Scrabble (où le chevalet adverse est inconnu), notre implémentation déduit d'abord les tuiles restantes en soustrayant du jeu complet les lettres déjà posées sur le plateau et celles présentes dans le chevalet de l'IA. Ensuite, le solveur utilise une méthode de Monte-Carlo : il simule l'adversaire en tirant aléatoirement 200 chevalets virtuels de 7 lettres parmi ces tuiles restantes. Le Minimax évalue alors le pire scénario possible : parmi ces 200 simulations, il retient le coup adverse qui marque le plus de points, et le soustrait du score du coup envisagé par l'IA.
 
 	\subsection*{L'impact de l'heuristique}
-	Au Scrabble, évaluer un coup uniquement par les points qu'il rapporte sur le plateau est n'est pas le plus pertinent. L'algorithme intègre donc une fonction heuristique d'évaluation qui note la qualité des lettres conservées sur le chevalet après un coup. Cette heuristique donne des bonus et malus en fonction de:
+	Au Scrabble, évaluer un coup uniquement par les points qu'il rapporte sur le plateau n'est pas le plus pertinent. L'algorithme intègre donc une fonction heuristique d'évaluation qui note la qualité des lettres conservées sur le chevalet après un coup. Cette heuristique donne des bonus et malus en fonction de:
 
 	\begin{itemize}
 		\item Un joker conservé rapporte un bonus massif de +15.0 points.
@@ -79,7 +80,7 @@ C'est le compromis entre ces deux visions qui rend l'IA véritablement intellige
 	% ------------------------------------------------------------------------------
 	% Section : Schémas Comparatifs
 	% ------------------------------------------------------------------------------
-	\section{Comparaison Structurelle des Arbres de Décision}
+	\section{Comparaison des deux Algorithmes}
 
 	Les schémas ci-dessous mettent en évidence que la différence entre nos deux algorithmes n'est pas structurelle (l'arbre exploré est identique), mais réside uniquement dans la méthode d'agrégation des nœuds de simulation.
 
@@ -167,6 +168,42 @@ C'est le compromis entre ces deux visions qui rend l'IA véritablement intellige
 		\end{minipage}
 
 	\end{figure*}
+
+	\subsection*{Analyse des performances}
+
+    Afin de confronter notre étude théorique à la réalité matérielle, nous avons instrumenté le code de notre solveur (\texttt{MinimaxSolver.java}) pour extraire des métriques physiques en conditions réelles de jeu. Le chronomètre d'interruption (\texttt{timeLimitMs}) était fixé à 5000 millisecondes.
+
+    Le tableau ci-dessous synthétise des échantillons représentatifs de la prise de décision de l'IA au cours d'une partie :
+
+    \begin{table}[h!]
+        \centering
+        \renewcommand{\arraystretch}{1.2}
+        \begin{tabular}{@{}lccccc@{}}
+            \toprule
+            \textbf{Algorithme} & \textbf{Temps} & \textbf{Statut} & \textbf{Coups IA Évalués} & \textbf{Simulations Adv.} & \textbf{Moy. Sim/Coup} \\
+            \midrule
+            Expectiminimax & 5000 ms & Timeout & 48 sur 84 (57\%) & 9 497 & 197 \\
+            Expectiminimax & 3575 ms & Complet & 33 sur 33 (100\%) & 6 600 & 200 \\
+            Minimax MC     & 5001 ms & Timeout & 24 sur 58 (41\%) & 4 680 & 195 \\
+            Minimax MC     & 5001 ms & Timeout & 17 sur 41 (41\%) & 3 294 & 193 \\
+            Minimax MC     & 2801 ms & Complet & 10 sur 10 (100\%) & 2 000 & 200 \\
+            \bottomrule
+        \end{tabular}
+        \caption{Mesures physiques des algorithmes (Profondeur 2, SAMPLES\_COUNT = 200)}
+        \label{tab:metrics}
+    \end{table}
+
+    \subsection*{Interprétation des résultats}
+
+    L'analyse de ces logs d'exécution met en évidence trois points cruciaux concernant les limites de notre implémentation :
+
+    \begin{itemize}
+        \item \textbf{La limite du facteur de branchement :} Les données prouvent que la capacité de l'IA à évaluer l'arbre complet dépend entièrement de la complexité du plateau à l'instant T. Lorsque le nombre de mots possibles est faible (ex: 10 ou 33 coups), le moteur termine son parcours de Profondeur 2 confortablement avant le temps limite (2.8s et 3.5s). À l'inverse, dès que les choix s'élargissent (41, 58 ou 84 coups), l'IA est systématiquement bridée.
+        \item \textbf{Les conséquences du coût élevé :} Dans le pire scénario mesuré (17 coups évalués sur 41), le \textit{Timeout} force l'IA à jouer en ignorant totalement 59\% des opportunités légales présentes sur le plateau, l'empêchant potentiellement de trouver le mot optimal.
+        \item \textbf{L'efficacité de la limite de temps :} Le moteur est capable de simuler un volume massif de plateaux adverses (jusqu'à 9 497 en 5 secondes). Lorsque le \textit{Timeout} est déclenché, on observe que la moyenne des simulations tombe légèrement sous la barre des 200 (192, 195, 197). Cela démontre que notre algorithme d'interruption fonctionne avec précision : il avorte la boucle interne de Monte-Carlo au milieu de l'évaluation du $N$-ième coup pour garantir la fluidité du jeu en temps réel.
+    \end{itemize}
+
+    Ces mesures empiriques confirment de manière irréfutable notre conclusion : bien que la Profondeur 2 soit mathématiquement atteinte, l'absence d'élagage dans nos approches de Monte-Carlo bride physiquement la rentabilité de l'arbre dès que le facteur de branchement dépasse la trentaine de mots candidats.
 
 	\section{Le Machine Learning :}
 
