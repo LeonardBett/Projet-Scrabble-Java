@@ -42,3 +42,6 @@ src/main/resources/ai/labels_*.txt
 **.pygstyle
 latexmkrc
 report.toc
+
+# Test-generated local save file
+/quit
