@@ -140,5 +140,4 @@ public final class ScrabbleGuiConfigDialog {
       recreateWithoutConfirmation.run();
     }
   }
-
 }

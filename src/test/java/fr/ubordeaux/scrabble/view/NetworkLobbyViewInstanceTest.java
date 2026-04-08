@@ -16,6 +16,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import javafx.application.Platform;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -203,6 +205,23 @@ class NetworkLobbyViewInstanceTest {
     runOnFx(() -> lobby.onWelcomeReceived(1));
   }
 
+  @Test
+  void onGameEndedWithFinalScoresNotThrow() throws Exception {
+    runOnFx(() -> lobby.onGameEnded(List.of(Map.of("NAME", "A", "SCORE", "12"))));
+  }
+
+  @Test
+  void onInvitationReceivedAcceptNotThrow() throws Exception {
+    scheduleInvitationDialogResponse(0);
+    runOnFx(() -> lobby.onInvitationReceived("Bob"));
+  }
+
+  @Test
+  void onInvitationReceivedDeclineNotThrow() throws Exception {
+    scheduleInvitationDialogResponse(1);
+    runOnFx(() -> lobby.onInvitationReceived("Bob"));
+  }
+
   private static void runOnFx(Runnable action) throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
     Platform.runLater(
@@ -216,11 +235,42 @@ class NetworkLobbyViewInstanceTest {
     assertTrue(latch.await(5, TimeUnit.SECONDS));
   }
 
+  private void scheduleInvitationDialogResponse(int buttonIndex) {
+    Thread responder = new Thread(() -> {
+      try {
+        Thread.sleep(120);
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+      }
+      Platform.runLater(() -> {
+        Object dialogObject = getPrivateField(lobby, "currentInvitationDialog");
+        if (dialogObject instanceof Alert alert && !alert.getButtonTypes().isEmpty()) {
+          int safeIndex = Math.min(buttonIndex, alert.getButtonTypes().size() - 1);
+          ButtonType chosen = alert.getButtonTypes().get(safeIndex);
+          alert.setResult(chosen);
+          alert.close();
+        }
+      });
+    });
+    responder.setDaemon(true);
+    responder.start();
+  }
+
   private static void setPrivateField(Object target, String name, Object value) {
     try {
       Field f = target.getClass().getDeclaredField(name);
       f.setAccessible(true);
       f.set(target, value);
+    } catch (NoSuchFieldException | IllegalAccessException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private static Object getPrivateField(Object target, String name) {
+    try {
+      Field f = target.getClass().getDeclaredField(name);
+      f.setAccessible(true);
+      return f.get(target);
     } catch (NoSuchFieldException | IllegalAccessException e) {
       throw new RuntimeException(e);
     }

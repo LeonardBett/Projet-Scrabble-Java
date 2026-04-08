@@ -55,6 +55,30 @@ class OptionPlayerCoverageTest {
   }
 
   @Test
+  void parsePlayersShouldExitForBelowMinimumValue() {
+    ByteArrayOutputStream err = new ByteArrayOutputStream();
+    PrintStream originalErr = System.err;
+    System.setErr(new PrintStream(err));
+
+    final int[] status = { -1 };
+    OptionPlayer.setExitHandlerForTests(code -> {
+      status[0] = code;
+      throw new RuntimeException("exit-called");
+    });
+
+    try {
+      OptionPlayer.parsePlayers("1");
+    } catch (RuntimeException e) {
+      assertEquals("exit-called", e.getMessage());
+    } finally {
+      System.setErr(originalErr);
+    }
+
+    assertEquals(1, status[0]);
+    assertTrue(err.toString().contains("Nombre de joueurs invalide"));
+  }
+
+  @Test
   void parsePlayersShouldExitForNonInteger() {
     ByteArrayOutputStream err = new ByteArrayOutputStream();
     PrintStream originalErr = System.err;
