@@ -435,7 +435,7 @@ public enum SquareType {
 
     Historiquement conçu pour des jeux à information parfaite et à somme nulle comme les Échecs, l'algorithme Minimax modélise l'arbre des coups possibles en alternant un tour où l'IA cherche à maximiser son score, et un tour où elle simule un adversaire cherchant à minimiser l'avantage de l'IA.
 
-    Pour adapter cet algorithme au Scrabble, notre implémentation déduit d'abord les tuiles restantes, à savoir toutes les tuiles moins celles présentes sur le plateau et dans le chevalet de l'IA. Ensuite, le solveur utilise une méthode de Monte-Carlo : il simule l'adversaire en tirant aléatoirement 200 chevalets virtuels de 7 lettres parmi ces tuiles restantes. Le Minimax évalue alors le pire scénario possible.
+    Pour adapter cet algorithme au Scrabble, notre implémentation déduit d'abord les tuiles restantes, à savoir toutes les tuiles moins celles présentes sur le plateau et dans le chevalet de l'IA. Ensuite, le solveur utilise une méthode de Monte-Carlo\cite{ibm_monte_carlo} : il simule l'adversaire en tirant aléatoirement 200 chevalets virtuels de 7 lettres parmi ces tuiles restantes. Le Minimax évalue alors le pire scénario possible.
 
     Voici comment cette logique pessimiste se traduit dans l'implémentation de notre \texttt{MinimaxSolver} :
 
@@ -458,7 +458,7 @@ public enum SquareType {
     return maxDamage;
     \end{minted}
 
-    \subsubsection{L'impact crucial de l'heuristique}
+    \subsubsection{L'impact de l'heuristique}
     Au Scrabble, évaluer un coup uniquement par les points qu'il rapporte sur le plateau n'est pas le plus pertinent. L'algorithme intègre donc une fonction heuristique d'évaluation du "reliquat" (\texttt{leaveScore}) qui note la qualité des lettres conservées sur le chevalet après un coup. Cette heuristique va attribuer des bonus ou des malus en fonction de la "qualité" du chevalet : Joker (+15.0), 'S' (+8.0), Lettres difficiles (-6.0), équilibre voyelles/consonnes (+5.0), uniquement consonne/voyelle (-12.0).
 
     \subsubsection{Complexité, Coût et Performances}
@@ -468,7 +468,7 @@ public enum SquareType {
 
     \subsection{L'Algorithme Expectiminimax}
 
-    L'Expectiminimax est l'évolution naturelle du Minimax pour les jeux intégrant du hasard. Il introduit un nouveau type de nœud dans l'arbre de recherche : les "nœuds de chance". Au lieu de considérer que l'adversaire jouera le pire coup absolu, l'algorithme calcule l'espérance mathématique de tous les coups possibles en fonction de leur probabilité d'occurrence.
+    L'Expectiminimax est l'évolution naturelle du Minimax pour les jeux intégrant du hasard. Il introduit un nouveau type de nœud dans l'arbre de recherche : les "nœuds chance"\cite{uiuc_cs440_expectimax}. Au lieu de considérer que l'adversaire jouera le pire coup absolu, l'algorithme calcule l'espérance mathématique de tous les coups possibles en fonction de leur probabilité d'occurrence.
 
     Comme le montre notre implémentation ci-dessous, la structure de données est identique au Minimax (la même boucle de 200 itérations), mais la méthode d'agrégation change :
 
@@ -498,7 +498,7 @@ public enum SquareType {
 
     Les schémas ci-dessous mettent en évidence que la différence entre nos deux algorithmes n'est pas structurelle (l'arbre exploré est identique), mais réside uniquement dans la méthode mathématique d'agrégation des nœuds de simulation, comme démontré dans nos extraits de code précédents.
 
-    \begin{figure*}[h!]
+    \begin{figure}[H]
         \centering
 
         % ---------- ARBRE MINIMAX (PESSIMISTE) ----------
@@ -585,7 +585,7 @@ public enum SquareType {
 
         \caption{Comparaison des Arbres de Décision}
         \label{fig:comparaison_arbres}
-    \end{figure*}
+    \end{figure}
 
     \subsection{Analyse des performances (Benchmark)}
 
@@ -623,6 +623,47 @@ public enum SquareType {
 
     Ces mesures empiriques que nous avons relevées confirment notre conclusion théorique : bien que la Profondeur 2 soit mathématiquement atteinte, l'absence d'élagage dans notre approche de Monte-Carlo bride physiquement la rentabilité de l'arbre dès que le facteur de branchement dépasse la trentaine de mots candidats.
 
+    \subsection{Le Machine Learning}
+
+    Contrairement aux algorithmes de recherche arborescente qui calculent toutes les possibilités de manière exhaustive, notre approche par Machine Learning propose une méthode statistique. L'objectif de ce modèle n'est pas d'évaluer le plateau, mais d'agir comme un "générateur d'anagrammes intuitif" capable de trouver instantanément les meilleurs mots possibles à partir du chevalet de l'IA.
+
+    \subsubsection*{Architecture du Modèle}
+    Le problème est modélisé comme une tâche de classification multiclasse. L'architecture de notre réseau de neurones (entraîné via TensorFlow et accessible via notre script \texttt{train\_ml.sh}) se décompose ainsi :
+    \begin{itemize}
+        \item \textbf{Entrée :} Un tenseur de dimension 26 représentant le chevalet du joueur (fréquence de chaque lettre de l'alphabet).
+        \item \textbf{Couches cachées :} Deux couches denses (Dense layers) \cite{dense_layers}de 256 et 512 neurones utilisant la fonction d'activation ReLU.
+        \item \textbf{Sortie :} Une distribution Softmax sur l'ensemble du dictionnaire (lexique), où chaque neurone de sortie représente la probabilité qu'un mot spécifique soit formable.
+    \end{itemize}
+
+    \subsubsection*{Implémentation et Intégration}
+    Une fois le modèle chargé en mémoire, l'IA interroge le réseau de neurones pour obtenir le "Top 100" des mots les plus probables. Cependant, le modèle étant "aveugle" à la géométrie du plateau, ses prédictions doivent être croisées avec la réalité du jeu.
+
+    Voici comment notre classe \texttt{AiPlayer} gère cette hybridation entre prédiction statistique et validation algorithmique :
+
+    \begin{minted}[frame=single, fontsize=\small, linenos]{java}
+    // Phase 1 : Le réseau de neurones prédit les 100 meilleurs mots (O(1))
+    List<String> mlPredictions = mlAgent.predictWords(rackStr, 100);
+
+    // Phase 2 : Le moteur génère les mots légalement jouables sur le plateau
+    List<PlayableWord> allLegalMoves = moveGen.getPlayableWordsList(game, gaddag);
+
+    // Phase 3 : Validation croisée
+    for (String predictedWord : mlPredictions) {
+        for (PlayableWord legalMove : allLegalMoves) {
+            // Si la prédiction de l'IA correspond à un coup légal, on le joue !
+            if (legalMove.getWord().equals(predictedWord)) {
+                bestPlay = legalMove;
+                break; // Coup trouvé, on arrête la recherche
+            }
+        }
+        if (bestPlay != null) break;
+    }
+    \end{minted}
+
+    \subsubsection*{Complexité, coût et performances}
+    L'avantage majeur de cette approche est son temps d'inférence (la prédiction). Contrairement à la recherche arborescente, la complexité de la prédiction est constante, soit $O(1)$.
+    Si le coût processeur en cours de partie est extrêmement faible comparé au Minimax, le coût en mémoire vive est nettement plus élevé, car le modèle pré-entraîné complet doit être maintenu en mémoire. De plus, l'entraînement préalable du modèle nécessite une phase de calcul très lourde en amont du lancement du jeu.
+    En termes de génération de vocabulaire, le Machine Learning est un accélérateur extrêmement efficace. Néanmoins, sa faiblesse réside dans sa méconnaissance de l'état du jeu : il cherche à placer le mot le plus long ou le plus complexe, sans savoir s'il va ouvrir une case "Mot Compte Triple" à l'adversaire. C'est pourquoi notre implémentation inclut systématiquement un mécanisme de repli (\textit{fallback}) vers l'algorithme Minimax ou Expectiminimax classique si aucune prédiction du réseau ne s'adapte au plateau actuel.
 % ==============================================================================
 % SECTION : DAWG ET GADDAG
 % ==============================================================================
@@ -1061,7 +1102,7 @@ processLineComments(String line)
 	Le défi majeur de ce projet résidait dans l'implémentation de l'intelligence artificielle face au problème de l'information imparfaite. Les approches développées ont chacune révélé des limites matérielles ou logiques :
 	\begin{itemize}
 		\item \textbf{Approche Monte-Carlo (Minimax / Expectiminimax) :} Nos mesures empiriques ont prouvé que la complexité temporelle de ces algorithmes provoque un goulot d'étranglement majeur. L'absence de techniques d'élagage (comme l'Alpha-Beta) oblige le moteur à interrompre la recherche via un \textit{timeout} (5 secondes) avant d'avoir pu explorer l'arbre de profondeur 2 de manière exhaustive.
-		\item \textbf{Le Machine Learning (TensorFlow) :} L'approche connexionniste offre des performances foudroyantes en temps d'inférence pour trouver des anagrammes. Cependant, l'architecture de notre tenseur d'entrée limite la vision du réseau neuronal au seul chevalet du joueur. Sans connaissance de la topologie du plateau, ce modèle est incapable de jouer de manière autonome.
+		\item \textbf{Le Machine Learning (TensorFlow) :} L'approche offre des performances foudroyantes en temps d'inférence pour trouver des anagrammes. Cependant, l'architecture de notre tenseur d'entrée limite la vision du réseau neuronal au seul chevalet du joueur. Sans connaissance de la topologie du plateau, ce modèle est incapable de jouer de manière autonome.
 	\end{itemize}
 
 
