@@ -11,20 +11,27 @@ public class CliNetworkCommandController {
 
   /** Result for direct join commands (join [ip] [port]). */
   public enum DirectJoinResult {
+    /** Input was not in direct-join format. */
     NOT_A_DIRECT_JOIN,
+    /** Direct join command was parsed and sent. */
     JOINED,
+    /** Port token was invalid. */
     INVALID_PORT
   }
 
   /** Result for invitation commands (new [id] [id] [id]). */
   public enum InvitationResult {
+    /** Invitation command was parsed and sent. */
     SENT,
+    /** Invitation command payload was invalid. */
     INVALID
   }
 
   /** Result for play command dispatch (play [pos][dir] [word]). */
   public enum PlayResult {
+    /** Play command was parsed and sent. */
     SENT,
+    /** Play command payload was invalid. */
     INVALID
   }
 

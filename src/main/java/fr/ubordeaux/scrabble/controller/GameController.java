@@ -1193,10 +1193,15 @@ public class GameController {
    * Status of pending move submission orchestration.
    */
   public enum PendingMoveSubmitStatus {
+    /** No pending tiles were provided. */
     EMPTY,
+    /** Pending tiles are not aligned for a valid word placement. */
     INVALID_ALIGNMENT,
+    /** Move is valid and must be sent to the online server. */
     ONLINE_READY,
+    /** Move was successfully applied in local mode. */
     LOCAL_APPLIED,
+    /** Move was rejected in local mode. */
     LOCAL_REJECTED
   }
 

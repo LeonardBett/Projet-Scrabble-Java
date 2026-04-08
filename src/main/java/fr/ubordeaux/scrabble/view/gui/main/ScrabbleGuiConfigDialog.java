@@ -22,6 +22,12 @@ import javafx.scene.layout.GridPane;
 public final class ScrabbleGuiConfigDialog {
 
   /**
+   * Creates a configuration dialog helper.
+   */
+  public ScrabbleGuiConfigDialog() {
+  }
+
+  /**
    * Opens the configuration dialog.
    *
    * @param controller game controller

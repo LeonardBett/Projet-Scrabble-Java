@@ -36,6 +36,17 @@ public class GuiLauncher {
     launchHandler = Application::launch;
   }
 
+  /**
+   * Creates a configured game using the standard board mode.
+   *
+   * @param players the number of players
+   * @param aiColors colors controlled by AI players
+   * @param blitzMode true to enable blitz mode
+   * @param blitzMinutes time limit per player in minutes
+   * @param aiTime AI thinking time in seconds
+   * @param useExptiminimax true to enable the Expectiminimax algorithm
+   * @return a configured game instance
+   */
   public static Game createConfiguredGame(int players, List<String> aiColors, boolean blitzMode,
       int blitzMinutes, int aiTime, boolean useExptiminimax) {
     return createConfiguredGame(GameMode.STANDARD, players, aiColors, blitzMode, blitzMinutes,
