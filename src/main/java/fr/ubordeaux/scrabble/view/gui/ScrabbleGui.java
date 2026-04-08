@@ -1,25 +1,18 @@
 package fr.ubordeaux.scrabble.view.gui;
 
 import fr.ubordeaux.scrabble.controller.GameController;
+import fr.ubordeaux.scrabble.controller.network.NetworkLobbyController;
 import fr.ubordeaux.scrabble.i18n.I18n;
-import fr.ubordeaux.scrabble.model.ai.AiPlayer;
 import fr.ubordeaux.scrabble.model.core.Game;
-import fr.ubordeaux.scrabble.model.core.HumanPlayer;
 import fr.ubordeaux.scrabble.model.core.Move;
 import fr.ubordeaux.scrabble.model.core.Rack;
 import fr.ubordeaux.scrabble.model.core.Tile;
-import fr.ubordeaux.scrabble.model.dictionary.Gaddag;
-import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
 import fr.ubordeaux.scrabble.model.network.NetworkManager;
-import fr.ubordeaux.scrabble.model.savefiles.ConfigLoader;
-import fr.ubordeaux.scrabble.model.savefiles.GameLoader;
 import fr.ubordeaux.scrabble.model.utils.GameLogger;
 import fr.ubordeaux.scrabble.model.utils.Point;
-import fr.ubordeaux.scrabble.view.gui.builders.ExchangeMoveBuilder;
-import fr.ubordeaux.scrabble.view.gui.builders.PendingMoveBuilder;
-import fr.ubordeaux.scrabble.view.gui.config.ControllerConfigSnapshot;
-import fr.ubordeaux.scrabble.view.gui.dictionary.GuiDictionaryLoader;
+import fr.ubordeaux.scrabble.view.gui.main.ScrabbleGuiConfigDialog;
+import fr.ubordeaux.scrabble.view.gui.main.ScrabbleGuiRefresh;
 import fr.ubordeaux.scrabble.view.gui.network.NetworkGameBridge;
 import fr.ubordeaux.scrabble.view.gui.network.NetworkLobbyView;
 import fr.ubordeaux.scrabble.view.gui.panel.BoardPanel;
@@ -27,7 +20,7 @@ import fr.ubordeaux.scrabble.view.gui.panel.ControlPanel;
 import fr.ubordeaux.scrabble.view.gui.panel.MessagePanel;
 import fr.ubordeaux.scrabble.view.gui.panel.RackPanel;
 import fr.ubordeaux.scrabble.view.gui.panel.ScorePanel;
-import java.io.IOException;
+import fr.ubordeaux.scrabble.view.optionlancement.GuiLauncher;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -93,9 +86,9 @@ public class ScrabbleGui extends Application {
   private Tile currentlyDraggedTile = null;
 
   private NetworkManager networkManager;
+  private NetworkLobbyController networkController;
   private NetworkGameBridge networkBridge;
   private NetworkLobbyView lobbyView;
-  private boolean onlineMode = false;
 
   private MenuButton appMenuButton;
   private MenuItem newGameMenuItem;
@@ -112,6 +105,9 @@ public class ScrabbleGui extends Application {
   private Button configurationButton;
   private Button infoButton;
   private Button quitButton;
+
+  private final ScrabbleGuiConfigDialog configDialogDelegate = new ScrabbleGuiConfigDialog();
+  private final ScrabbleGuiRefresh refreshDelegate = new ScrabbleGuiRefresh();
 
   /**
    * Sets the game instance for static access.
@@ -143,11 +139,21 @@ public class ScrabbleGui extends Application {
 
   @Override
   public void start(Stage stage) {
+    startUi(stage);
+  }
+
+  /**
+   * Runs the JavaFX startup lifecycle.
+   *
+   * @param stage JavaFX stage
+   */
+  public void startUi(Stage stage) {
     if (gameInstance == null) {
-      throw new IllegalStateException("Appelez ScrabbleGui.setGame() avant de lancer.");
+      gameInstance = GuiLauncher.createGameFromConfig();
     }
 
     networkManager = new NetworkManager();
+    networkController = new NetworkLobbyController(networkManager);
     primaryStage = stage;
     networkBridge = new NetworkGameBridge(networkManager);
     networkBridge.setGui(this);
@@ -214,8 +220,8 @@ public class ScrabbleGui extends Application {
       if (gameInstance.isGameOver()) {
         return;
       }
-      if (onlineMode) {
-        networkManager.pass();
+      if (controller.isOnlineMode()) {
+        networkController.pass();
       } else {
         controller.handlePlayerMove(Move.createPass(gameInstance.getCurrentPlayer()));
       }
@@ -234,22 +240,22 @@ public class ScrabbleGui extends Application {
       cancelPendingTiles();
     });
     controlPanel.getUndoButton().setOnAction(e -> {
-      if (!onlineMode && !gameInstance.isGameOver()) {
+      if (!controller.isOnlineMode() && !gameInstance.isGameOver()) {
         controller.undo();
       }
     });
     controlPanel.getRedoButton().setOnAction(e -> {
-      if (!onlineMode && !gameInstance.isGameOver()) {
+      if (!controller.isOnlineMode() && !gameInstance.isGameOver()) {
         controller.redo();
       }
     });
     controlPanel.getHintButton().setOnAction(e -> {
-      if (!onlineMode && !gameInstance.isGameOver()) {
+      if (!controller.isOnlineMode() && !gameInstance.isGameOver()) {
         controller.provideHint();
       }
     });
     controlPanel.getPauseButton().setOnAction(e -> {
-      if (!onlineMode && !gameInstance.isGameOver()) {
+      if (!controller.isOnlineMode() && !gameInstance.isGameOver()) {
         controller.togglePause();
       }
     });
@@ -275,8 +281,7 @@ public class ScrabbleGui extends Application {
       }
 
       try {
-        new fr.ubordeaux.scrabble.model.savefiles.SaveManager()
-            .saveGame(gameInstance, file.getAbsolutePath());
+        controller.saveGameToPath(file.getAbsolutePath());
         showInfo(I18n.translate("scrabble.saveSuccessTitle"),
             I18n.translate("scrabble.saveSuccessMessage", file.getAbsolutePath()));
       } catch (java.io.IOException ex) {
@@ -297,7 +302,7 @@ public class ScrabbleGui extends Application {
       }
       Game loadedGame;
       try {
-        loadedGame = new GameLoader().loadGame(file.getAbsolutePath());
+        loadedGame = controller.loadGameFromPath(file.getAbsolutePath());
       } catch (Exception ex) {
         showError(I18n.translate("scrabble.loadError", ex.getMessage()));
         return;
@@ -347,67 +352,6 @@ public class ScrabbleGui extends Application {
   }
 
   /**
-   * Open the window to edits the keybinds.
-   * If user validate, reload the scene to update the key shortcuts.
-   */
-  private void openConfigDialog() {
-    // Load configuration
-    ConfigLoader config = new ConfigLoader();
-    config.loadConfig();
-
-    Dialog<Map<String, String>> dialog = new Dialog<>();
-    dialog.setTitle("Keybinds configuration");
-    dialog.setHeaderText("Edit your key bindings (ex: CTRL+S, F5)");
-
-    GridPane grid = new GridPane();
-    grid.setHgap(15);
-    grid.setVgap(10);
-    grid.setPadding(new Insets(20));
-
-    Map<String, TextField> fields = new HashMap<>();
-    String[][] binds = {
-        {"bind-new", "Nouveau Jeu"}, {"bind-load", "Charger"},
-        {"bind-save", "Sauvegarder"}, {"bind-quit", "Quitter"},
-        {"bind-undo", "Annuler (Undo)"}, {"bind-redo", "Refaire (Redo)"},
-        {"bind-hint", "Indice (Hint)"}, {"bind-pause", "Pause"},
-        {"bind-info", "Informations"}
-    };
-
-    for (int i = 0; i < binds.length; i++) {
-      String key = binds[i][0];
-      String label = binds[i][1];
-      TextField tf = new TextField(config.getOption(key, ""));
-      fields.put(key, tf);
-      grid.add(new Label(label + " :"), 0, i);
-      grid.add(tf, 1, i);
-    }
-
-    dialog.getDialogPane().setContent(grid);
-    dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
-
-    dialog.setResultConverter(btn -> {
-      if (btn == ButtonType.OK) {
-        Map<String, String> results = new HashMap<>();
-        fields.forEach((k, tf) -> results.put(k, tf.getText().trim()));
-        return results;
-      }
-      return null;
-    });
-
-    dialog.showAndWait().ifPresent(updates -> {
-      config.updateAndSave(updates);
-      Scene scene = controlPanel.getScene();
-      if (scene != null) {
-        Platform.runLater(() -> {
-          scene.getAccelerators().clear();
-          setupShortcuts(scene);
-          showInfo("Success", "All bindings were saved.");
-        });
-      }
-    });
-  }
-
-  /**
    * Binds a keyboard shortcut to a visible menu item and updates its display text.
    *
    * @param scene     the main application scene
@@ -453,8 +397,9 @@ public class ScrabbleGui extends Application {
    * @param onlineGame the online game model received from the server
    */
   public void switchToOnlineGame(Game onlineGame) {
+    // Delegate game state transition to controller
+    controller.switchToOnlineMode(onlineGame);
     gameInstance = onlineGame;
-    onlineMode = true;
 
     // Disable useless button in network client mode
     controlPanel.getUndoButton().setDisable(true);
@@ -479,7 +424,8 @@ public class ScrabbleGui extends Application {
    * Exits online mode and re-enables undo/redo buttons.
    */
   public void exitOnlineMode() {
-    onlineMode = false;
+    // Delegate game state transition to controller
+    controller.exitOnlineMode();
     scorePanel.stopBlitzTimers();
 
     // Re enable theses button when exiting online client mode
@@ -498,7 +444,7 @@ public class ScrabbleGui extends Application {
    * @return true if online mode is active
    */
   public boolean isOnlineMode() {
-    return onlineMode;
+    return controller != null && controller.isOnlineMode();
   }
 
   /**
@@ -517,20 +463,27 @@ public class ScrabbleGui extends Application {
    * @param col the column index of the drop target
    */
   public void onTileDropped(int row, int col) {
-    if (currentlyDraggedTile == null || gameInstance.isGameOver()) {
-      return;
-    }
-
-    Point point = new Point(col, row);
-    if (!gameInstance.getBoard().getSquare(point).isEmpty() || pendingTiles.containsKey(point)) {
-      showError(I18n.translate("scrabble.cellOccupied"));
+    GameController.TileDropAnalysis analysis = controller.analyzeTileDrop(
+        currentlyDraggedTile,
+        row,
+        col,
+        pendingTiles);
+    if (!analysis.accepted()) {
+      if (analysis.errorI18nKey() != null) {
+        showError(I18n.translate(analysis.errorI18nKey()));
+      }
       currentlyDraggedTile = null;
       return;
     }
 
-    Tile tileToPlace = currentlyDraggedTile;
+    Tile tileToPlace = analysis.tile();
 
-    if (tileToPlace.isJoker() || tileToPlace.getCharacter() == ' ') {
+    if (analysis.needsJokerResolution()) {
+      if (!Platform.isFxApplicationThread()) {
+        currentlyDraggedTile = null;
+        return;
+      }
+
       TextInputDialog dialog = new TextInputDialog();
       dialog.setTitle("Joker");
       dialog.setHeaderText("You played a joker!");
@@ -538,23 +491,16 @@ public class ScrabbleGui extends Application {
 
       Optional<String> result = dialog.showAndWait();
 
-      if (result.isPresent() && !result.get().trim().isEmpty()) {
-        char chosenChar = result.get().trim().toUpperCase().charAt(0);
-
-        if (chosenChar >= 'A' && chosenChar <= 'Z') {
-          tileToPlace = new Tile(chosenChar, true);
-        } else {
-          showError("Please write a valid character (A-Z).");
-          currentlyDraggedTile = null;
-          return;
-        }
-      } else {
+      Optional<Tile> resolved = controller.resolveDroppedTile(tileToPlace,
+          result.isPresent() ? result.get() : null);
+      if (resolved.isEmpty()) {
         currentlyDraggedTile = null;
         return;
       }
+      tileToPlace = resolved.get();
     }
 
-    pendingTiles.put(point, tileToPlace);
+    pendingTiles.put(analysis.point(), tileToPlace);
 
     boardPanel.placeTile(row, col, tileToPlace.getCharacter(), tileToPlace.getValue());
 
@@ -562,47 +508,26 @@ public class ScrabbleGui extends Application {
     currentlyDraggedTile = null;
   }
 
-  private static Gaddag gaddag;
-
-  private void loadDictionary() {
-    System.out.println("Loading Gaddag for GUI (" + configuredLanguage + ")...");
-    try {
-      gaddag = GuiDictionaryLoader.load(getClass().getClassLoader(), configuredLanguage);
-    } catch (IOException e) {
-      showError(I18n.translate("scrabble.dictLoadError", e.getMessage()));
-    }
-  }
-
   private void submitPendingTiles() {
-    if (pendingTiles.isEmpty()) {
-      showError(I18n.translate("scrabble.needTile"));
-      return;
-    }
-
-    Player tmp = gameInstance.getCurrentPlayer();
-    Move move = PendingMoveBuilder.build(pendingTiles, tmp, gameInstance);
-    if (move == null) {
-      showError(I18n.translate("scrabble.invalidAlignment"));
-      cancelPendingTiles();
-      return;
-    }
-
-    if (onlineMode) {
-      // En mode online : on envoie directement au serveur, c'est lui qui valide
-      Point origin = move.getStartPosition();
-      String dir = move.getDirection().name().substring(0, 1);
-      String word = move.getTiles().stream().map(t -> String.valueOf(t.getCharacter())).reduce("",
-          String::concat);
-      networkManager.play(origin.getX(), origin.getY(), dir, word);
-      pendingTiles.clear();
-    } else {
-      // En mode local : on valide via le controller
-      try {
-        controller.handlePlayerMove(move);
-        pendingTiles.clear();
-      } catch (RuntimeException e) {
-        showError(I18n.translate("scrabble.invalidMove", e.getMessage()));
+    GameController.PendingMoveSubmitResult result = controller.submitPendingMove(pendingTiles);
+    switch (result.status()) {
+      case EMPTY -> showError(I18n.translate("scrabble.needTile"));
+      case INVALID_ALIGNMENT -> {
+        showError(I18n.translate("scrabble.invalidAlignment"));
         cancelPendingTiles();
+      }
+      case ONLINE_READY -> {
+        GameController.NetworkPlayPayload payload = result.payload();
+        networkController.play(payload.x(), payload.y(), payload.direction(), payload.word());
+        pendingTiles.clear();
+      }
+      case LOCAL_APPLIED -> pendingTiles.clear();
+      case LOCAL_REJECTED -> {
+        showError(I18n.translate("scrabble.invalidMove", result.errorMessage()));
+        cancelPendingTiles();
+      }
+      default -> {
+        // All enum values are handled above; this keeps checkstyle satisfied.
       }
     }
   }
@@ -625,15 +550,15 @@ public class ScrabbleGui extends Application {
         return;
       }
 
-      if (onlineMode) {
-        networkManager.exchange(letters);
+      if (controller.isOnlineMode()) {
+        networkController.exchange(letters);
       } else {
-        Move move = ExchangeMoveBuilder.build(letters, gameInstance.getCurrentPlayer());
-        if (move == null) {
+        Optional<Move> moveOpt = controller.buildExchangeMoveFromLetters(letters);
+        if (moveOpt.isEmpty()) {
           showError(I18n.translate("scrabble.exchange.invalidRack"));
           return;
         }
-        controller.handlePlayerMove(move);
+        controller.handlePlayerMove(moveOpt.get());
       }
     });
   }
@@ -657,19 +582,18 @@ public class ScrabbleGui extends Application {
       return;
     }
 
-    ControllerConfigSnapshot configSnapshot = ControllerConfigSnapshot.capture(controller);
-
-    Optional<Integer> countOpt = controller.configuredPlayerCount() > 0
-        ? Optional.of(controller.configuredPlayerCount())
+    Optional<Integer> selectedCount = controller.configuredPlayerCount() > 0
+        ? Optional.empty()
         : PlayerSetup.showDialog();
-    if (countOpt.isEmpty()) {
+    if (controller.resolveNewGamePlayerCount(selectedCount).isEmpty()) {
       return;
     }
 
     // Nettoyage complet avant de recréer
-    if (onlineMode) {
+    if (controller.isOnlineMode()) {
       networkBridge.dispose();
       networkManager = new NetworkManager();
+      networkController = new NetworkLobbyController(networkManager);
       networkBridge = new NetworkGameBridge(networkManager);
       networkBridge.setGui(this);
 
@@ -682,40 +606,16 @@ public class ScrabbleGui extends Application {
       exitOnlineMode();
     }
 
-    gameInstance = new Game(
-      configSnapshot.superScrabbleMode() ? fr.ubordeaux.scrabble.model.enums.GameMode.SUPER
-            : fr.ubordeaux.scrabble.model.enums.GameMode.STANDARD,
-      configSnapshot.language());
-    final int count = countOpt.get();
-
-    if (configSnapshot.blitzMode()) {
-      gameInstance.enableBlitzMode(
-          java.time.Duration.ofMinutes(configSnapshot.blitzMinutes()));
+    Optional<Game> recreated = controller.recreateConfiguredGameFromSelection(selectedCount);
+    if (recreated.isEmpty()) {
+      return;
     }
-
-    configuredLanguage = configSnapshot.language();
-    gaddag = null;
-    if (gaddag == null) {
-      loadDictionary();
-    }
-    for (int i = 1; i <= count; i++) {
-      PlayerColor color = PlayerColor.fromIndex(i - 1);
-      gameInstance.addPlayer(new HumanPlayer(I18n.translate("scrabble.defaultPlayer", i), color));
-    }
-
-    viewInstance = new JavaFxView(gameInstance);
-    viewInstance.setGui(this);
-    controller = new GameController(gameInstance, viewInstance);
-    configSnapshot.applyTo(controller);
-
-    setGameplayControlsDisabled(false);
+    gameInstance = recreated.get();
 
     boardPanel.clearAllPending();
     pendingTiles.clear();
     boardPanel.setBoard(gameInstance.getBoard());
 
-    // Démarrer la partie AVANT de rafraîchir l'affichage
-    controller.startGame();
     if (gameInstance.isBlitzModeEnabled()) {
       scorePanel.startBlitzTimers(gameInstance.getPlayers(), this::onBlitzTimeExpired);
     } else {
@@ -729,14 +629,10 @@ public class ScrabbleGui extends Application {
    * Ends the game and notifies the players.
    */
   private void onBlitzTimeExpired() {
-    gameInstance.setGameOver(true);
+    Optional<Player> expired = controller.handleBlitzTimeout();
     setGameplayControlsDisabled(true);
-    // Find the player who ran out of time
-    gameInstance.getPlayers().stream()
-        .filter(p -> p.isBlitzClockEnabled() && p.isOutOfTime())
-        .findFirst()
-        .ifPresent(p -> showInfo(I18n.translate("scrabble.blitzTimeoutTitle"),
-            I18n.translate("scrabble.blitzTimeoutMessage", p.getName())));
+    expired.ifPresent(p -> showInfo(I18n.translate("scrabble.blitzTimeoutTitle"),
+        I18n.translate("scrabble.blitzTimeoutMessage", p.getName())));
     refreshScores();
   }
 
@@ -744,168 +640,32 @@ public class ScrabbleGui extends Application {
    * Refreshes all GUI panels: board, rack, scores, and checks if it is the AI's turn.
    */
   public void refreshAll() {
-    updatePauseAvailability();
-    refreshBoard();
-    refreshRack();
-    refreshScores();
-    checkAiTurn();
+    refreshDelegate.refreshAll(this);
   }
 
   private void showConfigurationDialog() {
-    Dialog<ButtonType> dialog = new Dialog<>();
-    dialog.setTitle(I18n.translate("scrabble.config.dialog.title"));
-    dialog.setHeaderText(I18n.translate("scrabble.config.dialogHeader"));
-
-    DialogPane dialogPane = dialog.getDialogPane();
-    ButtonType applyRestartButton = new ButtonType(
-        I18n.translate("scrabble.config.dialog.applyRestart"),
-        javafx.scene.control.ButtonBar.ButtonData.LEFT);
-    dialogPane.getButtonTypes().addAll(ButtonType.OK, applyRestartButton, ButtonType.CANCEL);
-
-    ChoiceBox<String> languageChoice = new ChoiceBox<>();
-    languageChoice.getItems().addAll("en", "fr");
-    languageChoice.setValue(controller.configuredLanguage());
-
-    final Spinner<Integer> playerSpinner = new Spinner<>(
-        new SpinnerValueFactory.IntegerSpinnerValueFactory(2, 8,
-            Math.max(2, controller.configuredPlayerCount() > 0
-                ? controller.configuredPlayerCount()
-                : gameInstance.getPlayers().size())));
-
-    CheckBox superScrabbleBox = new CheckBox();
-    superScrabbleBox.setSelected(controller.configuredSuperMode());
-
-    CheckBox blitzBox = new CheckBox();
-    blitzBox.setSelected(controller.configuredBlitzMode());
-
-    Spinner<Integer> blitzTimeoutSpinner = new Spinner<>(
-        new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 120,
-            controller.configuredBlitzMinutes()));
-    blitzTimeoutSpinner.setEditable(true);
-    blitzTimeoutSpinner.disableProperty().bind(blitzBox.selectedProperty().not());
-
-    Spinner<Integer> aiTimeSpinner = new Spinner<>(
-        new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 60,
-            controller.configuredAiTime()));
-    aiTimeSpinner.setEditable(true);
-
-    CheckBox expectiminimaxBox = new CheckBox();
-    expectiminimaxBox.setSelected(controller.isExpectiminimaxEnabled());
-
-    CheckBox mlBox = new CheckBox();
-    mlBox.setSelected(controller.isMlEnabled());
-
-    CheckBox debugBox = new CheckBox();
-    debugBox.setSelected(fr.ubordeaux.scrabble.model.utils.GameLogger.isDebug());
-
-    CheckBox verboseBox = new CheckBox();
-    verboseBox.setSelected(fr.ubordeaux.scrabble.model.utils.GameLogger.isVerbose());
-
-    javafx.scene.control.TextField dictionaryField = new javafx.scene.control.TextField(
-        controller.getDictionaryPathOverride());
-    dictionaryField.setPrefColumnCount(28);
-
-    GridPane grid = new GridPane();
-    grid.setHgap(12);
-    grid.setVgap(10);
-    grid.setPadding(new Insets(12, 0, 0, 0));
-
-    int row = 0;
-    grid.addRow(row++,
-        new Label(I18n.translate("scrabble.config.label.language")),
-        languageChoice);
-    grid.addRow(row++,
-        new Label(I18n.translate("scrabble.config.label.players")),
-        playerSpinner);
-    grid.addRow(row++,
-        new Label(I18n.translate("scrabble.config.label.super")),
-        superScrabbleBox);
-    grid.addRow(row++, new Label(I18n.translate("scrabble.config.label.blitz")), blitzBox);
-    grid.addRow(row++,
-        new Label(I18n.translate("scrabble.config.label.timeout")),
-        blitzTimeoutSpinner);
-    grid.addRow(row++, new Label(I18n.translate("scrabble.config.label.aitime")), aiTimeSpinner);
-    grid.addRow(row++,
-        new Label(I18n.translate("scrabble.config.label.expectiminimax")),
-        expectiminimaxBox);
-    grid.addRow(row++, new Label(I18n.translate("scrabble.config.label.ml")), mlBox);
-    grid.addRow(row++,
-        new Label(I18n.translate("scrabble.config.label.dictionary")),
-        dictionaryField);
-    grid.addRow(row++, new Label(I18n.translate("scrabble.config.label.debug")), debugBox);
-    grid.addRow(row, new Label(I18n.translate("scrabble.config.label.verbose")), verboseBox);
-
-    dialogPane.setContent(grid);
-
-    Optional<ButtonType> result = dialog.showAndWait();
-    if (result.isEmpty() || (result.get() != ButtonType.OK && result.get() != applyRestartButton)) {
-      return;
-    }
-
-    applyConfigurationAssignments(String.join("; ",
-        "language=" + languageChoice.getValue(),
-        "players=" + playerSpinner.getValue(),
-        "super-scrabble=" + superScrabbleBox.isSelected(),
-        "blitz=" + blitzBox.isSelected(),
-        "timeout=" + blitzTimeoutSpinner.getValue(),
-        "ai-time=" + aiTimeSpinner.getValue(),
-        "ai-exptiminimax=" + expectiminimaxBox.isSelected(),
-        "ai-ml=" + mlBox.isSelected(),
-        "dictionary=" + dictionaryField.getText().trim(),
-        "debug=" + debugBox.isSelected(),
-        "verbose=" + verboseBox.isSelected()));
-
-    if (result.get() == applyRestartButton) {
-      recreateGameFromCurrentConfiguration(false);
-    }
+    configDialogDelegate.showDialog(
+        controller,
+        gameInstance,
+        this::applyConfigurationAssignments,
+        () -> recreateGameFromCurrentConfiguration(false));
   }
 
   private void applyConfigurationAssignments(String rawAssignments) {
-    String[] assignments = rawAssignments.split("[;]");
-    boolean blitzChanged = false;
-    boolean languageChanged = false;
-    boolean dictionaryChanged = false;
-
-    for (String assignment : assignments) {
-      String normalized = assignment.trim();
-      if (normalized.isEmpty()) {
-        continue;
-      }
-
-      String[] kv = normalized.split("=", 2);
-      if (kv.length != 2) {
-        showError(I18n.translate("scrabble.config.invalidEntry", normalized));
-        return;
-      }
-
-      try {
-        String key = kv[0].trim();
-        controller.applyConfiguration(key, kv[1].trim());
-        if (key.equalsIgnoreCase("blitz") || key.equalsIgnoreCase("timeout")) {
-          blitzChanged = true;
-        }
-        if (key.equalsIgnoreCase("language") || key.equalsIgnoreCase("lang")) {
-          languageChanged = true;
-        }
-        if (key.equalsIgnoreCase("dictionary") || key.equalsIgnoreCase("dictionary-path")) {
-          dictionaryChanged = true;
-        }
-      } catch (IllegalArgumentException ex) {
-        showError(ex.getMessage());
-        return;
-      }
+    GameController.ConfigurationApplySummary summary;
+    try {
+      summary = controller.applyConfigurationAssignments(rawAssignments);
+    } catch (IllegalArgumentException ex) {
+      showError(ex.getMessage());
+      return;
     }
 
-    if (languageChanged) {
+    if (summary.languageChanged()) {
       configuredLanguage = controller.configuredLanguage();
       refreshLocalizedTexts();
     }
 
-    if (languageChanged || dictionaryChanged) {
-      gaddag = null;
-    }
-
-    if (blitzChanged) {
+    if (summary.blitzChanged()) {
       if (gameInstance.isBlitzModeEnabled()) {
         scorePanel.startBlitzTimers(gameInstance.getPlayers(),
             this::onBlitzTimeExpired);
@@ -988,39 +748,23 @@ public class ScrabbleGui extends Application {
     if (boardPanel.isDisable()) {
       return;
     }
-    Player current = gameInstance.getCurrentPlayer();
-    if (current instanceof AiPlayer && !gameInstance.isGameOver()) {
-      if (gaddag == null) {
-        loadDictionary();
-      }
-      final AiPlayer ai = (AiPlayer) current;
+    if (controller.shouldPerformAiTurn()) {
+      // Disable board during AI turn
       boardPanel.setDisable(true);
       rackPanel.setDisable(true);
       controlPanel.setGameplayButtonsDisabled(true);
 
-      new Thread(() -> {
-        try {
-          Thread.sleep(1000);
-          ai.playTurn(gameInstance, gaddag);
-        } catch (InterruptedException e) {
-          Thread.currentThread().interrupt();
-          Platform.runLater(() -> controller.handlePlayerMove(Move.createPass(ai)));
-        } catch (RuntimeException e) {
-          Platform.runLater(() -> showError(I18n.translate("scrabble.aiError", e.getMessage())));
-          Platform.runLater(() -> controller.handlePlayerMove(Move.createPass(ai)));
-        } finally {
-          Platform.runLater(() -> {
-            if (gameInstance.isGameOver()) {
-              setGameplayControlsDisabled(true);
-            } else {
-              boardPanel.setDisable(false);
-              rackPanel.setDisable(false);
-              controlPanel.setGameplayButtonsDisabled(false);
-            }
-            refreshAll();
-          });
+      // Delegate AI execution to controller with callback for UI updates
+      controller.performAiTurn(() -> Platform.runLater(() -> {
+        if (gameInstance.isGameOver()) {
+          setGameplayControlsDisabled(true);
+        } else {
+          boardPanel.setDisable(false);
+          rackPanel.setDisable(false);
+          controlPanel.setGameplayButtonsDisabled(false);
         }
-      }).start();
+        refreshAll();
+      }));
     }
   }
 
@@ -1093,43 +837,71 @@ public class ScrabbleGui extends Application {
    * Refreshes the board panel to reflect the current game state.
    */
   public void refreshBoard() {
-    boardPanel.updateBoard();
+    refreshDelegate.refreshBoard(this);
   }
 
   /**
    * Refreshes the rack panel for the current player.
    */
   public void refreshRack() {
-    rackPanel.setRack(getCurrentRack());
-    rackPanel.setOnTileDragged(this::onTileDragged);
-    Player current = gameInstance.getCurrentPlayer();
-    if (current != null) {
-      int idx = gameInstance.getPlayers().indexOf(current);
-      if (idx >= 0) {
-        rackPanel.setCurrentPlayerNumber(idx + 1);
-      }
-    }
+    refreshDelegate.refreshRack(this);
   }
 
   /**
    * Refreshes the score panel with updated player scores and bag info.
    */
   public void refreshScores() {
-    List<Player> players = gameInstance.getPlayers();
-    if (players.isEmpty()) {
-      return;
-    }
-    String[] names = players.stream().map(Player::getName).toArray(String[]::new);
-    int[] scores = players.stream().mapToInt(Player::getScore).toArray();
-    scorePanel.updateScores(names, scores);
-    scorePanel.updateBagInfo(gameInstance.getBag().size());
-    Player current = gameInstance.getCurrentPlayer();
-    if (current != null) {
-      int idx = players.indexOf(current);
-      if (idx >= 0) {
-        scorePanel.highlightCurrentPlayer(idx, current.getName());
-      }
-    }
+    refreshDelegate.refreshScores(this);
+  }
+
+  /**
+   * Exposes board panel for helper delegates.
+   *
+   * @return board panel
+   */
+  public BoardPanel getBoardPanel() {
+    return boardPanel;
+  }
+
+  /**
+   * Exposes rack panel for helper delegates.
+   *
+   * @return rack panel
+   */
+  public RackPanel getRackPanel() {
+    return rackPanel;
+  }
+
+  /**
+   * Exposes score panel for helper delegates.
+   *
+   * @return score panel
+   */
+  public ScorePanel getScorePanel() {
+    return scorePanel;
+  }
+
+  /**
+   * Exposes current game instance for helper delegates.
+   *
+   * @return game instance
+   */
+  public Game getGameInstance() {
+    return gameInstance;
+  }
+
+  /**
+   * Exposes pause availability update for refresh helper.
+   */
+  public void syncPauseAvailability() {
+    updatePauseAvailability();
+  }
+
+  /**
+   * Exposes AI turn check for refresh helper.
+   */
+  public void checkAiTurnIfNeeded() {
+    checkAiTurn();
   }
 
   /**
@@ -1184,27 +956,24 @@ public class ScrabbleGui extends Application {
    */
   private void setupShortcuts(Scene scene) {
     scene.getAccelerators().put(new KeyCodeCombination(KeyCode.COMMA, KeyCombination.CONTROL_DOWN),
-        this::openConfigDialog);
+        this::showConfigurationDialog);
 
-    ConfigLoader config = new ConfigLoader();
-    config.loadConfig();
+    addMenuShortcut(scene, controller.getConfigOption("bind-new", "Ctrl+N"), newGameMenuItem);
+    addMenuShortcut(scene, controller.getConfigOption("bind-load", "Ctrl+L"), loadMenuItem);
+    addMenuShortcut(scene, controller.getConfigOption("bind-save", "Ctrl+S"), saveMenuItem);
+    addMenuShortcut(scene, controller.getConfigOption("bind-quit", "Ctrl+Q"), quitMenuItem);
 
-    addMenuShortcut(scene, config.getOption("bind-new", "Ctrl+N"), newGameMenuItem);
-    addMenuShortcut(scene, config.getOption("bind-load", "Ctrl+L"), loadMenuItem);
-    addMenuShortcut(scene, config.getOption("bind-save", "Ctrl+S"), saveMenuItem);
-    addMenuShortcut(scene, config.getOption("bind-quit", "Ctrl+Q"), quitMenuItem);
-
-    addActionShortcut(scene, config.getOption("bind-undo", "Ctrl+U"),
+    addActionShortcut(scene, controller.getConfigOption("bind-undo", "Ctrl+U"),
         () -> controlPanel.getUndoButton().fire());
-    addActionShortcut(scene, config.getOption("bind-redo", "Ctrl+R"),
+    addActionShortcut(scene, controller.getConfigOption("bind-redo", "Ctrl+R"),
         () -> controlPanel.getRedoButton().fire());
-    addActionShortcut(scene, config.getOption("bind-hint", "Ctrl+H"),
+    addActionShortcut(scene, controller.getConfigOption("bind-hint", "Ctrl+H"),
         () -> controlPanel.getHintButton().fire());
-    addActionShortcut(scene, config.getOption("bind-info", "Ctrl+I"),
+    addActionShortcut(scene, controller.getConfigOption("bind-info", "Ctrl+I"),
         () -> showInfo("Infos", "Scrabble v1.0"));
 
-    addActionShortcut(scene, config.getOption("bind-pause", "Ctrl+P"), () -> {
-      if (!onlineMode && !gameInstance.isGameOver()) {
+    addActionShortcut(scene, controller.getConfigOption("bind-pause", "Ctrl+P"), () -> {
+      if (!controller.isOnlineMode() && !gameInstance.isGameOver()) {
         controller.togglePause();
       }
     });

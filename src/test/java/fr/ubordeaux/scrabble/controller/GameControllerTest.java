@@ -564,10 +564,9 @@ class GameControllerTest {
     CliView view = new CliView(game);
     GameController controller = new GameController(game, view);
 
-    Field watcherField = GameController.class.getDeclaredField("blitzWatcherThread");
+    Field watcherField = GameController.class.getDeclaredField("blitzWatcherExecutor");
     watcherField.setAccessible(true);
-    watcherField.set(controller, new Thread(() -> {
-    }));
+    watcherField.set(controller, java.util.concurrent.Executors.newSingleThreadScheduledExecutor());
 
     invokePrivateMethod(controller, "handleBlitzExpiry",
         new Class<?>[] {fr.ubordeaux.scrabble.model.interfaces.Player.class, CliView.class},

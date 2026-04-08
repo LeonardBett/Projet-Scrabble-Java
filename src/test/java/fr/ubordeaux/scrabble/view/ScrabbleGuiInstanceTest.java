@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import fr.ubordeaux.scrabble.controller.GameController;
+import fr.ubordeaux.scrabble.controller.config.ControllerConfigSnapshot;
 import fr.ubordeaux.scrabble.model.core.Game;
 import fr.ubordeaux.scrabble.model.core.HumanPlayer;
 import fr.ubordeaux.scrabble.model.core.Tile;
@@ -16,7 +17,6 @@ import fr.ubordeaux.scrabble.model.network.NetworkManager;
 import fr.ubordeaux.scrabble.model.utils.Point;
 import fr.ubordeaux.scrabble.view.gui.JavaFxView;
 import fr.ubordeaux.scrabble.view.gui.ScrabbleGui;
-import fr.ubordeaux.scrabble.view.gui.config.ControllerConfigSnapshot;
 import fr.ubordeaux.scrabble.view.gui.network.NetworkGameBridge;
 import fr.ubordeaux.scrabble.view.gui.panel.BoardPanel;
 import fr.ubordeaux.scrabble.view.gui.panel.ControlPanel;
@@ -194,10 +194,13 @@ class ScrabbleGuiInstanceTest {
   @Test
   void onTileDroppedOnOccupiedPendingRejects()
       throws Exception {
-    Tile t1 = game.getCurrentPlayer().getRack()
-        .getTiles().get(0);
-    Tile t2 = game.getCurrentPlayer().getRack()
-        .getTiles().get(1);
+    java.util.List<Tile> playableTiles = game.getCurrentPlayer().getRack().getTiles().stream()
+        .filter(t -> !t.isJoker() && t.getCharacter() != ' ')
+        .limit(2)
+        .toList();
+    assertEquals(2, playableTiles.size());
+    Tile t1 = playableTiles.get(0);
+    Tile t2 = playableTiles.get(1);
     gui.onTileDragged(t1);
     gui.onTileDropped(5, 5);
     gui.onTileDragged(t2);
@@ -272,10 +275,7 @@ class ScrabbleGuiInstanceTest {
     assertNotNull(rack);
   }
 
-  @Test
-  void loadDictionaryShouldNotThrow() {
-    invokePrivate(gui, "loadDictionary");
-  }
+  // loadDictionary removed: dictionary loading now handled by GameController.getOrLoadGaddag()
 
   @Test
   void buildLeftMenuReturnsVbox() {

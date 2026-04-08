@@ -1,5 +1,6 @@
 package fr.ubordeaux.scrabble.view.gui.network;
 
+import fr.ubordeaux.scrabble.controller.network.NetworkLobbyController;
 import fr.ubordeaux.scrabble.i18n.I18n;
 import fr.ubordeaux.scrabble.model.core.Game;
 import fr.ubordeaux.scrabble.model.network.NetworkManager;
@@ -19,9 +20,9 @@ import javafx.application.Platform;
 public class NetworkGameBridge implements NetworkObserver {
 
   private final NetworkManager networkManager;
+  private final NetworkLobbyController networkController;
   private ScrabbleGui gui;
   private NetworkLobbyView lobbyView;
-  private boolean pendingGameStart;
 
   /**
    * Constructs the bridge and registers it as an observer to the NetworkManager.
@@ -30,6 +31,7 @@ public class NetworkGameBridge implements NetworkObserver {
    */
   public NetworkGameBridge(NetworkManager networkManager) {
     this.networkManager = networkManager;
+    this.networkController = new NetworkLobbyController(networkManager);
     this.networkManager.addObserver(this);
   }
 
@@ -134,8 +136,7 @@ public class NetworkGameBridge implements NetworkObserver {
 
   /** Requests a game start from the host side by fetching player list first. */
   public void requestGameStart() {
-    pendingGameStart = true;
-    networkManager.players();
+    networkController.requestGameStart();
   }
 
   @Override
@@ -187,50 +188,24 @@ public class NetworkGameBridge implements NetworkObserver {
           if (lobbyView != null) {
             lobbyView.onPlayersReceived(players);
           }
-
-          int[] ids = extractPositivePlayerIds(players);
-          if (shouldDispatchGameStart(pendingGameStart, ids.length)) {
-            pendingGameStart = false;
-            dispatchNewGame(networkManager, ids);
-          }
+          networkController.handlePlayersUpdate(players);
         });
   }
 
   private static boolean shouldDispatchGameStart(boolean pending, int playersCount) {
-    return pending && playersCount >= 2;
+    return NetworkLobbyController.shouldDispatchGameStart(pending, playersCount);
   }
 
   private static int parsePlayerId(Map<String, String> player) {
-    String rawId = player.getOrDefault("ID", "0");
-    try {
-      return Integer.parseInt(rawId);
-    } catch (NumberFormatException ex) {
-      return 0;
-    }
+    return NetworkLobbyController.parsePlayerId(player);
   }
 
   private static int[] extractPositivePlayerIds(List<Map<String, String>> players) {
-    return players.stream()
-        .mapToInt(NetworkGameBridge::parsePlayerId)
-        .filter(id -> id > 0)
-        .sorted()
-        .toArray();
+    return NetworkLobbyController.extractPositivePlayerIds(players);
   }
 
   private static int dispatchNewGame(NetworkManager manager, int[] ids) {
-    if (ids.length < 2) {
-      return 0;
-    }
-    if (ids.length == 2) {
-      manager.newPlayerId(ids[1]);
-      return 1;
-    }
-    if (ids.length == 3) {
-      manager.newPlayerId(ids[1], ids[2]);
-      return 2;
-    }
-    manager.newPlayerId(ids[1], ids[2], ids[3]);
-    return 3;
+    return NetworkLobbyController.dispatchNewGame(manager, ids);
   }
 
   /**

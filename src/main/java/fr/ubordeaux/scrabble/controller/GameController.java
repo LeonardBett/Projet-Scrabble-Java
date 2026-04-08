@@ -13,12 +13,16 @@ import fr.ubordeaux.scrabble.model.core.Tile;
 import fr.ubordeaux.scrabble.model.dictionary.Gaddag;
 import fr.ubordeaux.scrabble.model.enums.Direction;
 import fr.ubordeaux.scrabble.model.enums.GameMode;
-import fr.ubordeaux.scrabble.model.enums.PlayerColor;
+import fr.ubordeaux.scrabble.model.enums.MoveType;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
+import fr.ubordeaux.scrabble.model.savefiles.ConfigLoader;
+import fr.ubordeaux.scrabble.model.savefiles.GameLoader;
+import fr.ubordeaux.scrabble.model.savefiles.SaveManager;
 import fr.ubordeaux.scrabble.model.utils.GameLogger;
 import fr.ubordeaux.scrabble.model.utils.Point;
 import fr.ubordeaux.scrabble.view.UserInterface;
 import fr.ubordeaux.scrabble.view.cli.CliView;
+import fr.ubordeaux.scrabble.view.optionlancement.GuiLauncher;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,6 +32,12 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.OptionalInt;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Main controller (application logic). Handles user input, updates the model and the view.
@@ -41,6 +51,7 @@ public class GameController {
   private List<String> dictionaryList;
   private String lang = "en";
   private boolean isPaused = false;
+  /** Dictionary path override used for GUI/CLI launches. */
   private String dictionaryPathOverride;
   private boolean superScrabbleMode;
   private boolean blitzMode;
@@ -50,6 +61,7 @@ public class GameController {
   private int aiTime = 5;
   private boolean useExptiminimax = false;
   private boolean useMl = false;
+  private boolean onlineMode = false;
 
   // Player count set by launcher (0 = ask interactively)
   private int playerCount = 0;
@@ -202,65 +214,55 @@ public class GameController {
   }
 
   /** Thread de surveillance blitz — affiche un avertissement toutes les minutes. */
-  private volatile Thread blitzWatcherThread;
+  private ScheduledExecutorService blitzWatcherExecutor;
 
   /**
-   * Starts a background thread that checks blitz time every second and warns the player
+   * Starts a background task that checks blitz time every second and warns the player
    * at 5 minutes, 2 minutes and 1 minute remaining.
    *
    * @param cliView the CLI view used to display warnings
    */
   void startBlitzWatcher(CliView cliView) {
-    blitzWatcherThread = new Thread(() -> {
-      final long[] warnedAt = {5 * 60_000L, 2 * 60_000L, 60_000L};
-      boolean[] warned = new boolean[warnedAt.length];
+    stopBlitzWatcher();
+    final long[] warnedAt = {5 * 60_000L, 2 * 60_000L, 60_000L};
+    final boolean[] warned = new boolean[warnedAt.length];
 
-      while (!Thread.currentThread().isInterrupted() && !game.isGameOver()) {
-        Player current = game.getCurrentPlayer();
-        if (current != null && current.isBlitzClockEnabled()) {
-          long remaining = current.getRemainingTimeMillis();
+    blitzWatcherExecutor = Executors.newSingleThreadScheduledExecutor();
+    blitzWatcherExecutor.scheduleAtFixedRate(() -> {
+      if (game.isGameOver()) {
+        stopBlitzWatcher();
+        return;
+      }
 
-          // Avertissements à 5 min, 2 min, 1 min
-          for (int i = 0; i < warnedAt.length; i++) {
-            if (!warned[i] && remaining <= warnedAt[i] && remaining > 0) {
-              warned[i] = true;
-              long minutes = warnedAt[i] / 60_000L;
-              System.out.println("\n " + I18n.translate(
-                  "cli.blitz.remainingMinutes",
-                  current.getName(),
-                  minutes));
-            }
-          }
+      Player current = game.getCurrentPlayer();
+      if (current != null && current.isBlitzClockEnabled()) {
+        long remaining = current.getRemainingTimeMillis();
 
-          // Temps expiré
-          if (current.isOutOfTime() && !game.isGameOver()) {
-            handleBlitzExpiry(current, cliView);
-            break;
-          }
-
-          // Réinitialiser les avertissements au changement de joueur
-          Player newCurrent = game.getCurrentPlayer();
-          if (newCurrent != current) {
-            warned = new boolean[warnedAt.length];
+        // Avertissements à 5 min, 2 min, 1 min
+        for (int i = 0; i < warnedAt.length; i++) {
+          if (!warned[i] && remaining <= warnedAt[i] && remaining > 0) {
+            warned[i] = true;
+            long minutes = warnedAt[i] / 60_000L;
+            System.out.println("\n " + I18n.translate(
+                "cli.blitz.remainingMinutes",
+                current.getName(),
+                minutes));
           }
         }
 
-        try {
-          Thread.sleep(1000);
-        } catch (InterruptedException e) {
-          Thread.currentThread().interrupt();
+        // Temps expiré
+        if (current.isOutOfTime() && !game.isGameOver()) {
+          handleBlitzExpiry(current, cliView);
         }
       }
-    });
-    blitzWatcherThread.setDaemon(true);
-    blitzWatcherThread.start();
+    }, 0L, 1L, TimeUnit.SECONDS);
   }
 
-  /** Stops the blitz watcher thread if running. */
+  /** Stops the blitz watcher task if running. */
   void stopBlitzWatcher() {
-    if (blitzWatcherThread != null) {
-      blitzWatcherThread.interrupt();
-      blitzWatcherThread = null;
+    if (blitzWatcherExecutor != null) {
+      blitzWatcherExecutor.shutdownNow();
+      blitzWatcherExecutor = null;
     }
   }
 
@@ -326,7 +328,7 @@ public class GameController {
    *
    * @return The populated Gaddag instance.
    */
-  Gaddag getOrLoadGaddag() {
+  public Gaddag getOrLoadGaddag() {
     if (gaddag != null) {
       return gaddag;
     }
@@ -755,5 +757,544 @@ public class GameController {
     }
 
     view.refresh();
+  }
+
+  /**
+   * Applies a semicolon-separated list of configuration assignments.
+   *
+   * <p>Expected format: {@code key=value; key2=value2; ...}
+   *
+   * @param rawAssignments assignment string to parse and apply
+   * @return a summary of important changed domains
+   */
+  public ConfigurationApplySummary applyConfigurationAssignments(String rawAssignments) {
+    if (rawAssignments == null || rawAssignments.isBlank()) {
+      throw new IllegalArgumentException("Configuration string must not be empty.");
+    }
+
+    String[] assignments = rawAssignments.split("[;]");
+    boolean blitzChanged = false;
+    boolean languageChanged = false;
+
+    for (String assignment : assignments) {
+      String normalized = assignment.trim();
+      if (normalized.isEmpty()) {
+        continue;
+      }
+
+      String[] kv = normalized.split("=", 2);
+      if (kv.length != 2) {
+        throw new IllegalArgumentException("Invalid configuration entry: " + normalized);
+      }
+
+      String key = kv[0].trim();
+      applyConfiguration(key, kv[1].trim());
+
+      if (key.equalsIgnoreCase("blitz") || key.equalsIgnoreCase("timeout")) {
+        blitzChanged = true;
+      }
+      if (key.equalsIgnoreCase("language") || key.equalsIgnoreCase("lang")) {
+        languageChanged = true;
+      }
+    }
+
+    return new ConfigurationApplySummary(languageChanged, blitzChanged);
+  }
+
+  /**
+   * Creates a new configured game from the current controller settings, then replaces the current
+   * game and starts it.
+   *
+   * @param count the number of players for the new game
+   * @return the created game instance
+   */
+  public Game recreateConfiguredGame(int count) {
+    GameMode mode = superScrabbleMode ? GameMode.SUPER : GameMode.STANDARD;
+    Game newGame = GuiLauncher.createConfiguredGame(
+        mode,
+        count,
+        List.of(),
+        blitzMode,
+        blitzMinutes,
+        aiTime,
+        useMl);
+
+    setGame(newGame);
+    startGame();
+    return newGame;
+  }
+
+  /**
+   * Marks the current game as over due to blitz timeout and returns the expired player if found.
+   *
+   * @return optional player that ran out of time
+   */
+  public Optional<Player> handleBlitzTimeout() {
+    if (game == null) {
+      return Optional.empty();
+    }
+    game.setGameOver(true);
+    return game.getPlayers().stream()
+        .filter(p -> p.isBlitzClockEnabled() && p.isOutOfTime())
+        .findFirst();
+  }
+
+  /**
+   * Builds an exchange move from letters entered by the user.
+   *
+   * @param letters letters to exchange
+   * @return optional exchange move when all letters are present in current rack
+   */
+  public Optional<Move> buildExchangeMoveFromLetters(String letters) {
+    if (letters == null || letters.isBlank()) {
+      return Optional.empty();
+    }
+
+    Player current = game.getCurrentPlayer();
+    if (current == null) {
+      return Optional.empty();
+    }
+
+    List<Tile> rack = current.getRack().getTiles();
+    List<Tile> toExchange = new ArrayList<>();
+
+    for (char c : letters.toUpperCase().toCharArray()) {
+      boolean found = false;
+      for (Tile tile : rack) {
+        if (tile.getCharacter() == c && !toExchange.contains(tile)) {
+          toExchange.add(tile);
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        return Optional.empty();
+      }
+    }
+
+    if (toExchange.isEmpty()) {
+      return Optional.empty();
+    }
+    return Optional.of(Move.createExchange(current, toExchange));
+  }
+
+  /**
+   * Builds a pending PLAY move from GUI pending tiles.
+   *
+   * @param pendingTiles pending tiles keyed by point
+   * @return play move, or null when alignment is invalid
+   */
+  public Move buildPendingMove(Map<Point, Tile> pendingTiles) {
+    return fr.ubordeaux.scrabble.controller.builders.PendingMoveBuilderController.build(
+        pendingTiles,
+        game.getCurrentPlayer(),
+        game);
+  }
+
+  /**
+   * Converts a local PLAY move to the compact payload required by the network layer.
+   *
+   * @param move move to convert
+   * @return payload containing coordinates, direction letter and word
+   */
+  public NetworkPlayPayload toNetworkPlayPayload(Move move) {
+    if (move == null || move.getType() != MoveType.PLAY || move.getStartPosition() == null
+        || move.getDirection() == null) {
+      throw new IllegalArgumentException("A valid PLAY move is required.");
+    }
+
+    String word = move.getTiles().stream()
+        .map(t -> String.valueOf(t.getCharacter()))
+        .reduce("", String::concat);
+
+    return new NetworkPlayPayload(
+        move.getStartPosition().getX(),
+        move.getStartPosition().getY(),
+        move.getDirection().name().substring(0, 1),
+        word);
+  }
+
+  /**
+   * Checks whether a tile can be placed at the provided point, considering both board occupancy
+   * and currently pending GUI placements.
+   *
+   * @param point board point to validate
+   * @param pendingTiles tiles currently pending placement in GUI
+   * @return true when the cell can accept a tile
+   */
+  public boolean canPlacePendingTile(Point point, Map<Point, Tile> pendingTiles) {
+    if (game == null || point == null) {
+      return false;
+    }
+    return game.getBoard().getSquare(point).isEmpty()
+        && (pendingTiles == null || !pendingTiles.containsKey(point));
+  }
+
+  /**
+   * Resolves a dropped tile. For joker tiles, converts user input to a concrete tile.
+   *
+   * @param draggedTile tile dragged from rack
+   * @param jokerInput user-entered joker character, ignored for non-joker tiles
+   * @return resolved tile to place, or empty when the input is cancelled/invalid
+   */
+  public Optional<Tile> resolveDroppedTile(Tile draggedTile, String jokerInput) {
+    if (draggedTile == null) {
+      return Optional.empty();
+    }
+    if (!draggedTile.isJoker() && draggedTile.getCharacter() != ' ') {
+      return Optional.of(draggedTile);
+    }
+    if (jokerInput == null || jokerInput.trim().isEmpty()) {
+      return Optional.empty();
+    }
+
+    char chosen = Character.toUpperCase(jokerInput.trim().charAt(0));
+    if (chosen < 'A' || chosen > 'Z') {
+      return Optional.empty();
+    }
+    return Optional.of(new Tile(chosen, true));
+  }
+
+  /**
+   * Analyses a drag-and-drop tile placement attempt from the GUI.
+   *
+   * @param draggedTile dragged tile from rack
+   * @param row target row on board
+   * @param col target column on board
+   * @param pendingTiles already pending tiles on board
+   * @return analysis used by the view to decide which UI action to execute
+   */
+  public TileDropAnalysis analyzeTileDrop(Tile draggedTile, int row, int col,
+      Map<Point, Tile> pendingTiles) {
+    if (draggedTile == null || game == null || game.isGameOver()) {
+      return TileDropAnalysis.ignored();
+    }
+
+    Point point = new Point(col, row);
+    if (!canPlacePendingTile(point, pendingTiles)) {
+      return TileDropAnalysis.rejected("scrabble.cellOccupied");
+    }
+
+    boolean joker = draggedTile.isJoker() || draggedTile.getCharacter() == ' ';
+    return new TileDropAnalysis(true, joker, null, point, draggedTile);
+  }
+
+  /**
+   * Submits pending tiles by delegating validation/execution to the controller.
+   *
+   * @param pendingTiles pending tile map from GUI
+   * @return submission result for UI orchestration
+   */
+  public PendingMoveSubmitResult submitPendingMove(Map<Point, Tile> pendingTiles) {
+    if (pendingTiles == null || pendingTiles.isEmpty()) {
+      return new PendingMoveSubmitResult(PendingMoveSubmitStatus.EMPTY, null, null);
+    }
+
+    Move move = buildPendingMove(pendingTiles);
+    if (move == null) {
+      return new PendingMoveSubmitResult(PendingMoveSubmitStatus.INVALID_ALIGNMENT, null, null);
+    }
+
+    if (isOnlineMode()) {
+      return new PendingMoveSubmitResult(
+          PendingMoveSubmitStatus.ONLINE_READY,
+          toNetworkPlayPayload(move),
+          null);
+    }
+
+    try {
+      handlePlayerMove(move);
+      return new PendingMoveSubmitResult(PendingMoveSubmitStatus.LOCAL_APPLIED, null, null);
+    } catch (RuntimeException e) {
+      return new PendingMoveSubmitResult(
+          PendingMoveSubmitStatus.LOCAL_REJECTED,
+          null,
+          e.getMessage());
+    }
+  }
+
+  /**
+   * Resolves effective player count for a new game from config or dialog input.
+   *
+   * @param dialogSelection optional dialog selection when interactive prompt is used
+   * @return optional effective player count
+   */
+  public OptionalInt resolveNewGamePlayerCount(Optional<Integer> dialogSelection) {
+    if (playerCount > 0) {
+      return OptionalInt.of(playerCount);
+    }
+    if (dialogSelection == null || dialogSelection.isEmpty()) {
+      return OptionalInt.empty();
+    }
+    return OptionalInt.of(dialogSelection.get());
+  }
+
+  /**
+   * Recreates game using config and an optional interactive player count.
+   *
+   * @param dialogSelection optional selection from UI dialog
+   * @return created game when count is available
+   */
+  public Optional<Game> recreateConfiguredGameFromSelection(Optional<Integer> dialogSelection) {
+    OptionalInt count = resolveNewGamePlayerCount(dialogSelection);
+    if (count.isEmpty()) {
+      return Optional.empty();
+    }
+    return Optional.of(recreateConfiguredGame(count.getAsInt()));
+  }
+
+  /**
+   * Indicates whether current turn should be played by AI.
+   *
+   * @return true when current player is AI and game is not over
+   */
+  public boolean shouldPerformAiTurn() {
+    if (game == null || game.isGameOver()) {
+      return false;
+    }
+    return game.getCurrentPlayer() instanceof fr.ubordeaux.scrabble.model.ai.AiPlayer;
+  }
+
+  /**
+   * Reads one option from the shared Scrabble configuration.
+   *
+   * @param key option key
+   * @param defaultValue fallback value when key is missing
+   * @return configured value or fallback
+   */
+  public String getConfigOption(String key, String defaultValue) {
+    ConfigLoader config = new ConfigLoader();
+    config.loadConfig();
+    return config.getOption(key, defaultValue);
+  }
+
+  /**
+   * Parses a TCP port string and validates the range.
+   *
+   * @param portText text entered by the user
+   * @return parsed port, or empty when invalid
+   */
+  public static OptionalInt parsePort(String portText) {
+    if (portText == null) {
+      return OptionalInt.empty();
+    }
+    try {
+      int port = Integer.parseInt(portText.trim());
+      if (port < 0 || port > 65535) {
+        return OptionalInt.empty();
+      }
+      return OptionalInt.of(port);
+    } catch (NumberFormatException e) {
+      return OptionalInt.empty();
+    }
+  }
+
+  /**
+   * Extracts a player identifier from a lobby entry such as "#12 Name [STATUS]".
+   *
+   * @param entry lobby list entry
+   * @return parsed player id, or empty when invalid
+   */
+  public static OptionalInt parseLobbyPlayerId(String entry) {
+    if (entry == null || entry.isBlank()) {
+      return OptionalInt.empty();
+    }
+    try {
+      String idStr = entry.trim().split("\\s+")[0].replace("#", "");
+      return OptionalInt.of(Integer.parseInt(idStr));
+    } catch (RuntimeException e) {
+      return OptionalInt.empty();
+    }
+  }
+
+  /**
+   * Extracts multiple player ids from lobby selections.
+   *
+   * @param selectedEntries selected player entries
+   * @return parsed ids in selection order
+   */
+  public static List<Integer> parseLobbyPlayerIds(List<String> selectedEntries) {
+    List<Integer> ids = new ArrayList<>();
+    if (selectedEntries == null) {
+      return ids;
+    }
+
+    for (String entry : selectedEntries) {
+      parseLobbyPlayerId(entry).ifPresent(ids::add);
+    }
+    return ids;
+  }
+
+  /**
+   * Saves the current game to disk.
+   *
+   * @param filePath output file path
+   * @throws IOException when saving fails
+   */
+  public void saveGameToPath(String filePath) throws IOException {
+    new SaveManager().saveGame(game, filePath);
+  }
+
+  /**
+   * Loads a game from disk.
+   *
+   * @param filePath input file path
+   * @return loaded game instance
+   */
+  public Game loadGameFromPath(String filePath) {
+    try {
+      return new GameLoader().loadGame(filePath);
+    } catch (Exception e) {
+      throw new IllegalStateException("Failed to load game: " + e.getMessage(), e);
+    }
+  }
+
+  /**
+   * Summary of state-impacting configuration changes.
+   *
+   * @param languageChanged true when language has changed
+   * @param blitzChanged true when blitz mode or timeout changed
+   */
+  public record ConfigurationApplySummary(boolean languageChanged, boolean blitzChanged) {
+  }
+
+  /**
+   * Compact network payload for a PLAY command.
+   *
+   * @param x origin x coordinate
+   * @param y origin y coordinate
+   * @param direction first letter of direction (H or V)
+   * @param word played word
+   */
+  public record NetworkPlayPayload(int x, int y, String direction, String word) {
+  }
+
+  /**
+   * Result of tile-drop analysis for GUI placement flow.
+   *
+   * @param accepted true when placement can continue
+   * @param needsJokerResolution true when UI should ask for joker letter
+   * @param errorI18nKey i18n key for placement error, or null
+   * @param point destination point on board, or null when not accepted
+   * @param tile tile candidate to place
+   */
+  public record TileDropAnalysis(boolean accepted, boolean needsJokerResolution,
+                                 String errorI18nKey, Point point, Tile tile) {
+    static TileDropAnalysis ignored() {
+      return new TileDropAnalysis(false, false, null, null, null);
+    }
+
+    static TileDropAnalysis rejected(String errorI18nKey) {
+      return new TileDropAnalysis(false, false, errorI18nKey, null, null);
+    }
+  }
+
+  /**
+   * Status of pending move submission orchestration.
+   */
+  public enum PendingMoveSubmitStatus {
+    EMPTY,
+    INVALID_ALIGNMENT,
+    ONLINE_READY,
+    LOCAL_APPLIED,
+    LOCAL_REJECTED
+  }
+
+  /**
+   * Result object returned by pending move submission.
+   *
+   * @param status submission status
+   * @param payload network payload when status is ONLINE_READY
+   * @param errorMessage local error message when status is LOCAL_REJECTED
+   */
+  public record PendingMoveSubmitResult(PendingMoveSubmitStatus status,
+                                        NetworkPlayPayload payload,
+                                        String errorMessage) {
+  }
+
+  /**
+   * Replaces the current game instance with a new one and updates the controller.
+   * Used by the GUI to switch between local, online, and new games.
+   *
+   * @param newGame the new game instance to use
+   */
+  public void setGame(Game newGame) {
+    this.game = newGame;
+    if (newGame != null) {
+      this.superScrabbleMode = newGame.getBoard().getSize() == 21;
+      this.blitzMode = newGame.isBlitzModeEnabled();
+      this.dictionaryPathOverride = newGame.getDictionaryPathOverride();
+    }
+    // Clear cached resources when switching games
+    this.gaddag = null;
+    this.dictionaryList = null;
+  }
+
+  /**
+   * Executes the current player's AI turn asynchronously in a background thread.
+   * Calls the onComplete callback on the UI thread when done.
+   *
+   * <p>This handles:
+   * - Loading the dictionary if needed
+   * - Executing the AI's playTurn method
+   * - Handling exceptions gracefully
+   * - Refreshing the UI on completion
+   *
+   * @param onComplete a callback to run on the UI thread when the AI turn completes
+   */
+  public void performAiTurn(Runnable onComplete) {
+    Player current = game.getCurrentPlayer();
+    if (!(current instanceof fr.ubordeaux.scrabble.model.ai.AiPlayer) || game.isGameOver()) {
+      return;
+    }
+
+    final fr.ubordeaux.scrabble.model.ai.AiPlayer ai = 
+        (fr.ubordeaux.scrabble.model.ai.AiPlayer) current;
+
+    new Thread(() -> {
+      try {
+        Thread.sleep(1000); // Brief pause for better UX
+        ai.playTurn(game, getOrLoadGaddag());
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        handlePlayerMove(Move.createPass(ai));
+      } catch (RuntimeException e) {
+        GameLogger.logError("AI play error: " + e.getMessage(), e);
+        handlePlayerMove(Move.createPass(ai));
+      } finally {
+        if (onComplete != null) {
+          onComplete.run();
+        }
+      }
+    }).start();
+  }
+
+  /**
+   * Manages state changes when switching to an online multiplayer game.
+   * Disables local-only features like undo, redo, hint, and pause.
+   * Clears pending moves and refreshes the game view.
+   *
+   * @param onlineGame the game instance received from the server
+   */
+  public void switchToOnlineMode(Game onlineGame) {
+    setGame(onlineGame);
+    this.onlineMode = true;
+  }
+
+  /**
+   * Exits online mode and re-enables local game features.
+   * Re-enables buttons like undo, redo, hint that are disabled during online play.
+   */
+  public void exitOnlineMode() {
+    this.onlineMode = false;
+  }
+
+  /**
+   * Returns whether the controller is currently in online mode.
+   *
+   * @return true when online mode is active
+   */
+  public boolean isOnlineMode() {
+    return onlineMode;
   }
 }

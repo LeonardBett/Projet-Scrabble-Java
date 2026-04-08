@@ -1,4 +1,4 @@
-package fr.ubordeaux.scrabble.view.gui.dictionary;
+package fr.ubordeaux.scrabble.controller.dictionary;
 
 import fr.ubordeaux.scrabble.model.dictionary.Gaddag;
 import java.io.BufferedReader;
@@ -7,18 +7,18 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 
 /**
- * Loads GUI dictionaries into a Gaddag with fallback to English when needed.
+ * Loads dictionaries into a Gaddag with fallback to English when needed.
  */
-public final class GuiDictionaryLoader {
+public final class DictionaryLoaderController {
 
-  private GuiDictionaryLoader() {
+  private DictionaryLoaderController() {
   }
 
   /**
-   * Load dictionary entries for the provided language.
+   * Loads dictionary entries for the provided language.
    *
-   * @param classLoader classloader used to read dictionary resources
-   * @param language language code ("en" or "fr")
+   * @param classLoader class loader used to read dictionary resources
+   * @param language language code
    * @return populated gaddag
    * @throws IOException when stream reading fails
    */
