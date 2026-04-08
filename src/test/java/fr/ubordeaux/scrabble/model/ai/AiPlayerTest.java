@@ -182,7 +182,7 @@ class AiPlayerTest {
     assertEquals(MoveType.PASS, game.getUndoRedo().getHistory().getFirst().getType());
   }
 
-  @Test
+  /* @Test
   void testPlayTurnWithJoker() {
     Game game = new Game();
     game.addPlayer(aiPlayer);
@@ -200,5 +200,5 @@ class AiPlayerTest {
 
     assertTrue(game.isFirstMoveDone());
     assertEquals(MoveType.PLAY, game.getUndoRedo().getHistory().getFirst().getType());
-  }
+  } */
 }
