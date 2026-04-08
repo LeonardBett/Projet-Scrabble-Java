@@ -35,7 +35,7 @@ class MoveHandlerTest {
 
   @Test
   void handlePlayMoveShouldAcceptMoveTouchingExistingTileByAdjacency() {
-    Game game = new Game();
+    Game game = new Game("en");
     HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
     game.addPlayer(alice);
     final MoveHandler handler = new MoveHandler(game);

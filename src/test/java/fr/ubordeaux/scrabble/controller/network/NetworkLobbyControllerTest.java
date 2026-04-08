@@ -3,6 +3,7 @@ package fr.ubordeaux.scrabble.controller.network;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import fr.ubordeaux.scrabble.model.network.NetworkManager;
@@ -166,6 +167,27 @@ class NetworkLobbyControllerTest {
     assertEquals(1, networkManager.cancelCalls);
   }
 
+  @Test
+  void newPlayerIdsAndAccessorsShouldUseTheExpectedBackendMethods() {
+    assertSame(networkManager, controller.getNetworkManager());
+    List<ServerInfo> servers = controller.serverList();
+    assertEquals(1, servers.size());
+    assertEquals("Test server", servers.getFirst().getName());
+    assertEquals(1, networkManager.serverListCalls);
+
+    controller.newPlayerIds(null);
+    controller.newPlayerIds(List.of());
+    controller.newPlayerIds(List.of("bad", "#4 Alice"));
+    controller.newPlayerIds(List.of("#1 Alice", "#2 Bob"));
+    controller.newPlayerIds(List.of("#7 Alice", "#8 Bob", "#9 Carol", "#10 Dan"));
+
+    assertEquals(List.of(4), networkManager.calls);
+    assertEquals(1, networkManager.calls2.size());
+    assertEquals(List.of(1, 2), networkManager.calls2.getFirst());
+    assertEquals(1, networkManager.calls3.size());
+    assertEquals(List.of(7, 8, 9), networkManager.calls3.getFirst());
+  }
+
   private static final class RecordingNetworkManager extends NetworkManager {
 
     int startOnlinePlayCalls;
@@ -187,9 +209,12 @@ class NetworkLobbyControllerTest {
     int awayCalls;
     int backCalls;
     int cancelCalls;
+    int serverListCalls;
     final List<Integer> calls = new ArrayList<>();
     final List<List<Integer>> calls2 = new ArrayList<>();
     final List<List<Integer>> calls3 = new ArrayList<>();
+    final List<ServerInfo> serverListResponse = List.of(
+      new ServerInfo("127.0.0.1", 4242, "Test server"));
 
     @Override
     public void startOnlinePlay() {
@@ -300,6 +325,12 @@ class NetworkLobbyControllerTest {
     @Override
     public void cancel() {
       cancelCalls++;
+    }
+
+    @Override
+    public List<ServerInfo> serverList() {
+      serverListCalls++;
+      return serverListResponse;
     }
   }
 }
