@@ -1,5 +1,7 @@
 package fr.ubordeaux.scrabble.view.gui.network;
 
+import fr.ubordeaux.scrabble.controller.GameController;
+import fr.ubordeaux.scrabble.controller.network.NetworkLobbyController;
 import fr.ubordeaux.scrabble.i18n.I18n;
 import fr.ubordeaux.scrabble.model.network.NetworkManager;
 import fr.ubordeaux.scrabble.model.network.server.ServerInfo;
@@ -111,7 +113,7 @@ public class NetworkLobbyView extends Stage {
         .toList();
   }
 
-  private final NetworkManager networkManager;
+  private final NetworkLobbyController networkController;
   private TabPane tabPane;
 
   // Host Tab Controls
@@ -159,7 +161,7 @@ public class NetworkLobbyView extends Stage {
    */
   @SuppressWarnings("this-escape")
   public NetworkLobbyView(NetworkGameBridge bridge) {
-    this.networkManager = bridge.getNetworkManager();
+    this.networkController = new NetworkLobbyController(bridge.getNetworkManager());
     bridge.setLobbyView(this);
 
     initUi();
@@ -170,7 +172,7 @@ public class NetworkLobbyView extends Stage {
     this.setOnCloseRequest(event -> onLobbyClose());
 
     // Start UDP discovery listening as soon as the window opens
-    this.networkManager.startOnlinePlay();
+    this.networkController.startOnlinePlay();
   }
 
   /**
@@ -180,7 +182,7 @@ public class NetworkLobbyView extends Stage {
    */
   private void onLobbyClose() {
     Thread shutdownThread = new Thread(() -> {
-      networkManager.stopOnlinePlay();
+      networkController.stopOnlinePlay();
       serverRunning = false;
       clientConnected = false;
     });
@@ -350,10 +352,10 @@ public class NetworkLobbyView extends Stage {
     inviteButton.setOnAction(e -> onInvitePlayers());
 
     pingButton = createBtn(I18n.translate("lobby.pingButton"), "#9C27B0");
-    pingButton.setOnAction(e -> networkManager.ping());
+    pingButton.setOnAction(e -> networkController.ping());
 
     serverStatusButton = createBtn(I18n.translate("lobby.serverStatusButton"), "#607D8B");
-    serverStatusButton.setOnAction(e -> networkManager.serverStatus());
+    serverStatusButton.setOnAction(e -> networkController.serverStatus());
 
     // Cancel button is hidden by default, shown only when an invite is pending
     cancelInviteButton = createBtn(I18n.translate("lobby.cancelInvitationButton"), "#c0392b");
@@ -402,38 +404,34 @@ public class NetworkLobbyView extends Stage {
   // --- Button Actions -------------------------------------------------------
 
   private void onStartServer() {
-    try {
-      int port = Integer.parseInt(portField.getText().trim());
-
-      if (port < 0 || port > 65535) {
-        log(I18n.translate("lobby.invalidPortRange"));
-        return;
-      }
-
-      // We check if the server start is a success
-      boolean success = networkManager.serverStart(port);
-
-      if (success) {
-        serverRunning = true;
-        serverStatusLabel.setText(I18n.translate("lobby.serverRunning", port));
-        serverStatusLabel.setTextFill(Color.LIMEGREEN);
-        log(I18n.translate("lobby.serverStartedLog", port));
-        updateButtonStates();
-      } else {
-        log(I18n.translate("lobby.serverErrorContent", port));
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle(I18n.translate("lobby.serverErrorTitle"));
-        alert.setHeaderText(I18n.translate("lobby.serverErrorHeader"));
-        alert.setContentText(I18n.translate("lobby.serverErrorContent", port));
-        alert.show();
-      }
-    } catch (NumberFormatException ex) {
+    java.util.OptionalInt portOpt = networkController.parsePort(portField.getText());
+    if (portOpt.isEmpty()) {
       log(I18n.translate("lobby.invalidHostPort", portField.getText()));
+      return;
+    }
+
+    int port = portOpt.getAsInt();
+    // We check if the server start is a success
+    boolean success = networkController.serverStart(port);
+
+    if (success) {
+      serverRunning = true;
+      serverStatusLabel.setText(I18n.translate("lobby.serverRunning", port));
+      serverStatusLabel.setTextFill(Color.LIMEGREEN);
+      log(I18n.translate("lobby.serverStartedLog", port));
+      updateButtonStates();
+    } else {
+      log(I18n.translate("lobby.serverErrorContent", port));
+      Alert alert = new Alert(Alert.AlertType.ERROR);
+      alert.setTitle(I18n.translate("lobby.serverErrorTitle"));
+      alert.setHeaderText(I18n.translate("lobby.serverErrorHeader"));
+      alert.setContentText(I18n.translate("lobby.serverErrorContent", port));
+      alert.show();
     }
   }
 
   private void onStopServer() {
-    networkManager.serverStop();
+    networkController.serverStop();
     serverRunning = false;
     lobbyPlayerCount = 0;
     serverStatusLabel.setText(I18n.translate("lobby.serverStopped"));
@@ -453,32 +451,26 @@ public class NetworkLobbyView extends Stage {
   }
 
   private void onConnect() {
-    try {
-      int port = Integer.parseInt(joinPortField.getText().trim());
-
-      // Check if the port is valid
-      if (port < 0 || port > 65535) {
-        log(I18n.translate("lobby.invalidPortRange"));
-        return;
-      }
-
-      doConnect(ipField.getText().trim(), port);
-    } catch (NumberFormatException e) {
+    java.util.OptionalInt portOpt = networkController.parsePort(joinPortField.getText());
+    if (portOpt.isEmpty()) {
       log(I18n.translate("lobby.invalidJoinPort"));
+      return;
     }
+
+    doConnect(ipField.getText().trim(), portOpt.getAsInt());
   }
 
   private void doConnect(String ip, int port) {
-    networkManager.join(ip, port);
+    networkController.join(ip, port);
     clientConnected = true;
     log(I18n.translate("lobby.connecting", ip, port));
     updateButtonStates();
 
-    networkManager.players();
+    networkController.players();
   }
 
   private void onDisconnect() {
-    networkManager.quit();
+    networkController.quit();
   }
 
   /**
@@ -526,13 +518,13 @@ public class NetworkLobbyView extends Stage {
 
   private void onRefreshScoreboard() {
     if (clientConnected) {
-      networkManager.scoreboard();
+      networkController.scoreboard();
     }
   }
 
   private void onRefreshPlayers() {
     if (clientConnected) {
-      networkManager.players();
+      networkController.players();
     }
   }
 
@@ -543,9 +535,9 @@ public class NetworkLobbyView extends Stage {
     }
 
     if (!isAway) {
-      networkManager.away();
+      networkController.away();
     } else {
-      networkManager.back();
+      networkController.back();
     }
   }
 
@@ -556,13 +548,13 @@ public class NetworkLobbyView extends Stage {
       return;
     }
 
-    try {
-      // We extract player id from the selected item
-      String idStr = selected.getFirst().split("\\s+")[0].replace("#", "");
-      networkManager.playersPlayerId(Integer.parseInt(idStr));
-    } catch (RuntimeException ex) {
-      log(I18n.translate("lobby.errorReadingId", ex.getMessage()));
+    java.util.OptionalInt playerId = networkController.parseLobbyPlayerId(selected.getFirst());
+    if (playerId.isEmpty()) {
+      log(I18n.translate("lobby.errorReadingId", "invalid player id"));
+      return;
     }
+
+    networkController.playersPlayerId(playerId.getAsInt());
   }
 
   /**
@@ -591,24 +583,7 @@ public class NetworkLobbyView extends Stage {
       return;
     }
 
-    java.util.List<Integer> targetIds = new java.util.ArrayList<>();
-    for (String s : selected) {
-      try {
-        // Parse the string formatted as "#12  PlayerName [STATUS]" to extract '12'.
-        targetIds.add(Integer.valueOf(s.split("\\s+")[0].replace("#", "")));
-      } catch (RuntimeException ex) {
-        log(I18n.translate("lobby.errorReadingIDMessage", ex.getMessage()));
-      }
-    }
-
-    // Send the appropriate command based on the number of invited opponents
-    if (targetIds.size() == 1) {
-      networkManager.newPlayerId(targetIds.get(0));
-    } else if (targetIds.size() == 2) {
-      networkManager.newPlayerId(targetIds.get(0), targetIds.get(1));
-    } else if (targetIds.size() >= 3) {
-      networkManager.newPlayerId(targetIds.get(0), targetIds.get(1), targetIds.get(2));
-    }
+    networkController.newPlayerIds(selected);
 
     log(I18n.translate("lobby.invitationSentMessage"));
 
@@ -621,7 +596,7 @@ public class NetworkLobbyView extends Stage {
 
   /** Sends the cancel command to the server and resets the UI buttons. */
   private void onCancelInvitation() {
-    networkManager.cancel();
+    networkController.cancel();
     log(I18n.translate("lobby.invitationCancelled"));
     resetInviteButtons();
   }
@@ -661,10 +636,10 @@ public class NetworkLobbyView extends Stage {
         .ifPresent(
             type -> {
               if (type == acceptBtn) {
-                networkManager.accept();
+                networkController.accept();
                 log(I18n.translate("lobby.youAcceptedInvitation", from));
               } else {
-                networkManager.decline();
+                networkController.decline();
                 log(I18n.translate("lobby.youDeclinedInvitation", from));
               }
               currentInvitationDialog = null;
@@ -816,8 +791,8 @@ public class NetworkLobbyView extends Stage {
     alert.show();
 
     // We ask for the new scoreboard and player list
-    networkManager.scoreboard();
-    networkManager.players();
+    networkController.scoreboard();
+    networkController.players();
   }
 
   /**
@@ -862,7 +837,7 @@ public class NetworkLobbyView extends Stage {
     resetInviteButtons();
 
     // We ask for the new player list
-    networkManager.players();
+    networkController.players();
   }
 
   /**
