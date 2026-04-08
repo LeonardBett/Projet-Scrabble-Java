@@ -144,19 +144,48 @@
 %------------------------------------------------------------------------------
 
     \section{Architecture du projet}
-    \subsection{Decoupage en modules}
 
-    Le code est organise en couches fonctionnelles relativement bien separees :
-    \begin{itemize}
-        \item \textbf{Point d'entree :} \texttt{fr.ubordeaux.scrabble.App} initialise la configuration, la langue, puis lance le mode CLI ou GUI.
-        \item \textbf{Couche controleur :} \texttt{controller} orchestre la logique applicative (demarrage de partie, traitement des commandes, enchainement des tours, integration reseau).
-        \item \textbf{Couche metier :} \texttt{model.core} contient les objets de domaine (\texttt{Game}, \texttt{Board}, \texttt{Move}, \texttt{Scoring}, etc.) et les regles de jeu.
-        \item \textbf{IA :} \texttt{model.ai} regroupe les strategies automatiques (Minimax, Expectiminimax, agent ML) et leur evaluation.
-        \item \textbf{Dictionnaire :} \texttt{model.dictionary} fournit les structures de recherche lexicales (Trie, DAWG, GADDAG) utilisees pour la validation et la generation de coups.
-        \item \textbf{Vue :} \texttt{view} expose l'interface utilisateur via \texttt{UserInterface}, avec implementations CLI et JavaFX.
-        \item \textbf{Persistance :} \texttt{model.savefiles} gere la sauvegarde et la restauration de partie.
-        \item \textbf{Reseau :} \texttt{model.network} prend en charge la decouverte, les echanges client/serveur et la synchronisation.
-    \end{itemize}
+    \begin{tcolorbox}[colback=black!2,colframe=black!55,title=Section 2 --- Architecture du projet]
+    Le projet est organise en couches fonctionnelles strictement separees selon le patron MVC. Chaque package porte une responsabilite unique, avec des dependances majoritairement descendantes.
+    \end{tcolorbox}
+
+    \subsection*{2.1 Decoupage en modules}
+
+    \paragraph{Point d'entree}
+    La classe \texttt{App} initialise le contexte d'execution : detection de la langue via \texttt{I18n}, chargement de la configuration \texttt{.scrabblerc} via \texttt{ConfigLoader}, puis delegation au mode d'affichage selon les options \texttt{commons-cli}. \texttt{App} expose des \texttt{@FunctionalInterface} (\texttt{CliLauncherHandler}, \texttt{GuiLauncherHandler}, \texttt{ExitHandler}) pour decoupler le point d'entree des implementations concretes et faciliter les tests.
+
+    \paragraph{Couche controleur}
+    Le package \texttt{controller} contient \texttt{GameController} (logique applicative principale) et \texttt{GameControllerAux} (orchestration CLI extraite pour limiter la taille de la classe principale). \texttt{GameController} maintient les references au modele (\texttt{Game}, \texttt{Gaddag}), a la vue (\texttt{UserInterface}) et aux parametres de lancement (mode blitz, super-scrabble, IA). Il depend egalement de sous-controleurs specialises : \texttt{builders/} pour la construction interactive des coups, \texttt{config/} pour les snapshots de configuration, \texttt{dictionary/} pour le chargement du dictionnaire, et \texttt{network/} pour les commandes reseau CLI.
+
+    \paragraph{Couche metier --- core}
+    Le package \texttt{model.core} regroupe les objets de domaine et les regles de jeu. \texttt{Game} est le moteur central : il gere le plateau (\texttt{Board}), le sac (\texttt{Bag}), la liste des joueurs, le tour courant, le mode blitz (minuterie par joueur) et l'historique undo/redo. \texttt{MoveHandler} est le seul composant autorise a modifier l'etat du jeu en reponse a un \texttt{Move}. \texttt{Scoring} calcule les points (multiplicateurs de cases, bonus Bingo a 50 points si 7 tuiles posees). \texttt{MoveGenerator} genere la liste des coups jouables pour l'IA. \texttt{UndoRedo} gere deux piles (\texttt{Stack<Move>}) pour l'annulation et le rejeu.
+
+    \paragraph{Couche metier --- dictionnaire}
+    Le package \texttt{model.dictionary} expose une interface \texttt{Dictionary} (methodes \texttt{add}, \texttt{contains}, \texttt{findWordsWithRackAndHook}) implementee par trois structures : \texttt{Trie} (recherche prefixe generique), \texttt{Dawg} (automate acyclique deterministe, optimise pour la validation rapide) et \texttt{Gaddag} (structure bidirectionnelle indispensable pour la generation de coups). Le controleur et l'IA travaillent exclusivement avec \texttt{Gaddag}, qui est charge une seule fois depuis le fichier dictionnaire selon la langue active.
+
+    \paragraph{Couche metier --- IA}
+    Le package \texttt{model.ai} regroupe \texttt{AiPlayer} (sous-classe concrete de \texttt{Player}, surcharge \texttt{isAutonomous()} et \texttt{playTurn()}), \texttt{MinimaxSolver} (Minimax et Expectiminimax avec profondeur et limite de temps configurables, 200 tirages de simulation par noeud) et \texttt{MlAgent} (agent TensorFlow Java, chargement gracieux : si le modele est absent, l'IA se replie sur le Minimax sans crash).
+
+    \paragraph{Couche metier --- joueurs}
+    La classe abstraite \texttt{Player} (dans \texttt{model.interfaces}) unifie \texttt{HumanPlayer} et \texttt{AiPlayer}. Elle encapsule le nom, le score, le \texttt{Rack}, et la logique de minuterie blitz (\texttt{enableBlitzClock}, \texttt{startTurnTimer}, \texttt{pauseTurnTimer}, \texttt{isOutOfTime}). \texttt{HumanPlayer} n'ajoute aucune logique : il herite simplement de \texttt{Player} sans surcharger \texttt{isAutonomous()} (retourne \texttt{false} par defaut). Un joueur reseau est represente cote client par un \texttt{Player} standard dont les coups sont pilotes par \texttt{GameClient}.
+
+    \paragraph{Couche vue}
+    Le package \texttt{view} expose l'interface \texttt{UserInterface} (trois methodes : \texttt{refresh()}, \texttt{displayMessage()}, \texttt{displayError()}, \texttt{displaySuccess()}). Deux implementations concretes : \texttt{CliView} (rendu ANSI via des renderers specialises : \texttt{BoardRenderer}, \texttt{RackRenderer}, \texttt{PlayerRenderer}, \texttt{MessageRenderer}) et \texttt{JavaFxView} (interface graphique JavaFX avec panneaux \texttt{BoardPanel}, \texttt{RackPanel}, \texttt{ScorePanel}, \texttt{ControlPanel}, \texttt{MessagePanel}). Les launchers \texttt{CliLauncher} et \texttt{GuiLauncher} dans \texttt{view/optionlancement/} sont le point de transition entre \texttt{App} et les vues concretes.
+
+    \paragraph{Persistance}
+    Le package \texttt{model.savefiles} contient \texttt{ConfigLoader} (lecture/ecriture du fichier \texttt{.scrabblerc} au format INI, section \texttt{[defaults]}, commentaires \texttt{\#} ignores, creation automatique si absent), \texttt{SaveManager} (serialisation de l'etat de jeu en trois blocs ASCII : \texttt{[settings]}, \texttt{[game]}, \texttt{[history]}) et \texttt{GameLoader} (deserialisation et reconstruction d'un \texttt{Game} depuis un fichier de sauvegarde).
+
+    \paragraph{Reseau}
+    Le package \texttt{model.network} est organise en facade (\texttt{NetworkManager}), client (\texttt{client/GameClient}) et serveur (\texttt{server/GameServer}, \texttt{server/ClientHandler}, \texttt{server/OnlineGame}). \texttt{NetworkManager} maintient une liste de \texttt{NetworkObserver} (CLI et GUI s'y enregistrent) et orchestre \texttt{GameServer} (TCP 12345, threads par client, liste thread-safe via \texttt{Collections.synchronizedList}) et \texttt{DiscoveryService} (UDP 12346, broadcast de decouverte automatique). Les echanges transitent via \texttt{PacketParser}.
+
+    \paragraph{Internationalisation}
+    La classe \texttt{I18n} (dans le package \texttt{i18n}) est un singleton synchronise backed par \texttt{ResourceBundle}. Elle expose \texttt{setLanguage(lang)}, \texttt{getLanguage()} et \texttt{translate(key, args...)}. Deux langues sont supportees : \texttt{"en"} (defaut) et \texttt{"fr"}. La langue conditionne le chargement du dictionnaire et la distribution des lettres dans \texttt{Bag}.
+
+    \subsection*{2.2 Diagramme UML global}
+    (voir diagramme ci-dessus)
+
+    Les fleches pleines indiquent des relations d'utilisation directe. Les fleches en tirets representent des dependances optionnelles ou indirectes (ex. chargement du \texttt{Gaddag}, activation du reseau). Les fleches vertes materialisent les relations d'heritage ou d'implementation d'interface. Les couleurs distinguent les couches : violet pour le controleur, vert pour la vue, bleu pour le modele core et reseau, orange pour le dictionnaire, corail pour l'IA, gris pour les services transverses (savefiles, i18n, App).
+
     \begin{figure}[h!]
         \centering
         \includegraphics[width=\textwidth,height=0.85\textheight,keepaspectratio]{uml-global-large.png}
@@ -164,28 +193,184 @@
         \label{fig:uml-global-architecture}
     \end{figure}
 
-    \subsection{Dependances et flux principaux}
+    \subsection*{2.3 Principales interfaces et points d'extension}
+    Trois interfaces structurent l'evolutivite du projet.
 
-    Le flux d'execution principal suit un schema en couches :
-    \begin{enumerate}
-        \item \textbf{App} charge la configuration et le contexte d'execution.
-        \item Le \textbf{GameController} instancie et pilote la partie via \texttt{Game}.
-        \item Le controleur s'appuie sur les services metier : dictionnaire, generation de coups, score, IA, sauvegarde.
-        \item La couche \textbf{view} affiche l'etat du jeu et traduit les actions utilisateur en commandes.
-    \end{enumerate}
+    \paragraph{\texttt{UserInterface} --- contrat commun des vues CLI et JavaFX}
+\begin{verbatim}
+// view/UserInterface.java
+public interface UserInterface {
+    void refresh();                      // Rafraichit l'affichage complet
+    void displayMessage(String message); // Message informatif
+    void displayError(String error);     // Message d'erreur
+    void displaySuccess(String message); // Message de succes
+}
+\end{verbatim}
 
-    Les dependances sont majoritairement descendantes (vue $\rightarrow$ controleur $\rightarrow$ modele), ce qui facilite la testabilite et limite le couplage entre interface et regles metier.
+    \texttt{CliView} et \texttt{JavaFxView} implementent cette interface. \texttt{GameController} ne connait que \texttt{UserInterface} --- il ignore quelle implementation est active. Ajouter une vue web revient a implementer cette seule interface.
 
-    \subsection{Principales interfaces et points d'extension}
+    \paragraph{\texttt{Dictionary} --- contrat interchangeable entre Trie, Dawg et Gaddag}
+\begin{verbatim}
+// model/dictionary/Dictionary.java
+public interface Dictionary {
+    void add(String word);
+    default void addAll(String[] words) { for (String w : words) add(w); }
+    boolean contains(String word);
+    Set<String> findWordsWithRackAndHook(Character[] rack, char hook);
+}
+\end{verbatim}
 
-    Les interfaces suivantes structurent l'evolutivite du projet :
-    \begin{itemize}
-        \item \textbf{\texttt{Player}} : abstraction commune des joueurs humains et IA, permettant de faire evoluer les strategies sans modifier le coeur du moteur.
-        \item \textbf{\texttt{UserInterface}} : contrat commun des interfaces CLI/GUI, utile pour separer logique de presentation et logique metier.
-        \item \textbf{\texttt{NetworkObserver}} : mecanisme d'observation pour propager les evenements reseau vers les composants interesses.
-    \end{itemize}
+    En pratique, le controleur et l'IA n'instancient que \texttt{Gaddag} (qui implemente \texttt{Dictionary}). Substituer une autre structure lexicale ne necessite qu'une nouvelle implementation de cette interface.
 
-    Cette organisation rend possible l'ajout de nouvelles interfaces (par exemple une vue web) ou de nouvelles IA avec un impact limite sur les autres modules.
+    \paragraph{\texttt{Player} --- abstraction commune des joueurs humains et IA}
+\begin{verbatim}
+// model/interfaces/Player.java (extraits)
+public abstract class Player {
+    protected String name;
+    protected int score;
+    protected Rack rack;
+
+    public boolean isAutonomous() { return false; }       // surcharge dans AiPlayer
+    public void playTurn(Game game, Gaddag gaddag) {      // surcharge dans AiPlayer
+        throw new UnsupportedOperationException();
+    }
+    public void enableBlitzClock(Duration initialTime) { ... }
+    public void startTurnTimer() { ... }
+    public void pauseTurnTimer() { ... }
+    public boolean isOutOfTime() { ... }
+}
+\end{verbatim}
+
+    \texttt{HumanPlayer} herite directement sans surcharge. \texttt{AiPlayer} surcharge \texttt{isAutonomous()} (retourne \texttt{true}) et \texttt{playTurn()} (delegue a \texttt{MinimaxSolver}). Le moteur de jeu appelle \texttt{player.isAutonomous()} a chaque tour pour decider s'il doit attendre la saisie utilisateur ou declencher le jeu automatique.
+
+    \paragraph{\texttt{NetworkObserver} --- pattern Observer pour les evenements reseau}
+\begin{verbatim}
+// model/network/NetworkObserver.java (extraits)
+public interface NetworkObserver {
+    void localModelUpdate();
+    void gameEndedUpdate(List<Map<String, String>> finalScore);
+    void serverStatusUpdate(Map<String, String> info);
+    void playersUpdate(List<Map<String, String>> players);
+    void invitationReceivedUpdate(String from);
+    void clientDisconnectedUpdate(String reason);
+    void moveRefusedUpdate(String reason);
+    // ... 15 methodes au total, une par type d'evenement reseau
+}
+\end{verbatim}
+
+    \texttt{CliNetworkBridge} et \texttt{NetworkGameBridge} (cote GUI) implementent cette interface et s'enregistrent aupres de \texttt{NetworkManager}. Ajouter un nouveau type de client reseau revient a implementer \texttt{NetworkObserver}.
+
+    \subsection*{2.4 Flux d'execution principal}
+    Le deroulement d'un tour illustre comment les couches collaborent :
+
+\begin{verbatim}
+App
+ \-\-> CliLauncher.launch() / GuiLauncher.launch()
+       \-\-> GameController(game, view)
+             |-\-> I18n.setLanguage(lang)
+             |-\-> ConfigLoader.loadConfig()         -- lecture de .scrabblerc
+             |-\-> Gaddag.load(dictionaryFile)       -- chargement du dictionnaire
+             |-\-> Game.addPlayer(HumanPlayer | AiPlayer)
+             |-\-> Game.startGame()                  -- distribution initiale des Rack depuis Bag
+             \-\-> [boucle de jeu]
+                   |-\-> si player.isAutonomous()
+                   |     \-\-> AiPlayer.playTurn(game, gaddag)
+                   |           \-\-> MinimaxSolver.findBestMove(game, gaddag)
+                   |                 \-\-> MoveGenerator.getPlayableWordsList(board, rack, gaddag)
+                   |-\-> sinon : UserInterface.refresh() + saisie CLI/GUI
+                   |-\-> MoveHandler.applyMove(move)
+                   |     |-\-> Gaddag.contains(word)        -- validation lexicale
+                   |     |-\-> Scoring.calculateWordScore() -- calcul des points
+                   |     |-\-> Board.place(tile, position)  -- mise a jour du plateau
+                   |     |-\-> Bag.draw()                   -- recharge du Rack
+                   |     \-\-> UndoRedo.addMove(move)       -- empilement pour undo
+                   |-\-> UserInterface.refresh()             -- rafraichissement de la vue
+                   \-\-> Game.nextTurn()                    -- rotation des joueurs
+\end{verbatim}
+
+    Les dependances sont strictement descendantes : la vue ne connait que \texttt{UserInterface}, le controleur ne connait que les interfaces \texttt{Dictionary}, \texttt{UserInterface} et \texttt{Player}. \texttt{Game} et \texttt{MoveHandler} ignorent totalement l'existence de la vue et du reseau.
+
+    \subsection*{2.5 Gestion des coups et pattern Command}
+    Chaque action de jeu est encapsulee dans un objet \texttt{Move} construit par factory methods statiques :
+
+\begin{verbatim}
+// model/core/Move.java (extraits)
+public class Move {
+    private final Player player;
+    private final MoveType type;          // PLAY, EXCHANGE, PASS
+    private final List<Tile> tiles;
+    private final Point startPosition;    // null pour PASS et EXCHANGE
+    private final Direction direction;    // null pour PASS et EXCHANGE
+
+    // Donnees pour undo/redo (mutables, renseignees par MoveHandler)
+    private int scoreGained;
+    private List<Tile> drawnTiles;
+    private List<Point> placedPositions;
+    private List<Tile> placedTiles;
+
+    public static Move createPass(Player player) { ... }
+    public static Move createExchange(Player player, List<Tile> tiles) { ... }
+    public static Move createPlay(Player player, List<Tile> word,
+                                  Point startPosition, Direction direction) { ... }
+}
+\end{verbatim}
+
+\begin{verbatim}
+public enum MoveType { PLAY, EXCHANGE, PASS }
+\end{verbatim}
+
+    \texttt{MoveHandler} est le seul executeur : il valide le coup, met a jour \texttt{Board}, \texttt{Bag} et les scores, puis renseigne les champs mutables de \texttt{Move} (positions reellement posees, tuiles piochees, score gagne) pour permettre l'annulation. \texttt{UndoRedo} maintient deux \texttt{Stack<Move>} : \texttt{history} et \texttt{redoStack}. \texttt{addMove()} vide toujours \texttt{redoStack} (nouvelle branche d'historique).
+
+\begin{verbatim}
+// model/core/UndoRedo.java
+public class UndoRedo {
+    private final Stack<Move> history;
+    private final Stack<Move> redoStack;
+
+    public void addMove(Move move) { history.push(move); redoStack.clear(); }
+    public Move undo() { Move m = history.pop(); redoStack.push(m); return m; }
+    public Move redo() { Move m = redoStack.pop(); history.push(m); return m; }
+}
+\end{verbatim}
+
+    \subsection*{2.6 Generation du plateau et pattern Factory}
+    \texttt{StandardBoardFactory} applique le pattern Factory pour creer le plateau sans que le moteur ne connaisse les coordonnees des bonus :
+
+\begin{verbatim}
+// model/factories/StandardBoardFactory.java (extraits)
+public class StandardBoardFactory {
+    public static Board createBoard() { return createBoard(Board.SIZE); } // 15x15
+
+    public static Board createBoard(int size) {
+        Square[][] squares = new Square[size][size];
+        // 1. Remplissage NORMAL
+        for (int x = 0; x < size; x++)
+            for (int y = 0; y < size; y++)
+                squares[x][y] = new Square(new Point(x, y), SquareType.NORMAL);
+        // 2. Application des bonus (coordonnees mises a l'echelle pour 21x21)
+        applyBonuses(squares, size);
+        return new Board(squares, size);
+    }
+
+    private static int scaleCoordinate(int base, int targetSize) {
+        return (int) Math.round(base * (targetSize - 1.0) / (Board.SIZE - 1.0));
+    }
+}
+\end{verbatim}
+
+    \texttt{SquareType} est une enumeration a cinq valeurs, chacune portant ses multiplicateurs :
+
+\begin{verbatim}
+public enum SquareType {
+    NORMAL(1, 1), DOUBLE_LETTER(2, 1), TRIPLE_LETTER(3, 1),
+    DOUBLE_WORD(1, 2), TRIPLE_WORD(1, 3);
+
+    private final int letterMultiplier;
+    private final int wordMultiplier;
+}
+\end{verbatim}
+
+    Les coordonnees de bonus du plateau 21x21 sont calculees par interpolation lineaire depuis les coordonnees du plateau 15x15 (\texttt{scaleCoordinate}), ce qui permet de supporter les deux variantes sans dupliquer les donnees de configuration. \texttt{Game} choisit la taille du plateau selon le \texttt{GameMode} recu a la construction : \texttt{new Board(21)} pour \texttt{GameMode.SUPER}, \texttt{new Board()} (taille par defaut 15) pour \texttt{GameMode.STANDARD}.
 
 
 
