@@ -143,6 +143,52 @@
 %	PARTIE 2 — ALGORITHMES
 %------------------------------------------------------------------------------
 
+    \section{Architecture du projet}
+    \subsection{Decoupage en modules}
+
+    Le code est organise en couches fonctionnelles relativement bien separees :
+    \begin{itemize}
+        \item \textbf{Point d'entree :} \texttt{fr.ubordeaux.scrabble.App} initialise la configuration, la langue, puis lance le mode CLI ou GUI.
+        \item \textbf{Couche controleur :} \texttt{controller} orchestre la logique applicative (demarrage de partie, traitement des commandes, enchainement des tours, integration reseau).
+        \item \textbf{Couche metier :} \texttt{model.core} contient les objets de domaine (\texttt{Game}, \texttt{Board}, \texttt{Move}, \texttt{Scoring}, etc.) et les regles de jeu.
+        \item \textbf{IA :} \texttt{model.ai} regroupe les strategies automatiques (Minimax, Expectiminimax, agent ML) et leur evaluation.
+        \item \textbf{Dictionnaire :} \texttt{model.dictionary} fournit les structures de recherche lexicales (Trie, DAWG, GADDAG) utilisees pour la validation et la generation de coups.
+        \item \textbf{Vue :} \texttt{view} expose l'interface utilisateur via \texttt{UserInterface}, avec implementations CLI et JavaFX.
+        \item \textbf{Persistance :} \texttt{model.savefiles} gere la sauvegarde et la restauration de partie.
+        \item \textbf{Reseau :} \texttt{model.network} prend en charge la decouverte, les echanges client/serveur et la synchronisation.
+    \end{itemize}
+    \begin{figure}[h!]
+        \centering
+        \includegraphics[width=\textwidth,height=0.85\textheight,keepaspectratio]{uml-global-large.png}
+        \caption{Capture UML globale de l'architecture du projet (source : capture d'ecran du diagramme UML).}
+        \label{fig:uml-global-architecture}
+    \end{figure}
+
+    \subsection{Dependances et flux principaux}
+
+    Le flux d'execution principal suit un schema en couches :
+    \begin{enumerate}
+        \item \textbf{App} charge la configuration et le contexte d'execution.
+        \item Le \textbf{GameController} instancie et pilote la partie via \texttt{Game}.
+        \item Le controleur s'appuie sur les services metier : dictionnaire, generation de coups, score, IA, sauvegarde.
+        \item La couche \textbf{view} affiche l'etat du jeu et traduit les actions utilisateur en commandes.
+    \end{enumerate}
+
+    Les dependances sont majoritairement descendantes (vue $\rightarrow$ controleur $\rightarrow$ modele), ce qui facilite la testabilite et limite le couplage entre interface et regles metier.
+
+    \subsection{Principales interfaces et points d'extension}
+
+    Les interfaces suivantes structurent l'evolutivite du projet :
+    \begin{itemize}
+        \item \textbf{\texttt{Player}} : abstraction commune des joueurs humains et IA, permettant de faire evoluer les strategies sans modifier le coeur du moteur.
+        \item \textbf{\texttt{UserInterface}} : contrat commun des interfaces CLI/GUI, utile pour separer logique de presentation et logique metier.
+        \item \textbf{\texttt{NetworkObserver}} : mecanisme d'observation pour propager les evenements reseau vers les composants interesses.
+    \end{itemize}
+
+    Cette organisation rend possible l'ajout de nouvelles interfaces (par exemple une vue web) ou de nouvelles IA avec un impact limite sur les autres modules.
+
+
+
 	\section{L'Algorithme Minimax :}
 
 	Conçu pour des jeux à information parfaite et à somme nulle comme les Échecs, l'algorithme Minimax modélise l'arbre des coups possibles en alternant un tour où l'IA cherche à maximiser son score, et un tour où elle simule un adversaire cherchant à minimiser l'avantage de l'IA.
