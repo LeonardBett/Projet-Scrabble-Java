@@ -250,7 +250,7 @@
     Trois interfaces structurent l'evolutivite du projet.
 
     \paragraph{\texttt{UserInterface} --- contrat commun des vues CLI et JavaFX}
-\begin{verbatim}
+\begin{minted}[frame=single, fontsize=\small, linenos]{java}
 // view/UserInterface.java
 public interface UserInterface {
     void refresh();                      // Rafraichit l'affichage complet
@@ -258,12 +258,12 @@ public interface UserInterface {
     void displayError(String error);     // Message d'erreur
     void displaySuccess(String message); // Message de succes
 }
-\end{verbatim}
+\end{minted}
 
     \texttt{CliView} et \texttt{JavaFxView} implementent cette interface. \texttt{GameController} ne connait que \texttt{UserInterface} --- il ignore quelle implementation est active. Ajouter une vue web revient a implementer cette seule interface.
 
     \paragraph{\texttt{Dictionary} --- contrat interchangeable entre Trie, Dawg et Gaddag}
-\begin{verbatim}
+\begin{minted}[frame=single, fontsize=\small, linenos]{java}
 // model/dictionary/Dictionary.java
 public interface Dictionary {
     void add(String word);
@@ -271,12 +271,12 @@ public interface Dictionary {
     boolean contains(String word);
     Set<String> findWordsWithRackAndHook(Character[] rack, char hook);
 }
-\end{verbatim}
+\end{minted}
 
     En pratique, le controleur et l'IA n'instancient que \texttt{Gaddag} (qui implemente \texttt{Dictionary}). Substituer une autre structure lexicale ne necessite qu'une nouvelle implementation de cette interface.
 
     \paragraph{\texttt{Player} --- abstraction commune des joueurs humains et IA}
-\begin{verbatim}
+\begin{minted}[frame=single, fontsize=\small, linenos]{java}
 // model/interfaces/Player.java (extraits)
 public abstract class Player {
     protected String name;
@@ -292,12 +292,12 @@ public abstract class Player {
     public void pauseTurnTimer() { ... }
     public boolean isOutOfTime() { ... }
 }
-\end{verbatim}
+\end{minted}
 
     \texttt{HumanPlayer} herite directement sans surcharge. \texttt{AiPlayer} surcharge \texttt{isAutonomous()} (retourne \texttt{true}) et \texttt{playTurn()} (delegue a \texttt{MinimaxSolver}). Le moteur de jeu appelle \texttt{player.isAutonomous()} a chaque tour pour decider s'il doit attendre la saisie utilisateur ou declencher le jeu automatique.
 
     \paragraph{\texttt{NetworkObserver} --- pattern Observer pour les evenements reseau}
-\begin{verbatim}
+\begin{minted}[frame=single, fontsize=\small, linenos]{java}
 // model/network/NetworkObserver.java (extraits)
 public interface NetworkObserver {
     void localModelUpdate();
@@ -309,14 +309,14 @@ public interface NetworkObserver {
     void moveRefusedUpdate(String reason);
     // ... 15 methodes au total, une par type d'evenement reseau
 }
-\end{verbatim}
+\end{minted}
 
     \texttt{CliNetworkBridge} et \texttt{NetworkGameBridge} (cote GUI) implementent cette interface et s'enregistrent aupres de \texttt{NetworkManager}. Ajouter un nouveau type de client reseau revient a implementer \texttt{NetworkObserver}.
 
     \subsection{Flux d'execution principal}
     Le deroulement d'un tour illustre comment les couches collaborent :
 
-\begin{verbatim}
+\begin{minted}[frame=single, fontsize=\small]{text}
 App
 \-\-> CliLauncher.launch() / GuiLauncher.launch()
   \-\-> GameController(game, view)
@@ -341,14 +341,14 @@ App
       |     \-\-> UndoRedo.addMove(move)       -- empilement pour undo
       |-\-> UserInterface.refresh()             -- rafraichissement de la vue
       \-\-> Game.nextTurn()                    -- rotation des joueurs
-\end{verbatim}
+\end{minted}
 
     Les dependances sont strictement descendantes : la vue ne connait que \texttt{UserInterface}, le controleur ne connait que les interfaces \texttt{Dictionary}, \texttt{UserInterface} et \texttt{Player}. \texttt{Game} et \texttt{MoveHandler} ignorent totalement l'existence de la vue et du reseau.
 
     \subsection{Gestion des coups et pattern Command}
     Chaque action de jeu est encapsulee dans un objet \texttt{Move} construit par factory methods statiques :
 
-\begin{verbatim}
+\begin{minted}[frame=single, fontsize=\small, linenos]{java}
 // model/core/Move.java (extraits)
 public class Move {
     private final Player player;
@@ -368,15 +368,15 @@ public class Move {
     public static Move createPlay(Player player, List<Tile> word,
                                   Point startPosition, Direction direction) { ... }
 }
-\end{verbatim}
+\end{minted}
 
-\begin{verbatim}
+\begin{minted}[frame=single, fontsize=\small, linenos]{java}
 public enum MoveType { PLAY, EXCHANGE, PASS }
-\end{verbatim}
+\end{minted}
 
     \texttt{MoveHandler} est le seul executeur : il valide le coup, met a jour \texttt{Board}, \texttt{Bag} et les scores, puis renseigne les champs mutables de \texttt{Move} (positions reellement posees, tuiles piochees, score gagne) pour permettre l'annulation. \texttt{UndoRedo} maintient deux \texttt{Stack<Move>} : \texttt{history} et \texttt{redoStack}. \texttt{addMove()} vide toujours \texttt{redoStack} (nouvelle branche d'historique).
 
-\begin{verbatim}
+\begin{minted}[frame=single, fontsize=\small, linenos]{java}
 // model/core/UndoRedo.java
 public class UndoRedo {
     private final Stack<Move> history;
@@ -386,12 +386,12 @@ public class UndoRedo {
     public Move undo() { Move m = history.pop(); redoStack.push(m); return m; }
     public Move redo() { Move m = redoStack.pop(); history.push(m); return m; }
 }
-\end{verbatim}
+\end{minted}
 
     \subsection{Generation du plateau et pattern Factory}
     \texttt{StandardBoardFactory} applique le pattern Factory pour creer le plateau sans que le moteur ne connaisse les coordonnees des bonus :
 
-\begin{verbatim}
+\begin{minted}[frame=single, fontsize=\small, linenos]{java}
 // model/factories/StandardBoardFactory.java (extraits)
 public class StandardBoardFactory {
     public static Board createBoard() { return createBoard(Board.SIZE); } // 15x15
@@ -411,11 +411,11 @@ public class StandardBoardFactory {
         return (int) Math.round(base * (targetSize - 1.0) / (Board.SIZE - 1.0));
     }
 }
-\end{verbatim}
+\end{minted}
 
     \texttt{SquareType} est une enumeration a cinq valeurs, chacune portant ses multiplicateurs :
 
-\begin{verbatim}
+\begin{minted}[frame=single, fontsize=\small, linenos]{java}
 public enum SquareType {
     NORMAL(1, 1), DOUBLE_LETTER(2, 1), TRIPLE_LETTER(3, 1),
     DOUBLE_WORD(1, 2), TRIPLE_WORD(1, 3);
@@ -423,7 +423,7 @@ public enum SquareType {
     private final int letterMultiplier;
     private final int wordMultiplier;
 }
-\end{verbatim}
+\end{minted}
 
     Les coordonnees de bonus du plateau 21x21 sont calculees par interpolation lineaire depuis les coordonnees du plateau 15x15 (\texttt{scaleCoordinate}), ce qui permet de supporter les deux variantes sans dupliquer les donnees de configuration. \texttt{Game} choisit la taille du plateau selon le \texttt{GameMode} recu a la construction : \texttt{new Board(21)} pour \texttt{GameMode.SUPER}, \texttt{new Board()} (taille par defaut 15) pour \texttt{GameMode.STANDARD}.
 
