@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import fr.ubordeaux.scrabble.controller.GameController;
+import fr.ubordeaux.scrabble.controller.config.ControllerConfigSnapshot;
 import fr.ubordeaux.scrabble.model.core.Game;
 import fr.ubordeaux.scrabble.model.core.HumanPlayer;
 import fr.ubordeaux.scrabble.model.core.Tile;
@@ -16,7 +17,6 @@ import fr.ubordeaux.scrabble.model.network.NetworkManager;
 import fr.ubordeaux.scrabble.model.utils.Point;
 import fr.ubordeaux.scrabble.view.gui.JavaFxView;
 import fr.ubordeaux.scrabble.view.gui.ScrabbleGui;
-import fr.ubordeaux.scrabble.view.gui.config.ControllerConfigSnapshot;
 import fr.ubordeaux.scrabble.view.gui.network.NetworkGameBridge;
 import fr.ubordeaux.scrabble.view.gui.panel.BoardPanel;
 import fr.ubordeaux.scrabble.view.gui.panel.ControlPanel;
@@ -272,10 +272,7 @@ class ScrabbleGuiInstanceTest {
     assertNotNull(rack);
   }
 
-  @Test
-  void loadDictionaryShouldNotThrow() {
-    invokePrivate(gui, "loadDictionary");
-  }
+  // loadDictionary removed: dictionary loading now handled by GameController.getOrLoadGaddag()
 
   @Test
   void buildLeftMenuReturnsVbox() {

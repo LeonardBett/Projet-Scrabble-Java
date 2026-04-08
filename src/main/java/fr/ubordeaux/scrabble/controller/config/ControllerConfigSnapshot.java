@@ -1,4 +1,4 @@
-package fr.ubordeaux.scrabble.view.gui.config;
+package fr.ubordeaux.scrabble.controller.config;
 
 import fr.ubordeaux.scrabble.controller.GameController;
 import fr.ubordeaux.scrabble.model.utils.GameLogger;

@@ -5,10 +5,12 @@ import fr.ubordeaux.scrabble.model.core.Game;
 import fr.ubordeaux.scrabble.model.core.HumanPlayer;
 import fr.ubordeaux.scrabble.model.enums.GameMode;
 import fr.ubordeaux.scrabble.model.enums.PlayerColor;
+import fr.ubordeaux.scrabble.model.savefiles.ConfigLoader;
 import fr.ubordeaux.scrabble.model.savefiles.GameLoader;
 import fr.ubordeaux.scrabble.view.gui.JavaFxView;
 import fr.ubordeaux.scrabble.view.gui.ScrabbleGui;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import javafx.application.Application;
 
@@ -34,13 +36,25 @@ public class GuiLauncher {
     launchHandler = Application::launch;
   }
 
-  static Game createConfiguredGame(int players, List<String> aiColors, boolean blitzMode,
+  public static Game createConfiguredGame(int players, List<String> aiColors, boolean blitzMode,
       int blitzMinutes, int aiTime, boolean useExptiminimax) {
     return createConfiguredGame(GameMode.STANDARD, players, aiColors, blitzMode, blitzMinutes,
         aiTime, useExptiminimax);
   }
 
-  static Game createConfiguredGame(GameMode gameMode, int players, List<String> aiColors,
+  /**
+   * Creates a configured game for GUI or launcher usage.
+   *
+   * @param gameMode the board mode to use
+   * @param players the number of players
+   * @param aiColors colors controlled by AI players
+   * @param blitzMode true to enable blitz mode
+   * @param blitzMinutes time limit per player in minutes
+   * @param aiTime AI thinking time in seconds
+   * @param useExptiminimax true to enable the Expectiminimax algorithm
+   * @return a configured game instance
+   */
+  public static Game createConfiguredGame(GameMode gameMode, int players, List<String> aiColors,
       boolean blitzMode, int blitzMinutes, int aiTime, boolean useExptiminimax) {
     int count = players > 0 ? players : OptionPlayer.DEFAULT;
     Game game = new Game(gameMode == null ? GameMode.STANDARD : gameMode);
@@ -70,6 +84,38 @@ public class GuiLauncher {
       }
     }
     return game;
+  }
+
+  /**
+   * Creates a GUI game from the current .scrabblerc configuration.
+   *
+   * @return a fully initialized game ready to be attached to the GUI
+   */
+  public static Game createGameFromConfig() {
+    ConfigLoader config = new ConfigLoader();
+    config.loadConfig();
+
+    String language = config.getOption("language", "en");
+    ScrabbleGui.setLanguage(language);
+    boolean superScrabble = Boolean.parseBoolean(config.getOption("super-scrabble", "false"));
+    boolean blitzMode = Boolean.parseBoolean(config.getOption("blitz", "false"));
+    int players = readIntConfig(config, "players-count", OptionPlayer.DEFAULT);
+    int blitzMinutes = readIntConfig(config, "timeout", 30);
+    int aiTime = readIntConfig(config, "ai-time", 5);
+    boolean useExptiminimax = Boolean.parseBoolean(config.getOption("ai-exptiminimax", "false"));
+
+    GameMode gameMode = superScrabble ? GameMode.SUPER : GameMode.STANDARD;
+    return createConfiguredGame(gameMode, players, new ArrayList<>(), blitzMode, blitzMinutes,
+        aiTime, useExptiminimax);
+  }
+
+  private static int readIntConfig(ConfigLoader config, String key, int fallback) {
+    String rawValue = config.getOption(key, String.valueOf(fallback));
+    try {
+      return Integer.parseInt(rawValue.trim());
+    } catch (NumberFormatException e) {
+      return fallback;
+    }
   }
 
   /**

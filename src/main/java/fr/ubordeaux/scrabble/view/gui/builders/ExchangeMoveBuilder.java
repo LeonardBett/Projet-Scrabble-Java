@@ -1,10 +1,8 @@
 package fr.ubordeaux.scrabble.view.gui.builders;
 
+import fr.ubordeaux.scrabble.controller.builders.ExchangeMoveBuilderController;
 import fr.ubordeaux.scrabble.model.core.Move;
-import fr.ubordeaux.scrabble.model.core.Tile;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Builds an exchange move from a string typed by the user in the dialog.
@@ -22,23 +20,6 @@ public class ExchangeMoveBuilder {
    * @return the constructed Move, or null if a letter is not found in the rack
    */
   public static Move build(String letters, Player player) {
-    List<Tile> rack = player.getRack().getTiles();
-    List<Tile> toExchange = new ArrayList<>();
-
-    for (char c : letters.toCharArray()) {
-      boolean found = false;
-      for (Tile tile : rack) {
-        if (tile.getCharacter() == c && !toExchange.contains(tile)) {
-          toExchange.add(tile);
-          found = true;
-          break;
-        }
-      }
-      if (!found) {
-        return null;
-      }
-    }
-
-    return toExchange.isEmpty() ? null : Move.createExchange(player, toExchange);
+    return ExchangeMoveBuilderController.build(letters, player);
   }
 }
