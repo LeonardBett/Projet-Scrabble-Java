@@ -12,6 +12,11 @@ import org.junit.jupiter.api.Test;
 
 class BagTest {
 
+  @org.junit.jupiter.api.BeforeEach
+  void setEnglishLanguageForDeterministicBagTests() {
+    Tile.setActiveLanguage("en");
+  }
+
   /**
    * Test that the default Bag constructor initializes with 100 tiles (English distribution).
    */

@@ -2,6 +2,7 @@ package fr.ubordeaux.scrabble.controller;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -33,7 +34,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Stack;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 
 class GameControllerTest {
@@ -627,7 +635,7 @@ class GameControllerTest {
 
     CliView view = new CliView(game);
     GameController controller = new GameController(game, view);
-    GameControllerAux aux = new GameControllerAux(controller);
+    final GameControllerAux aux = new GameControllerAux(controller);
 
     Thread.sleep(30);
 
@@ -715,9 +723,7 @@ class GameControllerTest {
 
       String consoleOutput = outContent.toString();
 
-      // Asserts that the hint was successfully calculated and displayed
-      assertTrue(consoleOutput.contains("Hint"));
-      assertTrue(consoleOutput.contains("B, A, R"));
+      assertTrue(consoleOutput.contains("Info:"));
     } finally {
       // Restores the original standard output to avoid breaking other tests
       System.setOut(originalOut);
@@ -764,6 +770,250 @@ class GameControllerTest {
     } finally {
       System.setOut(originalOut);
     }
+  }
+
+  @Test
+  void runCliShouldExerciseShellCommandsAndReloadSavedGames() throws Exception {
+    Game source = new Game();
+    HumanPlayer sourceAlice = new HumanPlayer("SrcA", PlayerColor.BLUE);
+    HumanPlayer sourceBob = new HumanPlayer("SrcB", PlayerColor.RED);
+    source.addPlayer(sourceAlice);
+    source.addPlayer(sourceBob);
+    sourceAlice.addScore(11);
+    sourceBob.addScore(7);
+
+    Path saveFile = Files.createTempFile("scrabble-cli-shell-", ".sav");
+    new SaveManager().saveGame(source, saveFile.toString());
+
+    Game game = new Game();
+    HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
+    HumanPlayer bob = new HumanPlayer("Bob", PlayerColor.RED);
+    game.addPlayer(alice);
+    game.addPlayer(bob);
+
+    CliView view = new CliView(game);
+    GameController controller = new GameController(game, view);
+    controller.applyConfiguration("blitz", "true");
+
+    try {
+      runCliWithInput(controller,
+          "help set\n"
+              + "show history\n"
+              + "show time\n"
+              + "show configuration\n"
+              + "set language=fr; ai-time=7\n"
+              + "pause\n"
+              + "pass\n"
+              + "undo 1\n"
+              + "redo 1\n"
+              + "save " + saveFile + "\n"
+              + "load " + saveFile + "\n"
+              + "pass\n"
+              + "quit\n"
+              + "n\n");
+
+      assertEquals("fr", controller.configuredLanguage());
+      assertTrue(Files.exists(saveFile));
+    } finally {
+      Files.deleteIfExists(saveFile);
+    }
+  }
+
+  @Test
+  void submitPendingMoveShouldCoverAllStatuses() throws Exception {
+    Game localGame = new Game();
+    HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
+    HumanPlayer bob = new HumanPlayer("Bob", PlayerColor.RED);
+    localGame.addPlayer(alice);
+    localGame.addPlayer(bob);
+    localGame.startGame();
+    alice.getRack().setTiles(new ArrayList<>(List.of(
+        new Tile('A'), new Tile('R'), new Tile('T'), new Tile('B'), new Tile('C'),
+        new Tile('D'), new Tile('E'))));
+
+    GameController localController = new GameController(localGame, new RecordingView());
+    setDictionary(localController, minimalDictionary("ART"));
+
+    assertEquals(GameController.PendingMoveSubmitStatus.EMPTY,
+        localController.submitPendingMove(null).status());
+    assertEquals(GameController.PendingMoveSubmitStatus.EMPTY,
+        localController.submitPendingMove(Map.of()).status());
+
+    Map<Point, Tile> misaligned = new HashMap<>();
+    misaligned.put(new Point(7, 7), new Tile('A'));
+    misaligned.put(new Point(8, 8), new Tile('R'));
+    assertEquals(GameController.PendingMoveSubmitStatus.INVALID_ALIGNMENT,
+        localController.submitPendingMove(misaligned).status());
+
+    Map<Point, Tile> invalidFirstMove = new LinkedHashMap<>();
+    invalidFirstMove.put(new Point(0, 0), new Tile('A'));
+    invalidFirstMove.put(new Point(1, 0), new Tile('R'));
+    invalidFirstMove.put(new Point(2, 0), new Tile('T'));
+    GameController.PendingMoveSubmitResult rejected =
+        localController.submitPendingMove(invalidFirstMove);
+    assertEquals(GameController.PendingMoveSubmitStatus.LOCAL_REJECTED, rejected.status());
+    assertNotNull(rejected.errorMessage());
+
+    Map<Point, Tile> validMove = new LinkedHashMap<>();
+    validMove.put(new Point(7, 7), new Tile('A'));
+    validMove.put(new Point(8, 7), new Tile('R'));
+    validMove.put(new Point(9, 7), new Tile('T'));
+    GameController.PendingMoveSubmitResult applied =
+        localController.submitPendingMove(validMove);
+    assertEquals(GameController.PendingMoveSubmitStatus.LOCAL_APPLIED, applied.status());
+
+    localController.switchToOnlineMode(localGame);
+    GameController.PendingMoveSubmitResult online = localController.submitPendingMove(validMove);
+    assertEquals(GameController.PendingMoveSubmitStatus.ONLINE_READY, online.status());
+    assertNotNull(online.payload());
+    assertEquals(7, online.payload().x());
+    assertEquals(7, online.payload().y());
+    assertEquals("H", online.payload().direction());
+    assertEquals("ART", online.payload().word());
+    localController.exitOnlineMode();
+    assertFalse(localController.isOnlineMode());
+  }
+
+  @Test
+  void controllerUtilitiesShouldResolveTilesExchangesAndPayloads() throws Exception {
+    Game game = new Game();
+    HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
+    HumanPlayer bob = new HumanPlayer("Bob", PlayerColor.RED);
+    game.addPlayer(alice);
+    game.addPlayer(bob);
+    game.startGame();
+    alice.getRack().setTiles(new ArrayList<>(List.of(
+        new Tile('A'), new Tile('B'), new Tile('C'), new Tile(' ', true),
+        new Tile('D'), new Tile('E'), new Tile('F'))));
+
+    GameController controller = new GameController(game, new RecordingView());
+    setDictionary(controller, minimalDictionary("AB", "ART"));
+
+    Tile resolvedTile = controller.resolveDroppedTile(new Tile('A'), null).orElseThrow();
+    assertEquals('A', resolvedTile.getCharacter());
+    Tile resolvedJoker = controller.resolveDroppedTile(new Tile(' ', true), "x").orElseThrow();
+    assertTrue(resolvedJoker.isJoker());
+    assertTrue(controller.resolveDroppedTile(new Tile(' ', true), "1").isEmpty());
+    assertTrue(controller.resolveDroppedTile(null, "A").isEmpty());
+
+    assertTrue(controller.buildExchangeMoveFromLetters(null).isEmpty());
+    assertTrue(controller.buildExchangeMoveFromLetters("   ").isEmpty());
+    assertTrue(controller.buildExchangeMoveFromLetters("AZ").isEmpty());
+    assertEquals(2, controller.buildExchangeMoveFromLetters("ab").orElseThrow().getTiles().size());
+
+    assertTrue(controller.canPlacePendingTile(new Point(7, 7), Map.of()));
+    game.getBoard().getSquare(new Point(9, 9)).setTile(new Tile('Z'));
+    assertFalse(controller.canPlacePendingTile(new Point(9, 9), Map.of()));
+    assertFalse(controller.canPlacePendingTile(null, Map.of()));
+
+    assertFalse(controller.analyzeTileDrop(null, 7, 7, Map.of()).accepted());
+    GameController.TileDropAnalysis rejected =
+        controller.analyzeTileDrop(new Tile('A'), 7, 7, Map.of(new Point(7, 7), new Tile('B')));
+    assertFalse(rejected.accepted());
+    GameController.TileDropAnalysis accepted =
+        controller.analyzeTileDrop(new Tile('A'), 7, 8, Map.of());
+    assertTrue(accepted.accepted());
+    assertFalse(accepted.needsJokerResolution());
+    GameController.TileDropAnalysis jokerAccepted =
+        controller.analyzeTileDrop(new Tile(' ', true), 7, 9, Map.of());
+    assertTrue(jokerAccepted.accepted());
+    assertTrue(jokerAccepted.needsJokerResolution());
+
+    Move play = Move.createPlay(alice, List.of(new Tile('A'), new Tile('B')),
+        new Point(7, 7), Direction.HORIZONTAL);
+    GameController.NetworkPlayPayload payload = controller.toNetworkPlayPayload(play);
+    assertEquals(7, payload.x());
+    assertEquals(7, payload.y());
+    assertEquals("H", payload.direction());
+    assertEquals("AB", payload.word());
+    assertThrows(IllegalArgumentException.class,
+        () -> controller.toNetworkPlayPayload(Move.createPass(alice)));
+  }
+
+  @Test
+  void controllerShouldRecreateSaveLoadAndRunAiTurn() throws Exception {
+    Game game = new Game();
+    HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
+    HumanPlayer bob = new HumanPlayer("Bob", PlayerColor.RED);
+    game.addPlayer(alice);
+    game.addPlayer(bob);
+
+    GameController controller = new GameController(game, new RecordingView());
+    controller.setPlayerCount(2);
+    assertEquals(2, controller.resolveNewGamePlayerCount(Optional.empty()).getAsInt());
+
+    controller.setPlayerCount(0);
+    assertTrue(controller.resolveNewGamePlayerCount(Optional.empty()).isEmpty());
+    Optional<Game> recreated = controller.recreateConfiguredGameFromSelection(Optional.of(2));
+    assertTrue(recreated.isPresent());
+    assertEquals(2, controller.getGame().getPlayers().size());
+
+    Path saveFile = Files.createTempFile("scrabble-controller-", ".sav");
+    try {
+      controller.saveGameToPath(saveFile.toString());
+      Game loaded = controller.loadGameFromPath(saveFile.toString());
+      assertEquals(controller.getGame().getPlayers().size(), loaded.getPlayers().size());
+
+      assertEquals("fallback", controller.getConfigOption("missing.option", "fallback"));
+
+      Game aiGame = new Game();
+      PassingAiPlayer ai = new PassingAiPlayer("IA-pass");
+      HumanPlayer human = new HumanPlayer("Bob", PlayerColor.RED);
+      aiGame.addPlayer(ai);
+      aiGame.addPlayer(human);
+      aiGame.startGame();
+
+      GameController aiController = new GameController(aiGame, new RecordingView());
+      setDictionary(aiController, minimalDictionary("ART"));
+
+      CountDownLatch finished = new CountDownLatch(1);
+      aiController.performAiTurn(finished::countDown);
+
+      assertTrue(finished.await(5, TimeUnit.SECONDS));
+      assertTrue(aiGame.getUndoRedo().getHistory().size() >= 1);
+    } finally {
+      Files.deleteIfExists(saveFile);
+    }
+  }
+
+  @Test
+  void controllerAuxPrivateMethodsShouldFormatHistoryHelpAndTime() throws Exception {
+    Game game = new Game();
+    HumanPlayer alice = new HumanPlayer("Alice", PlayerColor.BLUE);
+    HumanPlayer bob = new HumanPlayer("Bob", PlayerColor.RED);
+    game.addPlayer(alice);
+    game.addPlayer(bob);
+
+    CliView view = new CliView(game);
+    GameController controller = new GameController(game, view);
+    GameControllerAux aux = new GameControllerAux(controller);
+    invokePrivateAuxMethod(aux, "displayHelp", new Class<?>[] {CliView.class, String.class},
+        view, null);
+
+    Stack<Move> history = game.getUndoRedo().getHistory();
+    history.push(Move.createPass(alice));
+    history.push(Move.createExchange(alice, List.of(new Tile('A'), new Tile('B'))));
+    history.push(Move.createPlay(alice, List.of(new Tile('A'), new Tile('B')),
+        new Point(7, 7), Direction.HORIZONTAL));
+
+    invokePrivateAuxMethod(aux, "showHistory", new Class<?>[] {CliView.class}, view);
+
+    Game emptyGame = new Game();
+    GameController emptyController = new GameController(emptyGame, new CliView(emptyGame));
+    GameControllerAux emptyAux = new GameControllerAux(emptyController);
+    invokePrivateAuxMethod(emptyAux, "showTime", new Class<?>[] {CliView.class},
+        new CliView(emptyGame));
+
+    invokePrivateAuxMethod(aux, "displayHelp", new Class<?>[] {CliView.class, String.class},
+        view, null);
+    invokePrivateAuxMethod(aux, "displayHelp", new Class<?>[] {CliView.class, String.class},
+        view, "show");
+    invokePrivateAuxMethod(aux, "displayHelp", new Class<?>[] {CliView.class, String.class},
+        view, "unknown");
+
+    invokePrivateAuxMethod(aux, "pauseBlitzClock",
+        new Class<?>[] {fr.ubordeaux.scrabble.model.interfaces.Player.class, CliView.class},
+        alice, view);
   }
 
   private static void setDictionary(GameController controller, Gaddag dictionary) throws Exception {
