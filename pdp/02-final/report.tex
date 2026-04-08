@@ -7,6 +7,9 @@
 \usepackage[french]{babel}
 \usepackage{tikz}
 \usepackage{tcolorbox}
+\usepackage{float}
+\usepackage{xurl}
+\usepackage{xspace}
 \usetikzlibrary{trees,shapes,arrows}
 
 \tcbuselibrary{skins, breakable}
@@ -27,17 +30,72 @@
   bottom=6pt
 }
 
+\ExplSyntaxOn
+\bool_new:N \l__scrabble_code_first_bool
+\cs_new_protected:Npn \__scrabble_code_print:n #1
+    {
+        \str_case:nnF {#1}
+            {
+                {A}{\__scrabble_code_print_upper:n {A}}
+                {B}{\__scrabble_code_print_upper:n {B}}
+                {C}{\__scrabble_code_print_upper:n {C}}
+                {D}{\__scrabble_code_print_upper:n {D}}
+                {E}{\__scrabble_code_print_upper:n {E}}
+                {F}{\__scrabble_code_print_upper:n {F}}
+                {G}{\__scrabble_code_print_upper:n {G}}
+                {H}{\__scrabble_code_print_upper:n {H}}
+                {I}{\__scrabble_code_print_upper:n {I}}
+                {J}{\__scrabble_code_print_upper:n {J}}
+                {K}{\__scrabble_code_print_upper:n {K}}
+                {L}{\__scrabble_code_print_upper:n {L}}
+                {M}{\__scrabble_code_print_upper:n {M}}
+                {N}{\__scrabble_code_print_upper:n {N}}
+                {O}{\__scrabble_code_print_upper:n {O}}
+                {P}{\__scrabble_code_print_upper:n {P}}
+                {Q}{\__scrabble_code_print_upper:n {Q}}
+                {R}{\__scrabble_code_print_upper:n {R}}
+                {S}{\__scrabble_code_print_upper:n {S}}
+                {T}{\__scrabble_code_print_upper:n {T}}
+                {U}{\__scrabble_code_print_upper:n {U}}
+                {V}{\__scrabble_code_print_upper:n {V}}
+                {W}{\__scrabble_code_print_upper:n {W}}
+                {X}{\__scrabble_code_print_upper:n {X}}
+                {Y}{\__scrabble_code_print_upper:n {Y}}
+                {Z}{\__scrabble_code_print_upper:n {Z}}
+            }
+            {
+                #1\bool_set_false:N \l__scrabble_code_first_bool
+            }
+    }
+\cs_new_protected:Npn \__scrabble_code_print_upper:n #1
+    {
+        \bool_if:NF \l__scrabble_code_first_bool {\allowbreak}
+        #1
+        \bool_set_false:N \l__scrabble_code_first_bool
+    }
+\NewDocumentCommand{\code}{m}
+    {
+        \texttt{%
+            \group_begin:
+            \bool_set_true:N \l__scrabble_code_first_bool
+            \tl_map_inline:nn {#1} {\__scrabble_code_print:n {##1}}
+            \group_end:
+        }\xspace
+    }
+\ExplSyntaxOff
+
 %------------------------------------------------------------------------------
 %	REPORT INFORMATION
 %------------------------------------------------------------------------------
 
-\title{ProjectName -- Java}
+\title{Scrabble -- Java}
 \subtitle{Rapport final}
-\author{Étudiant1, Étudiant2, Étudiant3, Étudiant4, Étudiant5}
+\author{CODOGNAN Thomas, RAZE Erwan, KAHLOUL Aïssa, BLOTHIAUX Yanis, BETTCHER Léonard}
 
 %------------------------------------------------------------------------------
 
 \begin{document}
+    \emergencystretch=2em
 	% Définition des styles TikZ pour les nœuds des schémas
 	\tikzstyle{decisionMax} = [isosceles triangle, draw, shape border rotate=90, minimum width=1.5cm, inner sep=2pt, font=\small, align=center]
 	\tikzstyle{decisionMin} = [isosceles triangle, draw, shape border rotate=270, minimum width=1.5cm, inner sep=2pt, font=\small, align=center]
@@ -145,11 +203,9 @@
 
     \section{Architecture du projet}
 
-    \begin{tcolorbox}[colback=black!2,colframe=black!55,title=Section 2 --- Architecture du projet]
     Le projet est organise en couches fonctionnelles strictement separees selon le patron MVC. Chaque package porte une responsabilite unique, avec des dependances majoritairement descendantes.
-    \end{tcolorbox}
 
-    \subsection*{2.1 Decoupage en modules}
+    \subsection{Decoupage en modules}
 
     \paragraph{Point d'entree}
     La classe \texttt{App} initialise le contexte d'execution : detection de la langue via \texttt{I18n}, chargement de la configuration \texttt{.scrabblerc} via \texttt{ConfigLoader}, puis delegation au mode d'affichage selon les options \texttt{commons-cli}. \texttt{App} expose des \texttt{@FunctionalInterface} (\texttt{CliLauncherHandler}, \texttt{GuiLauncherHandler}, \texttt{ExitHandler}) pour decoupler le point d'entree des implementations concretes et faciliter les tests.
@@ -167,33 +223,30 @@
     Le package \texttt{model.ai} regroupe \texttt{AiPlayer} (sous-classe concrete de \texttt{Player}, surcharge \texttt{isAutonomous()} et \texttt{playTurn()}), \texttt{MinimaxSolver} (Minimax et Expectiminimax avec profondeur et limite de temps configurables, 200 tirages de simulation par noeud) et \texttt{MlAgent} (agent TensorFlow Java, chargement gracieux : si le modele est absent, l'IA se replie sur le Minimax sans crash).
 
     \paragraph{Couche metier --- joueurs}
-    La classe abstraite \texttt{Player} (dans \texttt{model.interfaces}) unifie \texttt{HumanPlayer} et \texttt{AiPlayer}. Elle encapsule le nom, le score, le \texttt{Rack}, et la logique de minuterie blitz (\texttt{enableBlitzClock}, \texttt{startTurnTimer}, \texttt{pauseTurnTimer}, \texttt{isOutOfTime}). \texttt{HumanPlayer} n'ajoute aucune logique : il herite simplement de \texttt{Player} sans surcharger \texttt{isAutonomous()} (retourne \texttt{false} par defaut). Un joueur reseau est represente cote client par un \texttt{Player} standard dont les coups sont pilotes par \texttt{GameClient}.
+    La classe abstraite \texttt{Player} (dans \texttt{model.interfaces}) unifie \texttt{HumanPlayer} et \texttt{AiPlayer}. Elle encapsule le nom, le score, le \texttt{Rack} et la minuterie blitz. Les methodes principales sont \texttt{enableBlitzClock()}, \texttt{startTurnTimer()}, \texttt{pauseTurnTimer()} et \texttt{isOutOfTime()}. \texttt{HumanPlayer} n'ajoute aucune logique : il herite simplement de \texttt{Player} sans surcharger \texttt{isAutonomous()} (retourne \texttt{false} par defaut). Un joueur reseau est represente cote client par un \texttt{Player} standard dont les coups sont pilotes par \texttt{GameClient}.
 
     \paragraph{Couche vue}
-    Le package \texttt{view} expose l'interface \texttt{UserInterface} (trois methodes : \texttt{refresh()}, \texttt{displayMessage()}, \texttt{displayError()}, \texttt{displaySuccess()}). Deux implementations concretes : \texttt{CliView} (rendu ANSI via des renderers specialises : \texttt{BoardRenderer}, \texttt{RackRenderer}, \texttt{PlayerRenderer}, \texttt{MessageRenderer}) et \texttt{JavaFxView} (interface graphique JavaFX avec panneaux \texttt{BoardPanel}, \texttt{RackPanel}, \texttt{ScorePanel}, \texttt{ControlPanel}, \texttt{MessagePanel}). Les launchers \texttt{CliLauncher} et \texttt{GuiLauncher} dans \texttt{view/optionlancement/} sont le point de transition entre \texttt{App} et les vues concretes.
+    Le package \texttt{view} expose l'interface \texttt{UserInterface}. Elle definit quatre methodes : \texttt{refresh()}, \texttt{displayMessage()}, \texttt{displayError()} et \texttt{displaySuccess()}. Deux implementations concretes existent : \texttt{CliView} (rendu ANSI via \texttt{BoardRenderer}, \texttt{RackRenderer}, \texttt{PlayerRenderer}, \texttt{MessageRenderer}) et \texttt{JavaFxView} (interface graphique JavaFX avec \texttt{BoardPanel}, \texttt{RackPanel}, \texttt{ScorePanel}, \texttt{ControlPanel}, \texttt{MessagePanel}). Les launchers \texttt{CliLauncher} et \texttt{GuiLauncher} dans \texttt{view/optionlancement/} sont le point de transition entre \texttt{App} et les vues concretes.
 
     \paragraph{Persistance}
     Le package \texttt{model.savefiles} contient \texttt{ConfigLoader} (lecture/ecriture du fichier \texttt{.scrabblerc} au format INI, section \texttt{[defaults]}, commentaires \texttt{\#} ignores, creation automatique si absent), \texttt{SaveManager} (serialisation de l'etat de jeu en trois blocs ASCII : \texttt{[settings]}, \texttt{[game]}, \texttt{[history]}) et \texttt{GameLoader} (deserialisation et reconstruction d'un \texttt{Game} depuis un fichier de sauvegarde).
 
     \paragraph{Reseau}
-    Le package \texttt{model.network} est organise en facade (\texttt{NetworkManager}), client (\texttt{client/GameClient}) et serveur (\texttt{server/GameServer}, \texttt{server/ClientHandler}, \texttt{server/OnlineGame}). \texttt{NetworkManager} maintient une liste de \texttt{NetworkObserver} (CLI et GUI s'y enregistrent) et orchestre \texttt{GameServer} (TCP 12345, threads par client, liste thread-safe via \texttt{Collections.synchronizedList}) et \texttt{DiscoveryService} (UDP 12346, broadcast de decouverte automatique). Les echanges transitent via \texttt{PacketParser}.
+    Le package \texttt{model.network} est organise en facade (\texttt{NetworkManager}), client (classe \texttt{GameClient}) et serveur (classes \texttt{GameServer}, \texttt{ClientHandler}, \texttt{OnlineGame}). \texttt{NetworkManager} maintient une liste de \texttt{NetworkObserver} (CLI et GUI s'y enregistrent). Il orchestre \texttt{GameServer} (TCP 12345, threads par client, liste synchronisee) et \texttt{DiscoveryService} (UDP 12346, broadcast de decouverte automatique). Les echanges transitent via \texttt{PacketParser}.
 
     \paragraph{Internationalisation}
-    La classe \texttt{I18n} (dans le package \texttt{i18n}) est un singleton synchronise backed par \texttt{ResourceBundle}. Elle expose \texttt{setLanguage(lang)}, \texttt{getLanguage()} et \texttt{translate(key, args...)}. Deux langues sont supportees : \texttt{"en"} (defaut) et \texttt{"fr"}. La langue conditionne le chargement du dictionnaire et la distribution des lettres dans \texttt{Bag}.
+    La classe \code{I18n} (dans le package \code{i18n}) est un singleton synchronise backed par \code{ResourceBundle}. Elle expose \code{setLanguage(lang)}, \code{getLanguage()} et \code{translate(key, args...)}. Deux langues sont supportees : \code{"en"} (defaut) et \code{"fr"}. La langue conditionne le chargement du dictionnaire et la distribution des lettres dans \code{Bag}.
 
-    \subsection*{2.2 Diagramme UML global}
-    (voir diagramme ci-dessus)
+    \subsection{Diagramme UML global}
 
-    Les fleches pleines indiquent des relations d'utilisation directe. Les fleches en tirets representent des dependances optionnelles ou indirectes (ex. chargement du \texttt{Gaddag}, activation du reseau). Les fleches vertes materialisent les relations d'heritage ou d'implementation d'interface. Les couleurs distinguent les couches : violet pour le controleur, vert pour la vue, bleu pour le modele core et reseau, orange pour le dictionnaire, corail pour l'IA, gris pour les services transverses (savefiles, i18n, App).
-
-    \begin{figure}[h!]
+    \begin{figure}[H]
         \centering
         \includegraphics[width=\textwidth,height=0.85\textheight,keepaspectratio]{uml-global-large.png}
         \caption{Capture UML globale de l'architecture du projet (source : capture d'ecran du diagramme UML).}
         \label{fig:uml-global-architecture}
     \end{figure}
 
-    \subsection*{2.3 Principales interfaces et points d'extension}
+    \subsection{Principales interfaces et points d'extension}
     Trois interfaces structurent l'evolutivite du projet.
 
     \paragraph{\texttt{UserInterface} --- contrat commun des vues CLI et JavaFX}
@@ -260,37 +313,39 @@ public interface NetworkObserver {
 
     \texttt{CliNetworkBridge} et \texttt{NetworkGameBridge} (cote GUI) implementent cette interface et s'enregistrent aupres de \texttt{NetworkManager}. Ajouter un nouveau type de client reseau revient a implementer \texttt{NetworkObserver}.
 
-    \subsection*{2.4 Flux d'execution principal}
+    \subsection{Flux d'execution principal}
     Le deroulement d'un tour illustre comment les couches collaborent :
 
 \begin{verbatim}
 App
- \-\-> CliLauncher.launch() / GuiLauncher.launch()
-       \-\-> GameController(game, view)
-             |-\-> I18n.setLanguage(lang)
-             |-\-> ConfigLoader.loadConfig()         -- lecture de .scrabblerc
-             |-\-> Gaddag.load(dictionaryFile)       -- chargement du dictionnaire
-             |-\-> Game.addPlayer(HumanPlayer | AiPlayer)
-             |-\-> Game.startGame()                  -- distribution initiale des Rack depuis Bag
-             \-\-> [boucle de jeu]
-                   |-\-> si player.isAutonomous()
-                   |     \-\-> AiPlayer.playTurn(game, gaddag)
-                   |           \-\-> MinimaxSolver.findBestMove(game, gaddag)
-                   |                 \-\-> MoveGenerator.getPlayableWordsList(board, rack, gaddag)
-                   |-\-> sinon : UserInterface.refresh() + saisie CLI/GUI
-                   |-\-> MoveHandler.applyMove(move)
-                   |     |-\-> Gaddag.contains(word)        -- validation lexicale
-                   |     |-\-> Scoring.calculateWordScore() -- calcul des points
-                   |     |-\-> Board.place(tile, position)  -- mise a jour du plateau
-                   |     |-\-> Bag.draw()                   -- recharge du Rack
-                   |     \-\-> UndoRedo.addMove(move)       -- empilement pour undo
-                   |-\-> UserInterface.refresh()             -- rafraichissement de la vue
-                   \-\-> Game.nextTurn()                    -- rotation des joueurs
+\-\-> CliLauncher.launch() / GuiLauncher.launch()
+  \-\-> GameController(game, view)
+    |-\-> I18n.setLanguage(lang)
+    |-\-> ConfigLoader.loadConfig()         -- lecture de .scrabblerc
+    |-\-> Gaddag.load(dictionaryFile)       -- chargement du dictionnaire
+    |-\-> Game.addPlayer(HumanPlayer | AiPlayer)
+    |-\-> Game.startGame()                  -- distribution des Rack depuis Bag
+    \-\-> [boucle de jeu]
+      |-\-> si player.isAutonomous()
+      |     \-\-> AiPlayer.playTurn(game, gaddag)
+      |           \-\-> MinimaxSolver.findBestMove(game, gaddag)
+      |                 \-\-> MoveGenerator.getPlayableWordsList(
+      |                       board, rack, gaddag)
+      |-\-> sinon : UserInterface.refresh() + saisie CLI/GUI
+      |-\-> MoveHandler.applyMove(move)
+      |     |-\-> Gaddag.contains(word)        -- validation lexicale
+      |     |-\-> Scoring.calculateWordScore()
+      |     |                         -- calcul des points
+      |     |-\-> Board.place(tile, position)  -- mise a jour du plateau
+      |     |-\-> Bag.draw()                   -- recharge du Rack
+      |     \-\-> UndoRedo.addMove(move)       -- empilement pour undo
+      |-\-> UserInterface.refresh()             -- rafraichissement de la vue
+      \-\-> Game.nextTurn()                    -- rotation des joueurs
 \end{verbatim}
 
     Les dependances sont strictement descendantes : la vue ne connait que \texttt{UserInterface}, le controleur ne connait que les interfaces \texttt{Dictionary}, \texttt{UserInterface} et \texttt{Player}. \texttt{Game} et \texttt{MoveHandler} ignorent totalement l'existence de la vue et du reseau.
 
-    \subsection*{2.5 Gestion des coups et pattern Command}
+    \subsection{Gestion des coups et pattern Command}
     Chaque action de jeu est encapsulee dans un objet \texttt{Move} construit par factory methods statiques :
 
 \begin{verbatim}
@@ -333,7 +388,7 @@ public class UndoRedo {
 }
 \end{verbatim}
 
-    \subsection*{2.6 Generation du plateau et pattern Factory}
+    \subsection{Generation du plateau et pattern Factory}
     \texttt{StandardBoardFactory} applique le pattern Factory pour creer le plateau sans que le moteur ne connaisse les coordonnees des bonus :
 
 \begin{verbatim}
@@ -406,10 +461,10 @@ public enum SquareType {
     return maxDamage;
     \end{minted}
 
-    \subsubsection*{L'impact crucial de l'heuristique}
+    \subsubsection{L'impact crucial de l'heuristique}
     Au Scrabble, évaluer un coup uniquement par les points qu'il rapporte sur le plateau n'est pas le plus pertinent. L'algorithme intègre donc une fonction heuristique d'évaluation du "reliquat" (\texttt{leaveScore}) qui note la qualité des lettres conservées sur le chevalet après un coup. Cette heuristique va attribuer des bonus ou des malus en fonction de la "qualité" du chevalet : Joker (+15.0), 'S' (+8.0), Lettres difficiles (-6.0), équilibre voyelles/consonnes (+5.0), uniquement consonne/voyelle (-12.0).
 
-	\subsubsection*{Complexité, Coût et Performances}
+    \subsubsection{Complexité, Coût et Performances}
 	Dans notre implémentation de Monte-Carlo, l'algorithme ne dispose pas d'élagage Alpha-Beta. La complexité est donc strictement de $O(B \times N \times B)$ pour une anticipation de deux plis (Profondeur = 2), où $B$ représente le facteur de branchement (nombre de coups légaux) et $N=200$ le nombre de tirages simulés.
 	Le coût en ressources est massif et identique pour Minimax et Expectiminimax, car tous deux parcourent la même boucle de 200 simulations par coup. Le goulot d'étranglement réside dans l'appel répété au \texttt{MoveGenerator} pour chaque scénario adverse.
 	Sur le plan du jeu, la performance défensive du Minimax est excellente : l'IA « verrouille » le plateau pour empêcher l'adversaire de marquer. Cependant, ce pessimisme est à double tranchant : en s'attendant toujours au meilleur tirage adverse, l'IA ferme le jeu, sacrifiant parfois des opportunités offensives pour éviter un risque statistique pourtant faible.
@@ -436,10 +491,10 @@ public enum SquareType {
     return samplesEvaluated == 0 ? 0.0 : totalExpectedOpponentScore / samplesEvaluated;
     \end{minted}
 
-    \subsubsection*{L'impact de l'heuristique}
+    \subsubsection{L'impact de l'heuristique}
     En termes simples, l'Expectiminimax ne se contente pas de calculer mathématiquement les risques sur le plateau. Pour juger de la force réelle d'un coup, l'IA additionne le risque statistique sur le plateau et la qualité de sa main évaluée par l'heuristique. L'IA cherche donc toujours l'équilibre parfait entre "limiter la casse probabiliste" et "garder de bonnes lettres pour l'avenir".
 
-    \subsubsection*{Complexité, coût et performances}
+    \subsubsection{Complexité, coût et performances}
     La complexité est la même ($O(B \times N \times B)$). Bien que son coût soit strictement identique à celui de notre Minimax actuel, l'Expectiminimax a l'inconvénient théorique de ne presque pas pouvoir être optimisé par des techniques d'élagage classiques. Le style de jeu devient plus naturel et audacieux. Dans notre code, son coût temporel étant identique au Minimax Monte-Carlo, l'Expectiminimax s'avère supérieur dans la prise de ses décisions.
 
     \subsection{Comparaison des arbres de décision}
@@ -559,7 +614,7 @@ public enum SquareType {
         \label{tab:metrics}
     \end{table}
 
-    \subsubsection*{Interprétation de nos résultats}
+    \subsubsection{Interprétation de nos résultats}
 
     L'analyse de nos métriques met en évidence trois points cruciaux concernant les limites de notre implémentation :
 
@@ -577,16 +632,16 @@ public enum SquareType {
 
 \section{DAWG et GADDAG}
 
-\subsection*{1. Introduction et contexte du problème}
+\subsection{Introduction et contexte du problème}
 
 La génération de coups légaux au Scrabble impose une contrainte forte : la structure doit, en temps réel, trouver tous les mots jouables à partir d'une lettre déjà posée sur le plateau, que ce soit vers la gauche, la droite, ou les deux. Les structures classiques comme les tableaux de chaînes ou les arbres préfixes naïfs (Trie) sont inadaptées à cette contrainte, soit par leur lenteur de parcours, soit par leur consommation mémoire excessive face à un dictionnaire de 180\,000 mots comme ceux que nous avons utilisés. \newline
 
 Deux structures de données académiques répondent à ce problème : le DAWG (Directed Acyclic Word Graph), conçu pour la validation rapide de mots, et le GADDAG, une extension inventée spécifiquement pour le Scrabble par Steven Gordon en 1994 permettant une recherche bidirectionnelle depuis n'importe quelle ancre. Afin de justifier notre choix final, nous avons implémenté et benchmarké les deux structures sur notre dictionnaire.\newline
 
 % ------------------------------------------------------------------------------
-\subsection*{2. Le DAWG — Directed Acyclic Word Graph}
+\subsection{Le DAWG — Directed Acyclic Word Graph}
 
-\subsubsection*{2.1 Principe général}
+\subsubsection{Principe général}
 
 La structure de données DAWG représente une solution performante alliant vitesse d'exécution et économie de mémoire. Il s'agit d'un automate fini déterministe où chaque chemin partant de la racine correspond à un mot unique du dictionnaire. Sa particularité, qui la distingue d'un arbre préfixe classique, réside dans son optimisation poussée : le DAWG regroupe les mots partageant les mêmes préfixes, mais aussi les mêmes suffixes. \newline
 Par exemple, les mots CHAT et PLAT possèdent des débuts différents mais une terminaison identique ; lors de la construction, la structure va donc fusionner ces deux entrées au niveau de leur suffixe commun AT. \newline
@@ -599,7 +654,7 @@ Cette approche permet de réduire drastiquement la redondance de l'information t
     \label{fig:gaddag_care}
 \end{figure}
 
-\subsubsection*{2.2 Construction et complexité}
+\subsubsection{Construction et complexité}
 
 La création d'un DAWG optimisé repose sur l'algorithme de Daciuk~\cite{10.1162/089120100561601}, qui impose une création des mots selon l'ordre lexicographique. Cette contrainte permet de traiter le dictionnaire de manière séquentielle : lorsqu'un nouveau mot est ajouté, l'algorithme identifie la partie de la structure qui ne sera plus modifiée et procède à la fusion des états équivalents, c'est-à-dire des nœuds possédant les mêmes transitions vers les mêmes états terminaux. \newline
 En matière de performance, la construction affiche une complexité temporelle de $O(|W| \times L)$, où $|W|$ représente le nombre total de mots et $L$ leur longueur moyenne. \newline
@@ -608,7 +663,7 @@ Pour la phase de jeu, la recherche d'un mot s'effectue en un temps linéaire $O(
 Cependant, cette structure unidirectionnelle montre ses limites dès lors qu'une lettre \og ancre \fg{} est déjà fixée au milieu d'un mot potentiel sur le plateau. 
 Le DAWG ne permettant pas de remonter le chemin vers la racine pour identifier les débuts de mots possibles, le moteur de jeu est alors contraint d'explorer aveuglément tous les préfixes imaginables avant d'atteindre l'ancre, ce qui rend la génération de coups particulièrement inefficace dans ces configurations.\newline
 
-\subsubsection*{2.3 Avantages et limites pour le Scrabble}
+\subsubsection{Avantages et limites pour le Scrabble}
 
 L'intérêt majeur du DAWG réside dans sa compacité exceptionnelle, permettant de compresser les centaines de milliers de mots d'un dictionnaire en un volume de données souvent 
 inférieur à deux mégaoctets. Cependant, si cette structure est excellente pour la validation d'un mot saisi par un utilisateur, elle s'avère plus limitée pour la phase de 
@@ -621,9 +676,9 @@ Pour placer un mot contenant une lettre fixe en son centre ou à sa fin, l'algor
  de la contrainte du parcours de gauche à droite : le GADDAG.\newline
 
 % ------------------------------------------------------------------------------
-\subsection*{3. Le GADDAG — la solution pour le Scrabble}
+\subsection{Le GADDAG — la solution pour le Scrabble}
 
-\subsubsection*{3.1 Principe et transformation}
+\subsubsection{Principe et transformation}
 
 Le GADDAG, conçu par Steven Gordon en 1994, a donc apporté une réponse définitive au problème de l'ancrage en permettant une recherche bidirectionnelle efficace. Contrairement
  au DAWG qui ne stocke qu'une version linéaire de chaque mot, le GADDAG génère $n$ représentations différentes pour un mot de longueur $n$, une pour chaque position possible
@@ -642,7 +697,7 @@ Cette méthode se généralise sans perte d'efficacité pour des mots plus compl
 la forme totalement inversée \og ELBBARCS> \fg{}. Cette multiplication des chemins garantit que, pour n'importe quelle lettre du mot déjà présente sur la grille, il existe 
 un chemin unique dans l'automate commençant par celle-ci et permettant de créer le reste du mot.\newline
 
-\subsubsection*{3.2 Semi-minimisation}
+\subsubsection{Semi-minimisation}
 
 L'augmentation du nombre de représentations par mot pourrait laisser craindre une explosion de la consommation mémoire, mais le GADDAG compense ce volume par une technique 
 dite de semi-minimisation. Gordon a démontré que si les préfixes inversés divergent souvent, les suffixes situés après le caractère pivot \og > \fg{} présentent une redondance
@@ -660,7 +715,7 @@ structure déterministe et permet de conserver un seul chemin par couple (mot, a
     \label{fig:gaddag_care}
 \end{figure}
 
-\subsubsection*{3.3 Utilisation dans le moteur de jeu}
+\subsubsection{Utilisation dans le moteur de jeu}
 
 L'intégration du GADDAG au sein du moteur de jeu transforme radicalement la génération de coups en la rendant purement itérative. Pour chaque case \og ancre \fg{} 
 identifiée sur le plateau, l'algorithme entame un parcours du graphe en deux phases distinctes. Dans un premier temps, il explore les branches correspondant à la partie 
@@ -672,7 +727,7 @@ position de départ. En éliminant les tests de préfixes inutiles propres au DA
  une réactivité optimale même face à des dictionnaires extensifs et des contraintes de temps réelles.\newline
 
 % ------------------------------------------------------------------------------
-\subsection*{4. Analyse du benchmark et justification du choix}
+\subsection{Analyse du benchmark et justification du choix}
 
 \begin{table}[h!]
     \centering
@@ -755,11 +810,11 @@ qu'une ancre est présente sur la grille. Le GADDAG, en encodant nativement tout
 
 \section{F21 — Sauvegarde et restauration d'une partie}
 
-\subsection*{Description}
+\subsection{Description}
 
 Le programme doit pouvoir sérialiser une partie en cours dans un fichier texte ASCII et reconstruire une partie complète à partir d'un fichier de sauvegarde. Le parseur doit être robuste aux erreurs de format et les signaler avec précision (type d'erreur et numéro de ligne). L'implémentation repose sur les classes \texttt{SaveManager.java} et \texttt{GameLoader.java}.
 
-\subsection*{Prérequis}
+\subsection{Prérequis}
 
 \begin{itemize}
     \item \textbf{F2 — Configuration :} Paramètres par défaut (langue, blitz, etc.) via \texttt{.scrabblerc} — \texttt{ConfigLoader.java}
@@ -769,12 +824,12 @@ Le programme doit pouvoir sérialiser une partie en cours dans un fichier texte 
     \item \textbf{F23/F24/F25 — Formats :} Sections \texttt{[settings]}, \texttt{[game]} et \texttt{[history]} du fichier de sauvegarde
 \end{itemize}
 
-\subsection*{Type de besoin}
+\subsection{Type de besoin}
 
 Fonctionnel.
 
 % ------------------------------------------------------------------------------
-\subsection*{Sous besoins 1. Sauvegarder la partie dans un fichier}
+\subsection{Sous-besoin 1. Sauvegarder la partie dans un fichier}
 \begin{besoinbox}
 \textbf{Description :}
 Sérialiser l'état courant du jeu dans un fichier texte ASCII en écrivant successivement les trois sections obligatoires.
@@ -806,7 +861,7 @@ void saveGame(Game game, String filePath) throws IOException
 \end{itemize}
 \end{besoinbox}
 
-\subsection*{Sous besoins 2. Serialiser la section \texttt{[settings]}}
+\subsection{Sous-besoin 2. Serialiser la section \texttt{[settings]}}
 \begin{besoinbox}
 \textbf{Description :}
 Ecrire les parametres globaux de la partie et les parametres IA joueur par joueur sous la section \texttt{[settings]}.
@@ -828,7 +883,7 @@ Ecrire les parametres globaux de la partie et les parametres IA joueur par joueu
 \end{itemize}
 \end{besoinbox}
 
-\subsection*{Sous besoins 3. Serialiser la section \texttt{[game]}}
+\subsection{Sous-besoin 3. Serialiser la section \texttt{[game]}}
 \begin{besoinbox}
 \textbf{Description :}
 Ecrire l'etat du plateau, les racks et les scores de chaque joueur.
@@ -856,7 +911,7 @@ serializeRack(Player p)
 \end{itemize}
 \end{besoinbox}
 
-\subsection*{Sous besoins 4. Serialiser la section \texttt{[history]}}
+\subsection{Sous-besoin 4. Serialiser la section \texttt{[history]}}
 \begin{besoinbox}
 \textbf{Description :}
 Ecrire les coups joues dans l'ordre chronologique au format defini par F25.
@@ -884,7 +939,7 @@ convertPointToCoord(Point p)
 \end{itemize}
 \end{besoinbox}
 
-\subsection*{Sous besoins 5. Charger une partie depuis un fichier}
+\subsection{Sous-besoin 5. Charger une partie depuis un fichier}
 \begin{besoinbox}
 \textbf{Description :}
 Parser le fichier de sauvegarde et reconstruire un objet \texttt{Game} complet (joueurs, plateau, racks, scores, tour courant et historique).
@@ -920,7 +975,7 @@ Game loadGame(String filePath) throws Exception
 \end{itemize}
 \end{besoinbox}
 
-\subsection*{Sous besoins 6. Parser et ignorer les commentaires}
+\subsection{Sous-besoin 6. Parser et ignorer les commentaires}
 \begin{besoinbox}
 \textbf{Description :}
 Supprimer les commentaires avant le parsing tout en conservant une numerotation de ligne fiable pour les messages d'erreur, conformement a F22.
@@ -946,7 +1001,7 @@ processLineComments(String line)
 \end{besoinbox}
 
 % ------------------------------------------------------------------------------
-\subsection*{Intégration dans l'architecture du projet}
+\subsection{Intégration dans l'architecture du projet}
 
 \begin{table}[h!]
     \centering
@@ -962,13 +1017,13 @@ processLineComments(String line)
         GUI & \texttt{ScrabbleGui.java}
           & Menu \textit{Save} $\rightarrow$ \texttt{SaveManager.saveGame} \newline Menu \textit{Load} $\rightarrow$ \texttt{GameLoader.loadGame} \newline Rebind du contrôleur et rafraîchissement UI après chargement. \\
         Configuration F2 & \texttt{ConfigLoader.java}
-          & Lit \texttt{.scrabblerc} dans le HOME. \newline Note : le chemin par défaut de save/load depuis \texttt{.scrabblerc} n'est pas encore pris en charge si \texttt{FILE} est absent. \\
+                    & Lit \texttt{.scrabblerc} dans le HOME. \newline Note : le chemin par defaut de sauvegarde n'est pas encore pris en charge si \texttt{FILE} est absent. \\
         \bottomrule
     \end{tabular}
 \end{table}
 
 % ------------------------------------------------------------------------------
-\subsection*{Scénario utilisateur}
+\subsection{Scénario utilisateur}
 
 \begin{enumerate}
     \item L'utilisateur joue plusieurs coups en CLI ou via l'interface graphique.
