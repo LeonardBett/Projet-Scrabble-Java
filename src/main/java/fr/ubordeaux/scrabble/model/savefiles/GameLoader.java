@@ -46,6 +46,7 @@ public class GameLoader {
    * @throws Exception if format is invalid, specifying the line number (F24).
    */
   public Game loadGame(String filePath) throws Exception {
+    GameLogger.logVerbose("Loading game from: " + filePath);
     Game game = getGame(filePath);
     this.isInBlockComment = false;
     this.playerSettings.clear();
@@ -92,6 +93,7 @@ public class GameLoader {
         }
       }
     }
+    GameLogger.logVerbose("Game loaded successfully (" + lineCount + " lines parsed).");
     return game;
   }
 

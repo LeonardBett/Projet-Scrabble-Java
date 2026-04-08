@@ -96,6 +96,7 @@ public class SaveManager {
       writer.println("[history]");
       saveHistory(writer, game, game.getUndoRedo().getHistory());
     }
+    GameLogger.logVerbose("Game saved successfully.");
   }
 
   /**

@@ -38,10 +38,11 @@ public class ConfigLoader {
 
     // If no files found, create a new one
     if (!Files.exists(configPath)) {
+      GameLogger.logVerbose("No .scrabblerc found, creating default config at: " + configPath);
       createMinimalConfig(configPath);
       return;
     }
-
+    GameLogger.logVerbose("Loading config from: " + configPath);
     // If file exists, read it
     try (BufferedReader reader = Files.newBufferedReader(configPath)) {
       String line;
@@ -71,6 +72,7 @@ public class ConfigLoader {
     } catch (IOException e) {
       System.err.println("Warning: .scrabblerc is present but invalid. Using standard defaults.");
     }
+    GameLogger.logVerbose("Config loaded: " + configMap.size() + " option(s) found.");
   }
 
   /**
@@ -125,6 +127,7 @@ public class ConfigLoader {
   public void updateAndSave(Map<String, String> newSettings) {
     configMap.putAll(newSettings);
     Path configPath = Paths.get(System.getProperty("user.home"), FILE_NAME);
+    GameLogger.logVerbose("Saving config to: " + configPath);
     try (BufferedWriter writer = Files.newBufferedWriter(configPath);
          PrintWriter out = new PrintWriter(writer)) {
       out.println("[defaults] # Scrabble configuration");
