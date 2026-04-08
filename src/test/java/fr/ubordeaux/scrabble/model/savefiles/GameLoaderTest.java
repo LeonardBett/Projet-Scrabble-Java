@@ -32,7 +32,7 @@ class GameLoaderTest {
 
     Game game = loader.loadGame(path.toString());
     assertEquals(21, game.getBoard().getSize(),
-      "Board should have size 21 (F9) [cite: 118]");
+        "Board should have size 21 (F9) [cite: 118]");
   }
 
   @Test
@@ -51,11 +51,11 @@ class GameLoaderTest {
 
     assertFalse(game.getPlayers().isEmpty());
     assertTrue(game.getPlayers().get(0) instanceof AiPlayer,
-      "Player should be an AI (F8) [cite: 109]");
+        "Player should be an AI (F8) [cite: 109]");
     AiPlayer ai = (AiPlayer) game.getPlayers().get(0);
     assertEquals("DeepBlue", ai.getName());
     assertTrue(ai.isExpectiminimaxMode(),
-      "Expectiminimax mode should be restored (F36) [cite: 257]");
+        "Expectiminimax mode should be restored (F36) [cite: 257]");
   }
 
   @Test

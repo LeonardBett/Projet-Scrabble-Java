@@ -478,7 +478,7 @@ class ClientServerTest {
       Thread.sleep(50);
     }
     Assertions.assertEquals("Player-1", observer2.invitationFrom,
-      "Invitation should be received");
+        "Invitation should be received");
 
     // 3. Crash case: Client 1 (host) disconnects abruptly before reply
     client.quit();
@@ -490,8 +490,8 @@ class ClientServerTest {
 
     // 5. Assertions: verify status update
     Assertions.assertEquals(
-      "IDLE", observer2.lastPlayerStatus,
-      "Client 2 should be released and return to IDLE");
+        "IDLE", observer2.lastPlayerStatus,
+        "Client 2 should be released and return to IDLE");
 
     // Final cleanup
     client2.quit();

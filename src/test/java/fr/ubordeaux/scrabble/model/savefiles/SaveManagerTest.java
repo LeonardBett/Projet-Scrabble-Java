@@ -137,6 +137,6 @@ class SaveManagerTest {
     assertTrue(content.contains("players-count=0"));
 
     long dashLinesCount = content.stream().filter(line -> line.equals("---------------")).count();
-      assertEquals(15, dashLinesCount, "Empty board must contain 15 dashed lines");
+    assertEquals(15, dashLinesCount, "Empty board must contain 15 dashed lines");
   }
 }
