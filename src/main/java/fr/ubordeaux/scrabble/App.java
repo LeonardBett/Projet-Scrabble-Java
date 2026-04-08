@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Scanner;
+import java.util.function.BooleanSupplier;
 
 /**
  * Main entry point of the application. Parses command-line arguments and launches the appropriate
@@ -73,6 +74,7 @@ public class App {
   private static ExitHandler exitHandler = System::exit;
   private static CliLauncherHandler cliLauncherHandler = CliLauncher::launch;
   private static GuiLauncherHandler guiLauncherHandler = GuiLauncher::launch;
+  private static BooleanSupplier consoleAvailableSupplier = () -> System.console() != null;
 
   private enum HelpLaunchChoice {
     CLI,
@@ -129,6 +131,11 @@ public class App {
     exitHandler = System::exit;
     cliLauncherHandler = CliLauncher::launch;
     guiLauncherHandler = GuiLauncher::launch;
+    consoleAvailableSupplier = () -> System.console() != null;
+  }
+
+  static void setConsoleAvailableSupplierForTests(BooleanSupplier supplier) {
+    consoleAvailableSupplier = supplier;
   }
 
   private static String normalizeLanguageOrDefault(String rawLang) {
@@ -452,7 +459,7 @@ public class App {
   }
 
   private static HelpLaunchRequest promptLaunchRequestAfterHelp() {
-    if (System.console() == null) {
+    if (!consoleAvailableSupplier.getAsBoolean()) {
       return HelpLaunchRequest.none();
     }
 

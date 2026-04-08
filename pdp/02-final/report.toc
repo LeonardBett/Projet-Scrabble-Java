@@ -28,4 +28,3 @@
 \contentsline {paragraph}{Conclusion du choix.}{11}{table.2}%
 \contentsline {part}{I\hspace {1em}Spécifications Étendues}{11}{part.1}%
 \contentsline {section}{\numberline {7}F21 — Sauvegarde et restauration d'une partie}{11}{section.7}%
-\contentsline {section}{\numberline {A}Section en annexe}{14}{appendix.A}%

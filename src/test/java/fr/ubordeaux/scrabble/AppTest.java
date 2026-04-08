@@ -14,7 +14,6 @@ import fr.ubordeaux.scrabble.model.dictionary.Gaddag;
 import fr.ubordeaux.scrabble.model.enums.Direction;
 import fr.ubordeaux.scrabble.model.enums.GameMode;
 import java.io.ByteArrayInputStream;
-import java.io.Console;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -450,20 +449,14 @@ class AppTest {
     Method prompt = App.class.getDeclaredMethod("promptLaunchRequestAfterHelp");
     prompt.setAccessible(true);
 
-    java.lang.reflect.Field consoleField = System.class.getDeclaredField("cons");
-    sun.misc.Unsafe unsafe = getUnsafe();
-    Object consoleBase = unsafe.staticFieldBase(consoleField);
-    long consoleOffset = unsafe.staticFieldOffset(consoleField);
-    Object originalConsole = unsafe.getObject(consoleBase, consoleOffset);
     InputStream originalIn = System.in;
 
     try {
-      Console fakeConsole = (Console) unsafe.allocateInstance(Console.class);
-      unsafe.putObject(consoleBase, consoleOffset, fakeConsole);
+      App.setConsoleAvailableSupplierForTests(() -> true);
       System.setIn(new ByteArrayInputStream(input.getBytes(StandardCharsets.UTF_8)));
       return prompt.invoke(null);
     } finally {
-      unsafe.putObject(consoleBase, consoleOffset, originalConsole);
+      App.setConsoleAvailableSupplierForTests(() -> System.console() != null);
       System.setIn(originalIn);
     }
   }
@@ -472,12 +465,6 @@ class AppTest {
     Field field = target.getClass().getDeclaredField(fieldName);
     field.setAccessible(true);
     return field.get(target);
-  }
-
-  private sun.misc.Unsafe getUnsafe() throws Exception {
-    Field field = sun.misc.Unsafe.class.getDeclaredField("theUnsafe");
-    field.setAccessible(true);
-    return (sun.misc.Unsafe) field.get(null);
   }
 
   private static final class ExitCalledException extends RuntimeException {

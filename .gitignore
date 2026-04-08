@@ -40,3 +40,5 @@ src/main/resources/ai/labels_*.txt
 
 **.pygtex
 **.pygstyle
+latexmkrc
+report.toc
