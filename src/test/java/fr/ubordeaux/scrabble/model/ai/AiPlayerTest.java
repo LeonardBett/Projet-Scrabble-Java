@@ -182,25 +182,23 @@ class AiPlayerTest {
     assertEquals(MoveType.PASS, game.getUndoRedo().getHistory().getFirst().getType());
   }
 
-  /* Joker is not yet implemented
   @Test
   void testPlayTurnWithJoker() {
     Game game = new Game();
     game.addPlayer(aiPlayer);
     game.startGame();
 
-    // Give a specific rack containing a blank tile (Joker)
     aiPlayer.getRack().setTiles(new ArrayList<>(List.of(
         new Tile('D'), new Tile('O'), new Tile(' ', true)
     )));
 
     Gaddag dict = new Gaddag();
-    dict.add("DOG");
+
+    dict.add("DOS");
 
     aiPlayer.playTurn(game, dict);
 
-    // AI should use the joker as 'G' to play DOG
     assertTrue(game.isFirstMoveDone());
     assertEquals(MoveType.PLAY, game.getUndoRedo().getHistory().getFirst().getType());
-  } */
+  }
 }
