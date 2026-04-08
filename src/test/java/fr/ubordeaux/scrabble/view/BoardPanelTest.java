@@ -17,7 +17,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests unitaires pour BoardPanel.
+ * Unit tests for BoardPanel.
  */
 class BoardPanelTest {
 
@@ -65,7 +65,7 @@ class BoardPanelTest {
 
   @Test
   void placeTileShouldNotThrowForOutOfBoundsPosition() {
-    // Doit être ignoré gracieusement (range check interne)
+    // Should be ignored gracefully (internal range check)
     boardPanel.placeTile(-1, 7, 'A', 1);
     boardPanel.placeTile(7, -1, 'A', 1);
     boardPanel.placeTile(15, 7, 'A', 1);
@@ -94,14 +94,14 @@ class BoardPanelTest {
     boardPanel.placeTile(3, 3, 'A', 1);
     boardPanel.placeTile(3, 4, 'B', 3);
     boardPanel.clearAllPending();
-    // Pas d'exception = succès
+    // No exception means success
   }
 
   @Test
   void setBoardShouldUpdateBoardReference() {
     Board newBoard = new Board();
     boardPanel.setBoard(newBoard);
-    // updateBoard() doit fonctionner avec le nouveau plateau
+    // updateBoard() should work with the new board
     boardPanel.updateBoard();
   }
 

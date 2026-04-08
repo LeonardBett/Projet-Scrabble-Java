@@ -20,7 +20,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests unitaires pour ScorePanel.
+ * Unit tests for ScorePanel.
  */
 class ScorePanelTest {
 

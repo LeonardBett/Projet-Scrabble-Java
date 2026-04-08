@@ -167,7 +167,7 @@ public class ScorePanel extends VBox {
 
     blitzLabel.setText(sb.toString().trim());
 
-    // Couleur rouge si un joueur est à moins de 60 secondes
+    // Use red when a player has less than 60 seconds left
     boolean urgent = livePlayers.stream()
         .filter(Player::isBlitzClockEnabled)
         .anyMatch(p -> p.getRemainingTimeMillis() < 60_000 && !p.isOutOfTime());

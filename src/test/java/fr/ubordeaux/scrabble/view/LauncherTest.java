@@ -8,10 +8,10 @@ import fr.ubordeaux.scrabble.view.optionlancement.GuiLauncher;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests unitaires pour CliLauncher et GuiLauncher.
+ * Unit tests for CliLauncher and GuiLauncher.
  *
- * <p>Note : launch() démarre une application interactive, donc on ne teste que
- * l'instanciabilité et les comportements vérifiables sans lancer d'IHM.
+ * <p>Note: launch() starts an interactive application, so these tests only
+ * check instantiation and behavior verifiable without launching a GUI.
  */
 class LauncherTest {
 
@@ -19,7 +19,7 @@ class LauncherTest {
 
   @Test
   void cliLauncherClassShouldExist() {
-    // Vérifie que la classe est accessible
+    // Verifies that the class is accessible
     assertNotNull(CliLauncher.class);
   }
 
@@ -28,12 +28,12 @@ class LauncherTest {
     assertNotNull(GuiLauncher.class);
   }
 
-  // Les méthodes launch() démarrent des IHM interactives et ne peuvent pas
-  // être invoquées dans un contexte de tests automatisés. On vérifie ici que
-  // la configuration des launchers est cohérente avec OptionPlayer.
+  // launch() methods start interactive GUIs and cannot be invoked
+  // in automated test contexts. Here we verify launcher configuration
+  // remains consistent with OptionPlayer.
   @Test
   void cliLauncherAndOptionPlayerShouldShareMinPlayers() {
-    // CliLauncher n'expose pas de constantes propres, mais s'appuie sur
+    // CliLauncher does not expose its own constants and relies on
     // OptionPlayer
     assertEquals(2, fr.ubordeaux.scrabble.view.optionlancement.OptionPlayer.MIN);
   }

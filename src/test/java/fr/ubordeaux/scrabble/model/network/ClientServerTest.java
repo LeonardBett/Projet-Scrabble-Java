@@ -81,14 +81,14 @@ class ClientServerTest {
     client.sendPing();
 
     // Polling to wait for the PONG response
-    for (int i = 0; i < 50; i++) { // Max 1 seconde (20 * 50ms)
+    for (int i = 0; i < 50; i++) { // Max 1 second (20 * 50ms)
       if (spyObserver.lastPongLatency != -1) {
         break;
       }
       Thread.sleep(50);
     }
 
-    Assertions.assertTrue(spyObserver.lastPongLatency >= 0, "Le PONG n'a pas été reçu");
+    Assertions.assertTrue(spyObserver.lastPongLatency >= 0, "PONG was not received");
     Assertions.assertDoesNotThrow(() -> client.sendPingSilent());
   }
 
@@ -141,9 +141,9 @@ class ClientServerTest {
 
   @Test
   void testSpecificPlayerDetailsRequest() throws InterruptedException {
-    client.sendPlayersPlayerId(1); // Demande les infos du joueur 1
+    client.sendPlayersPlayerId(1); // Request details for player 1
 
-    // Attend la réponse asynchrone
+    // Wait for asynchronous response
     for (int i = 0; i < 50 && spyObserver.lastPlayerDetails == null; i++) {
       Thread.sleep(50);
     }
@@ -381,7 +381,7 @@ class ClientServerTest {
 
     // --- SCENARIO C: Player tries to invite a busy player ---
     // Start a game between Client 1 and Client 2 to make them busy
-    observer2.reset(); // RESET DE L'ÉTAT POUR ÉVITER LA RACE CONDITION !
+    observer2.reset(); // RESET STATE TO AVOID RACE CONDITION!
     spyObserver.reset();
 
     client.sendNew(2);
@@ -421,14 +421,14 @@ class ClientServerTest {
       Thread.sleep(50);
     }
 
-    // 1. Client 2 se met en mode AWAY
+    // 1. Client 2 switches to AWAY mode
     client2.sendAway();
     for (int i = 0; i < 50 && !"AWAY".equals(observer2.lastPlayerStatus); i++) {
       Thread.sleep(50);
     }
     Assertions.assertEquals("AWAY", observer2.lastPlayerStatus);
 
-    // 2. Client 1 essaie d'inviter Client 2 (qui est AWAY)
+    // 2. Client 1 tries to invite Client 2 (who is AWAY)
     client.sendNew(2);
     for (int i = 0; i < 50 && !spyObserver.lastMessage.contains("err_player_busy"); i++) {
       Thread.sleep(50);
@@ -437,15 +437,15 @@ class ClientServerTest {
         spyObserver.invitationCancelledReason.contains("err_player_busy"),
         "Client 1 should not be able to invite an AWAY player");
 
-    // 3. Client 2 revient en IDLE
+    // 3. Client 2 returns to IDLE
     client2.sendBack();
     for (int i = 0; i < 50 && !"IDLE".equals(observer2.lastPlayerStatus); i++) {
       Thread.sleep(50);
     }
     Assertions.assertEquals("IDLE", observer2.lastPlayerStatus);
 
-    // 4. Client 1 réessaie, ça doit marcher (Waitgame)
-    spyObserver.reset(); // On clean l'historique de l'observer
+    // 4. Client 1 retries, this should work (WAITGAME)
+    spyObserver.reset(); // Clear observer history
     client.sendNew(2);
     for (int i = 0; i < 50 && !"WAITGAME".equals(spyObserver.lastPlayerStatus); i++) {
       Thread.sleep(50);
@@ -458,40 +458,42 @@ class ClientServerTest {
 
   @Test
   void testHostDisconnectionDuringInvitation() throws InterruptedException {
-    // 1. Setup: On connecte le Client 2 proprement
+    // 1. Setup: connect Client 2 cleanly
     GameClient client2 = new GameClient();
     TestObserver observer2 = new TestObserver();
     client2.addObserver(observer2);
     client2.connect("127.0.0.1", currentTestPort);
 
-    // On attend qu'il soit bien connecté
+    // Wait until it is fully connected
     for (int i = 0; i < 50 && !observer2.lastMessage.contains("info_connected"); i++) {
       Thread.sleep(50);
     }
-    Thread.sleep(100); // Laisse le temps au serveur d'enregistrer l'ID
+    Thread.sleep(100); // Give the server time to register the ID
 
-    // 2. Le Client 1 (Hôte) invite le Client 2
+    // 2. Client 1 (host) invites Client 2
     client.sendNew(2);
 
-    // On attend que le Client 2 reçoive l'invitation
+    // Wait for Client 2 to receive the invitation
     for (int i = 0; i < 50 && observer2.invitationFrom == null; i++) {
       Thread.sleep(50);
     }
-    Assertions.assertEquals("Player-1", observer2.invitationFrom, "L'invitation doit bien arriver");
+    Assertions.assertEquals("Player-1", observer2.invitationFrom,
+      "Invitation should be received");
 
-    // 3. CRASH : Le Client 1 (Hôte) se déconnecte brutalement avant la réponse
+    // 3. Crash case: Client 1 (host) disconnects abruptly before reply
     client.quit();
 
-    // 4. On attend que le serveur s'en rende compte, nettoie, et prévienne le Client 2
+    // 4. Wait for server cleanup and notification to Client 2
     for (int i = 0; i < 50 && observer2.invitationCancelledReason == null; i++) {
       Thread.sleep(50);
     }
 
-    // 5. Assertions : Vérification de la maj du statue
+    // 5. Assertions: verify status update
     Assertions.assertEquals(
-        "IDLE", observer2.lastPlayerStatus, "Client 2 doit être libéré et repasser en IDLE");
+      "IDLE", observer2.lastPlayerStatus,
+      "Client 2 should be released and return to IDLE");
 
-    // Nettoyage final
+    // Final cleanup
     client2.quit();
   }
 
@@ -528,8 +530,8 @@ class ClientServerTest {
     volatile long lastPongLatency = -1;
 
     /**
-     * Réinitialise l'état de l'observer pour éviter les pollutions (Race Conditions) entre
-     * différents scénarios d'un même test.
+     * Resets observer state to avoid cross-scenario pollution (race conditions)
+     * within the same test.
      */
     public void reset() {
       lastMessage = "";

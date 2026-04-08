@@ -722,7 +722,7 @@ public class Game {
    */
   public void syncBoard(String boardData) {
     if (boardData == null || boardData.length() != 225) {
-      return; // Sécurité (15x15)
+      return; // Safety check (15x15)
     }
 
     for (int i = 0; i < boardData.length(); i++) {
@@ -732,7 +732,7 @@ public class Game {
 
       Square sq = board.getSquare(new Point(x, y));
       if (c == '.') {
-        // TODO: Méthode pour vider la case si nécessaire (ex: sq.setTile(null))
+        // TODO: Add a method to clear the square if needed (e.g., sq.setTile(null))
       } else {
         sq.setTile(new Tile(c));
       }

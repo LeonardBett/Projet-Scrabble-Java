@@ -17,11 +17,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests unitaires pour ControlPanel.
+ * Unit tests for ControlPanel.
  *
- * <p>Les tests vérifient que tous les boutons sont créés et correctement
- * configurés
- * sans lancer l'interface graphique complète.
+ * <p>The tests verify that all buttons are created and correctly configured
+ * without launching the full graphical interface.
  */
 class ControlPanelTest {
 
@@ -207,6 +206,6 @@ class ControlPanelTest {
     // assertEquals("❓ Indice", help.getText());
     // assertEquals("▶  Jouer", panel.getPlayButton().getText());
     // assertEquals("⏭  Passer", panel.getPassButton().getText());
-    // assertEquals("🔄 Échanger", panel.getExchangeButton().getText());
+    // assertEquals("🔄 Exchange", panel.getExchangeButton().getText());
   }
 }

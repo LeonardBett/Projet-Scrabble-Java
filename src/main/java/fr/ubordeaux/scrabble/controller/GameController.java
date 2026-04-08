@@ -213,7 +213,7 @@ public class GameController {
     this.dictionaryList = null;
   }
 
-  /** Thread de surveillance blitz — affiche un avertissement toutes les minutes. */
+  /** Blitz monitoring thread that emits periodic time warnings. */
   private ScheduledExecutorService blitzWatcherExecutor;
 
   /**
@@ -238,7 +238,7 @@ public class GameController {
       if (current != null && current.isBlitzClockEnabled()) {
         long remaining = current.getRemainingTimeMillis();
 
-        // Avertissements à 5 min, 2 min, 1 min
+        // Warnings at 5 min, 2 min, 1 min
         for (int i = 0; i < warnedAt.length; i++) {
           if (!warned[i] && remaining <= warnedAt[i] && remaining > 0) {
             warned[i] = true;
@@ -250,7 +250,7 @@ public class GameController {
           }
         }
 
-        // Temps expiré
+        // Time expired
         if (current.isOutOfTime() && !game.isGameOver()) {
           handleBlitzExpiry(current, cliView);
         }

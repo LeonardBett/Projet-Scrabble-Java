@@ -67,8 +67,8 @@ public class DiscoveryService {
     isBroadcasting = true;
     GameLogger.logVerbose("Broadcast : Broadcasting started");
 
-    // Lambda use to shortcut of the run method of Runnable
-    // Can be put in an external methode
+    // Lambda used as a shortcut for Runnable.run().
+    // Could be moved to an external method.
     broadCastThread =
         new Thread(
             () -> {

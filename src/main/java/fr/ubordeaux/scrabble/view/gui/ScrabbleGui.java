@@ -277,7 +277,7 @@ public class ScrabbleGui extends Application {
 
       java.io.File file = chooser.showSaveDialog(controlPanel.getScene().getWindow());
       if (file == null) {
-        return; // utilisateur a annulé
+        return; // user canceled
       }
 
       try {
@@ -298,7 +298,7 @@ public class ScrabbleGui extends Application {
 
       java.io.File file = chooser.showOpenDialog(controlPanel.getScene().getWindow());
       if (file == null) {
-        return; // utilisateur a annulé
+        return; // user canceled
       }
       Game loadedGame;
       try {
@@ -310,7 +310,7 @@ public class ScrabbleGui extends Application {
       if (loadedGame != null) {
         gameInstance = loadedGame;
 
-        // Plus sûr de recréer la vue que d'appeler setGame() si la méthode n'existe pas
+        // Safer to recreate the view than call setGame() if that method does not exist
         viewInstance = new JavaFxView(gameInstance);
         viewInstance.setGui(this);
 
@@ -589,7 +589,7 @@ public class ScrabbleGui extends Application {
       return;
     }
 
-    // Nettoyage complet avant de recréer
+    // Full cleanup before recreation
     if (controller.isOnlineMode()) {
       networkBridge.dispose();
       networkManager = new NetworkManager();

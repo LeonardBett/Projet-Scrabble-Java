@@ -19,7 +19,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests unitaires pour RackPanel.
+ * Unit tests for RackPanel.
  */
 class RackPanelTest {
 
@@ -115,7 +115,7 @@ class RackPanelTest {
   @Test
   void hideTileShouldNotThrowWhenTileIsNotInRack() {
     Tile tile = new Tile('Z');
-    rackPanel.hideTile(tile); // tuile absente : ne doit pas planter
+    rackPanel.hideTile(tile); // Missing tile: should not fail
   }
 
   @Test

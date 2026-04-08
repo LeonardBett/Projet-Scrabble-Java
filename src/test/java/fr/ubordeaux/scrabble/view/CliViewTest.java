@@ -39,16 +39,16 @@ class CliViewTest {
 
   @Test
   void displayErrorShouldPrintToOutput() {
-    view.displayError("Erreur test");
+    view.displayError("Error test");
     System.setOut(System.out);
-    assertTrue(out.toString().contains("Erreur test"));
+    assertTrue(out.toString().contains("Error test"));
   }
 
   @Test
   void displaySuccessShouldPrintToOutput() {
-    view.displaySuccess("Succès test");
+    view.displaySuccess("Success test");
     System.setOut(System.out);
-    assertTrue(out.toString().contains("Succès test"));
+    assertTrue(out.toString().contains("Success test"));
   }
 
   @Test

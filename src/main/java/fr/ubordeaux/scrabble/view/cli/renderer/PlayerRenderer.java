@@ -16,9 +16,9 @@ public class PlayerRenderer {
   }
 
   /**
-   * Affiche la liste de tous les joueurs avec leur score dans la console CLI.
+   * Renders the list of all players with their score in the CLI console.
    *
-   * @param players liste des joueurs à afficher
+   * @param players list of players to render
    */
   public void renderPlayerList(List<Player> players) {
     System.out.println("╔════════════════════════════════════════════════╗");
@@ -38,9 +38,9 @@ public class PlayerRenderer {
   }
 
   /**
-   * Affiche le nom du joueur dont c'est le tour, avec son temps si le mode blitz est actif.
+   * Renders the current player's name, with remaining time if blitz mode is active.
    *
-   * @param player le joueur courant
+   * @param player current player
    */
   public void renderCurrentPlayer(Player player) {
     if (player.isBlitzClockEnabled()) {

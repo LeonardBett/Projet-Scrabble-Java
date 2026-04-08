@@ -101,7 +101,7 @@ public class ClientHandler implements Runnable {
       if (isRunning) {
         // We filter standard disconnection messages to keep the console clean
         if (!e.getMessage().contains("reset")
-            && !e.getMessage().contains("abandonnée")
+            && !e.getMessage().contains("abandon")
             && !e.getMessage().contains("closed")) {
           GameLogger.logError("ClientHandler run() : Unintended socket Exception: ", e);
         }

@@ -13,9 +13,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests unitaires pour JavaFxView.
- * On ne teste pas les appels à Platform.runLater (thread UI) mais les
- * comportements accessibles sans lancer de scène JavaFX.
+ * Unit tests for JavaFxView.
+ * We do not test Platform.runLater calls (UI thread), only behaviors
+ * accessible without launching a JavaFX scene.
  */
 class JavaFxViewTest {
 
@@ -25,12 +25,12 @@ class JavaFxViewTest {
   @BeforeAll
   static void initJfx() {
     try {
-      // Force le démarrage du Toolkit JavaFX pour éviter l'IllegalStateException
-      // lors des appels à Platform.runLater() dans JavaFxView.
+      // Force JavaFX toolkit startup to avoid IllegalStateException
+      // during Platform.runLater() calls in JavaFxView.
       com.sun.javafx.application.PlatformImpl.startup(() -> {
       });
     } catch (IllegalStateException e) {
-      // Le Toolkit est déjà initialisé par un autre test, on ignore l'erreur.
+      // Toolkit is already initialized by another test; ignore.
     }
   }
 
@@ -54,13 +54,13 @@ class JavaFxViewTest {
 
   @Test
   void setGuiWithNullShouldNotThrow() {
-    // setGui(null) ne doit pas lever d'exception
+    // setGui(null) should not throw
     view.setGui(null);
   }
 
   @Test
   void displayMessageWithNullGuiShouldNotThrow() {
-    // Sans GUI attaché, displayMessage ne doit pas planter
+    // Without GUI attached, displayMessage should not fail
     view.setGui(null);
     view.displayMessage("Test message");
   }

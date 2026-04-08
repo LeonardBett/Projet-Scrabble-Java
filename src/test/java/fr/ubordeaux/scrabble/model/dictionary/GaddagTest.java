@@ -58,7 +58,7 @@ class GaddagTest {
     Character[] rack = {'A', 'T', 'R'};
     char hook = 'C';
 
-    // Correction : La méthode retourne maintenant un Set<String>
+    // Fix: the method now returns a Set<String>
     Set<String> results = gaddag.findWordsWithRackAndHook(rack, hook);
 
     assertNotNull(results);

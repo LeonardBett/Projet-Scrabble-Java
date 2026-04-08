@@ -3,8 +3,8 @@ package fr.ubordeaux.scrabble.view.cli.renderer;
 import fr.ubordeaux.scrabble.i18n.I18n;
 
 /**
- * Responsable de l'affichage des messages système dans la console CLI
- * (erreurs, succès, informations, avertissements, séparateurs).
+ * Responsible for rendering system messages in the CLI console
+ * (errors, successes, info, warnings, separators).
  */
 public class MessageRenderer {
 

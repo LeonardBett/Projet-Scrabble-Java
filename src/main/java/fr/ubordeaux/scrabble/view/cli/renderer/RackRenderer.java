@@ -18,9 +18,9 @@ public class RackRenderer {
   }
 
   /**
-   * Affiche le chevalet du joueur dans la console CLI.
+   * Renders the player's rack in the CLI console.
    *
-   * @param player le joueur dont le chevalet doit être affiché
+   * @param player player whose rack must be rendered
    */
   public void render(Player player) {
     Rack rack = player.getRack();

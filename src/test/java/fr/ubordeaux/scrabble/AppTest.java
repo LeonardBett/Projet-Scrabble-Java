@@ -164,7 +164,7 @@ class AppTest {
     App.setCliDelegateForTests((gameMode, players, aiColors,
                                 blitzMode, blitzMinutes, aiTime, useExptiminimax,
                                 useMl, lang, savePath) -> {
-      assertTrue(aiColors.contains("RED"), "L'IA devrait avoir la couleur par défaut RED.");
+      assertTrue(aiColors.contains("RED"), "AI should use the default color RED.");
     });
 
     App.main(new String[] {"-a"});

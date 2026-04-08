@@ -3,7 +3,7 @@ package fr.ubordeaux.scrabble.view.optionlancement;
 import fr.ubordeaux.scrabble.i18n.I18n;
 
 /**
- * Parse et valide l'argument du nombre de joueurs (-p N).
+ * Parses and validates the player-count argument (-p N).
  */
 public class OptionPlayer {
 
@@ -41,11 +41,11 @@ public class OptionPlayer {
   }
 
   /**
-   * Analyse et valide la valeur de l'argument {@code -p} (nombre de joueurs).
-   * Termine le programme avec un message d'erreur si la valeur est invalide.
+   * Parses and validates the value of argument {@code -p} (player count).
+   * Exits the program with an error message when the value is invalid.
    *
-   * @param value la chaîne à analyser
-   * @return le nombre de joueurs valide
+   * @param value the input string to parse
+   * @return validated player count
    */
   public static int parsePlayers(String value) {
     try {

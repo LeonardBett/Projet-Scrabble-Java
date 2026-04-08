@@ -219,11 +219,11 @@ public class GameLoader {
   private int parseGameState(Game game, String line, int boardRow) {
     if (line.length() == 1 && Character.isDigit(line.charAt(0))) {
       int currentPlayerIdx = Character.getNumericValue(line.charAt(0)) - 1;
-      game.setCurrentPlayerIndex(currentPlayerIdx); // <-- C'est cette ligne qui manque !
+      game.setCurrentPlayerIndex(currentPlayerIdx); // <-- This is the missing line.
       return boardRow;
     }
 
-    // Ajout de la condition "boardRow < 15" pour éviter de déborder du plateau
+    // Added "boardRow < boardSize" to prevent board overflow
     int boardSize = game.getBoard().getSize();
     if (boardRow < boardSize && line.length() == boardSize && (line.contains("-")
         || line.matches(".*[A-Z].*"))) {

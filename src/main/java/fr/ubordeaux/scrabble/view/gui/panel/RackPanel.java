@@ -38,9 +38,9 @@ public class RackPanel extends VBox {
   private Consumer<Tile> onTileDragged;
 
   /**
-   * Construit un RackPanel affichant le chevalet donné.
+   * Builds a RackPanel displaying the provided rack.
    *
-   * @param rack le chevalet du joueur à afficher
+   * @param rack the player's rack to display
    */
   public RackPanel(Rack rack) {
     this.rack = rack;
@@ -52,16 +52,16 @@ public class RackPanel extends VBox {
   }
 
   /**
-   * Construit un RackPanel avec un chevalet vide par défaut.
+   * Builds a RackPanel with an empty rack by default.
    */
   public RackPanel() {
     this(new Rack());
   }
 
   /**
-   * Définit le callback appelé lorsqu'une tuile commence à être glissée depuis le chevalet.
+   * Sets the callback invoked when a tile starts being dragged from the rack.
    *
-   * @param callback le consommateur recevant la tuile glissée
+   * @param callback consumer receiving the dragged tile
    */
   public void setOnTileDragged(Consumer<Tile> callback) {
     this.onTileDragged = callback;

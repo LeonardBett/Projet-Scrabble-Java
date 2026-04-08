@@ -200,13 +200,13 @@ public class Gaddag extends Trie implements Dictionary {
       return false;
     }
 
-    // Si la chaîne contient déjà le séparateur (ex: "H>I" dans le test),
-    // on effectue une recherche directe dans le Trie (super.contains)
+    // If the string already contains the separator (e.g., "H>I" in tests),
+    // perform a direct lookup in the trie (super.contains)
     if (word.indexOf(separator) != -1) {
       return super.contains(word.toUpperCase());
     }
 
-    // Sinon, on traite la chaîne comme un mot naturel qui doit être "tourné"
+    // Otherwise, treat the string as a natural word that must be rotated
     return containsWord(word);
   }
 
@@ -221,7 +221,7 @@ public class Gaddag extends Trie implements Dictionary {
       return false;
     }
 
-    // Cas des lettres uniques : elles sont stockées sous la forme "A>".
+    // Single-letter words are stored as "A>".
     if (word.length() < 2) {
       return super.contains(word.toUpperCase() + separator);
     }
@@ -229,10 +229,10 @@ public class Gaddag extends Trie implements Dictionary {
     String upperWord = word.toUpperCase();
     char firstLetter = upperWord.charAt(0);
 
-    // Transformation du mot "HI" en chemin interne "H>I"
+    // Transform "HI" into internal path "H>I"
     String gaddagPath = String.valueOf(firstLetter) + separator + upperWord.substring(1);
 
-    // Recherche directe du chemin dans l'arbre parent pour éviter toute récursion
+    // Direct path lookup in the parent trie to avoid recursion
     return super.contains(gaddagPath);
   }
 }

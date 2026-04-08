@@ -10,7 +10,7 @@ public class PlayableWord {
   private final int hookY;
   private final String word;
   private final Direction direction;
-  private int score; // à ajouter avec la methode de leonard
+  private int score; // originally added alongside Leonard's scoring method
   private final String gaddagRepresentation;
 
   /**
@@ -28,7 +28,7 @@ public class PlayableWord {
     this.hookY = hookY;
     this.word = word;
     this.direction = direction;
-    this.score = 0; // à ajouter avec la methode de leonard
+    this.score = 0; // originally added alongside Leonard's scoring method
     this.gaddagRepresentation = gaddagRepresentation;
   }
 
@@ -93,7 +93,7 @@ public class PlayableWord {
    */
   public void setScore(int score) {
     this.score = score;
-  } // à ajouter avec la methode de leonard
+  } // originally added alongside Leonard's scoring method
 
   @Override
   public String toString() {
