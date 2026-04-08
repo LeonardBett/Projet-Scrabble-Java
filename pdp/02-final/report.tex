@@ -374,143 +374,172 @@ public enum SquareType {
 
 
 
-	\section{L'Algorithme Minimax :}
 
-	Conçu pour des jeux à information parfaite et à somme nulle comme les Échecs, l'algorithme Minimax modélise l'arbre des coups possibles en alternant un tour où l'IA cherche à maximiser son score, et un tour où elle simule un adversaire cherchant à minimiser l'avantage de l'IA.
+	\section{Algorithmes et Structures de données}
 
-	Pour adapter cet algorithme au Scrabble (où le chevalet adverse est inconnu), notre implémentation déduit d'abord les tuiles restantes en soustrayant du jeu complet les lettres déjà posées sur le plateau et celles présentes dans le chevalet de l'IA. Ensuite, le solveur utilise une méthode de Monte-Carlo : il simule l'adversaire en tirant aléatoirement 200 chevalets virtuels de 7 lettres parmi ces tuiles restantes. Le Minimax évalue alors le pire scénario possible : parmi ces 200 simulations, il retient le coup adverse qui marque le plus de points, et le soustrait du score du coup envisagé par l'IA.
+    Le cœur décisionnel de notre intelligence artificielle repose sur des algorithmes de recherche arborescente. Le défi majeur du Scrabble étant l'information imparfaite (le chevalet adverse est caché), nous avons dû adapter ces structures de données classiques à des environnements probabilistes.
 
-	\subsection*{L'impact de l'heuristique}
-	Au Scrabble, évaluer un coup uniquement par les points qu'il rapporte sur le plateau n'est pas le plus pertinent. L'algorithme intègre donc une fonction heuristique d'évaluation qui note la qualité des lettres conservées sur le chevalet après un coup. Cette heuristique donne des bonus et malus en fonction de:
+    \subsection{L'Algorithme Minimax}
 
-	\begin{itemize}
-		\item Un joker conservé rapporte un bonus massif de +15.0 points.
-		\item La lettre 'S' rapporte +8.0 points.
-		\item Les lettres difficiles (J, K, Q, X, Z) appliquent un malus de -6.0 points.
-		\item L'équilibre voyelles/consonnes est récompensé (+5.0 points) tandis qu'un chevalet exclusivement composé de voyelles ou de consonnes est lourdement pénalisé (-12.0 points).
-	\end{itemize}
+    Historiquement conçu pour des jeux à information parfaite et à somme nulle comme les Échecs, l'algorithme Minimax modélise l'arbre des coups possibles en alternant un tour où l'IA cherche à maximiser son score, et un tour où elle simule un adversaire cherchant à minimiser l'avantage de l'IA.
 
-	\subsection*{Complexité et coût}
-	Dans notre implémentation de Monte-Carlo, l'algorithme ne disposant pas d'élagage Alpha-Beta, la complexité temporelle est strictement identique à celle de l'Expectiminimax, soit $O(B \times N \times B)$ pour une anticipation d'un tour de l'adversaire (où $B$ est le facteur de branchement et $N=200$ le nombre de tirages simulés). La complexité reste modérée car le parcours se fait en profondeur d'abord. Le coût est massif puisqu'il doit évaluer exactement les 200 scénarios complets. L'exécution est donc bridée par une limite de temps stricte (\texttt{timeLimitMs}), l'empêchant de calculer sur plusieurs tours d'anticipation.
+    Pour adapter cet algorithme au Scrabble, notre implémentation déduit d'abord les tuiles restantes, à savoir toutes les tuiles moins celles présentes sur le plateau et dans le chevalet de l'IA. Ensuite, le solveur utilise une méthode de Monte-Carlo : il simule l'adversaire en tirant aléatoirement 200 chevalets virtuels de 7 lettres parmi ces tuiles restantes. Le Minimax évalue alors le pire scénario possible.
 
-	\subsection*{Performances}
-	La performance défensive est excellente. En s'attendant systématiquement au pire, l'IA verrouille le plateau et évite d'ouvrir des cases multiplicatrices dangereuses. Mais ce pessimisme absolu la rend parfois trop peu entreprenante sur le plan offensif. De plus, puisqu'elle paie le même coût que l'Expectiminimax sans bénéficier d'une prise de décision nuancée, cette implémentation se révèle, à temps de calcul égal, moins optimale que l'approche probabiliste.
+    Voici comment cette logique pessimiste se traduit dans l'implémentation de notre \texttt{MinimaxSolver} :
 
-	\section{L'Algorithme Expectiminimax :}
+    \begin{minted}[frame=single, fontsize=\small, linenos]{java}
+    // Extrait de minimax() : Évaluation du pire scénario (Adversaire)
+    double maxDamage = Double.NEGATIVE_INFINITY;
 
-	L'Expectiminimax est l'évolution du Minimax pour les jeux intégrant du hasard. Il introduit un nouveau type de nœud dans l'arbre de recherche : les "nœuds de chance" (chance nodes). Au lieu de considérer que l'adversaire jouera le pire coup absolu, l'algorithme calcule l'espérance mathématique de tous les coups possibles en fonction de leur probabilité.
+    for (int i = 0; i < SAMPLES_COUNT; i++) {
+        // 1. Simulation d'un chevalet adverse aléatoire
+        Character[] simulatedRack = drawRandomRack(unseen, 7);
 
-	Dans notre code, la méthode \texttt{expectiminimax()} utilise la même base de simulation que le Minimax (les 200 tirages aléatoires de chevalets adverses). Cependant, au lieu d'extraire la valeur maximale de ces simulations, l'algorithme calcule la moyenne des meilleurs scores adverses obtenus sur ces 200 échantillons. Il évalue ainsi un coup en soustrayant cette "réponse moyenne attendue" du score du coup de l'IA.
+        // 2. Recherche du meilleur coup possible pour l'adversaire
+        double oppScore = getBestOpponentScore(board, simulatedRack, gaddag);
 
-	\subsection*{L'impact de l'heuristique}
-L'Expectiminimax ne se contente pas de calculer mathématiquement les risques sur le plateau. Pour juger de la force réelle d'un coup, l'IA additionne deux éléments concrets :
-\begin{itemize}
-    \item \textbf{Le risque sur le plateau (L'algorithme) :} L'IA vérifie qu'elle ne laisse pas d'opportunités trop faciles et dangereuses à l'adversaire (comme ouvrir l'accès à une case "Mot Compte Triple").
-    \item \textbf{La qualité de sa main (L'heuristique) :} L'IA évalue les lettres qu'elle garde sur son chevalet pour son prochain tour.
-\end{itemize}
-C'est le compromis entre ces deux visions qui rend l'IA véritablement intelligente. Par exemple, si un coup sécurise parfaitement le plateau mais oblige l'IA à conserver une main catastrophique, l'heuristique va agir comme un garde-fou et lourdement pénaliser ce choix. L'IA cherche donc toujours l'équilibre parfait entre "limiter la casse sur le plateau" et "garder de bonnes lettres pour l'avenir".
+        // 3. Agrégation : on ne retient que le score maximum (le pire pour nous)
+        if (oppScore > maxDamage) {
+            maxDamage = oppScore;
+        }
+    }
+    return maxDamage;
+    \end{minted}
 
-	\subsection*{Complexité et coût}
-	La complexité est de $O(B \times N \times B)$, ce qui provoque une explosion combinatoire. Bien que son coût soit strictement identique à celui de notre Minimax actuel, l'Expectiminimax a l'inconvénient théorique de ne presque pas pouvoir être optimisé par des techniques d'élagage (comme l'Alpha-Beta). En effet, le calcul d'une espérance mathématique exige d'explorer toutes les probabilités jusqu'au bout, ce qui le coupe quasi systématiquement avant d'atteindre une profondeur de recherche de 2.
+    \subsubsection*{L'impact crucial de l'heuristique}
+    Au Scrabble, évaluer un coup uniquement par les points qu'il rapporte sur le plateau n'est pas le plus pertinent. L'algorithme intègre donc une fonction heuristique d'évaluation du "reliquat" (\texttt{leaveScore}) qui note la qualité des lettres conservées sur le chevalet après un coup. Cette heuristique va attribuer des bonus ou des malus en fonction de la "qualité" du chevalet : Joker (+15.0), 'S' (+8.0), Lettres difficiles (-6.0), équilibre voyelles/consonnes (+5.0), uniquement consonne/voyelle (-12.0).
 
-	\subsection*{Performances}
-	Sur le papier et dans notre code actuel, c'est la meilleure performance stratégique pour le Scrabble. L'évaluation du risque est mieux gérée : l'IA n'hésitera pas à ouvrir un "Mot Compte Triple" si elle calcule que la probabilité que l'adversaire possède les lettres exactes pour s'y placer est très faible. Le style de jeu devient plus naturel. Étant donné que son coût est identique à celui du Minimax dans notre code, l'Expectiminimax s'avère supérieur dans la prise de ses décisions.
+	\subsubsection*{Complexité, Coût et Performances}
+	Dans notre implémentation de Monte-Carlo, l'algorithme ne dispose pas d'élagage Alpha-Beta. La complexité est donc strictement de $O(B \times N \times B)$ pour une anticipation de deux plis (Profondeur = 2), où $B$ représente le facteur de branchement (nombre de coups légaux) et $N=200$ le nombre de tirages simulés.
+	Le coût en ressources est massif et identique pour Minimax et Expectiminimax, car tous deux parcourent la même boucle de 200 simulations par coup. Le goulot d'étranglement réside dans l'appel répété au \texttt{MoveGenerator} pour chaque scénario adverse.
+	Sur le plan du jeu, la performance défensive du Minimax est excellente : l'IA « verrouille » le plateau pour empêcher l'adversaire de marquer. Cependant, ce pessimisme est à double tranchant : en s'attendant toujours au meilleur tirage adverse, l'IA ferme le jeu, sacrifiant parfois des opportunités offensives pour éviter un risque statistique pourtant faible.
 
-	% ------------------------------------------------------------------------------
-	% Section : Schémas Comparatifs
-	% ------------------------------------------------------------------------------
-	\section{Comparaison des deux Algorithmes}
+    \subsection{L'Algorithme Expectiminimax}
 
-	Les schémas ci-dessous mettent en évidence que la différence entre nos deux algorithmes n'est pas structurelle (l'arbre exploré est identique), mais réside uniquement dans la méthode d'agrégation des nœuds de simulation.
+    L'Expectiminimax est l'évolution naturelle du Minimax pour les jeux intégrant du hasard. Il introduit un nouveau type de nœud dans l'arbre de recherche : les "nœuds de chance". Au lieu de considérer que l'adversaire jouera le pire coup absolu, l'algorithme calcule l'espérance mathématique de tous les coups possibles en fonction de leur probabilité d'occurrence.
 
-	  \begin{figure*}[h!]
-		\centering
+    Comme le montre notre implémentation ci-dessous, la structure de données est identique au Minimax (la même boucle de 200 itérations), mais la méthode d'agrégation change :
 
-		% ---------- ARBRE MINIMAX (PESSIMISTE) ----------
-		\begin{minipage}{0.48\textwidth}
-			\centering
-			\begin{tikzpicture}[
-				>=stealth,
-				edge from parent/.style={draw, ->},
-				level 1/.style={sibling distance=3.5cm, level distance=2cm},
-				level 2/.style={sibling distance=1.5cm, level distance=2cm},
-				level 3/.style={sibling distance=1.5cm, level distance=1.2cm},
-				decisionMax/.style={isosceles triangle, draw, shape border rotate=90, minimum height=0.8cm, inner sep=2pt, font=\scriptsize\sffamily},
-				decisionMin/.style={isosceles triangle, draw, shape border rotate=270, minimum height=0.8cm, inner sep=2pt, font=\scriptsize\sffamily},
-				pessimist/.style={rectangle, draw, minimum size=0.9cm, font=\scriptsize\sffamily},
-				leaf/.style={font=\scriptsize\sffamily}
-				]
+    \begin{minted}[frame=single, fontsize=\small, linenos]{java}
+    // Extrait de expectiminimax() : Calcul de l'espérance mathématique
+    double totalExpectedOpponentScore = 0.0;
+    int samplesEvaluated = 0;
 
-				\node[decisionMax, align=center] {IA\\(MAX)}
-				child { node[pessimist, align=center] (min1) {MIN}
-					child { node[decisionMin, align=center] {Adv.}
-						child { node[leaf] {$s_1$} }
-						edge from parent node[left, font=\tiny\sffamily] {Sim 1}
-					}
-					child { node[font=\scriptsize\sffamily] {\dots} edge from parent[draw=none] }
-					child { node[decisionMin, align=center] {Adv.}
-						child { node[leaf] {$s_{200}$} }
-						edge from parent node[right, font=\tiny\sffamily] {Sim 200}
-					}
-					edge from parent node[left, font=\scriptsize\sffamily, xshift=-0.1cm] {Coup $m_1$}
-				}
-				child { node[font=\scriptsize\sffamily] {\dots} edge from parent[draw=none] }
-				child { node[pessimist, align=center] {MIN}
-					edge from parent node[right, font=\scriptsize\sffamily, xshift=0.1cm] {Coup $m_B$}
-				};
+    for (int i = 0; i < SAMPLES_COUNT; i++) {
+        Character[] simulatedRack = drawRandomRack(unseen, 7);
 
-				\node[draw, dashed, font=\scriptsize\sffamily, fill=gray!10, align=center] (agg1) at (0, -2.5) {Pire cas\\$\max(s_1..s_{200})$};
-				\draw[->, dotted] (agg1) -- (min1);
-			\end{tikzpicture}
-			\caption{ \textbf{Agrégation Pessimiste}}
-		\end{minipage}
-		\hfill
-		% ---------- ARBRE EXPECTIMINIMAX (PROBABILISTE) ----------
-		\begin{minipage}{0.48\textwidth}
-			\centering
-			\begin{tikzpicture}[
-				>=stealth,
-				edge from parent/.style={draw, ->},
-				level 1/.style={sibling distance=3.5cm, level distance=2cm},
-				level 2/.style={sibling distance=1.5cm, level distance=2cm},
-				level 3/.style={sibling distance=1.5cm, level distance=1.2cm},
-				decisionMax/.style={isosceles triangle, draw, shape border rotate=90, minimum height=0.8cm, inner sep=2pt, font=\scriptsize\sffamily},
-				decisionMin/.style={isosceles triangle, draw, shape border rotate=270, minimum height=0.8cm, inner sep=2pt, font=\scriptsize\sffamily},
-				chance/.style={circle, draw, minimum size=0.9cm, font=\scriptsize\sffamily},
-				leaf/.style={font=\scriptsize\sffamily}
-				]
+        // Cumul de tous les meilleurs coups adverses trouvés
+        totalExpectedOpponentScore += getBestOpponentScore(board, simulatedRack, gaddag);
+        samplesEvaluated++;
+    }
+    // Agrégation : on retourne la moyenne (le risque mathématique attendu)
+    return samplesEvaluated == 0 ? 0.0 : totalExpectedOpponentScore / samplesEvaluated;
+    \end{minted}
 
-				\node[decisionMax, align=center] {IA\\(MAX)}
-				child { node[chance, align=center] (chance1) {Hasard}
-					child { node[decisionMin, align=center] {Adv.}
-						child { node[leaf] {$s_1$} }
-						edge from parent node[left, font=\tiny\sffamily] {Sim 1}
-					}
-					child { node[font=\scriptsize\sffamily] {\dots} edge from parent[draw=none] }
-					child { node[decisionMin, align=center] {Adv.}
-						child { node[leaf] {$s_{200}$} }
-						edge from parent node[right, font=\tiny\sffamily] {Sim 200}
-					}
-					edge from parent node[left, font=\scriptsize\sffamily, xshift=-0.1cm] {Coup $m_1$}
-				}
-				child { node[font=\scriptsize\sffamily] {\dots} edge from parent[draw=none] }
-				child { node[chance, align=center] {Hasard}
-					edge from parent node[right, font=\scriptsize\sffamily, xshift=0.1cm] {Coup $m_B$}
-				};
+    \subsubsection*{L'impact de l'heuristique}
+    En termes simples, l'Expectiminimax ne se contente pas de calculer mathématiquement les risques sur le plateau. Pour juger de la force réelle d'un coup, l'IA additionne le risque statistique sur le plateau et la qualité de sa main évaluée par l'heuristique. L'IA cherche donc toujours l'équilibre parfait entre "limiter la casse probabiliste" et "garder de bonnes lettres pour l'avenir".
 
-				\node[draw, dashed, font=\scriptsize\sffamily, fill=gray!10, align=center] (agg2) at (0, -2.5) {Moyenne\\$\frac{1}{200}\sum s_i$};
-				\draw[->, dotted] (agg2) -- (chance1);
-			\end{tikzpicture}
-			\caption{\textbf{Agrégation Probabiliste}}
-		\end{minipage}
+    \subsubsection*{Complexité, coût et performances}
+    La complexité est la même ($O(B \times N \times B)$). Bien que son coût soit strictement identique à celui de notre Minimax actuel, l'Expectiminimax a l'inconvénient théorique de ne presque pas pouvoir être optimisé par des techniques d'élagage classiques. Le style de jeu devient plus naturel et audacieux. Dans notre code, son coût temporel étant identique au Minimax Monte-Carlo, l'Expectiminimax s'avère supérieur dans la prise de ses décisions.
 
-	\end{figure*}
+    \subsection{Comparaison des arbres de décision}
 
-	\subsection*{Analyse des performances}
+    Les schémas ci-dessous mettent en évidence que la différence entre nos deux algorithmes n'est pas structurelle (l'arbre exploré est identique), mais réside uniquement dans la méthode mathématique d'agrégation des nœuds de simulation, comme démontré dans nos extraits de code précédents.
 
-    Afin de confronter notre étude théorique à la réalité matérielle, nous avons instrumenté le code de notre solveur (\texttt{MinimaxSolver.java}) pour extraire des métriques physiques en conditions réelles de jeu. Le chronomètre d'interruption (\texttt{timeLimitMs}) était fixé à 5000 millisecondes.
+    \begin{figure*}[h!]
+        \centering
 
-    Le tableau ci-dessous synthétise des échantillons représentatifs de la prise de décision de l'IA au cours d'une partie :
+        % ---------- ARBRE MINIMAX (PESSIMISTE) ----------
+        \begin{minipage}{0.48\textwidth}
+            \centering
+            \resizebox{\linewidth}{!}{%
+            \begin{tikzpicture}[
+              >=stealth,
+              edge from parent/.style={draw, ->},
+              level 1/.style={sibling distance=3cm, level distance=2cm},
+              level 2/.style={sibling distance=1.5cm, level distance=2cm},
+              level 3/.style={sibling distance=1.5cm, level distance=1.2cm},
+              decisionMax/.style={isosceles triangle, draw, shape border rotate=90, minimum height=0.8cm, inner sep=2pt, font=\scriptsize\sffamily},
+              decisionMin/.style={isosceles triangle, draw, shape border rotate=270, minimum height=0.8cm, inner sep=2pt, font=\scriptsize\sffamily},
+              pessimist/.style={rectangle, draw, minimum size=0.9cm, font=\scriptsize\sffamily},
+              leaf/.style={font=\scriptsize\sffamily}
+            ]
+
+            \node[decisionMax, align=center] {IA\\(MAX)}
+              child { node[pessimist, align=center] (min1) {MIN}
+                child { node[decisionMin, align=center] {Adv.}
+                  child { node[leaf] {$s_1$} }
+                  edge from parent node[left, font=\tiny\sffamily] {Sim 1}
+                }
+                child { node[font=\scriptsize\sffamily] {\dots} edge from parent[draw=none] }
+                child { node[decisionMin, align=center] {Adv.}
+                  child { node[leaf] {$s_{200}$} }
+                  edge from parent node[right, font=\tiny\sffamily] {Sim 200}
+                }
+                edge from parent node[left, font=\scriptsize\sffamily, xshift=-0.1cm] {Coup $m_1$}
+              }
+              child { node[font=\scriptsize\sffamily] {\dots} edge from parent[draw=none] }
+              child { node[pessimist, align=center] {MIN}
+                edge from parent node[right, font=\scriptsize\sffamily, xshift=0.1cm] {Coup $m_B$}
+              };
+
+              \node[draw, dashed, font=\scriptsize\sffamily, fill=gray!10, align=center] (agg1) at (0, -2.5) {Pire cas\\$\max(s_1..s_{200})$};
+              \draw[->, dotted] (agg1) -- (min1);
+            \end{tikzpicture}%
+            }
+            \caption{\textbf{Agrégation Pessimiste}}
+        \end{minipage}
+        \hfill
+        % ---------- ARBRE EXPECTIMINIMAX (PROBABILISTE) ----------
+        \begin{minipage}{0.48\textwidth}
+            \centering
+            \resizebox{\linewidth}{!}{%
+            \begin{tikzpicture}[
+              >=stealth,
+              edge from parent/.style={draw, ->},
+              level 1/.style={sibling distance=3cm, level distance=2cm},
+              level 2/.style={sibling distance=1.5cm, level distance=2cm},
+              level 3/.style={sibling distance=1.5cm, level distance=1.2cm},
+              decisionMax/.style={isosceles triangle, draw, shape border rotate=90, minimum height=0.8cm, inner sep=2pt, font=\scriptsize\sffamily},
+              decisionMin/.style={isosceles triangle, draw, shape border rotate=270, minimum height=0.8cm, inner sep=2pt, font=\scriptsize\sffamily},
+              chance/.style={circle, draw, minimum size=0.9cm, font=\scriptsize\sffamily},
+              leaf/.style={font=\scriptsize\sffamily}
+            ]
+
+            \node[decisionMax, align=center] {IA\\(MAX)}
+              child { node[chance, align=center] (chance1) {Hasard}
+                child { node[decisionMin, align=center] {Adv.}
+                  child { node[leaf] {$s_1$} }
+                  edge from parent node[left, font=\tiny\sffamily] {Sim 1}
+                }
+                child { node[font=\scriptsize\sffamily] {\dots} edge from parent[draw=none] }
+                child { node[decisionMin, align=center] {Adv.}
+                  child { node[leaf] {$s_{200}$} }
+                  edge from parent node[right, font=\tiny\sffamily] {Sim 200}
+                }
+                edge from parent node[left, font=\scriptsize\sffamily, xshift=-0.1cm] {Coup $m_1$}
+              }
+              child { node[font=\scriptsize\sffamily] {\dots} edge from parent[draw=none] }
+              child { node[chance, align=center] {Hasard}
+                edge from parent node[right, font=\scriptsize\sffamily, xshift=0.1cm] {Coup $m_B$}
+              };
+
+              \node[draw, dashed, font=\scriptsize\sffamily, fill=gray!10, align=center] (agg2) at (0, -2.5) {Moyenne\\$\frac{1}{200}\sum s_i$};
+              \draw[->, dotted] (agg2) -- (chance1);
+            \end{tikzpicture}%
+            }
+            \caption{\textbf{Agrégation Probabiliste}}
+        \end{minipage}
+
+        \caption{Comparaison des Arbres de Décision}
+        \label{fig:comparaison_arbres}
+    \end{figure*}
+
+    \subsection{Analyse des performances (Benchmark)}
+
+    Afin de confronter notre étude théorique à la réalité matérielle, nous avons nous-mêmes mis en place un benchmark interne. Pour ce faire, nous avons instrumenté le code de notre solveur pour extraire des métriques physiques en conditions réelles de jeu. Le chronomètre d'interruption (\texttt{timeLimitMs}) de notre IA était fixé à 5000 millisecondes.
+
+    Le tableau ci-dessous synthétise nos résultats, basés sur des échantillons représentatifs de la prise de décision de notre moteur au cours d'une partie complète :
 
     \begin{table}[h!]
         \centering
@@ -521,51 +550,26 @@ C'est le compromis entre ces deux visions qui rend l'IA véritablement intellige
             \midrule
             Expectiminimax & 5000 ms & Timeout & 48 sur 84 (57\%) & 9 497 & 197 \\
             Expectiminimax & 3575 ms & Complet & 33 sur 33 (100\%) & 6 600 & 200 \\
-            Minimax MC     & 5001 ms & Timeout & 24 sur 58 (41\%) & 4 680 & 195 \\
-            Minimax MC     & 5001 ms & Timeout & 17 sur 41 (41\%) & 3 294 & 193 \\
-            Minimax MC     & 2801 ms & Complet & 10 sur 10 (100\%) & 2 000 & 200 \\
+            Minimax        & 5001 ms & Timeout & 24 sur 58 (41\%) & 4 680 & 195 \\
+            Minimax        & 5001 ms & Timeout & 17 sur 41 (41\%) & 3 294 & 193 \\
+            Minimax        & 2801 ms & Complet & 10 sur 10 (100\%) & 2 000 & 200 \\
             \bottomrule
         \end{tabular}
-        \caption{Mesures physiques des algorithmes (Profondeur 2, SAMPLES\_COUNT = 200)}
+        \caption{Nos résultats expérimentaux (Profondeur 2, SAMPLES\_COUNT = 200)}
         \label{tab:metrics}
     \end{table}
 
-    \subsection*{Interprétation des résultats}
+    \subsubsection*{Interprétation de nos résultats}
 
-    L'analyse de ces logs d'exécution met en évidence trois points cruciaux concernant les limites de notre implémentation :
+    L'analyse de nos métriques met en évidence trois points cruciaux concernant les limites de notre implémentation :
 
     \begin{itemize}
-        \item \textbf{La limite du facteur de branchement :} Les données prouvent que la capacité de l'IA à évaluer l'arbre complet dépend entièrement de la complexité du plateau à l'instant T. Lorsque le nombre de mots possibles est faible (ex: 10 ou 33 coups), le moteur termine son parcours de Profondeur 2 confortablement avant le temps limite (2.8s et 3.5s). À l'inverse, dès que les choix s'élargissent (41, 58 ou 84 coups), l'IA est systématiquement bridée.
-        \item \textbf{Les conséquences du coût élevé :} Dans le pire scénario mesuré (17 coups évalués sur 41), le \textit{Timeout} force l'IA à jouer en ignorant totalement 59\% des opportunités légales présentes sur le plateau, l'empêchant potentiellement de trouver le mot optimal.
-        \item \textbf{L'efficacité de la limite de temps :} Le moteur est capable de simuler un volume massif de plateaux adverses (jusqu'à 9 497 en 5 secondes). Lorsque le \textit{Timeout} est déclenché, on observe que la moyenne des simulations tombe légèrement sous la barre des 200 (192, 195, 197). Cela démontre que notre algorithme d'interruption fonctionne avec précision : il avorte la boucle interne de Monte-Carlo au milieu de l'évaluation du $N$-ième coup pour garantir la fluidité du jeu en temps réel.
+        \item \textbf{La limite du facteur de branchement :} Nos données prouvent que la capacité de l'IA à évaluer l'arbre complet dépend entièrement de la complexité du plateau à l'instant T. Lorsque le nombre de mots possibles est faible (ex: 10 ou 33 coups), le moteur termine son parcours de Profondeur 2 confortablement avant le temps limite (2.8s et 3.5s). À l'inverse, dès que les choix s'élargissent, l'IA est systématiquement bridée.
+        \item \textbf{Le coût de l'aveuglement temporel :} Dans le pire scénario que nous avons mesuré (17 coups évalués sur 41), le \textit{Timeout} force l'IA à jouer en ignorant totalement 59\% des opportunités légales, l'empêchant potentiellement de trouver le mot optimal.
+        \item \textbf{L'efficacité de notre coupe-circuit :} Notre moteur est capable de simuler un volume massif de plateaux adverses (jusqu'à 9 497 en 5 secondes). Lorsque le \textit{Timeout} est déclenché, la moyenne des simulations tombe légèrement sous la barre des 200. Cela démontre que notre algorithme d'interruption fonctionne avec précision : il avorte la boucle interne de Monte-Carlo au milieu de l'évaluation pour garantir la fluidité du jeu en temps réel.
     \end{itemize}
 
-    Ces mesures empiriques confirment de manière irréfutable notre conclusion : bien que la Profondeur 2 soit mathématiquement atteinte, l'absence d'élagage dans nos approches de Monte-Carlo bride physiquement la rentabilité de l'arbre dès que le facteur de branchement dépasse la trentaine de mots candidats.
-
-	\section{Le Machine Learning :}
-
-	Contrairement aux algorithmes de recherche arborescente, le Machine Learning propose une approche statistique. Notre implémentation utilise un réseau de neurones conçu avec TensorFlow. L'architecture du modèle traite la recherche de mots comme un problème de classification multiclasse:
-
-	\begin{itemize}
-		\item \textbf{L'entrée :} Le chevalet du joueur est converti en un tenseur de 26 dimensions, représentant la fréquence de chaque lettre (de A à Z).
-		\item \textbf{Les couches cachées :} Deux couches denses de 256 et 512 neurones analysent les motifs et anagrammes.
-		\item \textbf{La sortie :} Une couche Softmax fournit une distribution de probabilités sur l'ensemble du dictionnaire (une probabilité par mot existant).
-	\end{itemize}
-
-	En jeu, l'agent Java interroge ce modèle pré-entraîné, filtre les mots ayant une probabilité de faisabilité supérieure à 0,1\%, et trie les 100 meilleures prédictions.
-
-	\subsection*{Complexité et coût}
-	La complexité est divisée en deux parties. La phase d'entraînement a une complexité linéaire dépendante de la taille du dictionnaire, du nombre d'époques et de la taille des lots. En partie, la complexité d'inférence est constante, soit $O(1)$. Le coût en jeu est faible (quelques millisecondes pour une matrice tensorielle). En revanche, le coût en mémoire vive est élevé en raison du chargement natif des bibliothèques TensorFlow et du graphe du modèle dans l'environnement Java.
-
-	\subsection*{Performances}
-	La performance pure est très efficace pour trouver des anagrammes complexes. Mais la performance de jeu est nulle de manière autonome : le réseau actuel ignore totalement l'état du plateau et les contraintes de placement. Le moteur doit d'ailleurs prévoir une redirection vers les algorithmes arborescents si aucun des mots prédits par l'IA ne peut être légalement posé.
-
-	\section*{Conclusion :}
-
-	La comparaison de ces méthodes met en évidence qu'aucun algorithme n'est parfait s'il est utilisé de manière isolée. L'Expectiminimax est le champion de la stratégie probabiliste, mais son coût le rend peu intéressant pour des recherches profondes. Le Minimax classique est efficace,surtout avec une bonne heuristique, mais excessivement défensif face à l'inconnu, et notre implémentation le prive de son avantage temporel théorique. Le Machine Learning est un très bon calculateur d'anagrammes, mais il est "aveugle" aux règles de placement sur le plateau.
-
-	La solution la plus efficace réside dans la fusion de ces approches. La complexité de l'Expectiminimax provient de son facteur de branchement immense (générer tous les mots possibles). En utilisant le Machine Learning comme un outil d'élagage probabiliste, le modèle TensorFlow peut instantanément suggérer les 20 meilleurs mots possibles depuis le chevalet. L'Expectiminimax n'a plus qu'à évaluer ces 20 branches réduites face aux risques du plateau, obtenant ainsi la certitude mathématique et probabiliste tout en respectant un temps de calcul extrêmement restreint.
-
+    Ces mesures empiriques que nous avons relevées confirment notre conclusion théorique : bien que la Profondeur 2 soit mathématiquement atteinte, l'absence d'élagage dans notre approche de Monte-Carlo bride physiquement la rentabilité de l'arbre dès que le facteur de branchement dépasse la trentaine de mots candidats.
 % ==============================================================================
 % SECTION : DAWG ET GADDAG
 % À insérer après la conclusion de l'IA
@@ -975,6 +979,37 @@ processLineComments(String line)
     \item \texttt{GameLoader} reconstruit le \texttt{Game} : joueurs, plateau, tour courant et historique.
     \item Si une ligne est invalide, le programme affiche \texttt{Format error at line X: ...} et n'écrase pas l'état courant.
 \end{enumerate}
+
+	
+	\section{Bilan critique}
+	
+	L'élaboration de ce prototype de Scrabble a permis de valider la faisabilité technique d'un moteur de jeu complet couplé à des intelligences artificielles complexes. Néanmoins, avec le recul nécessaire sur le cycle de développement, plusieurs limitations architecturales, ergonomiques et algorithmiques ont été identifiées. Cette section dresse un bilan critique du projet et propose des axes d'amélioration.
+	
+	\subsection{Architecture Logicielle}
+	Bien que le moteur de jeu (\texttt{core}) soit pleinement fonctionnel, son architecture actuelle présente un potentiel de refactoring important. Au fil du développement, un certain couplage s'est créé entre la logique métier (règles du jeu, gestion du plateau), les modules d'intelligence artificielle et l'interface utilisateur.
+	Pour garantir la pérennité et la scalabilité du projet, une restructuration globale serait bénéfique :
+	\begin{itemize}
+		\item \textbf{Découplage et Modularité :} L'application stricte des principes de conception (comme l'injection de dépendances et le pattern MVC) permettrait de rendre les modules totalement indépendants. L'IA ne devrait interagir avec le moteur que via une API interne stricte.
+		\item \textbf{Optimisation du MoveGenerator :} Actuellement très sollicité, le générateur de mouvements gagnerait à être optimisé (par exemple via du multithreading pour le parcours du GADDAG), afin de soulager le processeur lors des phases de réflexion de l'IA.
+	\end{itemize}
+	
+	\subsection{Ergonomie et Interface Utilisateur (GUI)}
+	L'interface graphique, bien que stable, souffre de plusieurs lacunes ergonomiques qui altèrent la fluidité de l'expérience utilisateur (UX). Le système d'interaction avec les tuiles manque de naturel.
+	\begin{itemize}
+		\item \textbf{Absence de Drag-and-Drop inversé :} L'exemple le plus marquant est la gestion des erreurs de placement. Pour retirer une lettre du plateau, le joueur est contraint d'utiliser un bouton global "Annuler le placement" (\textit{Cancel placement}). Une interaction au glisser-déposer (\textit{drag-and-drop}) permettant de remettre directement une tuile spécifique sur le chevalet serait beaucoup plus intuitive.
+		\item \textbf{Feedbacks visuels :} Ces rigidités d'interaction cassent le dynamisme naturel d'une partie de Scrabble physique. Des améliorations mineures, telles que des animations de placement plus fluides ou un retour visuel immédiat (surbrillance) lorsqu'un mot formé est invalide avant même sa soumission, moderniseraient considérablement l'application.
+	\end{itemize}
+	
+	\subsection{Limitations de l'Internationalisation (i18n)}
+	À ce stade, le jeu ne supporte officiellement que deux langues : le français et l'anglais. Cette limitation n'est pas inhérente au moteur de jeu, mais plutôt à la gestion codée en dur des ressources (dictionnaires et distribution des lettres).
+	Le système de chargement devrait être rendu totalement agnostique. L'ajout d'une nouvelle langue ne devrait nécessiter qu'un simple ajout de fichier de configuration (JSON/XML) définissant l'alphabet, la valeur des lettres, leur fréquence d'apparition et le fichier lexique associé, sans aucune recompilation du code source.
+	
+	\subsection{Limites des IA Implémentées}
+	Le défi majeur de ce projet résidait dans l'implémentation de l'intelligence artificielle face au problème de l'information imparfaite. Les approches développées ont chacune révélé des limites matérielles ou logiques :
+	\begin{itemize}
+		\item \textbf{Approche Monte-Carlo (Minimax / Expectiminimax) :} Nos mesures empiriques ont prouvé que la complexité temporelle de ces algorithmes provoque un goulot d'étranglement majeur. L'absence de techniques d'élagage (comme l'Alpha-Beta) oblige le moteur à interrompre la recherche via un \textit{timeout} (5 secondes) avant d'avoir pu explorer l'arbre de profondeur 2 de manière exhaustive.
+		\item \textbf{Le Machine Learning (TensorFlow) :} L'approche connexionniste offre des performances foudroyantes en temps d'inférence pour trouver des anagrammes. Cependant, l'architecture de notre tenseur d'entrée limite la vision du réseau neuronal au seul chevalet du joueur. Sans connaissance de la topologie du plateau, ce modèle est incapable de jouer de manière autonome.
+	\end{itemize}
 
 
 %------------------------------------------------------------------------------
