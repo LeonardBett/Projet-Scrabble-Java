@@ -121,16 +121,15 @@
 
 	\subsection{Historique du sujet}
 	\paragraph{}
-  En 1931, l'architecte au chomage Alfred Mosher Butts decide de creer un jeu combinant chance et reflexion. En analysant minutieusement la frequence des lettres a la une du \textit{New York Times}, il elabore un systeme de valeurs specifiques pour chaque jeton, methode qui reste inchangee dans les editions modernes [1]. Initialement baptise \textit{Lexiko}, puis \textit{Criss-Cross Words}, le jeu essuie les refus de nombreux fabricants avant qu'un homme d'affaires, James Brunot, ne rachate les droits en 1948 pour lui donner son nom definitif : Scrabble [2].
+    En 1931, l'architecte au chomage Alfred Mosher Butts decide de creer un jeu combinant chance et reflexion. En analysant minutieusement la frequence des lettres a la une du \textit{New York Times}, il elabore un systeme de valeurs specifiques pour chaque jeton, methode qui reste inchangee dans les editions modernes \cite{butts1931}. Initialement baptise \textit{Lexiko}, puis \textit{Criss-Cross Words}, le jeu essuie les refus de nombreux fabricants avant qu'un homme d'affaires, James Brunot, ne rachate les droits en 1948 pour lui donner son nom definitif : Scrabble \cite{fatsis2001}.
   
   \paragraph{}
-	Le succes mondial du jeu doit beaucoup a un coup de chance marketing. Dans les annees 1950, Jack Straus, president du grand magasin Macy's a New York, decouvre le jeu pendant ses vacances et s'etonne de ne pas le trouver dans ses rayons. Il passe une commande massive, propulsant le Scrabble au rang de phenomene culturel [2]. Aujourd'hui, avec plus de 150 millions d'exemplaires vendus dans 121 pays et des competitions internationales organisees par la World English-Language Scrabble Players Association (WESPA) et la Federation Internationale de Scrabble Francophone (FISF), il est devenu le jeu de lettres le plus populaire de la planete [3].
+    Le succes mondial du jeu doit beaucoup a un coup de chance marketing. Dans les annees 1950, Jack Straus, president du grand magasin Macy's a New York, decouvre le jeu pendant ses vacances et s'etonne de ne pas le trouver dans ses rayons. Il passe une commande massive, propulsant le Scrabble au rang de phenomene culturel \cite{fatsis2001}. Aujourd'hui, avec plus de 150 millions d'exemplaires vendus dans 121 pays et des competitions internationales organisees par la World English-Language Scrabble Players Association (WESPA) et la Federation Internationale de Scrabble Francophone (FISF), il est devenu le jeu de lettres le plus populaire de la planete \cite{fisf2023}.
   
   \paragraph{}
-	Des les annees 1980 et 1990, les premiers logiciels de jeu contre l'ordinateur font leur apparition. L'explosion des plateformes en ligne, notamment l'Internet Scrabble Club (ISC), puis des applications mobiles comme \textit{Scrabble Go} ont elargi considerablement la communaute de joueurs. Au-dela du divertissement, l'informatique a revolutionne la competition de haut niveau grace a des outils d'analyse strategique comme Quackle [4], devenu la reference mondiale pour l'entrainement des joueurs experts. Aujourd'hui, de nombreux projets open source et applications multiplateformes temoignent de la vitalite de l'ecosysteme logiciel autour du Scrabble.
+    Des les annees 1980 et 1990, les premiers logiciels de jeu contre l'ordinateur font leur apparition. L'explosion des plateformes en ligne, notamment l'Internet Scrabble Club (ISC), puis des applications mobiles comme \textit{Scrabble Go} ont elargi considerablement la communaute de joueurs. Au-dela du divertissement, l'informatique a revolutionne la competition de haut niveau grace a des outils d'analyse strategique comme Quackle \cite{sheppard2006}, devenu la reference mondiale pour l'entrainement des joueurs experts. Aujourd'hui, de nombreux projets open source et applications multiplateformes temoignent de la vitalite de l'ecosysteme logiciel autour du Scrabble.
 
   \paragraph{}
-  \textbf{Sources :} [1] Butts, A.M. (1931), archives de conception du jeu. [2] Fatsis, S. (2001), \textit{Word Freak}, Houghton Mifflin. [3] FISF, Regles officielles du Scrabble francophone, edition 2023. [4] Sheppard, B. et al., \textit{Quackle Scrabble AI}, Computer Scrabble Project, 2006.
 
 	\subsection{Nature et enjeux du jeu}
 	Le Scrabble est un jeu de lettres a information imparfaite (les tirages adverses sont inconnus) et stochastique (soumis a l'alea de la pioche). L'objectif est de maximiser son score sur une grille standard de $15 \times 15$ cases en y placant des mots extraits d'un dictionnaire de reference (ODS en francais, TWL/SOWPODS en anglais).
@@ -160,7 +159,7 @@
 	Le nombre de positions legales sur un plateau $15 \times 15$ est estime a environ $10^{30}$. Si ce chiffre reste inferieur a celui des echecs ($\sim 10^{43}$), l'incertitude propre au Scrabble, due aux tirages caches de l'adversaire et a l'alea de la pioche, en fait un probleme fondamentalement different : il releve de la theorie des jeux a information imparfaite, contrairement aux echecs ou aux dames.
 
 	\paragraph{Explosion combinatoire a chaque coup}
-	Meme pour un seul tour, la generation de tous les coups legaux est un probleme non trivial. Pour un chevalet de 7 lettres et un dictionnaire de type ODS ($\sim 380\,000$ mots), il faut explorer toutes les combinaisons de lettres (sous-ensembles du chevalet), toutes les positions et orientations possibles sur la grille, et verifier simultanement la validite de tous les mots formes par collision. Le nombre de placements theoriques au premier tour est deja de l'ordre de plusieurs millions [5].
+    Meme pour un seul tour, la generation de tous les coups legaux est un probleme non trivial. Pour un chevalet de 7 lettres et un dictionnaire de type ODS ($\sim 380\,000$ mots), il faut explorer toutes les combinaisons de lettres (sous-ensembles du chevalet), toutes les positions et orientations possibles sur la grille, et verifier simultanement la validite de tous les mots formes par collision. Le nombre de placements theoriques au premier tour est deja de l'ordre de plusieurs millions \cite{10.1145/42411.42420}.
 
 	\paragraph{La qualite du reliquat}
 	Un des defis strategiques majeurs, et algorithmiques, est que maximiser le score immediat n'est pas toujours optimal. Un bon moteur de jeu doit evaluer la qualite du reliquat (les lettres conservees apres le coup), car des lettres polyvalentes comme les voyelles courantes ou le S offrent de meilleures perspectives pour les tours suivants. A l'inverse, conserver des lettres difficiles comme le W ou le K penalise les coups futurs.
@@ -171,7 +170,6 @@
 	\paragraph{Conclusion sur la difficulte}
 	Ces contraintes font du Scrabble un probleme d'optimisation combinatoire sous incertitude, a la frontiere entre la recherche arborescente, la linguistique computationnelle et la theorie des jeux stochastiques.
 
-	\textbf{Source :} [5] Appel, A.W. \& Jacobson, G.J. (1988), \textit{The World's Fastest Scrabble Program}, \textit{Communications of the ACM}.
 
 	\subsection{Existant algorithmique}
 	L'etat de l'art repose sur des travaux academiques fondateurs et des logiciels eprouves.
@@ -179,12 +177,12 @@
 	\paragraph{Structures de donnees pour le dictionnaire}
 	La generation rapide de coups legaux repose sur des automates finis representant le dictionnaire :
 	\begin{itemize}
-		\item le DAWG (\textit{Directed Acyclic Word Graph}), propose par Appel \& Jacobson (1988) [5], compresse le dictionnaire en un graphe oriente acyclique permettant une verification en $O(n)$ de la validite d'un mot ;
-		\item le GADDAG, introduit par Steven Gordon (1994) [6], est une extension permettant de generer directement tous les mots pouvant s'ancrer sur une lettre donnee du plateau, accelerant considerablement la recherche des coups legaux.
+        \item le DAWG (\textit{Directed Acyclic Word Graph}), propose par Appel \& Jacobson (1988) \cite{10.1145/42411.42420}, compresse le dictionnaire en un graphe oriente acyclique permettant une verification en $O(n)$ de la validite d'un mot ;
+        \item le GADDAG, introduit par Steven Gordon (1994) \cite{10.1002/spe.4380240205}, est une extension permettant de generer directement tous les mots pouvant s'ancrer sur une lettre donnee du plateau, accelerant considerablement la recherche des coups legaux.
 	\end{itemize}
 
 	\paragraph{Logiciels de reference}
-	Quackle [4] est le standard academique et competitif pour l'analyse strategique. Il utilise des simulations de type Monte-Carlo pour estimer l'esperance de gain de chaque coup sur plusieurs tours a venir, en simulant des milliers de parties possibles.
+    Quackle \cite{sheppard2006} est le standard academique et competitif pour l'analyse strategique. Il utilise des simulations de type Monte-Carlo pour estimer l'esperance de gain de chaque coup sur plusieurs tours a venir, en simulant des milliers de parties possibles.
 
 	Elise et Maven sont d'autres moteurs historiques ayant contribue a l'etablissement des meilleures pratiques en IA Scrabble.
 
@@ -194,7 +192,6 @@
 	\paragraph{Open source}
 	De nombreux projets open source (notamment en Python, Java et C++) sont disponibles sur des plateformes comme GitHub, rendant accessible l'implementation d'un moteur de jeu a partir des algorithmes decrits dans la litterature.
 
-	\textbf{Source :} [6] Gordon, S. (1994), \textit{A Faster Scrabble Move Generation Algorithm}, \textit{Software---Practice and Experience}.
 
   
 %------------------------------------------------------------------------------
