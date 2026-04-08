@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -280,6 +281,22 @@ class GameControllerTest {
     runCliWithInput(controller, "help\nshow configuration\npass\nquit\nn\n");
 
     assertTrue(game.getUndoRedo().getHistory().size() >= 1);
+  }
+
+  @Test
+  void runCliShouldRestartGameFromNewGameCommand() throws Exception {
+    Game game = new Game();
+    game.addPlayer(new HumanPlayer("Alice", PlayerColor.BLUE));
+    game.addPlayer(new HumanPlayer("Bob", PlayerColor.RED));
+
+    CliView view = new CliView(game);
+    GameController controller = new GameController(game, view);
+    setDictionary(controller, minimalDictionary("AA", "ART"));
+
+    runCliWithInput(controller, "newgame\no\nquit\no\n");
+
+    assertNotSame(game, controller.getGame());
+    assertEquals(2, controller.getGame().getPlayers().size());
   }
 
   @Test

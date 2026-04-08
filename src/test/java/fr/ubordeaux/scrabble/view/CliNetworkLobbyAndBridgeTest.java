@@ -77,7 +77,7 @@ class CliNetworkLobbyAndBridgeTest {
     assertTrue((Boolean) invokePrivate(lobby, "tryDirectJoin", "join 127.0.0.1 bad"));
     assertFalse((Boolean) invokePrivate(lobby, "tryDirectJoin", "join 127.0.0.1"));
 
-    invokePrivate(lobby, "handlePlayerInfo", "player 3");
+    invokePrivate(lobby, "handlePlayerInfo", "players 3");
     assertEquals(3, nm.lastPlayerInfoId);
 
     invokePrivate(lobby, "handleNewInvitation", "new 1");
@@ -200,24 +200,28 @@ class CliNetworkLobbyAndBridgeTest {
         "host", "abc",
         "host 70000",
         "host 12345",
+        "server start",
+        "server start 12346",
+        "server list",
         "2", "1",
         "join 127.0.0.1 23456",
         "join 127.0.0.1 bad",
         "players",
-        "player 3",
+        "players 3",
         "scoreboard",
-        "status",
+        "server status",
         "ping",
         "new 1 2",
         "accept",
         "decline",
         "cancel",
         "away",
-        "backstatus",
+        "back",
         "pass",
         "exchange",
         "exchange AZ",
         "play a1h mot",
+        "server stop",
         "show board",
         "show history",
         "show time",
@@ -226,8 +230,10 @@ class CliNetworkLobbyAndBridgeTest {
         "hint",
         "a1v test",
         "disconnect",
+        "helpnetwork",
         "help",
-        "3");
+        "quit",
+        "menu");
 
     CliNetworkLobby lobby = new CliNetworkLobby(nm, view, input);
 
@@ -236,16 +242,23 @@ class CliNetworkLobbyAndBridgeTest {
     assertTrue(nm.startOnlinePlayCalls >= 1);
     assertTrue(nm.stopOnlinePlayCalls >= 1);
     assertTrue(nm.serverStartCalls >= 1);
+    assertTrue(nm.serverStartPorts.contains(NetworkManager.DEFAULT_TCP_PORT));
+    assertTrue(nm.serverStartPorts.contains(12346));
+    assertTrue(nm.serverStopCalls >= 1);
     assertTrue(nm.joinCalls >= 2);
     assertTrue(nm.playersCalls >= 1);
     assertTrue(nm.scoreboardCalls >= 1);
     assertTrue(nm.serverStatusCalls >= 1);
     assertTrue(nm.pingCalls >= 1);
+    assertTrue(nm.backCalls >= 1);
     assertTrue(nm.passCalls >= 1);
     assertTrue(nm.exchangeCalls >= 1);
     assertTrue(nm.playCalls >= 1);
     assertTrue(nm.quitCalls >= 1);
-    assertTrue(view.messages.size() >= 3);
+    assertTrue(nm.stopOnlinePlayCalls >= 1);
+    assertTrue(view.messages.stream().anyMatch(m -> m.contains("Leaving network lobby")));
+    assertTrue(view.messages.stream().anyMatch(m -> m.contains("server start")
+        && m.contains("disconnect") && m.contains("quit/menu/exit")));
     assertTrue(view.errors.size() >= 3);
   }
 
@@ -306,10 +319,13 @@ class CliNetworkLobbyAndBridgeTest {
     private int stopOnlinePlayCalls;
     private int joinCalls;
     private int serverStartCalls;
+    private final List<Integer> serverStartPorts = new ArrayList<>();
+    private int serverStopCalls;
     private int playersCalls;
     private int scoreboardCalls;
     private int serverStatusCalls;
     private int pingCalls;
+    private int backCalls;
     private int passCalls;
     private int exchangeCalls;
     private int playCalls;
@@ -328,7 +344,13 @@ class CliNetworkLobbyAndBridgeTest {
     @Override
     public boolean serverStart(int port) {
       serverStartCalls++;
+      serverStartPorts.add(port);
       return true;
+    }
+
+    @Override
+    public void serverStop() {
+      serverStopCalls++;
     }
 
     @Override
@@ -385,6 +407,11 @@ class CliNetworkLobbyAndBridgeTest {
     @Override
     public void ping() {
       pingCalls++;
+    }
+
+    @Override
+    public void back() {
+      backCalls++;
     }
 
     @Override

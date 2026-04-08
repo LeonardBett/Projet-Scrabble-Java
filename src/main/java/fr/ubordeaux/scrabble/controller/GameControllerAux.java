@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.Stack;
 
 /**
@@ -146,6 +147,9 @@ class GameControllerAux {
           controller.internalGame().getPlayers().get(0).getRemainingTimeDisplay()));
       controller.startBlitzWatcher(cliView);
     }
+
+    // Display initial game state when launching with bonus square colors
+    cliView.refresh();
   }
 
   private void runCliLoop(CliInputHandler input, CliView cliView, Gaddag currentGaddag) {
@@ -269,6 +273,7 @@ class GameControllerAux {
           controller.handlePlayerMove(Move.createPass(current));
           hasUnsavedChanges = true;
           cliView.displayMessage(I18n.translate("cli.game.playerSkips", current.getName()));
+          cliView.refresh();
         } catch (RuntimeException e) {
           cliView.displayError(e.getMessage());
         }
@@ -297,9 +302,9 @@ class GameControllerAux {
       case "network":
         handleNetwork(input, cliView);
         return true;
+      case "newgame":
       case "new":
-        cliView.displayError(I18n.translate("cli.shell.commandNotSupportedInSession"));
-        return true;
+        return handleNewGame(input, cliView);
       case "exchange": {
         String payload = rawCommand.length() > 8 ? rawCommand.substring(8).trim() : "";
         executeMoveAction(
@@ -344,6 +349,9 @@ class GameControllerAux {
       }
       hasUnsavedChanges = true;
     }
+
+    // Refresh display after undo/redo changes state
+    cliView.refresh();
   }
 
   private void pauseBlitzClock(Player current, CliView cliView) {
@@ -539,6 +547,23 @@ class GameControllerAux {
     lobby.showMenu();
   }
 
+  private boolean handleNewGame(CliInputHandler input, CliView cliView) {
+    if (!input.askConfirmation(I18n.translate("scrabble.newGameConfirmation"))) {
+      return true;
+    }
+
+    Optional<Game> recreated = controller.recreateConfiguredGameFromSelection(
+        Optional.of(controller.internalGame().getPlayers().size()));
+    if (recreated.isEmpty()) {
+      cliView.displayError(I18n.translate("cli.shell.commandNotSupportedInSession"));
+      return true;
+    }
+
+    pendingLoadedGame = recreated.get();
+    restartRequested = true;
+    return true;
+  }
+
   private void displayHelp(CliView cliView, String cmd) {
     if (cmd == null || cmd.isBlank()) {
       cliView.displayMessage(I18n.translate("cli.shell.help.full"));
@@ -546,8 +571,13 @@ class GameControllerAux {
     }
 
     switch (cmd) {
+      case "play":
+      case "move":
+        cliView.displayMessage(I18n.translate("cli.shell.help.move"));
+        return;
+      case "newgame":
       case "new":
-        cliView.displayMessage(I18n.translate("cli.shell.help.new"));
+        cliView.displayMessage(I18n.translate("cli.shell.help.newgame"));
         return;
       case "help":
         cliView.displayMessage(I18n.translate("cli.shell.help.help"));
@@ -573,6 +603,12 @@ class GameControllerAux {
       case "redo":
         cliView.displayMessage(I18n.translate("cli.shell.help.redo"));
         return;
+      case "exchange":
+        cliView.displayMessage(I18n.translate("cli.shell.help.exchange"));
+        return;
+      case "pass":
+        cliView.displayMessage(I18n.translate("cli.shell.help.pass"));
+        return;
       case "show":
         cliView.displayMessage(I18n.translate("cli.shell.help.show"));
         return;
@@ -596,6 +632,7 @@ class GameControllerAux {
       controller.handlePlayerMove(move);
       hasUnsavedChanges = true;
       cliView.displaySuccess(successMessage);
+      cliView.refresh();
     } catch (RuntimeException e) {
       cliView.displayError(e.getMessage());
     }

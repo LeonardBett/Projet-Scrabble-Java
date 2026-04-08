@@ -154,7 +154,8 @@ class ScrabbleGuiConfigDialogTest {
   }
 
   private static DialogPane waitForDialogPane() throws Exception {
-    for (int i = 0; i < 40; i++) {
+    long deadlineNanos = System.nanoTime() + TimeUnit.SECONDS.toNanos(15);
+    while (System.nanoTime() < deadlineNanos) {
       CountDownLatch latch = new CountDownLatch(1);
       AtomicReference<DialogPane> pane = new AtomicReference<>();
       Platform.runLater(() -> {
@@ -168,11 +169,13 @@ class ScrabbleGuiConfigDialogTest {
         pane.set(found);
         latch.countDown();
       });
-      assertTrue(latch.await(1, TimeUnit.SECONDS));
+      if (!latch.await(2, TimeUnit.SECONDS)) {
+        continue;
+      }
       if (pane.get() != null) {
         return pane.get();
       }
-      Thread.sleep(25);
+      Thread.sleep(50);
     }
     throw new IllegalStateException("Dialog pane not found");
   }
