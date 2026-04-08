@@ -40,6 +40,16 @@ public class SaveManager {
 
       writer.println("[settings] # Global game parameters");
       writer.println("blitz=" + game.isBlitzModeEnabled());
+      if (game.isBlitzModeEnabled()) {
+        List<Player> players = game.getPlayers();
+        for (int i = 0; i < players.size(); i++) {
+          Player p = players.get(i);
+          if (p.isBlitzClockEnabled()) {
+            writer.println("player-" + (i + 1) + "-remaining-ms=" + p.getRemainingTimeMillis());
+          }
+        }
+      }
+
       writer.println("super-scrabble=" + (game.getBoard().getSize() == 21));
       writer.println("players-count=" + game.getPlayers().size());
       writer.println("debug=" + GameLogger.isDebug());
@@ -86,6 +96,7 @@ public class SaveManager {
       writer.println("[history]");
       saveHistory(writer, game, game.getUndoRedo().getHistory());
     }
+    GameLogger.logVerbose("Game saved successfully.");
   }
 
   /**

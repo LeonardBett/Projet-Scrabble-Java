@@ -14,6 +14,7 @@ import fr.ubordeaux.scrabble.model.utils.Point;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -45,6 +46,7 @@ public class GameLoader {
    * @throws Exception if format is invalid, specifying the line number (F24).
    */
   public Game loadGame(String filePath) throws Exception {
+    GameLogger.logVerbose("Loading game from: " + filePath);
     Game game = getGame(filePath);
     this.isInBlockComment = false;
     this.playerSettings.clear();
@@ -91,6 +93,7 @@ public class GameLoader {
         }
       }
     }
+    GameLogger.logVerbose("Game loaded successfully (" + lineCount + " lines parsed).");
     return game;
   }
 
@@ -198,12 +201,12 @@ public class GameLoader {
 
     // player-X-type, player-X-ai-mode, player-X-name
     if (key.startsWith("player-")) {
-      String[] keyParts = key.split("-", 3); // ["player", "X", "type|ai-mode|name"]
+      String[] keyParts = key.split("-", 3); // ["player", "X", "type|ai-mode|name|remaining-ms"]
       if (keyParts.length < 3) {
         return;
       }
       int playerIdx = Integer.parseInt(keyParts[1]) - 1;
-      String setting = keyParts[2]; // "type", "ai-mode", or "name"
+      String setting = keyParts[2]; // "type", "ai-mode", "name", ou "remaining-ms"
       playerSettings.computeIfAbsent(playerIdx, k -> new HashMap<>()).put(setting, value);
     }
   }
@@ -318,6 +321,17 @@ public class GameLoader {
         game.addPlayer(ai);
       } else {
         game.addPlayer(new HumanPlayer(name, color));
+      }
+
+      if (settings.containsKey("remaining-ms")) {
+        try {
+          long remainingMs = Long.parseLong(settings.get("remaining-ms"));
+          Player p = game.getPlayers().get(nextIdx);
+          p.enableBlitzClock(Duration.ofMillis(remainingMs));
+        } catch (NumberFormatException e) {
+          System.err.println("Warning: invalid remaining-ms for player "
+              + (nextIdx + 1) + ", ignoring.");
+        }
       }
     }
   }

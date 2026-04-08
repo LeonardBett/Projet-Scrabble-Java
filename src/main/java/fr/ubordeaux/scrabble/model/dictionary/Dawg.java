@@ -1,6 +1,8 @@
 package fr.ubordeaux.scrabble.model.dictionary;
 
 
+import fr.ubordeaux.scrabble.model.utils.GameLogger;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -39,6 +41,7 @@ public class Dawg implements Dictionary {
    * @param word The word to insert into the graph.
    */
   public void add(String word) {
+    GameLogger.logDebug("DAWG: adding word \"" + word.toUpperCase() + "\"");
     word = word.toUpperCase();
 
     // Find the longest common prefix with the previously added word
@@ -70,6 +73,7 @@ public class Dawg implements Dictionary {
    * Finalizes the Dawg. Must be called after the last word is added.
    */
   public void finish() {
+    GameLogger.logVerbose("DAWG: minimization complete.");
     minimize(0);
   }
 
@@ -120,6 +124,7 @@ public class Dawg implements Dictionary {
    * @return A set of all constructible words containing the hook.
    */
   public Set<String> findWordsWithRackAndHook(Character[] rack, char hook) {
+    GameLogger.logVerbose("DAWG: searching words for rack=" + Arrays.toString(rack) + " hook='" + hook + "'");
     Set<String> results = new HashSet<>();
     List<Character> availableLetters = new ArrayList<>(Arrays.asList(rack));
 
@@ -138,6 +143,7 @@ public class Dawg implements Dictionary {
           results.add(word);
         }
       }
+      GameLogger.logVerbose("DAWG: found " + results.size() + " word(s).");
       return results;
     }
     return allFound;
