@@ -260,7 +260,7 @@ public class App {
             System.err.println("Missing value for blitz time. Using default of 30 minutes.");
           } else {
             try {
-              blitzMinutes = Integer.parseInt(args[++i]);
+              blitzMinutes = parseCliInt(args[++i], "--time", 30);
             } catch (NumberFormatException e) {
               System.err.println("Invalid blitz time. Using default of 30 minutes.");
             }
@@ -315,7 +315,7 @@ public class App {
             System.err.println("Missing value for AI time. Using default of 5 seconds.");
           } else {
             try {
-              aiTime = Integer.parseInt(args[++i]);
+              aiTime = parseCliInt(args[++i], "--ai-time", 5);
             } catch (NumberFormatException e) {
               System.err.println("Invalid AI time. Using default of 5 seconds.");
             }
@@ -673,6 +673,16 @@ public class App {
   private static void printSupportedLanguages() {
     for (String language : I18n.getSupportedLanguages()) {
       System.out.println(language);
+    }
+  }
+
+  private static int parseCliInt(String value, String optionName, int fallback) {
+    try {
+      return Integer.parseInt(value);
+    } catch (NumberFormatException e) {
+      System.err.println("Warning: invalid value '" + value + "' for option "
+          + optionName + ". Using default " + fallback + ".");
+      return fallback;
     }
   }
 }
