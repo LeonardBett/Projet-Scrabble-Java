@@ -1,7 +1,6 @@
 package fr.ubordeaux.scrabble.model.dictionary;
 
 import fr.ubordeaux.scrabble.model.utils.GameLogger;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -135,7 +134,8 @@ public class Gaddag extends Trie implements Dictionary {
    * @return A set of GaddagResult containing valid words and their GADDAG paths.
    */
   public HashSet<GaddagResult> findGaddagResults(Character[] rack, char hook) {
-    GameLogger.logVerbose("GADDAG: searching words for rack=" + Arrays.toString(rack) + " hook='" + hook + "'");
+    GameLogger.logVerbose("GADDAG: searching words for rack=" + Arrays.toString(rack)
+        + " hook='" + hook + "'");
     HashSet<GaddagResult> words = new HashSet<>();
     Arrays.sort(rack);
     ArrayList<Character> rackList = new ArrayList<>(Arrays.asList(rack));

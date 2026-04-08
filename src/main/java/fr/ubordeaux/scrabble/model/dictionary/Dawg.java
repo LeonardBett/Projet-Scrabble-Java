@@ -2,7 +2,6 @@ package fr.ubordeaux.scrabble.model.dictionary;
 
 
 import fr.ubordeaux.scrabble.model.utils.GameLogger;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -124,7 +123,8 @@ public class Dawg implements Dictionary {
    * @return A set of all constructible words containing the hook.
    */
   public Set<String> findWordsWithRackAndHook(Character[] rack, char hook) {
-    GameLogger.logVerbose("DAWG: searching words for rack=" + Arrays.toString(rack) + " hook='" + hook + "'");
+    GameLogger.logVerbose("DAWG: searching words for rack=" + Arrays.toString(rack)
+        + " hook='" + hook + "'");
     Set<String> results = new HashSet<>();
     List<Character> availableLetters = new ArrayList<>(Arrays.asList(rack));
 
