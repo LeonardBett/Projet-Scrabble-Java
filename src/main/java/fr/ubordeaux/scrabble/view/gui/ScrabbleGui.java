@@ -9,9 +9,10 @@ import fr.ubordeaux.scrabble.model.core.Rack;
 import fr.ubordeaux.scrabble.model.core.Tile;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
 import fr.ubordeaux.scrabble.model.network.NetworkManager;
-import fr.ubordeaux.scrabble.model.savefiles.ConfigLoader;
 import fr.ubordeaux.scrabble.model.utils.GameLogger;
 import fr.ubordeaux.scrabble.model.utils.Point;
+import fr.ubordeaux.scrabble.view.gui.main.ScrabbleGuiConfigDialog;
+import fr.ubordeaux.scrabble.view.gui.main.ScrabbleGuiRefresh;
 import fr.ubordeaux.scrabble.view.gui.network.NetworkGameBridge;
 import fr.ubordeaux.scrabble.view.gui.network.NetworkLobbyView;
 import fr.ubordeaux.scrabble.view.gui.panel.BoardPanel;
@@ -105,6 +106,9 @@ public class ScrabbleGui extends Application {
   private Button infoButton;
   private Button quitButton;
 
+  private final ScrabbleGuiConfigDialog configDialogDelegate = new ScrabbleGuiConfigDialog();
+  private final ScrabbleGuiRefresh refreshDelegate = new ScrabbleGuiRefresh();
+
   /**
    * Sets the game instance for static access.
    *
@@ -135,6 +139,15 @@ public class ScrabbleGui extends Application {
 
   @Override
   public void start(Stage stage) {
+    startUi(stage);
+  }
+
+  /**
+   * Runs the JavaFX startup lifecycle.
+   *
+   * @param stage JavaFX stage
+   */
+  public void startUi(Stage stage) {
     if (gameInstance == null) {
       gameInstance = GuiLauncher.createGameFromConfig();
     }
@@ -336,67 +349,6 @@ public class ScrabbleGui extends Application {
     }
     lobbyView.show();
     lobbyView.toFront();
-  }
-
-  /**
-   * Open the window to edits the keybinds.
-   * If user validate, reload the scene to update the key shortcuts.
-   */
-  private void openConfigDialog() {
-    // Load configuration
-    ConfigLoader config = new ConfigLoader();
-    config.loadConfig();
-
-    Dialog<Map<String, String>> dialog = new Dialog<>();
-    dialog.setTitle("Keybinds configuration");
-    dialog.setHeaderText("Edit your key bindings (ex: CTRL+S, F5)");
-
-    GridPane grid = new GridPane();
-    grid.setHgap(15);
-    grid.setVgap(10);
-    grid.setPadding(new Insets(20));
-
-    Map<String, TextField> fields = new HashMap<>();
-    String[][] binds = {
-        {"bind-new", "Nouveau Jeu"}, {"bind-load", "Charger"},
-        {"bind-save", "Sauvegarder"}, {"bind-quit", "Quitter"},
-        {"bind-undo", "Annuler (Undo)"}, {"bind-redo", "Refaire (Redo)"},
-        {"bind-hint", "Indice (Hint)"}, {"bind-pause", "Pause"},
-        {"bind-info", "Informations"}
-    };
-
-    for (int i = 0; i < binds.length; i++) {
-      String key = binds[i][0];
-      String label = binds[i][1];
-      TextField tf = new TextField(config.getOption(key, ""));
-      fields.put(key, tf);
-      grid.add(new Label(label + " :"), 0, i);
-      grid.add(tf, 1, i);
-    }
-
-    dialog.getDialogPane().setContent(grid);
-    dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
-
-    dialog.setResultConverter(btn -> {
-      if (btn == ButtonType.OK) {
-        Map<String, String> results = new HashMap<>();
-        fields.forEach((k, tf) -> results.put(k, tf.getText().trim()));
-        return results;
-      }
-      return null;
-    });
-
-    dialog.showAndWait().ifPresent(updates -> {
-      config.updateAndSave(updates);
-      Scene scene = controlPanel.getScene();
-      if (scene != null) {
-        Platform.runLater(() -> {
-          scene.getAccelerators().clear();
-          setupShortcuts(scene);
-          showInfo("Success", "All bindings were saved.");
-        });
-      }
-    });
   }
 
   /**
@@ -688,120 +640,15 @@ public class ScrabbleGui extends Application {
    * Refreshes all GUI panels: board, rack, scores, and checks if it is the AI's turn.
    */
   public void refreshAll() {
-    updatePauseAvailability();
-    refreshBoard();
-    refreshRack();
-    refreshScores();
-    checkAiTurn();
+    refreshDelegate.refreshAll(this);
   }
 
   private void showConfigurationDialog() {
-    Dialog<ButtonType> dialog = new Dialog<>();
-    dialog.setTitle(I18n.translate("scrabble.config.dialog.title"));
-    dialog.setHeaderText(I18n.translate("scrabble.config.dialogHeader"));
-
-    DialogPane dialogPane = dialog.getDialogPane();
-    ButtonType applyRestartButton = new ButtonType(
-        I18n.translate("scrabble.config.dialog.applyRestart"),
-        javafx.scene.control.ButtonBar.ButtonData.LEFT);
-    dialogPane.getButtonTypes().addAll(ButtonType.OK, applyRestartButton, ButtonType.CANCEL);
-
-    ChoiceBox<String> languageChoice = new ChoiceBox<>();
-    languageChoice.getItems().addAll("en", "fr");
-    languageChoice.setValue(controller.configuredLanguage());
-
-    final Spinner<Integer> playerSpinner = new Spinner<>(
-        new SpinnerValueFactory.IntegerSpinnerValueFactory(2, 8,
-            Math.max(2, controller.configuredPlayerCount() > 0
-                ? controller.configuredPlayerCount()
-                : gameInstance.getPlayers().size())));
-
-    CheckBox superScrabbleBox = new CheckBox();
-    superScrabbleBox.setSelected(controller.configuredSuperMode());
-
-    CheckBox blitzBox = new CheckBox();
-    blitzBox.setSelected(controller.configuredBlitzMode());
-
-    Spinner<Integer> blitzTimeoutSpinner = new Spinner<>(
-        new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 120,
-            controller.configuredBlitzMinutes()));
-    blitzTimeoutSpinner.setEditable(true);
-    blitzTimeoutSpinner.disableProperty().bind(blitzBox.selectedProperty().not());
-
-    Spinner<Integer> aiTimeSpinner = new Spinner<>(
-        new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 60,
-            controller.configuredAiTime()));
-    aiTimeSpinner.setEditable(true);
-
-    CheckBox expectiminimaxBox = new CheckBox();
-    expectiminimaxBox.setSelected(controller.isExpectiminimaxEnabled());
-
-    CheckBox mlBox = new CheckBox();
-    mlBox.setSelected(controller.isMlEnabled());
-
-    CheckBox debugBox = new CheckBox();
-    debugBox.setSelected(fr.ubordeaux.scrabble.model.utils.GameLogger.isDebug());
-
-    CheckBox verboseBox = new CheckBox();
-    verboseBox.setSelected(fr.ubordeaux.scrabble.model.utils.GameLogger.isVerbose());
-
-    javafx.scene.control.TextField dictionaryField = new javafx.scene.control.TextField(
-        controller.getDictionaryPathOverride());
-    dictionaryField.setPrefColumnCount(28);
-
-    GridPane grid = new GridPane();
-    grid.setHgap(12);
-    grid.setVgap(10);
-    grid.setPadding(new Insets(12, 0, 0, 0));
-
-    int row = 0;
-    grid.addRow(row++,
-        new Label(I18n.translate("scrabble.config.label.language")),
-        languageChoice);
-    grid.addRow(row++,
-        new Label(I18n.translate("scrabble.config.label.players")),
-        playerSpinner);
-    grid.addRow(row++,
-        new Label(I18n.translate("scrabble.config.label.super")),
-        superScrabbleBox);
-    grid.addRow(row++, new Label(I18n.translate("scrabble.config.label.blitz")), blitzBox);
-    grid.addRow(row++,
-        new Label(I18n.translate("scrabble.config.label.timeout")),
-        blitzTimeoutSpinner);
-    grid.addRow(row++, new Label(I18n.translate("scrabble.config.label.aitime")), aiTimeSpinner);
-    grid.addRow(row++,
-        new Label(I18n.translate("scrabble.config.label.expectiminimax")),
-        expectiminimaxBox);
-    grid.addRow(row++, new Label(I18n.translate("scrabble.config.label.ml")), mlBox);
-    grid.addRow(row++,
-        new Label(I18n.translate("scrabble.config.label.dictionary")),
-        dictionaryField);
-    grid.addRow(row++, new Label(I18n.translate("scrabble.config.label.debug")), debugBox);
-    grid.addRow(row, new Label(I18n.translate("scrabble.config.label.verbose")), verboseBox);
-
-    dialogPane.setContent(grid);
-
-    Optional<ButtonType> result = dialog.showAndWait();
-    if (result.isEmpty() || (result.get() != ButtonType.OK && result.get() != applyRestartButton)) {
-      return;
-    }
-
-    applyConfigurationAssignments(String.join("; ",
-        "language=" + languageChoice.getValue(),
-        "players=" + playerSpinner.getValue(),
-        "super-scrabble=" + superScrabbleBox.isSelected(),
-        "blitz=" + blitzBox.isSelected(),
-        "timeout=" + blitzTimeoutSpinner.getValue(),
-        "ai-time=" + aiTimeSpinner.getValue(),
-        "ai-exptiminimax=" + expectiminimaxBox.isSelected(),
-        "ai-ml=" + mlBox.isSelected(),
-        "dictionary=" + dictionaryField.getText().trim(),
-        "debug=" + debugBox.isSelected(),
-        "verbose=" + verboseBox.isSelected()));
-
-    if (result.get() == applyRestartButton) {
-      recreateGameFromCurrentConfiguration(false);
-    }
+    configDialogDelegate.showDialog(
+        controller,
+        gameInstance,
+        this::applyConfigurationAssignments,
+        () -> recreateGameFromCurrentConfiguration(false));
   }
 
   private void applyConfigurationAssignments(String rawAssignments) {
@@ -990,43 +837,71 @@ public class ScrabbleGui extends Application {
    * Refreshes the board panel to reflect the current game state.
    */
   public void refreshBoard() {
-    boardPanel.updateBoard();
+    refreshDelegate.refreshBoard(this);
   }
 
   /**
    * Refreshes the rack panel for the current player.
    */
   public void refreshRack() {
-    rackPanel.setRack(getCurrentRack());
-    rackPanel.setOnTileDragged(this::onTileDragged);
-    Player current = gameInstance.getCurrentPlayer();
-    if (current != null) {
-      int idx = gameInstance.getPlayers().indexOf(current);
-      if (idx >= 0) {
-        rackPanel.setCurrentPlayerNumber(idx + 1);
-      }
-    }
+    refreshDelegate.refreshRack(this);
   }
 
   /**
    * Refreshes the score panel with updated player scores and bag info.
    */
   public void refreshScores() {
-    List<Player> players = gameInstance.getPlayers();
-    if (players.isEmpty()) {
-      return;
-    }
-    String[] names = players.stream().map(Player::getName).toArray(String[]::new);
-    int[] scores = players.stream().mapToInt(Player::getScore).toArray();
-    scorePanel.updateScores(names, scores);
-    scorePanel.updateBagInfo(gameInstance.getBag().size());
-    Player current = gameInstance.getCurrentPlayer();
-    if (current != null) {
-      int idx = players.indexOf(current);
-      if (idx >= 0) {
-        scorePanel.highlightCurrentPlayer(idx, current.getName());
-      }
-    }
+    refreshDelegate.refreshScores(this);
+  }
+
+  /**
+   * Exposes board panel for helper delegates.
+   *
+   * @return board panel
+   */
+  public BoardPanel getBoardPanel() {
+    return boardPanel;
+  }
+
+  /**
+   * Exposes rack panel for helper delegates.
+   *
+   * @return rack panel
+   */
+  public RackPanel getRackPanel() {
+    return rackPanel;
+  }
+
+  /**
+   * Exposes score panel for helper delegates.
+   *
+   * @return score panel
+   */
+  public ScorePanel getScorePanel() {
+    return scorePanel;
+  }
+
+  /**
+   * Exposes current game instance for helper delegates.
+   *
+   * @return game instance
+   */
+  public Game getGameInstance() {
+    return gameInstance;
+  }
+
+  /**
+   * Exposes pause availability update for refresh helper.
+   */
+  public void syncPauseAvailability() {
+    updatePauseAvailability();
+  }
+
+  /**
+   * Exposes AI turn check for refresh helper.
+   */
+  public void checkAiTurnIfNeeded() {
+    checkAiTurn();
   }
 
   /**
@@ -1081,7 +956,7 @@ public class ScrabbleGui extends Application {
    */
   private void setupShortcuts(Scene scene) {
     scene.getAccelerators().put(new KeyCodeCombination(KeyCode.COMMA, KeyCombination.CONTROL_DOWN),
-        this::openConfigDialog);
+        this::showConfigurationDialog);
 
     addMenuShortcut(scene, controller.getConfigOption("bind-new", "Ctrl+N"), newGameMenuItem);
     addMenuShortcut(scene, controller.getConfigOption("bind-load", "Ctrl+L"), loadMenuItem);

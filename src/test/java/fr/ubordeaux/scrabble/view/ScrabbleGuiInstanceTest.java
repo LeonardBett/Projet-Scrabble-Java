@@ -194,10 +194,13 @@ class ScrabbleGuiInstanceTest {
   @Test
   void onTileDroppedOnOccupiedPendingRejects()
       throws Exception {
-    Tile t1 = game.getCurrentPlayer().getRack()
-        .getTiles().get(0);
-    Tile t2 = game.getCurrentPlayer().getRack()
-        .getTiles().get(1);
+    java.util.List<Tile> playableTiles = game.getCurrentPlayer().getRack().getTiles().stream()
+        .filter(t -> !t.isJoker() && t.getCharacter() != ' ')
+        .limit(2)
+        .toList();
+    assertEquals(2, playableTiles.size());
+    Tile t1 = playableTiles.get(0);
+    Tile t2 = playableTiles.get(1);
     gui.onTileDragged(t1);
     gui.onTileDropped(5, 5);
     gui.onTileDragged(t2);
