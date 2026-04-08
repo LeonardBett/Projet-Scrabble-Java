@@ -147,6 +147,24 @@
 		\item \textbf{Logique linguistique} Chaque mot pose, y compris les mots formes par collision, doit appartenir au dictionnaire de reference choisi pour la partie. Tout mot invalide entraine l'annulation du coup et, selon les regles, une penalite de score.
 	\end{enumerate}
 
+    \begin{figure}[H]
+        \centering
+        \begin{minipage}[t]{0.31\textwidth}
+            \centering
+            \includegraphics[width=\linewidth]{exemple1.png}
+        \end{minipage}\hfill
+        \begin{minipage}[t]{0.31\textwidth}
+            \centering
+            \includegraphics[width=\linewidth]{exemple2.png}
+        \end{minipage}\hfill
+        \begin{minipage}[t]{0.31\textwidth}
+            \centering
+            \includegraphics[width=\linewidth]{exemple3.png}
+        \end{minipage}
+        \caption{Trois captures des premiers coups d'une partie, illustrant la mise en place progressive du plateau et l'application des regles de pose.}
+        \label{fig:exemples-premiers-coups}
+    \end{figure}
+
 	\paragraph{Deroulement d'une partie}
 	La partie debute obligatoirement par un mot d'au moins deux lettres couvrant la case centrale (H8), dont le score est automatiquement double. A chaque tour, le joueur peut : poser un mot, echanger tout ou partie de ses jetons contre des lettres de la pioche (si le sac contient au moins 7 lettres), ou passer son tour. La partie s'acheve lorsque le sac est vide et qu'un joueur a epuise son chevalet, ou apres trois tours consecutifs sans score. Les lettres restant sur les chevalets sont deduites du score de chaque joueur, et leur valeur totale est ajoutee au score du joueur ayant vide son chevalet en premier.
 
@@ -238,8 +256,8 @@
 
     \begin{figure}[H]
         \centering
-        \includegraphics[width=\textwidth,height=0.85\textheight,keepaspectratio]{uml-global-large.png}
-        \caption{Capture UML globale de l'architecture du projet (source : capture d'ecran du diagramme UML).}
+        \includegraphics[width=\textwidth,height=0.85\textheight,keepaspectratio]{diag.png}
+        \caption{Diagramme de l'architecture du projet.}
         \label{fig:uml-global-architecture}
     \end{figure}
 
