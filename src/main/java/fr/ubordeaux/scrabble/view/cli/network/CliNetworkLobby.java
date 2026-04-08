@@ -1,5 +1,6 @@
 package fr.ubordeaux.scrabble.view.cli.network;
 
+import fr.ubordeaux.scrabble.controller.network.CliNetworkCommandController;
 import fr.ubordeaux.scrabble.i18n.I18n;
 import fr.ubordeaux.scrabble.model.core.Game;
 import fr.ubordeaux.scrabble.model.core.Move;
@@ -19,6 +20,7 @@ import java.util.Stack;
 public class CliNetworkLobby {
 
   private final NetworkManager networkManager;
+  private final CliNetworkCommandController commandController;
   private final CliView cliView;
   private final CliInputHandler inputHandler;
   private final CliNetworkBridge bridge;
@@ -33,6 +35,7 @@ public class CliNetworkLobby {
   public CliNetworkLobby(
       NetworkManager networkManager, CliView cliView, CliInputHandler inputHandler) {
     this.networkManager = networkManager;
+    this.commandController = new CliNetworkCommandController(networkManager);
     this.cliView = cliView;
     this.inputHandler = inputHandler;
     this.bridge = new CliNetworkBridge(networkManager, cliView);
@@ -285,148 +288,46 @@ public class CliNetworkLobby {
   }
 
   private boolean tryDirectJoin(String raw) {
-    String[] tokens = raw.trim().split("\\s+");
-    if (tokens.length < 3) {
+    CliNetworkCommandController.DirectJoinResult result = commandController.tryDirectJoin(raw);
+    if (result == CliNetworkCommandController.DirectJoinResult.NOT_A_DIRECT_JOIN) {
       return false;
     }
 
-    String address = tokens[1];
-    try {
-      int port = Integer.parseInt(tokens[2]);
-      networkManager.join(address, port);
+    if (result == CliNetworkCommandController.DirectJoinResult.JOINED) {
       cliView.displayMessage(I18n.translate("cli.network.joinedServer"));
-      return true;
-    } catch (NumberFormatException e) {
+    } else {
       cliView.displayError(I18n.translate("cli.network.portNotNumeric"));
-      return true;
     }
+    return true;
   }
 
   private void handlePlayerInfo(String raw) {
-    Integer id = parseTrailingInt(raw);
-    if (id == null || id <= 0) {
+    if (!commandController.handlePlayerInfo(raw)) {
       cliView.displayError(I18n.translate("cli.network.playerUsage"));
-      return;
     }
-    networkManager.playersPlayerId(id);
   }
 
   private void handleNewInvitation(String raw) {
-    String[] tokens = raw.trim().split("\\s+");
-    if (tokens.length < 2 || tokens.length > 4) {
-      cliView.displayError(I18n.translate("cli.network.newUsage"));
-      return;
-    }
-
-    try {
-      int id1 = Integer.parseInt(tokens[1]);
-      if (tokens.length == 2) {
-        networkManager.newPlayerId(id1);
-        return;
-      }
-
-      int id2 = Integer.parseInt(tokens[2]);
-      if (tokens.length == 3) {
-        networkManager.newPlayerId(id1, id2);
-        return;
-      }
-
-      int id3 = Integer.parseInt(tokens[3]);
-      networkManager.newPlayerId(id1, id2, id3);
-    } catch (NumberFormatException e) {
+    if (commandController.handleNewInvitation(raw)
+        == CliNetworkCommandController.InvitationResult.INVALID) {
       cliView.displayError(I18n.translate("cli.network.newUsage"));
     }
   }
 
   private void handlePlay(String raw) {
-    String payload = raw.substring("play".length()).trim();
-    String[] parts = payload.split("\\s+");
-    if (parts.length < 2) {
+    if (commandController.handlePlay(raw) == CliNetworkCommandController.PlayResult.INVALID) {
       cliView.displayError(I18n.translate("cli.network.playUsage"));
-      return;
     }
-
-    String posDir = parts[0];
-    if (posDir.length() < 3) {
-      cliView.displayError(I18n.translate("cli.network.playUsage"));
-      return;
-    }
-
-    char dirChar = Character.toUpperCase(posDir.charAt(posDir.length() - 1));
-    String direction = dirChar == 'V' ? "V" : "H";
-    String pos = posDir.substring(0, posDir.length() - 1).toLowerCase(Locale.ROOT);
-
-    int x;
-    int y;
-    if (pos.matches("[a-o]\\d+")) {
-      y = pos.charAt(0) - 'a' + 1;
-      x = Integer.parseInt(pos.substring(1));
-    } else if (pos.matches("\\d+[a-o]")) {
-      y = pos.charAt(pos.length() - 1) - 'a' + 1;
-      x = Integer.parseInt(pos.substring(0, pos.length() - 1));
-    } else {
-      cliView.displayError(I18n.translate("cli.network.playUsage"));
-      return;
-    }
-
-    String word = String.join("", java.util.Arrays.copyOfRange(parts, 1, parts.length)).toUpperCase(
-        Locale.ROOT);
-    networkManager.play(x, y, direction, word);
   }
 
   private boolean tryCliPlayNotation(String raw) {
-    String[] parts = raw.trim().split("\\s+");
-    if (parts.length < 2) {
-      return false;
-    }
-
-    String posDir = parts[0];
-    if (posDir.length() < 3) {
-      return false;
-    }
-
-    char dirChar = Character.toUpperCase(posDir.charAt(posDir.length() - 1));
-    if (dirChar != 'H' && dirChar != 'G' && dirChar != 'V') {
-      return false;
-    }
-
-    String pos = posDir.substring(0, posDir.length() - 1).toLowerCase(Locale.ROOT);
-    int x;
-    int y;
-
-    try {
-      if (pos.matches("[a-o]\\d+")) {
-        y = pos.charAt(0) - 'a' + 1;
-        x = Integer.parseInt(pos.substring(1));
-      } else if (pos.matches("\\d+[a-o]")) {
-        y = pos.charAt(pos.length() - 1) - 'a' + 1;
-        x = Integer.parseInt(pos.substring(0, pos.length() - 1));
-      } else {
-        return false;
-      }
-    } catch (NumberFormatException e) {
-      return false;
-    }
-
-    String direction = dirChar == 'V' ? "V" : "H";
-    String word = String.join("", java.util.Arrays.copyOfRange(parts, 1, parts.length)).toUpperCase(
-        Locale.ROOT);
-    networkManager.play(x, y, direction, word);
-    return true;
+    return commandController.tryCliPlayNotation(raw);
   }
 
   private Integer parseTrailingInt(String value) {
-    String[] tokens = value.trim().split("\\s+");
-    if (tokens.length == 0) {
-      return null;
-    }
-
-    String maybeNumber = tokens[tokens.length - 1];
-    try {
-      return Integer.parseInt(maybeNumber);
-    } catch (NumberFormatException e) {
-      return null;
-    }
+    return commandController.parseTrailingInt(value).isPresent()
+        ? commandController.parseTrailingInt(value).getAsInt()
+        : null;
   }
 
   private void handleShowCommand(String normalizedCommand) {

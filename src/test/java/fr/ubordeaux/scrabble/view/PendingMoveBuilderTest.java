@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import fr.ubordeaux.scrabble.controller.builders.PendingMoveBuilderController;
 import fr.ubordeaux.scrabble.model.core.Game;
 import fr.ubordeaux.scrabble.model.core.HumanPlayer;
 import fr.ubordeaux.scrabble.model.core.Move;
@@ -13,7 +14,6 @@ import fr.ubordeaux.scrabble.model.enums.MoveType;
 import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
 import fr.ubordeaux.scrabble.model.utils.Point;
-import fr.ubordeaux.scrabble.view.gui.builders.PendingMoveBuilder;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,7 +32,7 @@ class PendingMoveBuilderTest {
 
   @Test
   void buildShouldReturnNullForEmptyMap() {
-    assertNull(PendingMoveBuilder.build(new HashMap<>(), player, game));
+    assertNull(PendingMoveBuilderController.build(new HashMap<>(), player, game));
   }
 
   @Test
@@ -41,7 +41,7 @@ class PendingMoveBuilderTest {
     Map<Point, Tile> pending = new HashMap<>();
     pending.put(new Point(7, 7), new Tile('A'));
 
-    Move move = PendingMoveBuilder.build(pending, player, game);
+    Move move = PendingMoveBuilderController.build(pending, player, game);
     assertNotNull(move);
     assertEquals(Direction.HORIZONTAL, move.getDirection());
     assertEquals(MoveType.PLAY, move.getType());
@@ -56,7 +56,7 @@ class PendingMoveBuilderTest {
     Map<Point, Tile> pending = new HashMap<>();
     pending.put(new Point(7, 7), new Tile('I'));
 
-    Move move = PendingMoveBuilder.build(pending, player, game);
+    Move move = PendingMoveBuilderController.build(pending, player, game);
     assertNotNull(move);
     assertEquals(Direction.VERTICAL, move.getDirection());
   }
@@ -71,7 +71,7 @@ class PendingMoveBuilderTest {
     Map<Point, Tile> pending = new HashMap<>();
     pending.put(new Point(7, 9), new Tile('S'));
 
-    Move move = PendingMoveBuilder.build(pending, player, game);
+    Move move = PendingMoveBuilderController.build(pending, player, game);
     assertNotNull(move);
     assertEquals(Direction.VERTICAL, move.getDirection());
   }
@@ -83,7 +83,7 @@ class PendingMoveBuilderTest {
     pending.put(new Point(6, 7), new Tile('I'));
     pending.put(new Point(7, 7), new Tile('S'));
 
-    Move move = PendingMoveBuilder.build(pending, player, game);
+    Move move = PendingMoveBuilderController.build(pending, player, game);
     assertNotNull(move);
     assertEquals(Direction.HORIZONTAL, move.getDirection());
     assertEquals(3, move.getTiles().size());
@@ -96,7 +96,7 @@ class PendingMoveBuilderTest {
     pending.put(new Point(7, 6), new Tile('I'));
     pending.put(new Point(7, 7), new Tile('S'));
 
-    Move move = PendingMoveBuilder.build(pending, player, game);
+    Move move = PendingMoveBuilderController.build(pending, player, game);
     assertNotNull(move);
     assertEquals(Direction.VERTICAL, move.getDirection());
     assertEquals(3, move.getTiles().size());
@@ -108,7 +108,7 @@ class PendingMoveBuilderTest {
     pending.put(new Point(5, 5), new Tile('A'));
     pending.put(new Point(6, 6), new Tile('B')); // diagonal → invalid
 
-    Move move = PendingMoveBuilder.build(pending, player, game);
+    Move move = PendingMoveBuilderController.build(pending, player, game);
     assertNull(move);
   }
 
@@ -118,7 +118,7 @@ class PendingMoveBuilderTest {
     pending.put(new Point(3, 7), new Tile('A'));
     pending.put(new Point(4, 7), new Tile('B'));
 
-    Move move = PendingMoveBuilder.build(pending, player, game);
+    Move move = PendingMoveBuilderController.build(pending, player, game);
     assertNotNull(move);
     assertEquals(3, move.getStartPosition().getX());
     assertEquals(7, move.getStartPosition().getY());
