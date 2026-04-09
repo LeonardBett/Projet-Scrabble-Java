@@ -86,3 +86,9 @@ Graphical Mode (GUI): You can also start the network server directly from the gr
 To join an existing server, use the Network menu in the GUI, or type the join IP[:PORT] command in the CLI.
 
 The game includes an automatic discovery system (UDP broadcast) to instantly detect and list available servers on your local network.
+
+### Playing over the Internet (WAN)
+The current network architecture is optimized for Local Area Networks (LAN), using UDP broadcast for automatic server discovery. To play over the Internet, manual configuration is required:
+1. **No Automatic Discovery:** Internet routers block UDP broadcast packets by default. 
+2. **Port Forwarding:** The player hosting the server must configure their home router to forward the TCP port (ex: `12345`) to their local machine.
+3. **Manual Connection:** Clients must manually join the game by entering the host's public IP address instead of relying on the server list.
