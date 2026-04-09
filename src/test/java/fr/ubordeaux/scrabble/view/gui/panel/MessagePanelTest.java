@@ -1,4 +1,4 @@
-package fr.ubordeaux.scrabble.view;
+package fr.ubordeaux.scrabble.view.gui.panel;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertNotNull;

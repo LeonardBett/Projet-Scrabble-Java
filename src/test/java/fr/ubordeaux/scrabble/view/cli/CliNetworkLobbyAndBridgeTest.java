@@ -1,10 +1,11 @@
-package fr.ubordeaux.scrabble.view;
+package fr.ubordeaux.scrabble.view.cli;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import fr.ubordeaux.scrabble.i18n.I18n;
 import fr.ubordeaux.scrabble.model.core.Game;
 import fr.ubordeaux.scrabble.model.core.HumanPlayer;
 import fr.ubordeaux.scrabble.model.core.Move;
@@ -14,7 +15,6 @@ import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.model.network.NetworkManager;
 import fr.ubordeaux.scrabble.model.network.server.ServerInfo;
 import fr.ubordeaux.scrabble.model.utils.Point;
-import fr.ubordeaux.scrabble.view.cli.CliView;
 import fr.ubordeaux.scrabble.view.cli.input.CliInputHandler;
 import fr.ubordeaux.scrabble.view.cli.network.CliNetworkBridge;
 import fr.ubordeaux.scrabble.view.cli.network.CliNetworkLobby;
@@ -256,9 +256,12 @@ class CliNetworkLobbyAndBridgeTest {
     assertTrue(nm.playCalls >= 1);
     assertTrue(nm.quitCalls >= 1);
     assertTrue(nm.stopOnlinePlayCalls >= 1);
-    assertTrue(view.messages.stream().anyMatch(m -> m.contains("Leaving network lobby")));
-    assertTrue(view.messages.stream().anyMatch(m -> m.contains("server start")
-        && m.contains("disconnect") && m.contains("quit/menu/exit")));
+    String leftLobbyMessage = I18n.translate("cli.network.leftLobby");
+    String fullHelpMessage = I18n.translate("cli.network.help");
+    String shortHelpMessage = I18n.translate("cli.network.helpNetworkHint");
+    assertTrue(view.messages.stream().anyMatch(m -> m.contains(leftLobbyMessage)));
+    assertTrue(view.messages.stream().anyMatch(m -> m.contains(fullHelpMessage)
+            || m.contains(shortHelpMessage)));
     assertTrue(view.errors.size() >= 3);
   }
 

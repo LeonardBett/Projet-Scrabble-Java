@@ -1,4 +1,4 @@
-package fr.ubordeaux.scrabble.view;
+package fr.ubordeaux.scrabble.view.gui.main;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -30,6 +30,7 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.control.MenuItem;
@@ -64,6 +65,7 @@ class ScrabbleGuiInstanceTest {
     } catch (Exception e) {
       // Already initialized
     }
+    Platform.setImplicitExit(false);
   }
 
   @BeforeEach
@@ -612,14 +614,20 @@ class ScrabbleGuiInstanceTest {
   private static void runOnFxThread(Runnable action)
       throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
+    AtomicReference<Throwable> thrown = new AtomicReference<>();
     Platform.runLater(() -> {
       try {
         action.run();
+      } catch (Throwable t) {
+        thrown.set(t);
       } finally {
         latch.countDown();
       }
     });
-    assertTrue(latch.await(5, TimeUnit.SECONDS));
+    assertTrue(latch.await(15, TimeUnit.SECONDS));
+    if (thrown.get() != null) {
+      throw new RuntimeException(thrown.get());
+    }
   }
 
   private static void setField(

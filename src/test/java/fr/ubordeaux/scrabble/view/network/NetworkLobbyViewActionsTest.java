@@ -1,4 +1,4 @@
-package fr.ubordeaux.scrabble.view;
+package fr.ubordeaux.scrabble.view.network;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
