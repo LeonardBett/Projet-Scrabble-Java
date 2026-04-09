@@ -24,40 +24,40 @@ class CliLauncherCoverageTest {
 
   @Test
   void launchShouldRunWithNullGameMode() {
-    assertDoesNotThrow(() -> runWithInput("quit\no\n",
+    assertDoesNotThrow(() -> runWithInput("quit\nn\nquit\no\n",
         () -> CliLauncher.launch(null, 2, List.of("BLUE"), false, 30, 2, false, false,
             "en", null)));
   }
 
   @Test
   void launchShouldRunWithSpecificAiColorAndBlitz() {
-    assertDoesNotThrow(() -> runWithInput("quit\no\n",
+    assertDoesNotThrow(() -> runWithInput("quit\nn\nquit\no\n",
         () -> CliLauncher.launch(GameMode.STANDARD, 3, List.of("BLUE"), true, 1, 2, true, true,
             "fr")));
   }
 
   @Test
   void launchShouldRunWithNullAiColors() {
-    assertDoesNotThrow(() -> runWithInput("quit\no\n",
+    assertDoesNotThrow(() -> runWithInput("quit\nn\nquit\no\n",
         () -> CliLauncher.launch(2, null, false, 30, 2, false, false, "en")));
   }
 
   @Test
   void launchOverloadWithSavePathParameterShouldRunWhenNull() {
-    assertDoesNotThrow(() -> runWithInput("quit\no\n",
+    assertDoesNotThrow(() -> runWithInput("quit\nn\nquit\no\n",
         () -> CliLauncher.launch(2, List.of(), false, 30, 2, false, false, "en", null)));
   }
 
   @Test
   void launchShouldLoadSaveFileSuccessfully() throws IOException {
-    Path saveFile = Files.createTempFile("scrabble-cli-save-", ".scrabble");
+    Path saveFile = Files.createTempFile(Path.of("target/"), "scrabble-cli-save-", ".scrabble");
     Files.writeString(saveFile,
         "[settings]\n"
             + "super-scrabble=false\n"
             + "[game]\n"
             + "[history]\n");
 
-    assertDoesNotThrow(() -> runWithInput("quit\no\n",
+    assertDoesNotThrow(() -> runWithInput("quit\nn\nquit\no\n",
         () -> CliLauncher.launch(GameMode.STANDARD, 2, List.of(), false, 30, 2, false, false,
             "en", saveFile.toString())));
   }

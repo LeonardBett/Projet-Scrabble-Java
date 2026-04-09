@@ -319,6 +319,28 @@ class GameControllerTest {
   }
 
   @Test
+  void runCliShouldAppendScrabbleExtensionWhenMissing() throws Exception {
+    Game game = new Game();
+    game.addPlayer(new HumanPlayer("Alice", PlayerColor.BLUE));
+    game.addPlayer(new HumanPlayer("Bob", PlayerColor.RED));
+
+    CliView view = new CliView(game);
+    GameController controller = new GameController(game, view);
+    setDictionary(controller, minimalDictionary("AA", "ART"));
+
+    Path saveDir = Files.createTempDirectory(Path.of("target"), "scrabble-cli-save-");
+    Path basePath = saveDir.resolve("partie_cli");
+    Path expectedSave = saveDir.resolve("partie_cli.scrabble");
+    Files.deleteIfExists(expectedSave);
+
+    runCliWithInput(controller, "save " + basePath + "\nquit\no\n");
+
+    assertTrue(Files.exists(expectedSave));
+    Files.deleteIfExists(expectedSave);
+    Files.deleteIfExists(saveDir);
+  }
+
+  @Test
   void runCliShouldLoadGameFromShellCommand() throws Exception {
     Game source = new Game();
     HumanPlayer sourceA = new HumanPlayer("SrcA", PlayerColor.BLUE);
