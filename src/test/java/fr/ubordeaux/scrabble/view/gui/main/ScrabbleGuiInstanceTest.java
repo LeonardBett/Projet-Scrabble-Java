@@ -187,8 +187,10 @@ class ScrabbleGuiInstanceTest {
 
   @Test
   void onTileDroppedWithValidTilePlacesPending() {
-    Tile tile = game.getCurrentPlayer().getRack()
-        .getTiles().getFirst();
+    Tile tile = game.getCurrentPlayer().getRack().getTiles().stream()
+          .filter(t -> !t.isJoker() && t.getCharacter() != ' ')
+          .findFirst()
+          .orElseThrow();
     gui.onTileDragged(tile);
     gui.onTileDropped(7, 7);
     @SuppressWarnings("unchecked")
