@@ -247,7 +247,7 @@
     Le package \texttt{model.savefiles} contient \texttt{ConfigLoader} (lecture/ecriture du fichier \texttt{.scrabblerc} au format INI, section \texttt{[defaults]}, commentaires \texttt{\#} ignores, creation automatique si absent), \texttt{SaveManager} (serialisation de l'etat de jeu en trois blocs ASCII : \texttt{[settings]}, \texttt{[game]}, \texttt{[history]}) et \texttt{GameLoader} (deserialisation et reconstruction d'un \texttt{Game} depuis un fichier de sauvegarde).
 
     \paragraph{Reseau}
-    Le package \texttt{model.network} est organise en facade (\texttt{NetworkManager}), client (classe \texttt{GameClient}) et serveur (classes \texttt{GameServer}, \texttt{ClientHandler}, \texttt{OnlineGame}). \texttt{NetworkManager} maintient une liste de \texttt{NetworkObserver} (CLI et GUI s'y enregistrent). Il orchestre \texttt{GameServer} (TCP 12345, threads par client, liste synchronisee) et \texttt{DiscoveryService} (UDP 12346, broadcast de decouverte automatique). Les echanges transitent via \texttt{PacketParser}.
+    Le package \texttt{model.network} est organise en facade (\texttt{NetworkManager}), client (classe \texttt{GameClient}) et serveur (classes \texttt{GameServer}, \texttt{ClientHandler}, \texttt{OnlineGame}). \texttt{NetworkManager} maintient une liste de \texttt{NetworkObserver} (CLI et GUI s'y enregistrent). Il orchestre \texttt{GameServer} (TCP 12345, threads par client, liste synchronisee) et \texttt{DiscoveryService} (UDP 12346, broadcast de decouverte automatique). Les echanges sont décodé via \texttt{PacketParser}.
 
     \paragraph{Internationalisation}
     La classe \code{I18n} (dans le package \code{i18n}) est un singleton synchronise backed par \code{ResourceBundle}. Elle expose \code{setLanguage(lang)}, \code{getLanguage()} et \code{translate(key, args...)}. Deux langues sont supportees : \code{"en"} (defaut) et \code{"fr"}. La langue conditionne le chargement du dictionnaire et la distribution des lettres dans \code{Bag}.
@@ -1092,6 +1092,243 @@ processLineComments(String line)
     \item Si une ligne est invalide, le programme affiche \texttt{Format error at line X: ...} et n'écrase pas l'état courant.
 \end{enumerate}
 
+%==============================================================================
+% SPÉCIFICATIONS ÉTENDUES : F39
+%==============================================================================
+
+\section{Spécifications Étendues : F39 --- Serveur Multi-clients}
+
+\begin{besoinbox}
+    \textbf{\large Description du besoin :} \\
+    
+    Le programme doit implémenter un serveur multi-clients capables de gérer plusieurs parties de Scrabble simultanément en réseau. Ce serveur devra accepter et maintenir simultanément plusieurs connexions clientes, \textbf{sans qu'aucune de ces connexions ne vienne bloquer le traitement des autres}. 
+    
+    Suivant un \textbf{modèle autoritaire} (Server-Authoritative), le serveur centralise la logique métier et l'état du jeu, et garantit la synchronisation en temps réel entre tous les clients.
+    
+    \vspace{3mm}
+    \textbf{Métadonnées :}
+    \begin{itemize}
+        \item \textbf{Développeur responsable :} Léonard Bettcher
+        \item \textbf{Date de livraison prévue :} Semaine 9
+        \item \textbf{Dépendances inversées :} F40 (Invitations)
+    \end{itemize}
+\end{besoinbox}
+
+\subsection{Type de besoin}
+Fonctionnel, ce besoin permet la réalisation de parties multi-joueurs en réseau.
+
+\subsection{Prérequis}
+\begin{itemize}
+    \item \textbf{F38 --- Connexion TCP et protocole d'échange :} L'établissement d'une liaison socket entre le serveur et le client. Le protocole réseau s'appuie sur une syntaxe textuelle \texttt{CLE=VALEUR} délimitée par des points-virgules (\texttt{PacketParser}).
+    \item \textbf{F10 --- Moteur de jeu :} Le fonctionnement du serveur en mode autoritaire nécessite l'accès à la logique métier définie dans la classe \texttt{Game.java}. Elle sert de \textbf{modèle de référence} au serveur pour vérifier la validité des coups (respect de la grille, dictionnaire, calcul des points).
+\end{itemize}
+
+\subsection{Découpage en sous-besoins et détails d'implémentation}
+
+% --- SOUS BESOIN 1 ---
+\begin{besoinbox}
+    \textbf{\large Sous-besoin 1 : Architecture Multi-thread et gestion de la concurrence}
+    
+    \vspace{2mm}
+    \textbf{Fonctions internes :}
+    \begin{itemize}
+        \item Délégation au thread : \texttt{new Thread(handler).start()}
+        \item Sécurisation globale : \texttt{synchronized (stateLock)}
+    \end{itemize}
+    \vspace{2mm}
+
+    Le serveur devra gérer des requêtes simultanées de manière asynchrone, en maintenant une \textbf{intégrité absolue des données partagées}. \\
+    
+    Quand une connexion entrante est acceptée par le \texttt{GameServer}, la gestion de ce socket est déléguée à une instance de \texttt{ClientHandler}, s'exécutant dans son propre thread. Cette approche \textbf{\textit{Thread-per-client}} garantit la non-bloquance des requêtes.\\
+
+    La liste des clients connectés est une \textbf{ressource hautement partagée}. Elle est créée via \texttt{Collections.synchronizedList(...)} pour garantir que les opérations d'ajout et de retrait soient \textbf{atomiques}. Cependant, cette classe ne protège pas contre les requêtes nécessitant un parcours complet de la liste. Notre code utilise donc un verrouillage manuel via un bloc \texttt{synchronized (clients)} pour prévenir toute \textbf{\texttt{ConcurrentModificationException}}.\\
+
+    Enfin, \texttt{OnlineGame} gère la concurrence au sein d'une partie, mais le serveur a aussi besoin d'une protection globale. On utilise un mutex privé, \texttt{stateLock}. Ce verrou est obligatoire pour le système d'invitations et protège les opérations de type \textbf{\textit{Check-Then-Act}} (vérifier un statut, puis le modifier). Grâce à lui, il est impossible qu'une \textbf{\textit{race condition}} soit levée (ex: Joueur A accepte une invitation à la milliseconde où Joueur B l'annule).
+\end{besoinbox}
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{p{4.5cm} p{4.5cm} p{5.5cm}}
+        \toprule
+        \textbf{Cas} & \textbf{Entrée} & \textbf{Résultat attendu} \\
+        \midrule
+        \texttt{testMultiplayerInvitation WithMixedResponses()} & Connexion de 4 clients. L'hôte invite 3 joueurs (IDs 2, 3, 4). Deux acceptent, le 3ème refuse. & Le verrou d'état gère les accès concurrents. La partie démarre avec l'hôte et les 2 joueurs ayant accepté. \\
+        \midrule
+        \texttt{testHostDisconnection DuringInvitation()} & L'hôte ferme sa connexion réseau alors qu'une invitation est en attente. & Le serveur détecte la déconnexion, annule l'invitation en cours et renvoie une erreur aux autres joueurs. \\
+        \bottomrule
+    \end{tabular}
+    \caption{Tests unitaires de l'architecture multi-thread}
+\end{table}
+
+% --- SOUS BESOIN 2 ---
+\begin{besoinbox}
+    \textbf{\large Sous-besoin 2 : Émission (Client) et Parsing Syntaxique (Serveur)}
+    
+    \vspace{2mm}
+    \textbf{Fonctions associées :}
+    \begin{itemize}
+        \item Initialisation du parser : \texttt{public PacketParser(String rawMessage)}
+        \item Émission client : \texttt{public void sendPlayMove(int x, int y, String direction, String tile)}
+    \end{itemize}
+    \vspace{2mm}
+
+    Via la commande \texttt{new}, le serveur instancie l'objet \texttt{OnlineGame}. C’est la \textbf{référence unique d’une partie réseau}, qui encapsule le modèle de jeu autoritaire et regroupe les flux de communication.\\
+
+    Pour illustrer le cycle de vie d'une requête, prenons la commande \texttt{MOVE}. L'appel est fait par \texttt{NetworkManager}, une \textbf{façade simplifiant les interactions} entre l'interface et le réseau. 
+    Lorsqu'un joueur valide son coup, le \texttt{GameClient} va \textbf{sérialiser cette action} en une chaîne respectant le protocole (\texttt{MOVE:TYPE=PLAY;X=7;Y=7;DIR=H;TILES=LA}) et l’envoyer sur le socket.\\
+
+    À la réception, le thread du \texttt{ClientHandler} délègue \textbf{l’extraction des informations} à la classe \texttt{PacketParser}. Ce parseur effectue un découpage en quatre étapes :
+    \begin{enumerate}
+        \item \textbf{En-tête :} Isoler la commande via les deux-points \texttt{:} (extraction de \texttt{MOVE}).
+        \item \textbf{Entités :} Découper le \textit{payload} selon le caractère pipe \texttt{|}.
+        \item \textbf{Attributs :} Isoler les arguments en s'appuyant sur le point-virgule \texttt{;}.
+        \item \textbf{Affectation :} Séparer Clé/Valeur avec le signe égal \texttt{=}.
+    \end{enumerate}
+\end{besoinbox}
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{p{4.5cm} p{4.5cm} p{5.5cm}}
+        \toprule
+        \textbf{Cas} & \textbf{Entrée} & \textbf{Résultat attendu} \\
+        \midrule
+        \texttt{testProcessPlayMove()} & Instanciation manuelle du \texttt{PacketParser} avec la chaîne : \texttt{MOVE:TYPE=PLAY;X=7...} & Le parseur découpe la trame sans erreur, permettant d'extraire la direction, les coordonnées et les tuiles. \\
+        \bottomrule
+    \end{tabular}
+    \caption{Tests unitaires du parsing syntaxique}
+\end{table}
+
+% --- SOUS BESOIN 3 ---
+\begin{besoinbox}
+    \textbf{\large Sous-besoin 3 : Validation Sémantique et Modèle Autoritaire}
+    
+    \vspace{2mm}
+    \textbf{Fonctions associées :}
+    \begin{itemize}
+        \item Réception et aiguillage : \texttt{public synchronized void processMove(...)}
+    \end{itemize}
+    \vspace{2mm}
+
+    Le serveur doit traduire la requête réseau en une action de jeu concrète. C'est ici que s'exprime le paradigme du modèle autoritaire (Server-Authoritative), essentiel pour maintenir l'intégrité de l'état du jeu et prévenir la triche \textbf{\cite{smed2002aspects}} : \textbf{le client propose, le serveur dispose}.
+
+    Avant d'instancier l'action, le serveur effectue un \textbf{parsing sémantique sécurisé}. La conversion des valeurs "X" et "Y" en \texttt{Integer} est protégée par des blocs \texttt{try-catch}. Si un client malveillant envoie des coordonnées erronées, l'exception est interceptée, \textbf{évitant le crash du thread}, et une erreur protocolaire lui est renvoyée.\\
+
+    Si les données sont saines, \texttt{OnlineGame} va \textbf{faire le pont entre le réseau et le moteur du jeu}. Les entiers deviennent un \texttt{Point(7, 7)}, la chaîne devient une \texttt{Direction}, etc. Cela permet d'instancier un objet \texttt{Move}.\\
+
+    Cet objet \texttt{Move} est testé par le moteur de jeu central (\texttt{Game}), qui \textbf{vérifie sa validité linguistique et légale}. Si le coup est illégal, l'opération est annulée. S'il est valide, le serveur met à jour \textbf{son} plateau de référence et recalcule les scores.
+\end{besoinbox}
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{p{4.5cm} p{4.5cm} p{5.5cm}}
+        \toprule
+        \textbf{Cas} & \textbf{Entrée} & \textbf{Résultat attendu} \\
+        \midrule
+        \texttt{testProcessMove WrongTurn()} & Le Joueur 2 envoie une trame \texttt{MOVE} alors que c'est le tour du Joueur 1. & Le modèle autoritaire bloque l'action et renvoie exclusivement au Joueur 2 : \texttt{err\_not\_your\_turn}. \\
+        \midrule
+        \texttt{testProcessPlayMove()} & Le Joueur 1 place le mot valide "LA" aux coordonnées de départ (7, 7). & Le coup est exécuté sur le modèle du serveur et le tour passe au Joueur 2. \\
+        \bottomrule
+    \end{tabular}
+    \caption{Tests unitaires du modèle autoritaire}
+\end{table}
+
+% --- SOUS BESOIN 4 ---
+\begin{besoinbox}
+    \textbf{\large Sous-besoin 4 : Synchronisation par Diffusion et Asymétrie}
+    
+    \vspace{2mm}
+    \textbf{Fonctions associées :}
+    \begin{itemize}
+        \item Diffusion générale : \texttt{public void broadcast(String message)}
+        \item Diffusion ciblée : \texttt{public void sendRack(ClientHandler handler, Player player)}
+    \end{itemize}
+    \vspace{2mm}
+
+    Une fois le coup validé, les clients sont désynchronisés. \texttt{OnlineGame} va itérer sur sa liste locale de \texttt{ClientHandler} pour envoyer les paquets de mise à jour. À la réception, les clients actualisent leur modèle miroir local, ce qui déclenche le \textbf{rafraîchissement de leur interface graphique} via le \texttt{NetworkObserver}.\\
+
+    \textbf{Asymétrie des données (Information partielle) :} \\
+    Si le serveur diffusait l'intégralité du modèle à tous les joueurs, un utilisateur malveillant utilisant un \textit{packet sniffer} pourrait intercepter les lettres de ses adversaires. Pour résoudre ce problème, le serveur implémente une \textbf{diffusion asymétrique} :
+    \begin{itemize}
+        \item \textbf{Données publiques :} Le plateau mis à jour (\texttt{OPPONENT\_MOVE}) et l'évolution des scores sont envoyés à l'ensemble des participants.
+        \item \textbf{Données privées :} Seul le joueur qui vient de jouer reçoit un paquet \texttt{SET\_RACK} contenant ses nouvelles lettres.
+    \end{itemize}
+    Grâce à cette séparation, le réseau ne transporte \textbf{que les données strictement nécessaires}. Le rack des adversaires est sécurisé au niveau même de l'architecture réseau.
+\end{besoinbox}
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{p{4.5cm} p{4.5cm} p{5.5cm}}
+        \toprule
+        \textbf{Cas} & \textbf{Entrée} & \textbf{Résultat attendu} \\
+        \midrule
+        \texttt{testProcessPlayMove()} & Le processus de diffusion asymétrique s'enclenche après un mot valide. & Le Joueur 2 reçoit les données publiques (\texttt{OPPONENT\_MOVE}). Le Joueur 1 reçoit ses données privées (\texttt{SET\_RACK}). \\
+        \midrule
+        \texttt{testRealMultiplayer Interaction()} & Le client reçoit la mise à jour de la grille du serveur. & Le modèle miroir est mis à jour et déclenche \texttt{localModelUpdate()} pour rafraîchir l'UI. \\
+        \bottomrule
+    \end{tabular}
+    \caption{Tests de synchronisation réseau}
+\end{table}
+
+\subsection{Intégration dans l'architecture du projet}
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{p{3cm} p{4cm} p{7.5cm}}
+        \toprule
+        \textbf{Module} & \textbf{Composant / Classe} & \textbf{Responsabilité} \\
+        \midrule
+        \textbf{Point d'entrée} \newline (Façade) & \texttt{NetworkManager.java} & Gère le cycle de vie des instances client/serveur et simplifie les interactions de l'UI. \\
+        \midrule
+        \textbf{Réseau} \newline (Serveur) & \texttt{GameServer.java} & Écoute TCP. Gère la boucle principale (\texttt{ServerSocket}) et déploie les threads d'écoute. \\
+        \midrule
+        \textbf{Réseau} \newline (Liaison) & \texttt{ClientHandler.java} & Isolation. Classe dédiée à un client unique. Assure la lecture non-bloquante et gère les timeouts. \\
+        \midrule
+        \textbf{Logique Réseau} \newline (Modèle) & \texttt{OnlineGame.java} & Modèle autoritaire. Encapsule les règles du Scrabble, valide les coups et permet la diffusion asymétrique. \\
+        \midrule
+        \textbf{Réseau} \newline (Client) & \texttt{GameClient.java} & Sérialisation et modèle miroir. Maintient la connexion active et actualise le modèle local. \\
+        \midrule
+        \textbf{Interface} \newline (Vue) & \texttt{NetworkObserver.java} & Découplage UI/Réseau (Pattern Observer). Notifie l'interface des changements d'état. \\
+        \midrule
+        \textbf{Réseau} \newline (Utilitaire) & \texttt{PacketParser.java} & Interprétation du protocole textuel. Assure la désérialisation des trames brutes en structures Clé/Valeur. \\
+        \bottomrule
+    \end{tabular}
+    \caption{Architecture de la fonctionnalité Réseau}
+\end{table}
+
+\subsection{Scénario utilisateur}
+
+\begin{enumerate}
+    \item \textbf{L'utilisateur A (Hôte)} démarre le serveur de jeu depuis l'interface graphique. Le \texttt{NetworkManager} initialise le \texttt{GameServer}.
+    \vspace{1mm}
+    \item \textbf{L'utilisateur B} rejoint le serveur en saisissant l'adresse IP. Son \texttt{GameClient} établit la liaison avec le \texttt{ClientHandler} dédié.
+    \vspace{1mm}
+    \item \textbf{L'hôte} consulte la liste des joueurs connectés, sélectionne l'utilisateur B et clique sur "Inviter" (envoi d'une commande \texttt{new}).
+    \vspace{1mm}
+    \item \textbf{L'utilisateur B} reçoit une boîte de dialogue d'invitation et clique sur Accepter.
+    \vspace{1mm}
+    \item \textbf{Le serveur} instancie \texttt{OnlineGame}. Les interfaces graphiques basculent automatiquement sur la vue du plateau (\texttt{GAME\_START}).
+    \vspace{1mm}
+    \item \textbf{L'utilisateur A} joue un mot. Le GUI transmet l'action au \texttt{NetworkManager}, qui sérialise le coup en une trame \texttt{MOVE} envoyée au serveur.
+    \vspace{1mm}
+    \item \textbf{Le serveur} valide le coup. Il diffuse les données publiques (\texttt{OPPONENT\_MOVE}) aux deux clients, et le nouveau chevalet privé (\texttt{SET\_RACK}) au joueur A.
+    \vspace{1mm}
+    \item \textbf{Les interfaces graphiques} reçoivent la notification via leur \texttt{NetworkObserver} et se rafraîchissent pour afficher le nouvel état global de la partie.
+\end{enumerate}
+
+\begin{tcolorbox}[colback=blue!5!white,colframe=blue!75!black,title=Stratégie de validation]
+\textbf{Validation du scénario :} L'intégralité de ce scénario utilisateur (de la connexion des clients jusqu'au rafraîchissement de l'interface après un coup) est automatisée et validée par le test d'intégration \texttt{testRealMultiplayerInteraction()} présent dans la classe \texttt{ClientServerTest.java}.
+\end{tcolorbox}
+
+
+%------------------------------------------------------------------------------
+%	BILAN CRITIQUE
+%------------------------------------------------------------------------------
+
 	
 	\section{Bilan critique}
 	
@@ -1122,7 +1359,6 @@ processLineComments(String line)
 		\item \textbf{Approche Monte-Carlo (Minimax / Expectiminimax) :} Nos mesures empiriques ont prouvé que la complexité temporelle de ces algorithmes provoque un goulot d'étranglement majeur. L'absence de techniques d'élagage (comme l'Alpha-Beta) oblige le moteur à interrompre la recherche via un \textit{timeout} (5 secondes) avant d'avoir pu explorer l'arbre de profondeur 2 de manière exhaustive.
 		\item \textbf{Le Machine Learning (TensorFlow) :} L'approche offre des performances foudroyantes en temps d'inférence pour trouver des anagrammes. Cependant, l'architecture de notre tenseur d'entrée limite la vision du réseau neuronal au seul chevalet du joueur. Sans connaissance de la topologie du plateau, ce modèle est incapable de jouer de manière autonome.
 	\end{itemize}
-
 
 %------------------------------------------------------------------------------
 %	BIBLIOGRAPHY

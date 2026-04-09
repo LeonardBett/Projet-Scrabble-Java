@@ -66,7 +66,7 @@ public class OnlineGame {
   // SERVERGAME LIFECYCLE METHODS
 
   /** Terminates the finished game, notifies players and cleans up server references. */
-  public void finishGame() {
+  public synchronized void finishGame() {
     // We build the packet message with all players scores
     StringBuilder sb = new StringBuilder("GAME_ENDED:");
     List<Player> players = game.getPlayers();
@@ -109,7 +109,7 @@ public class OnlineGame {
    *
    * @param reason The reason why the game is ending (e.g., "A player disconnected")
    */
-  public void interruptGame(String reason) {
+  public synchronized void interruptGame(String reason) {
     // Reset player status so they can play again
     for (ClientHandler handler : handlers) {
       handler.getClientInfo().setStatus(PlayerStatus.IDLE);
