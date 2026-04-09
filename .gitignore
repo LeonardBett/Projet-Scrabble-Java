@@ -9,6 +9,8 @@
 **.synctex.gz
 **.bbl
 **.blg
+**.latexmkrc
+
 
 # exclude java generated files
 **.class
