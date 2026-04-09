@@ -93,7 +93,8 @@ public class CliNetworkBridge implements NetworkObserver {
 
   @Override
   public void messageUpdate(String message) {
-    cliView.displayMessage(I18n.translate("cli.network.event.serverMessage", message));
+    cliView.displayMessage(
+        I18n.translate("cli.network.event.serverMessage", I18n.translate(message)));
   }
 
   @Override
@@ -113,7 +114,8 @@ public class CliNetworkBridge implements NetworkObserver {
 
   @Override
   public void invitationCancelledUpdate(String reason) {
-    cliView.displayMessage(I18n.translate("cli.network.event.invitationCancelled", reason));
+    cliView.displayMessage(
+        I18n.translate("cli.network.event.invitationCancelled", I18n.translate(reason)));
   }
 
   @Override
@@ -129,26 +131,30 @@ public class CliNetworkBridge implements NetworkObserver {
 
   @Override
   public void clientDisconnectedUpdate(String reason) {
-    cliView.displayError(I18n.translate("cli.network.event.clientDisconnected", reason));
+    cliView.displayError(
+        I18n.translate("cli.network.event.clientDisconnected", I18n.translate(reason)));
   }
 
   @Override
   public void gameInterruptedUpdate(String reason) {
-    cliView.displayError(I18n.translate("cli.network.event.gameInterrupted", reason));
+    cliView.displayError(
+        I18n.translate("cli.network.event.gameInterrupted", I18n.translate(reason)));
   }
 
   @Override
   public void connectionFailedUpdate(String reason) {
-    cliView.displayError(I18n.translate("cli.network.event.connectionFailed", reason));
+    cliView.displayError(
+        I18n.translate("cli.network.event.connectionFailed", I18n.translate(reason)));
   }
 
   @Override
   public void invitationFailedUpdate(String reason) {
-    cliView.displayError(I18n.translate("cli.network.event.invitationFailed", reason));
+    cliView.displayError(
+        I18n.translate("cli.network.event.invitationFailed", I18n.translate(reason)));
   }
 
   @Override
   public void moveRefusedUpdate(String reason) {
-    cliView.displayError(I18n.translate("cli.network.event.moveRefused", reason));
+    cliView.displayError(I18n.translate("cli.network.event.moveRefused", I18n.translate(reason)));
   }
 }
