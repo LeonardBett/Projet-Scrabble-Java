@@ -131,6 +131,7 @@ public class CliNetworkBridge implements NetworkObserver {
 
   @Override
   public void clientDisconnectedUpdate(String reason) {
+    networkManager.quit();
     cliView.displayError(
         I18n.translate("cli.network.event.clientDisconnected", I18n.translate(reason)));
   }

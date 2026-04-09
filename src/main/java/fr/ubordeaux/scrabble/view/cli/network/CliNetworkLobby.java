@@ -220,10 +220,13 @@ public class CliNetworkLobby {
           continue;
         }
 
-        if ("hint".equals(normalized) || "undo".equals(normalized)
-            || "redo".equals(normalized) || normalized.startsWith("set ")
+        if ("hint".equals(normalized)
+            || "undo".equals(normalized)
+            || "redo".equals(normalized)
+            || normalized.startsWith("set ")
             || normalized.startsWith("save ")
-            || normalized.startsWith("load ") || "pause".equals(normalized)) {
+            || normalized.startsWith("load ")
+            || "pause".equals(normalized)) {
           cliView.displayError(I18n.translate("cli.network.commandNotSupported", normalized));
           continue;
         }
@@ -232,8 +235,7 @@ public class CliNetworkLobby {
           continue;
         }
 
-        if ("quit".equals(normalized)
-            || "menu".equals(normalized) || "exit".equals(normalized)) {
+        if ("quit".equals(normalized) || "menu".equals(normalized) || "exit".equals(normalized)) {
           cliView.displayMessage(I18n.translate("cli.network.leftLobby"));
           networkManager.stopOnlinePlay();
           return;
@@ -276,66 +278,18 @@ public class CliNetworkLobby {
 
     if (networkManager.serverStart(port)) {
       cliView.displayMessage(I18n.translate("cli.network.serverStartedSuccess", port));
-      networkManager.join(NetworkManager.DEFAULT_ADDRESS, port);
-      cliView.displayMessage(I18n.translate("cli.network.hostAutoJoined", port));
-      cliView.displayMessage(I18n.translate("cli.network.serverHostTip", port));
     } else {
       cliView.displayError(I18n.translate("cli.network.serverStartFailed"));
     }
   }
 
   private void joinServer() {
-    cliView.displayMessage("\n" + I18n.translate("cli.network.discoveringServers"));
-
-    try {
-      Thread.sleep(2000);
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
+    if (networkManager.join("localhost")) {
+      cliView.displayMessage(I18n.translate("cli.network.joinedServer"));
     }
-
-    List<ServerInfo> servers = networkManager.serverList();
-    if (servers.isEmpty()) {
-      cliView.displayMessage(I18n.translate("cli.network.noServersFound"));
-      return;
-    }
-
-    cliView.displayMessage(I18n.translate("cli.network.availableServers"));
-    for (int i = 0; i < servers.size(); i++) {
-      ServerInfo server = servers.get(i);
-      cliView.displayMessage(
-          String.format("%d. %s (%s:%d)", i + 1, server.getName(),
-              server.getIp(), server.getPort()));
-    }
-
-    System.out.print("\n" + I18n.translate("cli.network.selectServer"));
-    String rawChoice = inputHandler.askAction().trim();
-    Integer selectedIndex = parseTrailingInt(rawChoice);
-
-    if (selectedIndex == null) {
-      cliView.displayError(I18n.translate("cli.network.invalidInput"));
-      return;
-    }
-
-    int index = selectedIndex - 1;
-    if (index < 0 || index >= servers.size()) {
-      cliView.displayError(I18n.translate("cli.network.invalidSelection"));
-      return;
-    }
-
-    ServerInfo selected = servers.get(index);
-    networkManager.join(selected.getIp(), selected.getPort());
-    cliView.displayMessage(I18n.translate("cli.network.joinedServer"));
   }
 
   private void listServers() {
-    cliView.displayMessage("\n" + I18n.translate("cli.network.discoveringServers"));
-
-    try {
-      Thread.sleep(2000);
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-    }
-
     List<ServerInfo> servers = networkManager.serverList();
     if (servers.isEmpty()) {
       cliView.displayMessage(I18n.translate("cli.network.noServersFound"));
@@ -346,8 +300,8 @@ public class CliNetworkLobby {
     for (int i = 0; i < servers.size(); i++) {
       ServerInfo server = servers.get(i);
       cliView.displayMessage(
-          String.format("%d. %s (%s:%d)", i + 1, server.getName(),
-              server.getIp(), server.getPort()));
+          String.format(
+              "%d. %s (%s:%d)", i + 1, server.getName(), server.getIp(), server.getPort()));
     }
   }
 
@@ -457,16 +411,17 @@ public class CliNetworkLobby {
   }
 
   private void showConfiguration(Game game) {
-    String config = I18n.translate(
-        "cli.shell.config",
-        game.getLanguage(),
-        game.getPlayers().size(),
-        game.isBlitzModeEnabled(),
-        0,
-        false,
-        false,
-        GameLogger.isDebug(),
-        GameLogger.isVerbose());
+    String config =
+        I18n.translate(
+            "cli.shell.config",
+            game.getLanguage(),
+            game.getPlayers().size(),
+            game.isBlitzModeEnabled(),
+            0,
+            false,
+            false,
+            GameLogger.isDebug(),
+            GameLogger.isVerbose());
     cliView.displayMessage(config);
   }
 
@@ -476,14 +431,18 @@ public class CliNetworkLobby {
       case PASS:
         return playerName + " " + I18n.translate("cli.shell.history.pass");
       case EXCHANGE:
-        return playerName + " " + I18n.translate("cli.shell.history.exchange") + " "
+        return playerName
+            + " "
+            + I18n.translate("cli.shell.history.exchange")
+            + " "
             + tilesToText(move);
       case PLAY:
         Point start = move.getStartPosition();
         String coord = start == null ? "?" : toCoord(start);
-        String direction = move.getDirection() == null
-            ? "?"
-            : (move.getDirection().name().startsWith("H") ? "h" : "v");
+        String direction =
+            move.getDirection() == null
+                ? "?"
+                : (move.getDirection().name().startsWith("H") ? "h" : "v");
         return playerName + " " + coord + direction + " " + tilesToText(move);
       default:
         return playerName + " <unknown move>";
