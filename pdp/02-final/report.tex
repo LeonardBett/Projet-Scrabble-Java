@@ -213,7 +213,7 @@
 
     Historiquement conçu pour des jeux à information parfaite et à somme nulle comme les Échecs, l'algorithme Minimax modélise l'arbre des coups possibles en alternant un tour où l'IA cherche à maximiser son score, et un tour où elle simule un adversaire cherchant à minimiser l'avantage de l'IA.
 
-    Pour adapter cet algorithme au Scrabble, notre implémentation déduit d'abord les tuiles restantes, à savoir toutes les tuiles moins celles présentes sur le plateau et dans le chevalet de l'IA. Ensuite, le solveur utilise une méthode de Monte-Carlo\cite{ibm_monte_carlo} : il simule l'adversaire en tirant aléatoirement 200 chevalets virtuels de 7 lettres parmi ces tuiles restantes. Le Minimax évalue alors le pire scénario possible.
+    Pour adapter cet algorithme au Scrabble, notre implémentation déduit d'abord les tuiles restantes, à savoir toutes les tuiles moins celles présentes sur le plateau et dans le chevalet de l'IA. Ensuite, le solveur utilise une méthode de Monte-Carlo\cite{harrison2010introduction} : il simule l'adversaire en tirant aléatoirement 200 chevalets virtuels de 7 lettres parmi ces tuiles restantes. Le Minimax évalue alors le pire scénario possible.
 
     Voici comment cette logique pessimiste se traduit dans l'implémentation de notre \texttt{MinimaxSolver} :
 
@@ -376,16 +376,16 @@
         \renewcommand{\arraystretch}{1.2}
         \begin{tabular}{@{}lccccc@{}}
             \toprule
-            \textbf{Algorithme} & \textbf{Temps} & \textbf{Statut} & \textbf{Coups IA Évalués} & \textbf{Simulations Adv.} & \textbf{Moy. Sim/Coup} \\
+            \textbf{Algorithme} & \textbf{Temps} & \textbf{Statut} & \textbf{Coups IA Évalués} & \textbf{Simulations Adv.} & \textbf{Moy. Sim/Coup} & \textbf{Tour de jeu} \\
             \midrule
-            Expectiminimax & 5000 ms & Timeout & 48 sur 84 (57\%) & 9 497 & 197 \\
-            Expectiminimax & 3575 ms & Complet & 33 sur 33 (100\%) & 6 600 & 200 \\
-            Minimax        & 5001 ms & Timeout & 24 sur 58 (41\%) & 4 680 & 195 \\
-            Minimax        & 5001 ms & Timeout & 17 sur 41 (41\%) & 3 294 & 193 \\
-            Minimax        & 2801 ms & Complet & 10 sur 10 (100\%) & 2 000 & 200 \\
+            Expectiminimax & 5000 ms & Timeout & 48 sur 84 (57\%) & 9 497 & 197 & 1er tour \\
+            Expectiminimax & 3575 ms & Complet & 33 sur 33 (100\%) & 6 600 & 200 & 2ème tour \\
+            Minimax        & 5001 ms & Timeout & 24 sur 58 (41\%) & 4 680 & 195 & 1er tour\\
+            Minimax        & 5001 ms & Timeout & 17 sur 41 (41\%) & 3 294 & 193 & 2ème tour \\
+            Minimax        & 2801 ms & Complet & 10 sur 10 (100\%) & 2 000 & 200 & 3ème tour \\
             \bottomrule
         \end{tabular}
-        \caption{Nos résultats expérimentaux (Profondeur 2, SAMPLES\_COUNT = 200)}
+        \caption{Résultats expérimentaux durant une partie(Profondeur 2, SAMPLES\_COUNT = 200)}
         \label{tab:metrics}
     \end{table}
 
@@ -395,11 +395,11 @@
 
     \begin{itemize}
         \item \textbf{La limite du facteur de branchement :} Nos données prouvent que la capacité de l'IA à évaluer l'arbre complet dépend entièrement de la complexité du plateau à l'instant T. Lorsque le nombre de mots possibles est faible (ex: 10 ou 33 coups), le moteur termine son parcours de Profondeur 2 confortablement avant le temps limite (2.8s et 3.5s). À l'inverse, dès que les choix s'élargissent, l'IA est systématiquement bridée.
-        \item \textbf{Le coût de l'aveuglement temporel :} Dans le pire scénario que nous avons mesuré (17 coups évalués sur 41), le \textit{Timeout} force l'IA à jouer en ignorant totalement 59\% des opportunités légales, l'empêchant potentiellement de trouver le mot optimal.
+        \item \textbf{Le coût temporel :} Dans le pire scénario que nous avons mesuré (17 coups évalués sur 41), le \textit{Timeout} force l'IA à jouer en ignorant totalement 59\% des opportunités légales, l'empêchant potentiellement de trouver le mot optimal.
         \item \textbf{L'efficacité de notre coupe-circuit :} Notre moteur est capable de simuler un volume massif de plateaux adverses (jusqu'à 9 497 en 5 secondes). Lorsque le \textit{Timeout} est déclenché, la moyenne des simulations tombe légèrement sous la barre des 200. Cela démontre que notre algorithme d'interruption fonctionne avec précision : il avorte la boucle interne de Monte-Carlo au milieu de l'évaluation pour garantir la fluidité du jeu en temps réel.
     \end{itemize}
 
-    Ces mesures empiriques que nous avons relevées confirment notre conclusion théorique : bien que la Profondeur 2 soit mathématiquement atteinte, l'absence d'élagage dans notre approche de Monte-Carlo bride physiquement la rentabilité de l'arbre dès que le facteur de branchement dépasse la trentaine de mots candidats.
+    Ces mesures que nous avons relevées confirment notre théorie : bien que la Profondeur 2 soit mathématiquement atteinte, l'absence d'élagage dans notre approche de Monte-Carlo bride physiquement la rentabilité de l'arbre dès que le facteur de branchement dépasse la trentaine de mots candidats.
 
     \subsection{Le Machine Learning}
 

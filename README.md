@@ -94,6 +94,15 @@ Behavior details that matter in practice:
 - `-a` defaults to `RED` when no color is provided.
 - `-p` accepts only 2, 3, or 4 players.
 
+### Playing a Joker in CLI
+
+When entering a move in the CLI, you must differentiate between regular tiles and Joker (blank) tiles:
+- Type regular tiles in **uppercase**.
+- Type the letter representing the Joker in **lowercase**.
+
+For example, to play the word "DOG" using a Joker for the letter 'G', you would type:
+`DOg`
+
 ## CLI Commands
 
 Once a game is running in the terminal, the shell accepts these commands:
