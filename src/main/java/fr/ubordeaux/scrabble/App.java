@@ -26,6 +26,14 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Scanner;
 import java.util.function.BooleanSupplier;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.MissingArgumentException;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.UnrecognizedOptionException;
 
 /**
  * Main entry point of the application. Parses command-line arguments and launches the appropriate
@@ -198,6 +206,7 @@ public class App {
    *
    * @param args Application command-line arguments.
    */
+  @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
   public static void main(String[] args) {
     // Load configuration (user/home/.scrabblerc) (f2)
     ConfigLoader configLoader = new ConfigLoader();
@@ -209,9 +218,44 @@ public class App {
     // Set language
     I18n.setLanguage(lang);
 
-    // Load the parameters from the config file
+    // Load the logging defaults from config before parsing CLI options.
     GameLogger.setVerbose(Boolean.parseBoolean(configLoader.getOption("verbose", "false")));
     GameLogger.setDebug(Boolean.parseBoolean(configLoader.getOption("debug", "false")));
+
+    Options options = buildCliOptions();
+    CommandLine parsed;
+    try {
+      CommandLineParser parser = new DefaultParser(false);
+      parsed = parser.parse(options, args);
+    } catch (MissingArgumentException e) {
+      Option missing = e.getOption();
+      String missingOpt = missing == null ? "" : missing.getOpt();
+      if ("p".equals(missingOpt)) {
+        System.err.println(I18n.translate("app.err.missingPlayers"));
+      } else if ("D".equals(missingOpt)) {
+        System.err.println("Missing value for dictionary path.");
+      } else if ("c".equals(missingOpt)) {
+        System.err.println("Missing file path for contest mode.");
+      } else if ("S".equals(missingOpt)) {
+        System.err.println("-S / --server : Missing port argument.");
+      } else {
+        System.err.println(I18n.translate("app.err.helpHint"));
+      }
+      exitHandler.exit(1);
+      return;
+    } catch (UnrecognizedOptionException e) {
+      System.err.println(I18n.translate("app.err.unknownOption", e.getOption()));
+      System.err.println(I18n.translate("app.err.helpHint"));
+      HelpPrinter.printHelp();
+      exitHandler.exit(1);
+      return;
+    } catch (ParseException e) {
+      System.err.println(I18n.translate("app.err.helpHint"));
+      HelpPrinter.printHelp();
+      exitHandler.exit(1);
+      return;
+    }
+
     int players = parseConfigInt(configLoader, "players-count", OptionPlayer.DEFAULT);
     boolean guiMode = Boolean.parseBoolean(configLoader.getOption("gui", "false"));
     boolean superMode = Boolean.parseBoolean(configLoader.getOption("super-scrabble",
@@ -226,155 +270,113 @@ public class App {
     boolean contestMode = false;
     String contestFilePath = null;
     String customDictionaryPath = null;
+    boolean startServer = false;
+    boolean daemonMode = false;
+    int serverPort = NetworkManager.DEFAULT_TCP_PORT;
 
-    // Network arguments
-    boolean startServer = false; // Server mode
-    boolean daemonMode = false; // Headless mode
-    int serverPort =
-        NetworkManager.DEFAULT_TCP_PORT; // Server port, default value for headless start
-    boolean helpRequested = false;
+    if (parsed.hasOption("h")) {
+      HelpPrinter.printHelp();
+      return;
+    }
+    if (parsed.hasOption("list-languages")) {
+      printSupportedLanguages();
+      return;
+    }
+    if (parsed.hasOption("V")) {
+      HelpPrinter.printVersion();
+      return;
+    }
 
-    // List to store the colors of players that should be controlled by AI
-    List<String> aiColors = new ArrayList<>();
+    guiMode = guiMode || parsed.hasOption("g");
+    superMode = superMode || parsed.hasOption("s");
+    blitzMode = blitzMode || parsed.hasOption("b");
+    useExptiminimax = useExptiminimax || parsed.hasOption("ai-exptiminimax");
+    useMl = useMl || parsed.hasOption("ai-ml");
+    daemonMode = daemonMode || parsed.hasOption("daemon");
+    if (parsed.hasOption("daemon")) {
+      startServer = true;
+    }
+    if (parsed.hasOption("v")) {
+      GameLogger.setVerbose(true);
+    }
+    if (parsed.hasOption("d")) {
+      GameLogger.setDebug(true);
+    }
 
-    for (int i = 0; i < args.length; i++) {
-      switch (args[i]) {
-        case "-h", "--help" -> {
-          HelpPrinter.printHelp();
-          return;
-        }
-        case "--list-languages" -> {
-          printSupportedLanguages();
-          return;
-        }
-        case "-V", "--version" -> {
-          HelpPrinter.printVersion();
-          return;
-        }
-        case "-g", "--gui" -> guiMode = true;
-        case "-s", "--super" -> superMode = true;
-        case "-b", "--blitz" -> blitzMode = true;
-        case "-t", "--time" -> {
-          timeOptionProvided = true;
-          if (i + 1 >= args.length) {
-            System.err.println("Missing value for blitz time. Using default of 30 minutes.");
-          } else {
-            try {
-              blitzMinutes = parseCliInt(args[++i], "--time", 30);
-            } catch (NumberFormatException e) {
-              System.err.println("Invalid blitz time. Using default of 30 minutes.");
-            }
-          }
-        }
-        case "-ai-exptiminimax", "--ai-exptiminimax" -> useExptiminimax = true;
-        case "-c", "--contest" -> {
-          contestMode = true;
-          if (i + 1 >= args.length || args[i + 1].startsWith("-")) {
-            System.err.println("Missing file path for contest mode.");
-            exitHandler.exit(1);
-            return;
-          }
-          contestFilePath = args[++i];
-        }
-        case "-v", "--verbose" -> GameLogger.setVerbose(true);
-        case "-d", "--debug" -> GameLogger.setDebug(true);
-        case "--ai-ml" -> useMl = true;
-        case "-a", "--ai" -> {
-          if (i + 1 < args.length && !args[i + 1].startsWith("-")) {
-            aiColors.add(args[++i].toUpperCase());
-          } else {
-            aiColors.add("RED");
-          }
-        }
-        case "-p", "--players" -> {
-          if (i + 1 >= args.length) {
-            System.err.println(I18n.translate("app.err.missingPlayers"));
-            exitHandler.exit(1);
-            return;
-          }
-          players = OptionPlayer.parsePlayers(args[++i]);
-        }
-        case "-l", "--lang", "--language" -> {
-          if (i + 1 >= args.length) {
-            System.err.println(I18n.translate("app.warn.missingLanguageValue"));
-          } else {
-            lang = normalizeLanguageOrDefault(args[++i]);
-            I18n.setLanguage(lang);
-          }
-        }
-        case "-D", "--dictionary" -> {
-          if (i + 1 >= args.length || args[i + 1].startsWith("-")) {
-            System.err.println("Missing value for dictionary path.");
-            exitHandler.exit(1);
-            return;
-          }
-          customDictionaryPath = args[++i];
-        }
-        case "-ai-time", "--ai-time" -> {
-          if (i + 1 >= args.length) {
-            System.err.println("Missing value for AI time. Using default of 5 seconds.");
-          } else {
-            try {
-              aiTime = parseCliInt(args[++i], "--ai-time", 5);
-            } catch (NumberFormatException e) {
-              System.err.println("Invalid AI time. Using default of 5 seconds.");
-            }
-          }
-        }
+    if (parsed.hasOption("p")) {
+      players = OptionPlayer.parsePlayers(parsed.getOptionValue("p"));
+    }
 
-        // Upper S because there is already an -s option in the specifications
-        case "-S", "--server" -> {
-          startServer = true;
-          // We check that the next argument is a valid port number
-          if (i + 1 < args.length && !args[i + 1].startsWith("-")) {
-            try {
-              serverPort = Integer.parseInt(args[++i]);
-              if (serverPort < 0 || serverPort > 65535) {
-                System.err.println("-S / --server : The port number must be between 0 and 65535.");
-                exitHandler.exit(1);
-                return;
-              }
-            } catch (NumberFormatException e) {
-              System.err.println("-S / --server : Invalid port argument.");
-              exitHandler.exit(1);
-              return;
-            }
-          } else {
-            System.err.println("-S / --server : Missing port argument.");
-            exitHandler.exit(1);
-            return;
-          }
-        }
-
-        case "--daemon" -> {
-          daemonMode = true;
-          startServer = true;
-        }
-
-        default -> {
-          // Accept a single positional argument as save file path.
-          if (args.length == 1 && !args[i].startsWith("-")) {
-            continue;
-          }
-          System.err.println(I18n.translate("app.err.unknownOption", args[i]));
-          System.err.println(I18n.translate("app.err.helpHint"));
-          HelpPrinter.printHelp();
-          exitHandler.exit(1);
-          return;
-        }
+    if (parsed.hasOption("l") || parsed.hasOption("language")) {
+      String languageValue = parsed.hasOption("l")
+          ? parsed.getOptionValue("l")
+          : parsed.getOptionValue("language");
+      if (languageValue == null || languageValue.isBlank()) {
+        System.err.println(I18n.translate("app.warn.missingLanguageValue"));
+      } else {
+        lang = normalizeLanguageOrDefault(languageValue);
+        I18n.setLanguage(lang);
       }
     }
 
-    if (helpRequested) {
-      HelpPrinter.printHelp();
-      HelpLaunchRequest request = promptLaunchRequestAfterHelp();
-      if (request.mode == HelpLaunchMode.NONE) {
+    if (parsed.hasOption("t")) {
+      timeOptionProvided = true;
+      String timeValue = parsed.getOptionValue("t");
+      if (timeValue == null || timeValue.isBlank()) {
+        System.err.println("Missing value for blitz time. Using default of 30 minutes.");
+      } else {
+        blitzMinutes = parseCliInt(timeValue, "--time", 30);
+      }
+    }
+
+    if (parsed.hasOption("ai-time")) {
+      String aiTimeValue = parsed.getOptionValue("ai-time");
+      if (aiTimeValue == null || aiTimeValue.isBlank()) {
+        System.err.println("Missing value for AI time. Using default of 5 seconds.");
+      } else {
+        aiTime = parseCliInt(aiTimeValue, "--ai-time", 5);
+      }
+    }
+
+    if (parsed.hasOption("D")) {
+      customDictionaryPath = parsed.getOptionValue("D");
+    }
+
+    if (parsed.hasOption("c")) {
+      contestMode = true;
+      contestFilePath = parsed.getOptionValue("c");
+    }
+
+    if (parsed.hasOption("S")) {
+      startServer = true;
+      String portValue = parsed.getOptionValue("S");
+      try {
+        serverPort = Integer.parseInt(portValue);
+      } catch (NumberFormatException e) {
+        System.err.println("-S / --server : Invalid port argument.");
+        exitHandler.exit(1);
         return;
       }
-      if (request.mode == HelpLaunchMode.SHORTCUT) {
-        guiMode = request.shortcut == HelpLaunchChoice.GUI;
+
+      if (serverPort < 0 || serverPort > 65535) {
+        System.err.println("-S / --server : The port number must be between 0 and 65535.");
+        exitHandler.exit(1);
+        return;
+      }
+    }
+
+    List<String> aiColors = parseAiColorsFromArgs(args);
+
+    List<String> positionalArgs = parsed.getArgList();
+    String saveFilePath = null;
+    if (!positionalArgs.isEmpty()) {
+      if (positionalArgs.size() == 1 && args.length == 1 && !args[0].startsWith("-")) {
+        saveFilePath = positionalArgs.get(0);
       } else {
-        main(request.args);
+        System.err.println(I18n.translate("app.err.unknownOption", positionalArgs.get(0)));
+        System.err.println(I18n.translate("app.err.helpHint"));
+        HelpPrinter.printHelp();
+        exitHandler.exit(1);
         return;
       }
     }
@@ -427,8 +429,6 @@ public class App {
     if (mode == null) {
       throw new IllegalStateException("Game mode should never be null.");
     }
-
-    String saveFilePath = (args.length == 1 && !args[0].startsWith("-")) ? args[0] : null;
 
     if (guiMode) {
       launchGui(
@@ -684,5 +684,47 @@ public class App {
           + optionName + ". Using default " + fallback + ".");
       return fallback;
     }
+  }
+
+  private static Options buildCliOptions() {
+    Options options = new Options();
+
+    options.addOption(Option.builder("h").longOpt("help").build());
+    options.addOption(Option.builder("V").longOpt("version").build());
+    options.addOption(Option.builder().longOpt("list-languages").build());
+    options.addOption(Option.builder("g").longOpt("gui").build());
+    options.addOption(Option.builder("s").longOpt("super").build());
+    options.addOption(Option.builder("b").longOpt("blitz").build());
+    options.addOption(Option.builder("t").longOpt("time").hasArg().optionalArg(true).build());
+    options.addOption(Option.builder("ai-exptiminimax").longOpt("ai-exptiminimax").build());
+    options.addOption(Option.builder("c").longOpt("contest").hasArg().build());
+    options.addOption(Option.builder("v").longOpt("verbose").build());
+    options.addOption(Option.builder("d").longOpt("debug").build());
+    options.addOption(Option.builder().longOpt("ai-ml").build());
+    options.addOption(Option.builder("a").longOpt("ai").hasArg().optionalArg(true).build());
+    options.addOption(Option.builder("p").longOpt("players").hasArg().build());
+    options.addOption(Option.builder("l").longOpt("lang").hasArg().optionalArg(true).build());
+    options.addOption(Option.builder().longOpt("language").hasArg().optionalArg(true).build());
+    options.addOption(Option.builder("D").longOpt("dictionary").hasArg().build());
+    options.addOption(Option.builder("ai-time").longOpt("ai-time").hasArg().optionalArg(true)
+        .build());
+    options.addOption(Option.builder("S").longOpt("server").hasArg().build());
+    options.addOption(Option.builder().longOpt("daemon").build());
+
+    return options;
+  }
+
+  private static List<String> parseAiColorsFromArgs(String[] args) {
+    List<String> aiColors = new ArrayList<>();
+    for (int i = 0; i < args.length; i++) {
+      if ("-a".equals(args[i]) || "--ai".equals(args[i])) {
+        if (i + 1 < args.length && !args[i + 1].startsWith("-")) {
+          aiColors.add(args[++i].toUpperCase());
+        } else {
+          aiColors.add("RED");
+        }
+      }
+    }
+    return aiColors;
   }
 }
