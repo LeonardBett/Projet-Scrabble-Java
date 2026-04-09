@@ -599,7 +599,7 @@ public class GameClient {
    * @param tile the letters forming the word being played
    */
   public void sendPlayMove(int x, int y, String direction, String tile) {
-    // Format: MOVE:TYPE=PLAY;X=7;Y=7;DIR=H;WORD=CHAT
+    // Format: MOVE:TYPE=PLAY;X=7;Y=7;DIR=H;TILES=CHAT
     String message =
         String.format("MOVE:TYPE=PLAY;X=%d;Y=%d;DIR=%s;TILES=%s", x, y, direction, tile);
     sendMessage(message);
