@@ -14,29 +14,46 @@ Scrabble U-Bordeaux is a Java 21 project that implements the Scrabble game in CL
 The repository ships with a wrapper script that builds and launches the application:
 
 ```bash
-./run.sh
+./scrabble
 ```
 
 Examples:
 
 ```bash
-./run.sh --gui
-./run.sh -l fr
-./run.sh --super --blitz -t 20
+./scrabble --gui
+./scrabble -l fr
+./scrabble --super --blitz -t 20
 ```
 
 Notes:
 
-- `./run.sh` builds the project with Maven before launching it.
-- The wrapper consumes `-v` for its own Maven output. If you want the application verbose flag, use `--verbose`.
+- `./scrabble` builds the project with Maven (without tests) before launching it.
+- Command-line options are forwarded directly to the application, including `-v` and `--verbose`.
 - A single positional argument is treated as a save file to load at startup.
 
-If you prefer to call Maven directly:
+## Maven Test Modes
+
+The project defines two ways to run tests with Maven:
+
+1. Quick tests (default profile):
 
 ```bash
-mvn clean compile
-mvn exec:java -Dexec.mainClass="fr.ubordeaux.scrabble.App" -Dexec.args="--gui"
+mvn clean package
 ```
+
+This runs the default `quick-tests` profile (faster feedback, excludes heavy GUI/network suites).
+
+2. Full test suite (all tests):
+
+```bash
+mvn clean -Pfull-tests package
+```
+
+Use this command when you want exhaustive validation before merging/releasing.
+
+Note: Maven profiles use `-P` (uppercase), not `-p`.
+
+
 
 ## Main Features
 
@@ -56,8 +73,8 @@ mvn exec:java -Dexec.mainClass="fr.ubordeaux.scrabble.App" -Dexec.args="--gui"
 Use `-s` or `--super` to start a game on a 21x21 board. The standard mode remains 15x15.
 
 ```bash
-./run.sh --super
-./run.sh -s
+./scrabble --super
+./scrabble -s
 ```
 
 ## Command-Line Options
@@ -184,13 +201,13 @@ The network stack uses a client/server architecture with local discovery.
 Start a server from the command line:
 
 ```bash
-./run.sh -S 12345
+./scrabble -S 12345
 ```
 
 Add `--daemon` to run the server in headless mode:
 
 ```bash
-./run.sh -S 12345 --daemon
+./scrabble -S 12345 --daemon
 ```
 
 You can also reach the network lobby from the GUI, where the multiplayer menu lets you manage the same host flow.
@@ -243,10 +260,10 @@ source scripts/setup-completion.sh
 2. Then use TAB on the launcher options:
 
 ```bash
-./run.sh --<TAB>
-./run.sh -p <TAB>
-./run.sh -l <TAB>
-./run.sh -ai-time <TAB>
+./scrabble --<TAB>
+./scrabble -p <TAB>
+./scrabble -l <TAB>
+./scrabble -ai-time <TAB>
 ```
 
 At first launch, the launcher can also propose installing completion persistence automatically. For immediate activation in the current terminal, use `source scripts/setup-completion.sh`.
@@ -256,5 +273,5 @@ At first launch, the launcher can also propose installing completion persistence
 - The default language is derived from the environment when possible.
 - The dictionaries used by the standard game are loaded from the bundled resources.
 - Contest mode loads a saved game, computes playable words, and prints the best scoring move or `pass` if no move exists.
-- `./run.sh` is a convenience wrapper around Maven; it is not the application itself.
+- `./scrabble` is the recommended launcher script and forwards options to `fr.ubordeaux.scrabble.App`.
 - The GUI configuration editor is a placeholder in the current implementation.
