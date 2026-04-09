@@ -1,5 +1,7 @@
 package fr.ubordeaux.scrabble.model.dictionary;
 
+import fr.ubordeaux.scrabble.model.core.Tile;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -49,4 +51,24 @@ public interface Dictionary {
    * @return A {@link Set} of valid uppercase words that can be formed.
    */
   Set<String> findWordsWithRackAndHook(Character[] rack, char hook);
+
+  /**
+   * Calculates the raw score of a word based solely on tile values,
+   * without applying any board bonuses (letter/word multipliers).
+   *
+   * @param tiles The tiles composing the word, in order.
+   * @return The raw score of the word.
+   */
+  default int calculateRawWordScore(List<Tile> tiles) {
+    if (tiles == null || tiles.isEmpty()) {
+      throw new IllegalArgumentException("Tiles list cannot be null or empty");
+    }
+
+    int score = 0;
+    for (Tile tile : tiles) {
+      score += tile.getValue();
+    }
+
+    return score;
+  }
 }
