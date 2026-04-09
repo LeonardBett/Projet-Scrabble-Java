@@ -231,6 +231,24 @@ class GameControllerTest {
   }
 
   @Test
+  void constructorShouldUseGameLanguageForDefaultDictionary() {
+    String previousDictionaryPath = System.getProperty("scrabble.dictionary.path");
+    try {
+      System.clearProperty("scrabble.dictionary.path");
+      Game game = new Game("fr");
+      GameController controller = new GameController(game, new RecordingView());
+
+      assertEquals("dictionaries/lexicon_fr.txt", controller.getDictionaryPathOverride());
+    } finally {
+      if (previousDictionaryPath == null) {
+        System.clearProperty("scrabble.dictionary.path");
+      } else {
+        System.setProperty("scrabble.dictionary.path", previousDictionaryPath);
+      }
+    }
+  }
+
+  @Test
   void runCliShouldRequireCliView() {
     Game game = new Game();
     game.addPlayer(new HumanPlayer("Alice", PlayerColor.BLUE));

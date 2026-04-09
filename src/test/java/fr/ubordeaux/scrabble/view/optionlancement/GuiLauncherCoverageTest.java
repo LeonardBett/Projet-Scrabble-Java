@@ -66,7 +66,8 @@ class GuiLauncherCoverageTest {
 
   @Test
   void createConfiguredGameShouldUseStandardModeWhenNullAndAllAiFlag() {
-    Game game = GuiLauncher.createConfiguredGame(null, 2, List.of("A"), false, 30, 4, false);
+    Game game = GuiLauncher.createConfiguredGame(null, 2, List.of("A"), false, 30, 4, false,
+        false);
 
     assertEquals(2, game.getPlayers().size());
     assertInstanceOf(AiPlayer.class, game.getPlayers().get(0));

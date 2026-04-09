@@ -203,7 +203,7 @@ class CliNetworkLobbyAndBridgeTest {
         "server start",
         "server start 12346",
         "server list",
-        "2", "1",
+        "join", "1",
         "join 127.0.0.1 23456",
         "join 127.0.0.1 bad",
         "players",
@@ -453,7 +453,7 @@ class CliNetworkLobbyAndBridgeTest {
     @Override
     public String askAction() {
       if (inputs.isEmpty()) {
-        return "3";
+        return "quit";
       }
       return inputs.removeFirst();
     }

@@ -390,6 +390,19 @@ class ScrabbleGuiInstanceTest {
   }
 
   @Test
+  void refreshAllAfterGameOverShouldMarkWinnerAnnouncementShown() {
+    game.getPlayers().get(0).addScore(5);
+    game.getPlayers().get(1).addScore(12);
+    game.setGameOver(true);
+
+    assertDoesNotThrow(() -> gui.refreshAll());
+    assertTrue((Boolean) getField(gui, "winnerAnnouncementShown"));
+
+    assertDoesNotThrow(() -> gui.refreshAll());
+    assertTrue((Boolean) getField(gui, "winnerAnnouncementShown"));
+  }
+
+  @Test
   void refreshRackAfterPlayerChanges() {
     assertDoesNotThrow(() -> gui.refreshRack());
   }

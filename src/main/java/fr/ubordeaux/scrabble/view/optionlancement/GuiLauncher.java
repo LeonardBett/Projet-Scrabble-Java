@@ -50,7 +50,7 @@ public class GuiLauncher {
   public static Game createConfiguredGame(int players, List<String> aiColors, boolean blitzMode,
       int blitzMinutes, int aiTime, boolean useExptiminimax) {
     return createConfiguredGame(GameMode.STANDARD, players, aiColors, blitzMode, blitzMinutes,
-        aiTime, useExptiminimax);
+        aiTime, useExptiminimax, false);
   }
 
   /**
@@ -63,10 +63,11 @@ public class GuiLauncher {
    * @param blitzMinutes time limit per player in minutes
    * @param aiTime AI thinking time in seconds
    * @param useExptiminimax true to enable the Expectiminimax algorithm
+   * @param useMl true to enable the Machine Learning agent
    * @return a configured game instance
    */
   public static Game createConfiguredGame(GameMode gameMode, int players, List<String> aiColors,
-      boolean blitzMode, int blitzMinutes, int aiTime, boolean useExptiminimax) {
+      boolean blitzMode, int blitzMinutes, int aiTime, boolean useExptiminimax, boolean useMl) {
     int count = players > 0 ? players : OptionPlayer.DEFAULT;
     Game game = new Game(gameMode == null ? GameMode.STANDARD : gameMode);
     if (blitzMode) {
@@ -117,7 +118,7 @@ public class GuiLauncher {
 
     GameMode gameMode = superScrabble ? GameMode.SUPER : GameMode.STANDARD;
     return createConfiguredGame(gameMode, players, new ArrayList<>(), blitzMode, blitzMinutes,
-        aiTime, useExptiminimax);
+        aiTime, useExptiminimax, false);
   }
 
   private static int readIntConfig(ConfigLoader config, String key, int fallback) {
@@ -180,13 +181,15 @@ public class GuiLauncher {
       }
     } else {
       game = createConfiguredGame(gameMode, players, aiColors, blitzMode, blitzMinutes, aiTime,
-          useExptiminimax);
+          useExptiminimax, useMl);
+      game.setLanguage(lang);
     }
 
     JavaFxView view = new JavaFxView(game);
     ScrabbleGui.setGame(game);
     ScrabbleGui.setView(view);
     ScrabbleGui.setLanguage(lang);
+    ScrabbleGui.setAiConfiguration(aiTime, useExptiminimax, useMl);
     launchHandler.launch(ScrabbleGui.class, args);
   }
 

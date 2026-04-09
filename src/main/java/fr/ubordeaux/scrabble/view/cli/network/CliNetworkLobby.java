@@ -58,8 +58,7 @@ public class CliNetworkLobby {
           continue;
         }
 
-        if ("1".equals(normalized) || "host".equals(normalized)
-            || "server".equals(normalized)) {
+        if ("host".equals(normalized) || "server".equals(normalized)) {
           hostServer(null, true);
           continue;
         }
@@ -89,7 +88,7 @@ public class CliNetworkLobby {
           continue;
         }
 
-        if ("2".equals(normalized) || "join".equals(normalized)) {
+        if ("join".equals(normalized)) {
           joinServer();
           continue;
         }
@@ -233,7 +232,7 @@ public class CliNetworkLobby {
           continue;
         }
 
-        if ("quit".equals(normalized) || "3".equals(normalized)
+        if ("quit".equals(normalized)
             || "menu".equals(normalized) || "exit".equals(normalized)) {
           cliView.displayMessage(I18n.translate("cli.network.leftLobby"));
           networkManager.stopOnlinePlay();
@@ -249,9 +248,6 @@ public class CliNetworkLobby {
 
   private void printMenu() {
     cliView.displayMessage("\n=== " + I18n.translate("cli.network.title") + " ===");
-    cliView.displayMessage("1. " + I18n.translate("cli.network.hostServer"));
-    cliView.displayMessage("2. " + I18n.translate("cli.network.joinServer"));
-    cliView.displayMessage("3. " + I18n.translate("cli.network.back"));
     cliView.displayMessage(I18n.translate("cli.network.helpNetworkHint"));
   }
 

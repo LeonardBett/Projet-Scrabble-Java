@@ -205,13 +205,12 @@ public class Game {
       consecutivePasses = 0;
     }
 
-    int maxPasses = players.size() * 2;
-    if (consecutivePasses >= maxPasses) {
+    if (haveAllPlayersPassedTwoConsecutiveRounds()) {
       setGameOver(true);
       if (blitzModeEnabled && getCurrentPlayer() != null) {
         getCurrentPlayer().pauseTurnTimer();
       }
-      GameLogger.logVerbose("Game Over: Both Players skipped their turns twice.");
+      GameLogger.logVerbose("Game Over: All players passed two consecutive rounds.");
       return;
     }
 
@@ -247,6 +246,10 @@ public class Game {
     }
     Player player = move.getPlayer();
     return player.getRack().isEmpty() && bag.isEmpty();
+  }
+
+  private boolean haveAllPlayersPassedTwoConsecutiveRounds() {
+    return !players.isEmpty() && consecutivePasses >= players.size() * 2;
   }
 
   private void applyRemainingRackPointsBonus(Player finishingPlayer) {
