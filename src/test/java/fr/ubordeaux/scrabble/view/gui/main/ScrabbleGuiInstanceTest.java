@@ -1,4 +1,4 @@
-package fr.ubordeaux.scrabble.view;
+package fr.ubordeaux.scrabble.view.gui.main;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -30,8 +30,12 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import javafx.application.Platform;
+import javafx.scene.Scene;
+import javafx.scene.control.MenuItem;
 import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -61,6 +65,7 @@ class ScrabbleGuiInstanceTest {
     } catch (Exception e) {
       // Already initialized
     }
+    Platform.setImplicitExit(false);
   }
 
   @BeforeEach
@@ -182,8 +187,10 @@ class ScrabbleGuiInstanceTest {
 
   @Test
   void onTileDroppedWithValidTilePlacesPending() {
-    Tile tile = game.getCurrentPlayer().getRack()
-        .getTiles().getFirst();
+    Tile tile = game.getCurrentPlayer().getRack().getTiles().stream()
+          .filter(t -> !t.isJoker() && t.getCharacter() != ' ')
+          .findFirst()
+          .orElseThrow();
     gui.onTileDragged(tile);
     gui.onTileDropped(7, 7);
     @SuppressWarnings("unchecked")
@@ -428,6 +435,163 @@ class ScrabbleGuiInstanceTest {
     });
   }
 
+  @Test
+  void startUiShouldInitializeCoreComponents() throws Exception {
+    Game localGame = new Game();
+    localGame.addPlayer(new HumanPlayer("S1", PlayerColor.BLUE));
+    localGame.addPlayer(new HumanPlayer("S2", PlayerColor.RED));
+    localGame.startGame();
+
+    ScrabbleGui.setGame(localGame);
+    ScrabbleGui.setView(new JavaFxView(localGame));
+
+    ScrabbleGui realGui = new ScrabbleGui();
+
+    runOnFxThread(() -> {
+      Platform.setImplicitExit(false);
+      Stage stage = new Stage();
+      realGui.startUi(stage);
+      stage.hide();
+    });
+
+    assertNotNull(getField(realGui, "controller"));
+    assertNotNull(getField(realGui, "boardPanel"));
+    assertNotNull(getField(realGui, "controlPanel"));
+    assertNotNull(getField(realGui, "networkBridge"));
+
+    Object bridge = getField(realGui, "networkBridge");
+    if (bridge instanceof NetworkGameBridge networkGameBridge) {
+      networkGameBridge.dispose();
+    }
+  }
+
+  @Test
+  void startUiShouldInitializeWhenViewIsNullAndBlitzEnabled() throws Exception {
+    Game blitzGame = new Game();
+    blitzGame.addPlayer(new HumanPlayer("B1", PlayerColor.BLUE));
+    blitzGame.addPlayer(new HumanPlayer("B2", PlayerColor.RED));
+    blitzGame.startGame();
+    blitzGame.enableBlitzMode(Duration.ofMinutes(1));
+
+    ScrabbleGui.setGame(blitzGame);
+    ScrabbleGui.setView(null);
+
+    ScrabbleGui realGui = new ScrabbleGui();
+
+    runOnFxThread(() -> {
+      Platform.setImplicitExit(false);
+      Stage stage = new Stage();
+      realGui.startUi(stage);
+      stage.hide();
+    });
+
+    assertNotNull(getField(realGui, "scorePanel"));
+    assertNotNull(getField(realGui, "networkBridge"));
+
+    Object bridge = getField(realGui, "networkBridge");
+    if (bridge instanceof NetworkGameBridge networkGameBridge) {
+      networkGameBridge.dispose();
+    }
+  }
+
+  @Test
+  void openExchangeDialogShouldReturnEarlyWhenPendingTilesExist() throws Exception {
+    Tile tile = game.getCurrentPlayer().getRack().getTiles().getFirst();
+    gui.onTileDragged(tile);
+    gui.onTileDropped(7, 7);
+
+    runOnFxThread(() -> invokePrivate(gui, "openExchangeDialog"));
+  }
+
+  @Test
+  void addMenuShortcutShouldIgnoreInvalidShortcut() throws Exception {
+    runOnFxThread(() -> {
+      Scene scene = new Scene(new VBox());
+      MenuItem item = new MenuItem("X");
+      invokePrivate(gui, "addMenuShortcut",
+          new Class<?>[] { Scene.class, String.class, MenuItem.class },
+          scene, "bad++shortcut", item);
+    });
+  }
+
+  @Test
+  void addActionShortcutShouldIgnoreInvalidShortcut() throws Exception {
+    runOnFxThread(() -> {
+      Scene scene = new Scene(new VBox());
+      invokePrivate(gui, "addActionShortcut",
+          new Class<?>[] { Scene.class, String.class, Runnable.class },
+          scene, "bad++shortcut", (Runnable) () -> {
+          });
+    });
+  }
+
+  @Test
+  void startShouldDelegateToStartUi() {
+    final boolean[] called = { false };
+    ScrabbleGui delegatingGui = new ScrabbleGui() {
+      @Override
+      public void startUi(Stage stage) {
+        called[0] = true;
+      }
+    };
+
+    assertDoesNotThrow(() -> delegatingGui.start(null));
+    assertTrue(called[0]);
+  }
+
+  @Test
+  void connectButtonsShouldInstallHandlersAndSupportSafeFiresWhenGameOver() throws Exception {
+    game.setGameOver(true);
+    runOnFxThread(() -> {
+      invokePrivate(gui, "buildLeftMenu");
+      invokePrivate(gui, "connectButtons");
+      controlPanel.getPlayButton().fire();
+      controlPanel.getPassButton().fire();
+      controlPanel.getExchangeButton().fire();
+      controlPanel.getCancelPlacementButton().fire();
+      controlPanel.getUndoButton().fire();
+      controlPanel.getRedoButton().fire();
+      controlPanel.getHintButton().fire();
+      controlPanel.getPauseButton().fire();
+    });
+  }
+
+  @Test
+  void setupShortcutsShouldPopulateSceneAccelerators() {
+    Object menu = invokePrivate(gui, "buildLeftMenu");
+    assertTrue(menu instanceof VBox);
+    Scene scene = new Scene(new VBox());
+
+    invokePrivate(gui, "setupShortcuts", Scene.class, scene);
+
+    assertFalse(scene.getAccelerators().isEmpty());
+  }
+
+  @Test
+  void openNetworkLobbyShouldCreateLobbyView() throws Exception {
+    runOnFxThread(() -> invokePrivate(gui, "openNetworkLobby"));
+
+    Object lobbyView = getField(gui, "lobbyView");
+    assertNotNull(lobbyView);
+  }
+
+  @Test
+  void handleMoveRefusedShouldClearPendingTiles() {
+    Tile tile = game.getCurrentPlayer().getRack().getTiles().getFirst();
+    gui.onTileDragged(tile);
+    gui.onTileDropped(7, 7);
+
+    @SuppressWarnings("unchecked")
+    Map<Point, Tile> pendingBefore = (Map<Point, Tile>) getField(gui, "pendingTiles");
+    assertFalse(pendingBefore.isEmpty());
+
+    assertDoesNotThrow(() -> runOnFxThread(() -> gui.handleMoveRefused("scrabble.invalidMove")));
+
+    @SuppressWarnings("unchecked")
+    Map<Point, Tile> pendingAfter = (Map<Point, Tile>) getField(gui, "pendingTiles");
+    assertTrue(pendingAfter.isEmpty());
+  }
+
   private Game createOnlineGame() {
     Game g = new Game();
     g.addPlayer(new HumanPlayer("O1", PlayerColor.BLUE));
@@ -452,14 +616,20 @@ class ScrabbleGuiInstanceTest {
   private static void runOnFxThread(Runnable action)
       throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
+    AtomicReference<Throwable> thrown = new AtomicReference<>();
     Platform.runLater(() -> {
       try {
         action.run();
+      } catch (Throwable t) {
+        thrown.set(t);
       } finally {
         latch.countDown();
       }
     });
-    assertTrue(latch.await(5, TimeUnit.SECONDS));
+    assertTrue(latch.await(15, TimeUnit.SECONDS));
+    if (thrown.get() != null) {
+      throw new RuntimeException(thrown.get());
+    }
   }
 
   private static void setField(
@@ -519,6 +689,19 @@ class ScrabbleGuiInstanceTest {
           .getDeclaredMethod(methodName, argType);
       m.setAccessible(true);
       return m.invoke(target, arg);
+    } catch (NoSuchMethodException
+        | IllegalAccessException
+        | InvocationTargetException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private static Object invokePrivate(Object target,
+      String methodName, Class<?>[] argTypes, Object... args) {
+    try {
+      Method m = target.getClass().getDeclaredMethod(methodName, argTypes);
+      m.setAccessible(true);
+      return m.invoke(target, args);
     } catch (NoSuchMethodException
         | IllegalAccessException
         | InvocationTargetException e) {

@@ -22,6 +22,12 @@ import javafx.scene.layout.GridPane;
 public final class ScrabbleGuiConfigDialog {
 
   /**
+   * Creates a configuration dialog helper.
+   */
+  public ScrabbleGuiConfigDialog() {
+  }
+
+  /**
    * Opens the configuration dialog.
    *
    * @param controller game controller
@@ -119,26 +125,59 @@ public final class ScrabbleGuiConfigDialog {
     dialogPane.setContent(grid);
 
     Optional<ButtonType> result = dialog.showAndWait();
-    if (result.isEmpty() || (result.get() != ButtonType.OK && result.get() != applyRestartButton)) {
+    if (!shouldApply(result, applyRestartButton)) {
       return;
     }
 
-    applyAssignments.accept(String.join("; ",
-        "language=" + languageChoice.getValue(),
-        "players=" + playerSpinner.getValue(),
-        "super-scrabble=" + superScrabbleBox.isSelected(),
-        "blitz=" + blitzBox.isSelected(),
-        "timeout=" + blitzTimeoutSpinner.getValue(),
-        "ai-time=" + aiTimeSpinner.getValue(),
-        "ai-exptiminimax=" + expectiminimaxBox.isSelected(),
-        "ai-ml=" + mlBox.isSelected(),
-        "dictionary=" + dictionaryField.getText().trim(),
-        "debug=" + debugBox.isSelected(),
-        "verbose=" + verboseBox.isSelected()));
+    applyAssignments.accept(buildAssignments(
+        languageChoice.getValue(),
+        playerSpinner.getValue(),
+        superScrabbleBox.isSelected(),
+        blitzBox.isSelected(),
+        blitzTimeoutSpinner.getValue(),
+        aiTimeSpinner.getValue(),
+        expectiminimaxBox.isSelected(),
+        mlBox.isSelected(),
+        dictionaryField.getText(),
+        debugBox.isSelected(),
+        verboseBox.isSelected()));
 
-    if (result.get() == applyRestartButton) {
+    if (shouldRecreate(result, applyRestartButton)) {
       recreateWithoutConfirmation.run();
     }
   }
 
+  static boolean shouldApply(Optional<ButtonType> result, ButtonType applyRestartButton) {
+    return result.isPresent()
+        && (result.get() == ButtonType.OK || result.get() == applyRestartButton);
+  }
+
+  static boolean shouldRecreate(Optional<ButtonType> result, ButtonType applyRestartButton) {
+    return result.isPresent() && result.get() == applyRestartButton;
+  }
+
+  static String buildAssignments(String language,
+      int players,
+      boolean superScrabble,
+      boolean blitz,
+      int timeout,
+      int aiTime,
+      boolean expectiminimax,
+      boolean ml,
+      String dictionary,
+      boolean debug,
+      boolean verbose) {
+    return String.join("; ",
+        "language=" + language,
+        "players=" + players,
+        "super-scrabble=" + superScrabble,
+        "blitz=" + blitz,
+        "timeout=" + timeout,
+        "ai-time=" + aiTime,
+        "ai-exptiminimax=" + expectiminimax,
+        "ai-ml=" + ml,
+        "dictionary=" + dictionary.trim(),
+        "debug=" + debug,
+        "verbose=" + verbose);
+  }
 }

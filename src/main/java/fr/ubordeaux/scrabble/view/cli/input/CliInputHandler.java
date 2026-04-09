@@ -33,7 +33,7 @@ public class CliInputHandler {
       TerminalBuilder builder = TerminalBuilder.builder();
 
       StringsCompleter completer = new StringsCompleter(
-          "new", "help", "quit", "load", "save", "pause", "hint",
+          "new", "newgame", "help", "quit", "load", "save", "pause", "hint",
           "undo", "redo", "show board", "show history", "show time",
           "show configuration", "set", "exchange", "pass"
       );

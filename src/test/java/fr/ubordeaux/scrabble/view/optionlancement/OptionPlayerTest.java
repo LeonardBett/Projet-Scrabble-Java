@@ -1,4 +1,4 @@
-package fr.ubordeaux.scrabble.view;
+package fr.ubordeaux.scrabble.view.optionlancement;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

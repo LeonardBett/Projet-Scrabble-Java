@@ -1,7 +1,8 @@
-package fr.ubordeaux.scrabble.view;
+package fr.ubordeaux.scrabble.view.cli;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import fr.ubordeaux.scrabble.i18n.I18n;
 import fr.ubordeaux.scrabble.model.core.HumanPlayer;
 import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.model.interfaces.Player;
@@ -14,6 +15,7 @@ class PlayerRendererCliTest {
 
   @Test
   void renderCurrentPlayerShouldPrintTurnLine() {
+    I18n.setLanguage("en");
     Player alice = new HumanPlayer("Alice", PlayerColor.BLUE);
 
     ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -23,6 +25,6 @@ class PlayerRendererCliTest {
     new PlayerRenderer().renderCurrentPlayer(alice);
 
     System.setOut(original);
-    assertTrue(out.toString().contains("Current turn: Alice"));
+    assertTrue(out.toString().contains(I18n.translate("cli.player.currentTurn", "Alice")));
   }
 }

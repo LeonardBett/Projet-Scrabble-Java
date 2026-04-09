@@ -1,4 +1,4 @@
-package fr.ubordeaux.scrabble.view;
+package fr.ubordeaux.scrabble.view.network;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -11,14 +11,17 @@ import fr.ubordeaux.scrabble.model.core.Game;
 import fr.ubordeaux.scrabble.model.core.HumanPlayer;
 import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.model.network.NetworkManager;
+import fr.ubordeaux.scrabble.model.network.server.ServerInfo;
 import fr.ubordeaux.scrabble.view.gui.ScrabbleGui;
 import fr.ubordeaux.scrabble.view.gui.network.NetworkGameBridge;
+import fr.ubordeaux.scrabble.view.gui.network.NetworkLobbyView;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import javafx.application.Platform;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -428,6 +431,97 @@ class NetworkGameBridgeTest {
     waitFx();
   }
 
+  @Test
+  void bridgeShouldDelegateToGuiAndLobbyWhenAttached() throws Exception {
+    FakeNetworkManager manager = new FakeNetworkManager();
+    manager.localGame = new Game();
+    manager.localGame.addPlayer(new HumanPlayer("P1", PlayerColor.BLUE));
+    manager.localGame.addPlayer(new HumanPlayer("P2", PlayerColor.RED));
+
+    NetworkGameBridge bridge = new NetworkGameBridge(manager);
+    FakeScrabbleGui fakeGui = new FakeScrabbleGui();
+    bridge.setGui(fakeGui);
+
+    AtomicReference<TestLobbyView> lobbyRef = new AtomicReference<>();
+    CountDownLatch createLatch = new CountDownLatch(1);
+    Platform.runLater(() -> {
+      try {
+        TestLobbyView lobby = new TestLobbyView(bridge);
+        lobby.hide();
+        lobbyRef.set(lobby);
+      } finally {
+        createLatch.countDown();
+      }
+    });
+    assertTrue(createLatch.await(5, TimeUnit.SECONDS));
+    TestLobbyView lobby = lobbyRef.get();
+    assertNotNull(lobby);
+
+    bridge.requestGameStart();
+    assertEquals(1, manager.playersCalls);
+
+    bridge.localModelUpdate();
+    waitFx();
+    assertTrue(fakeGui.switchCalled);
+    assertTrue(lobby.invitationCancelCalls >= 1);
+
+    fakeGui.onlineMode = true;
+    bridge.localModelUpdate();
+    waitFx();
+    assertTrue(fakeGui.refreshCalled);
+
+    bridge.gameEndedUpdate(List.of(Map.of("NAME", "P1", "SCORE", "42")));
+    waitFx();
+    assertTrue(lobby.gameEndedListCalls >= 1);
+
+    bridge.serverWelcomeUpdate(7);
+    bridge.serverStatusUpdate(Map.of("PORT", "1111"));
+    bridge.pongUpdate(22L);
+    bridge.playersUpdate(List.of(Map.of("ID", "1", "NAME", "A", "STATUS", "IDLE")));
+    bridge.scoreboardUpdate(List.of(Map.of("NAME", "A", "WINS", "1", "LOSSES", "0", "TOTAL", "1")));
+    bridge.serverListUpdate(List.of());
+    bridge.messageUpdate("lobby.disconnected");
+    bridge.invitationReceivedUpdate("A");
+    bridge.invitationAcceptedUpdate("A");
+    bridge.invitationDeclinedUpdate("A");
+    bridge.invitationCancelledUpdate("lobby.disconnected");
+    bridge.playersPlayerIdUpdate(Map.of("ID", "1", "NAME", "A"));
+    bridge.playerStatusUpdate("AWAY");
+    bridge.clientDisconnectedUpdate("lobby.disconnected");
+    bridge.connectionFailedUpdate("lobby.disconnected");
+    bridge.invitationFailedUpdate("lobby.disconnected");
+    bridge.gameInterruptedUpdate("lobby.disconnected");
+    bridge.moveRefusedUpdate("scrabble.invalidMove");
+    waitFx();
+
+    assertTrue(lobby.welcomeCalls >= 1);
+    assertTrue(lobby.serverStatusCalls >= 1);
+    assertTrue(lobby.playersCalls >= 1);
+    assertTrue(lobby.scoreboardCalls >= 1);
+    assertTrue(lobby.serverListCalls >= 1);
+    assertTrue(lobby.messageCalls >= 1);
+    assertTrue(lobby.invitationReceivedCalls >= 1);
+    assertTrue(lobby.invitationCancelledCalls >= 1);
+    assertTrue(lobby.playerDetailsCalls >= 1);
+    assertTrue(lobby.playerStatusCalls >= 1);
+    assertTrue(lobby.clientDisconnectedCalls >= 1);
+    assertTrue(lobby.connectionFailedCalls >= 1);
+    assertTrue(lobby.gameInterruptedCalls >= 1);
+    assertTrue(lobby.pongCalls >= 1);
+    assertTrue(manager.quitCalls >= 2);
+    assertTrue(fakeGui.moveRefusedCalled);
+
+    CountDownLatch closeLatch = new CountDownLatch(1);
+    Platform.runLater(() -> {
+      try {
+        lobby.close();
+      } finally {
+        closeLatch.countDown();
+      }
+    });
+    assertTrue(closeLatch.await(5, TimeUnit.SECONDS));
+  }
+
   private static Object invokeStatic(String methodName, Class<?>[] argTypes, Object... args) {
     try {
       Method method = NetworkGameBridge.class.getDeclaredMethod(methodName, argTypes);
@@ -451,6 +545,7 @@ class NetworkGameBridgeTest {
     int new3Calls;
     boolean removeObserverCalled;
     boolean stopOnlineCalled;
+    int quitCalls;
     Game localGame;
 
     @Override
@@ -479,6 +574,11 @@ class NetworkGameBridgeTest {
     }
 
     @Override
+    public void quit() {
+      quitCalls++;
+    }
+
+    @Override
     public void removeObserver(fr.ubordeaux.scrabble.model.network.NetworkObserver observer) {
       removeObserverCalled = true;
     }
@@ -494,6 +594,7 @@ class NetworkGameBridgeTest {
     boolean switchCalled;
     boolean refreshCalled;
     boolean exitOnlineCalled;
+    boolean moveRefusedCalled;
     String lastInfoTitle;
     String lastInfoMessage;
 
@@ -523,6 +624,114 @@ class NetworkGameBridgeTest {
     public void showInfo(String title, String message) {
       lastInfoTitle = title;
       lastInfoMessage = message;
+    }
+
+    @Override
+    public void handleMoveRefused(String reason) {
+      moveRefusedCalled = true;
+    }
+  }
+
+  private static class TestLobbyView extends NetworkLobbyView {
+    int welcomeCalls;
+    int serverStatusCalls;
+    int playersCalls;
+    int scoreboardCalls;
+    int serverListCalls;
+    int messageCalls;
+    int invitationReceivedCalls;
+    int invitationCancelledCalls;
+    int playerDetailsCalls;
+    int playerStatusCalls;
+    int clientDisconnectedCalls;
+    int connectionFailedCalls;
+    int gameInterruptedCalls;
+    int invitationCancelCalls;
+    int pongCalls;
+    int gameEndedListCalls;
+
+    private TestLobbyView(NetworkGameBridge bridge) {
+      super(bridge);
+    }
+
+    @Override
+    public void onWelcomeReceived(int id) {
+      welcomeCalls++;
+    }
+
+    @Override
+    public void onServerStatusReceived(Map<String, String> info) {
+      serverStatusCalls++;
+    }
+
+    @Override
+    public void onPongReceived(long latencyMs) {
+      pongCalls++;
+    }
+
+    @Override
+    public void onPlayersReceived(List<Map<String, String>> players) {
+      playersCalls++;
+    }
+
+    @Override
+    public void onScoreboardReceived(List<Map<String, String>> scoreboard) {
+      scoreboardCalls++;
+    }
+
+    @Override
+    public void onServerListUpdated(List<ServerInfo> servers) {
+      serverListCalls++;
+    }
+
+    @Override
+    public void onMessageReceived(String message) {
+      messageCalls++;
+    }
+
+    @Override
+    public void onInvitationReceived(String from) {
+      invitationReceivedCalls++;
+    }
+
+    @Override
+    public void onInvitationCancelled(String reason) {
+      invitationCancelledCalls++;
+    }
+
+    @Override
+    public void onPlayerDetailsReceived(Map<String, String> info) {
+      playerDetailsCalls++;
+    }
+
+    @Override
+    public void onPlayerStatusChanged(String status) {
+      playerStatusCalls++;
+    }
+
+    @Override
+    public void onClientDisconnected(String reason) {
+      clientDisconnectedCalls++;
+    }
+
+    @Override
+    public void onConnectionFailed(String reason) {
+      connectionFailedCalls++;
+    }
+
+    @Override
+    public void onInvitationCancel() {
+      invitationCancelCalls++;
+    }
+
+    @Override
+    public void onGameInterrupted(String reason) {
+      gameInterruptedCalls++;
+    }
+
+    @Override
+    public void onGameEnded(List<Map<String, String>> finalScores) {
+      gameEndedListCalls++;
     }
   }
 }

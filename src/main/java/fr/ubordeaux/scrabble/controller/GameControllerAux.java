@@ -18,9 +18,11 @@ import fr.ubordeaux.scrabble.view.cli.CliView;
 import fr.ubordeaux.scrabble.view.cli.input.CliInputHandler;
 import fr.ubordeaux.scrabble.view.cli.network.CliNetworkLobby;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.Stack;
 
 /**
@@ -146,6 +148,9 @@ class GameControllerAux {
           controller.internalGame().getPlayers().get(0).getRemainingTimeDisplay()));
       controller.startBlitzWatcher(cliView);
     }
+
+    // Display initial game state when launching with bonus square colors
+    cliView.refresh();
   }
 
   private void runCliLoop(CliInputHandler input, CliView cliView, Gaddag currentGaddag) {
@@ -289,7 +294,8 @@ class GameControllerAux {
         handleSet(tokens, cliView);
         return true;
       case "save":
-        handleSave(tokens, cliView);
+        String savePath = rawCommand.length() > 4 ? rawCommand.substring(4).trim() : "";
+        handleSave(savePath, cliView);
         return true;
       case "load":
         handleLoad(tokens, cliView);
@@ -297,9 +303,9 @@ class GameControllerAux {
       case "network":
         handleNetwork(input, cliView);
         return true;
+      case "newgame":
       case "new":
-        cliView.displayError(I18n.translate("cli.shell.commandNotSupportedInSession"));
-        return true;
+        return handleNewGame(input, cliView);
       case "exchange": {
         String payload = rawCommand.length() > 8 ? rawCommand.substring(8).trim() : "";
         executeMoveAction(
@@ -502,19 +508,43 @@ class GameControllerAux {
     }
   }
 
-  private void handleSave(String[] tokens, CliView cliView) {
-    if (tokens.length < 2) {
+  private void handleSave(String rawPath, CliView cliView) {
+    if (rawPath == null || rawPath.isBlank()) {
       cliView.displayError(I18n.translate("cli.shell.save.usage"));
       return;
     }
 
+    String normalizedPath = normalizeSavePath(rawPath);
     try {
-      new SaveManager().saveGame(controller.internalGame(), tokens[1]);
+      new SaveManager().saveGame(controller.internalGame(), normalizedPath);
       hasUnsavedChanges = false;
-      cliView.displaySuccess(I18n.translate("cli.shell.save.success", tokens[1]));
+      cliView.displaySuccess(I18n.translate("cli.shell.save.success", normalizedPath));
     } catch (IOException e) {
       cliView.displayError(I18n.translate("cli.shell.save.failure", e.getMessage()));
     }
+  }
+
+  private String normalizeSavePath(String rawPath) {
+    String trimmed = rawPath.trim();
+    if ((trimmed.startsWith("\"") && trimmed.endsWith("\""))
+        || (trimmed.startsWith("'") && trimmed.endsWith("'"))) {
+      trimmed = trimmed.substring(1, trimmed.length() - 1).trim();
+    }
+
+    Path path = Path.of(trimmed);
+    Path fileName = path.getFileName();
+    if (fileName == null) {
+      return trimmed;
+    }
+
+    String name = fileName.toString();
+    if (name.contains(".")) {
+      return trimmed;
+    }
+
+    Path parent = path.getParent();
+    return (parent == null ? Path.of(name + ".scrabble") : parent.resolve(name + ".scrabble"))
+        .toString();
   }
 
   private void handleLoad(String[] tokens, CliView cliView) {
@@ -539,6 +569,23 @@ class GameControllerAux {
     lobby.showMenu();
   }
 
+  private boolean handleNewGame(CliInputHandler input, CliView cliView) {
+    if (!input.askConfirmation(I18n.translate("scrabble.newGameConfirmation"))) {
+      return true;
+    }
+
+    Optional<Game> recreated = controller.recreateConfiguredGameFromSelection(
+        Optional.of(controller.internalGame().getPlayers().size()));
+    if (recreated.isEmpty()) {
+      cliView.displayError(I18n.translate("cli.shell.commandNotSupportedInSession"));
+      return true;
+    }
+
+    pendingLoadedGame = recreated.get();
+    restartRequested = true;
+    return true;
+  }
+
   private void displayHelp(CliView cliView, String cmd) {
     if (cmd == null || cmd.isBlank()) {
       cliView.displayMessage(I18n.translate("cli.shell.help.full"));
@@ -546,8 +593,13 @@ class GameControllerAux {
     }
 
     switch (cmd) {
+      case "play":
+      case "move":
+        cliView.displayMessage(I18n.translate("cli.shell.help.move"));
+        return;
+      case "newgame":
       case "new":
-        cliView.displayMessage(I18n.translate("cli.shell.help.new"));
+        cliView.displayMessage(I18n.translate("cli.shell.help.newgame"));
         return;
       case "help":
         cliView.displayMessage(I18n.translate("cli.shell.help.help"));
@@ -572,6 +624,12 @@ class GameControllerAux {
         return;
       case "redo":
         cliView.displayMessage(I18n.translate("cli.shell.help.redo"));
+        return;
+      case "exchange":
+        cliView.displayMessage(I18n.translate("cli.shell.help.exchange"));
+        return;
+      case "pass":
+        cliView.displayMessage(I18n.translate("cli.shell.help.pass"));
         return;
       case "show":
         cliView.displayMessage(I18n.translate("cli.shell.help.show"));
@@ -616,10 +674,11 @@ class GameControllerAux {
       if (path.isBlank()) {
         cliView.displayError(I18n.translate("cli.quit.save.failure", "empty path"));
       } else {
+        String normalizedPath = normalizeSavePath(path);
         try {
-          new SaveManager().saveGame(controller.internalGame(), path);
+          new SaveManager().saveGame(controller.internalGame(), normalizedPath);
           hasUnsavedChanges = false;
-          cliView.displaySuccess(I18n.translate("cli.quit.save.success", path));
+          cliView.displaySuccess(I18n.translate("cli.quit.save.success", normalizedPath));
           return false;
         } catch (IOException e) {
           cliView.displayError(I18n.translate("cli.quit.save.failure", e.getMessage()));

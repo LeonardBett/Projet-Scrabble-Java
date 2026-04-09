@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -283,6 +284,22 @@ class GameControllerTest {
   }
 
   @Test
+  void runCliShouldRestartGameFromNewGameCommand() throws Exception {
+    Game game = new Game();
+    game.addPlayer(new HumanPlayer("Alice", PlayerColor.BLUE));
+    game.addPlayer(new HumanPlayer("Bob", PlayerColor.RED));
+
+    CliView view = new CliView(game);
+    GameController controller = new GameController(game, view);
+    setDictionary(controller, minimalDictionary("AA", "ART"));
+
+    runCliWithInput(controller, "newgame\no\nquit\no\n");
+
+    assertNotSame(game, controller.getGame());
+    assertEquals(2, controller.getGame().getPlayers().size());
+  }
+
+  @Test
   void runCliShouldSaveFromShellCommand() throws Exception {
     Game game = new Game();
     game.addPlayer(new HumanPlayer("Alice", PlayerColor.BLUE));
@@ -299,6 +316,28 @@ class GameControllerTest {
 
     assertTrue(Files.exists(saveFile));
     Files.deleteIfExists(saveFile);
+  }
+
+  @Test
+  void runCliShouldAppendScrabbleExtensionWhenMissing() throws Exception {
+    Game game = new Game();
+    game.addPlayer(new HumanPlayer("Alice", PlayerColor.BLUE));
+    game.addPlayer(new HumanPlayer("Bob", PlayerColor.RED));
+
+    CliView view = new CliView(game);
+    GameController controller = new GameController(game, view);
+    setDictionary(controller, minimalDictionary("AA", "ART"));
+
+    Path saveDir = Files.createTempDirectory(Path.of("target"), "scrabble-cli-save-");
+    Path basePath = saveDir.resolve("partie_cli");
+    Path expectedSave = saveDir.resolve("partie_cli.scrabble");
+    Files.deleteIfExists(expectedSave);
+
+    runCliWithInput(controller, "save " + basePath + "\nquit\no\n");
+
+    assertTrue(Files.exists(expectedSave));
+    Files.deleteIfExists(expectedSave);
+    Files.deleteIfExists(saveDir);
   }
 
   @Test

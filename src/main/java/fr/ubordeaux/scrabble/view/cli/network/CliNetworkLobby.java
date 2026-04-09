@@ -60,7 +60,22 @@ public class CliNetworkLobby {
 
         if ("1".equals(normalized) || "host".equals(normalized)
             || "server".equals(normalized)) {
-          hostServer(null);
+          hostServer(null, true);
+          continue;
+        }
+
+        if ("server start".equals(normalized)) {
+          hostServer(NetworkManager.DEFAULT_TCP_PORT, false);
+          continue;
+        }
+
+        if (normalized.startsWith("server start ")) {
+          Integer port = parseTrailingInt(raw);
+          if (port == null) {
+            cliView.displayError(I18n.translate("cli.network.portNotNumeric"));
+            continue;
+          }
+          hostServer(port, false);
           continue;
         }
 
@@ -70,12 +85,17 @@ public class CliNetworkLobby {
             cliView.displayError(I18n.translate("cli.network.portNotNumeric"));
             continue;
           }
-          hostServer(port);
+          hostServer(port, false);
           continue;
         }
 
         if ("2".equals(normalized) || "join".equals(normalized)) {
           joinServer();
+          continue;
+        }
+
+        if ("server list".equals(normalized)) {
+          listServers();
           continue;
         }
 
@@ -89,6 +109,11 @@ public class CliNetworkLobby {
 
         if ("players".equals(normalized)) {
           networkManager.players();
+          continue;
+        }
+
+        if (normalized.startsWith("players ")) {
+          handlePlayerInfo(raw);
           continue;
         }
 
@@ -107,8 +132,24 @@ public class CliNetworkLobby {
           continue;
         }
 
+        if ("server status".equals(normalized)) {
+          networkManager.serverStatus();
+          continue;
+        }
+
+        if ("server stop".equals(normalized)) {
+          networkManager.serverStop();
+          cliView.displayMessage(I18n.translate("lobby.serverStopped"));
+          continue;
+        }
+
         if ("ping".equals(normalized)) {
           networkManager.ping();
+          continue;
+        }
+
+        if ("helpnetwork".equals(normalized) || "help network".equals(normalized)) {
+          cliView.displayMessage(I18n.translate("cli.network.help"));
           continue;
         }
 
@@ -137,7 +178,9 @@ public class CliNetworkLobby {
           continue;
         }
 
-        if ("backstatus".equals(normalized) || "back-status".equals(normalized)) {
+        if ("back".equals(normalized)
+            || "backstatus".equals(normalized)
+            || "back-status".equals(normalized)) {
           networkManager.back();
           continue;
         }
@@ -169,7 +212,7 @@ public class CliNetworkLobby {
         }
 
         if ("help".equals(normalized)) {
-          cliView.displayMessage(I18n.translate("cli.network.help"));
+          cliView.displayMessage(I18n.translate("cli.network.helpNetworkHint"));
           continue;
         }
 
@@ -190,8 +233,9 @@ public class CliNetworkLobby {
           continue;
         }
 
-        if ("3".equals(normalized) || "back".equals(normalized)
-            || "quit".equals(normalized) || "exit".equals(normalized)) {
+        if ("quit".equals(normalized) || "3".equals(normalized)
+            || "menu".equals(normalized) || "exit".equals(normalized)) {
+          cliView.displayMessage(I18n.translate("cli.network.leftLobby"));
           networkManager.stopOnlinePlay();
           return;
         }
@@ -208,13 +252,13 @@ public class CliNetworkLobby {
     cliView.displayMessage("1. " + I18n.translate("cli.network.hostServer"));
     cliView.displayMessage("2. " + I18n.translate("cli.network.joinServer"));
     cliView.displayMessage("3. " + I18n.translate("cli.network.back"));
-    cliView.displayMessage(I18n.translate("cli.network.helpHint"));
+    cliView.displayMessage(I18n.translate("cli.network.helpNetworkHint"));
   }
 
-  private void hostServer(Integer presetPort) {
+  private void hostServer(Integer presetPort, boolean promptForPort) {
     int port = presetPort == null ? NetworkManager.DEFAULT_TCP_PORT : presetPort;
 
-    if (presetPort == null) {
+    if (promptForPort && presetPort == null) {
       cliView.displayMessage("\n" + I18n.translate("cli.network.hostPrompt"));
       System.out.print(I18n.translate("cli.network.portPrompt"));
 
@@ -285,6 +329,30 @@ public class CliNetworkLobby {
     ServerInfo selected = servers.get(index);
     networkManager.join(selected.getIp(), selected.getPort());
     cliView.displayMessage(I18n.translate("cli.network.joinedServer"));
+  }
+
+  private void listServers() {
+    cliView.displayMessage("\n" + I18n.translate("cli.network.discoveringServers"));
+
+    try {
+      Thread.sleep(2000);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+    }
+
+    List<ServerInfo> servers = networkManager.serverList();
+    if (servers.isEmpty()) {
+      cliView.displayMessage(I18n.translate("cli.network.noServersFound"));
+      return;
+    }
+
+    cliView.displayMessage(I18n.translate("cli.network.availableServers"));
+    for (int i = 0; i < servers.size(); i++) {
+      ServerInfo server = servers.get(i);
+      cliView.displayMessage(
+          String.format("%d. %s (%s:%d)", i + 1, server.getName(),
+              server.getIp(), server.getPort()));
+    }
   }
 
   private boolean tryDirectJoin(String raw) {

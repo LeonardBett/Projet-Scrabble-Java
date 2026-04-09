@@ -15,6 +15,12 @@ import java.util.function.Consumer;
 public final class ScrabbleGuiRefresh {
 
   /**
+   * Creates a refresh helper.
+   */
+  public ScrabbleGuiRefresh() {
+  }
+
+  /**
    * Refreshes all UI sections.
    *
    * @param gui Scrabble GUI instance

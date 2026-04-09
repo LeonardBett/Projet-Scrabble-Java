@@ -1,4 +1,4 @@
-package fr.ubordeaux.scrabble.view;
+package fr.ubordeaux.scrabble.view.optionlancement;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
@@ -15,7 +15,7 @@ class CliLauncherTest {
   void launchShouldRunAndQuitImmediatelyWithValidInput() {
     InputStream originalIn = System.in;
     try {
-      String input = "quit\no\n";
+      String input = "quit\nn\nquit\no\n";
       System.setIn(new ByteArrayInputStream(input.getBytes(StandardCharsets.UTF_8)));
 
       assertDoesNotThrow(() -> CliLauncher.launch(2, List.of(), false, 30, 2, false, false, "en"));

@@ -1,10 +1,11 @@
-package fr.ubordeaux.scrabble.view;
+package fr.ubordeaux.scrabble.view.cli;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import fr.ubordeaux.scrabble.i18n.I18n;
 import fr.ubordeaux.scrabble.model.core.Game;
 import fr.ubordeaux.scrabble.model.core.HumanPlayer;
 import fr.ubordeaux.scrabble.model.core.Move;
@@ -14,12 +15,13 @@ import fr.ubordeaux.scrabble.model.enums.PlayerColor;
 import fr.ubordeaux.scrabble.model.network.NetworkManager;
 import fr.ubordeaux.scrabble.model.network.server.ServerInfo;
 import fr.ubordeaux.scrabble.model.utils.Point;
-import fr.ubordeaux.scrabble.view.cli.CliView;
 import fr.ubordeaux.scrabble.view.cli.input.CliInputHandler;
 import fr.ubordeaux.scrabble.view.cli.network.CliNetworkBridge;
 import fr.ubordeaux.scrabble.view.cli.network.CliNetworkLobby;
 import java.lang.reflect.Method;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -75,7 +77,7 @@ class CliNetworkLobbyAndBridgeTest {
     assertTrue((Boolean) invokePrivate(lobby, "tryDirectJoin", "join 127.0.0.1 bad"));
     assertFalse((Boolean) invokePrivate(lobby, "tryDirectJoin", "join 127.0.0.1"));
 
-    invokePrivate(lobby, "handlePlayerInfo", "player 3");
+    invokePrivate(lobby, "handlePlayerInfo", "players 3");
     assertEquals(3, nm.lastPlayerInfoId);
 
     invokePrivate(lobby, "handleNewInvitation", "new 1");
@@ -189,6 +191,80 @@ class CliNetworkLobbyAndBridgeTest {
     assertTrue(view.messages.stream().anyMatch(m -> m.contains("Hist")));
   }
 
+  @Test
+  void showMenuScriptShouldCoverMainCommandBranches() {
+    FakeNetworkManager nm = new FakeNetworkManager();
+    RecordingCliView view = new RecordingCliView();
+    ScriptedInputHandler input = new ScriptedInputHandler(
+        "",
+        "host", "abc",
+        "host 70000",
+        "host 12345",
+        "server start",
+        "server start 12346",
+        "server list",
+        "2", "1",
+        "join 127.0.0.1 23456",
+        "join 127.0.0.1 bad",
+        "players",
+        "players 3",
+        "scoreboard",
+        "server status",
+        "ping",
+        "new 1 2",
+        "accept",
+        "decline",
+        "cancel",
+        "away",
+        "back",
+        "pass",
+        "exchange",
+        "exchange AZ",
+        "play a1h mot",
+        "server stop",
+        "show board",
+        "show history",
+        "show time",
+        "show configuration",
+        "show unknown",
+        "hint",
+        "a1v test",
+        "disconnect",
+        "helpnetwork",
+        "help",
+        "quit",
+        "menu");
+
+    CliNetworkLobby lobby = new CliNetworkLobby(nm, view, input);
+
+    lobby.showMenu();
+
+    assertTrue(nm.startOnlinePlayCalls >= 1);
+    assertTrue(nm.stopOnlinePlayCalls >= 1);
+    assertTrue(nm.serverStartCalls >= 1);
+    assertTrue(nm.serverStartPorts.contains(NetworkManager.DEFAULT_TCP_PORT));
+    assertTrue(nm.serverStartPorts.contains(12346));
+    assertTrue(nm.serverStopCalls >= 1);
+    assertTrue(nm.joinCalls >= 2);
+    assertTrue(nm.playersCalls >= 1);
+    assertTrue(nm.scoreboardCalls >= 1);
+    assertTrue(nm.serverStatusCalls >= 1);
+    assertTrue(nm.pingCalls >= 1);
+    assertTrue(nm.backCalls >= 1);
+    assertTrue(nm.passCalls >= 1);
+    assertTrue(nm.exchangeCalls >= 1);
+    assertTrue(nm.playCalls >= 1);
+    assertTrue(nm.quitCalls >= 1);
+    assertTrue(nm.stopOnlinePlayCalls >= 1);
+    String leftLobbyMessage = I18n.translate("cli.network.leftLobby");
+    String fullHelpMessage = I18n.translate("cli.network.help");
+    String shortHelpMessage = I18n.translate("cli.network.helpNetworkHint");
+    assertTrue(view.messages.stream().anyMatch(m -> m.contains(leftLobbyMessage)));
+    assertTrue(view.messages.stream().anyMatch(m -> m.contains(fullHelpMessage)
+            || m.contains(shortHelpMessage)));
+    assertTrue(view.errors.size() >= 3);
+  }
+
   private static Object invokePrivate(Object target, String methodName, Object... args)
       throws Exception {
     Method m = resolveMethod(target.getClass(), methodName, args.length);
@@ -242,11 +318,54 @@ class CliNetworkLobbyAndBridgeTest {
     private String lastPlayWord;
     private final Game local = RecordingCliView.minimalGame();
     private Game localGameOverride;
+    private int startOnlinePlayCalls;
+    private int stopOnlinePlayCalls;
+    private int joinCalls;
+    private int serverStartCalls;
+    private final List<Integer> serverStartPorts = new ArrayList<>();
+    private int serverStopCalls;
+    private int playersCalls;
+    private int scoreboardCalls;
+    private int serverStatusCalls;
+    private int pingCalls;
+    private int backCalls;
+    private int passCalls;
+    private int exchangeCalls;
+    private int playCalls;
+    private int quitCalls;
+
+    @Override
+    public void startOnlinePlay() {
+      startOnlinePlayCalls++;
+    }
+
+    @Override
+    public void stopOnlinePlay() {
+      stopOnlinePlayCalls++;
+    }
+
+    @Override
+    public boolean serverStart(int port) {
+      serverStartCalls++;
+      serverStartPorts.add(port);
+      return true;
+    }
+
+    @Override
+    public void serverStop() {
+      serverStopCalls++;
+    }
 
     @Override
     public void join(String address, int port) {
+      joinCalls++;
       this.lastJoinIp = address;
       this.lastJoinPort = port;
+    }
+
+    @Override
+    public void quit() {
+      quitCalls++;
     }
 
     @Override
@@ -271,10 +390,31 @@ class CliNetworkLobbyAndBridgeTest {
 
     @Override
     public void play(int x, int y, String direction, String word) {
+      playCalls++;
       this.lastPlayX = x;
       this.lastPlayY = y;
       this.lastPlayDirection = direction;
       this.lastPlayWord = word;
+    }
+
+    @Override
+    public void exchange(String letters) {
+      exchangeCalls++;
+    }
+
+    @Override
+    public void pass() {
+      passCalls++;
+    }
+
+    @Override
+    public void ping() {
+      pingCalls++;
+    }
+
+    @Override
+    public void back() {
+      backCalls++;
     }
 
     @Override
@@ -289,17 +429,33 @@ class CliNetworkLobbyAndBridgeTest {
 
     @Override
     public void serverStatus() {
-      // no-op for test
+      serverStatusCalls++;
     }
 
     @Override
     public void players() {
-      // no-op for test
+      playersCalls++;
     }
 
     @Override
     public void scoreboard() {
-      // no-op for test
+      scoreboardCalls++;
+    }
+  }
+
+  private static final class ScriptedInputHandler extends CliInputHandler {
+    private final Deque<String> inputs;
+
+    private ScriptedInputHandler(String... scriptedInputs) {
+      this.inputs = new ArrayDeque<>(List.of(scriptedInputs));
+    }
+
+    @Override
+    public String askAction() {
+      if (inputs.isEmpty()) {
+        return "3";
+      }
+      return inputs.removeFirst();
     }
   }
 }

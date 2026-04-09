@@ -53,7 +53,12 @@ public class NetworkLobbyController {
     networkManager.serverStop();
   }
 
-  /** Connects to a server. */
+  /**
+   * Connects to a server.
+   *
+   * @param ip server IP or hostname
+   * @param port server TCP port
+   */
   public void join(String ip, int port) {
     networkManager.join(ip, port);
   }
@@ -110,17 +115,32 @@ public class NetworkLobbyController {
     networkManager.scoreboard();
   }
 
-  /** Starts a game with one target. */
+  /**
+   * Starts a game with one target.
+   *
+   * @param targetId target player id
+   */
   public void newPlayerId(int targetId) {
     networkManager.newPlayerId(targetId);
   }
 
-  /** Starts a game with two targets. */
+  /**
+   * Starts a game with two targets.
+   *
+   * @param targetId1 first target player id
+   * @param targetId2 second target player id
+   */
   public void newPlayerId(int targetId1, int targetId2) {
     networkManager.newPlayerId(targetId1, targetId2);
   }
 
-  /** Starts a game with three targets. */
+  /**
+   * Starts a game with three targets.
+   *
+   * @param targetId1 first target player id
+   * @param targetId2 second target player id
+   * @param targetId3 third target player id
+   */
   public void newPlayerId(int targetId1, int targetId2, int targetId3) {
     networkManager.newPlayerId(targetId1, targetId2, targetId3);
   }
@@ -145,12 +165,23 @@ public class NetworkLobbyController {
     }
   }
 
-  /** Sends a play command. */
+  /**
+   * Sends a play command.
+   *
+   * @param x x coordinate
+   * @param y y coordinate
+   * @param direction direction token (H/V)
+   * @param tile played letters payload
+   */
   public void play(int x, int y, String direction, String tile) {
     networkManager.play(x, y, direction, tile);
   }
 
-  /** Sends an exchange command. */
+  /**
+   * Sends an exchange command.
+   *
+   * @param tiles letters to exchange
+   */
   public void exchange(String tiles) {
     networkManager.exchange(tiles);
   }
@@ -170,7 +201,11 @@ public class NetworkLobbyController {
     networkManager.decline();
   }
 
-  /** Requests details for one player. */
+  /**
+   * Requests details for one player.
+   *
+   * @param playerId target player id
+   */
   public void playersPlayerId(int playerId) {
     networkManager.playersPlayerId(playerId);
   }
@@ -339,12 +374,20 @@ public class NetworkLobbyController {
     return ids;
   }
 
-  /** Returns the active discovered servers. */
+  /**
+   * Returns the active discovered servers.
+   *
+   * @return discovered servers list
+   */
   public List<ServerInfo> serverList() {
     return networkManager.serverList();
   }
 
-  /** Returns the underlying network manager. */
+  /**
+   * Returns the underlying network manager.
+   *
+   * @return backing network manager
+   */
   public NetworkManager getNetworkManager() {
     return networkManager;
   }
