@@ -102,8 +102,6 @@
 \maketitle
 \thispagestyle{empty}
 
-\tableofcontents
-
 %------------------------------------------------------------------------------
 %	PARTIE 1 — INTRODUCTION
 %------------------------------------------------------------------------------
@@ -460,7 +458,7 @@ Cette approche permet de réduire drastiquement la redondance de l'information t
  \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.5\textwidth]{exemple_Dawg.png}
-    \caption{Exemple d'une structure DAWG. (Source : ~\cite{10.1145/42411.42420})}
+    \caption{Exemple d'une structure DAWG.~\cite{10.1145/42411.42420}}
     \label{fig:gaddag_care}
 \end{figure}
 
@@ -1379,59 +1377,99 @@ Fonctionnel, ce besoin permet la réalisation de parties multi-joueurs en résea
 
 \section{Annexe des 40 besoins}
 
-\begin{longtable}{@{}ll@{}}
+\renewcommand{\arraystretch}{1.15}
+\begin{longtable}{|p{1.3cm}|p{11.4cm}|p{1.8cm}|}
     \caption{Etat de complétion des besoins F1 à F40}\label{tab:besoins-f1-f40}\\
-    \toprule
-    \textbf{Besoins} & \textbf{Complété} \\
-    \midrule
+    \hline
+    \textbf{Besoin} & \textbf{Description} & \textbf{État} \\
+    \hline
     \endfirsthead
 
-    \toprule
-    \textbf{Besoins} & \textbf{Complété} \\
-    \midrule
+    \hline
+    \textbf{Besoin} & \textbf{Description} & \textbf{État} \\
+    \hline
     \endhead
 
-    F1  & Oui \\
-    F2  & Oui \\
-    F3  & Oui \\
-    F4  & Oui \\
-    F5  & Oui \\
-    F6  & Oui \\
-    F7  & Oui \\
-    F8  & Oui \\
-    F9  & Oui \\
-    F10 & Oui \\
-    F11 & Oui \\
-    F12 & Oui \\
-    F13 & Oui \\
-    F14 & Oui \\
-    F15 & Oui \\
-    F16 & Oui \\
-    F17 & Oui \\
-    F18 & Oui \\
-    F19 & Oui \\
-    F20 & Oui \\
-    F21 & Oui \\
-    F22 & Oui \\
-    F23 & Oui \\
-    F24 & Oui \\
-    F25 & Oui \\
-    F26 & Oui \\
-    F27 & Oui \\
-    F28 & Oui \\
-    F29 & Oui \\
-    F30 & Oui \\
-    F31 & Oui \\
-    F32 & Oui \\
-    F33 & Oui \\
-    F34 & Oui \\
-    F35 & Oui \\
-    F36 & Oui \\
-    F37 & Oui \\
-    F38 & Oui \\
-    F39 & Oui \\
-    F40 & Oui \\
-    \bottomrule
+    F1  & Lancement depuis un exécutable ou un script du projet. & Fait \\
+    \hline
+    F2  & Fichier de configuration \texttt{.scrabblerc} lu au démarrage, avec création et fallback. & Fait \\
+    \hline
+    F3  & Internationalisation par défaut en anglais, avec support du français et des variables d'environnement. & Fait \\
+    \hline
+    F4  & Interface CLI avec aide, version, verbosité, debug et codes de retour. & Fait \\
+    \hline
+    F5  & Mode blitz avec limite de temps par joueur. & Fait \\
+    \hline
+    F6  & Mode contest pour répondre à partir d'une position fournie. & Fait \\
+    \hline
+    F7  & Interface graphique équivalente au CLI. & Fait \\
+    \hline
+    F8  & Remplacement d'un joueur par une IA selon la couleur ou une valeur par défaut. & Fait \\
+    \hline
+    F9  & Options joueurs, langue, super-scrabble, dictionnaire et liste des langues. & Fait \\
+    \hline
+    F10 & Gestion complète des règles, des scores et de la fin de partie. & Fait \\
+    \hline
+    F11 & Messages d'erreur utilisateur explicites sans crash. & Fait \\
+    \hline
+    F12 & Undo/redo pour les coups humains, y compris après intervention d'une IA. & Fait \\
+    \hline
+    F13 & Fonction de conseil pour proposer un coup. & Fait \\
+    \hline
+    F14 & Affichage du temps blitz et arrêt immédiat quand le temps expire. & Fait \\
+    \hline
+    F15 & Shell interactif avec les commandes demandées par la spécification. & Fait \\
+    \hline
+    F16 & Proposition d'enregistrer la partie avant de quitter. & Fait \\
+    \hline
+    F17 & Édition de la ligne de commande avec flèches, insertion et suppression. & Fait \\
+    \hline
+    F18 & Historique des commandes et recherche rapide au clavier. & Fait \\
+    \hline
+    F19 & Complétion automatique des commandes du shell. & Fait \\
+    \hline
+    F20 & Rendu ASCII coloré et notation des coups sur plateau standard ou super. & Fait \\
+    \hline
+    F21 & Sauvegarde et restauration ASCII d'une partie complète. & Fait \\
+    \hline
+    F22 & Gestion des commentaires et des blocs commentés dans les sauvegardes. & Fait \\
+    \hline
+    F23 & Format de la section \texttt{[settings]} en paires clé=valeur. & Fait \\
+    \hline
+    F24 & Format de la section plateau avec taille variable et erreurs de ligne. & Fait \\
+    \hline
+    F25 & Format d'historique conforme à la spécification. & Fait \\
+    \hline
+    F26 & Chargement du lexique et choix du dictionnaire selon la langue. & Fait \\
+    \hline
+    F27 & Interface dictionnaire abstraite et API complète. & Fait \\
+    \hline
+    F28 & Implémentation du module DAWG. & Fait \\
+    \hline
+    F29 & Implémentation du module GADDAG. & Fait \\
+    \hline
+    F30 & Menus GUI File et Game conformes aux éléments imposés. & Fait \\
+    \hline
+    F31 & Raccourcis GUI et personnalisation persistante. & Fait \\
+    \hline
+    F32 & Drag and drop dans l'interface graphique. & Fait \\
+    \hline
+    F33 & Borne de réflexion pour l'IA via \texttt{--ai-time}. & Fait \\
+    \hline
+    F34 & Recherche des coups possibles via le GADDAG. & Fait \\
+    \hline
+    F35 & Recherche du meilleur coup en score local maximal. & Fait \\
+    \hline
+    F36 & Activation de l'Expectiminimax. & Fait \\
+    \hline
+    F37 & Recherche de coups par machine learning. & Fait \\
+    \hline
+    F38 & Base réseau : serveur, connexion, join, quit, ping. & Fait \\
+    \hline
+    F39 & Serveur multi-clients avec statut, joueurs et options réseau. & Fait \\
+    \hline
+    F40 & Invitations avancées avec acceptation, refus, annulation et timeout. & Fait \\
+    \hline
 \end{longtable}
 
 
