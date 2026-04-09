@@ -107,34 +107,34 @@
 %------------------------------------------------------------------------------
 %	PARTIE 1 — INTRODUCTION
 %------------------------------------------------------------------------------
-    \section{Explication detaillee du sujet}
+    \section{Explication détaillée du sujet}
 
 	\subsection{Historique du sujet}
 	\paragraph{}
-    En 1931, l'architecte au chomage Alfred Mosher Butts decide de creer un jeu combinant chance et reflexion. En analysant minutieusement la frequence des lettres a la une du \textit{New York Times}, il elabore un systeme de valeurs specifiques pour chaque jeton, methode qui reste inchangee dans les editions modernes \cite{butts1931}. Initialement baptise \textit{Lexiko}, puis \textit{Criss-Cross Words}, le jeu essuie les refus de nombreux fabricants avant qu'un homme d'affaires, James Brunot, ne rachate les droits en 1948 pour lui donner son nom definitif : Scrabble \cite{fatsis2001}.
+    En 1931, l'architecte au chômage Alfred Mosher Butts décide de créer un jeu combinant chance et réflexion. En analysant minutieusement la fréquence des lettres à la une du \textit{New York Times}, il élabore un système de valeurs spécifiques pour chaque jeton, méthode qui reste inchangée dans les éditions modernes \cite{butts1931}. Initialement baptisé \textit{Lexiko}, puis \textit{Criss-Cross Words}, le jeu essuie les refus de nombreux fabricants avant qu'un homme d'affaires, James Brunot, ne rachète les droits en 1948 pour lui donner son nom définitif : Scrabble \cite{fatsis2001}.
   
   \paragraph{}
-    Le succes mondial du jeu doit beaucoup a un coup de chance marketing. Dans les annees 1950, Jack Straus, president du grand magasin Macy's a New York, decouvre le jeu pendant ses vacances et s'etonne de ne pas le trouver dans ses rayons. Il passe une commande massive, propulsant le Scrabble au rang de phenomene culturel \cite{fatsis2001}. Aujourd'hui, avec plus de 150 millions d'exemplaires vendus dans 121 pays et des competitions internationales organisees par la World English-Language Scrabble Players Association (WESPA) et la Federation Internationale de Scrabble Francophone (FISF), il est devenu le jeu de lettres le plus populaire de la planete \cite{fisf2023}.
+    Le succès mondial du jeu doit beaucoup à un coup de chance marketing. Dans les années 1950, Jack Straus, président du grand magasin Macy's à New York, découvre le jeu pendant ses vacances et s'étonne de ne pas le trouver dans ses rayons. Il passe une commande massive, propulsant le Scrabble au rang de phénomène culturel \cite{fatsis2001}. Aujourd'hui, avec plus de 150 millions d'exemplaires vendus dans 121 pays et des compétitions internationales organisées par la World English-Language Scrabble Players Association (WESPA) et la Fédération Internationale de Scrabble Francophone (FISF), il est devenu le jeu de lettres le plus populaire de la planète \cite{fisf2023}.
   
   \paragraph{}
-    Des les annees 1980 et 1990, les premiers logiciels de jeu contre l'ordinateur font leur apparition. L'explosion des plateformes en ligne, notamment l'Internet Scrabble Club (ISC), puis des applications mobiles comme \textit{Scrabble Go} ont elargi considerablement la communaute de joueurs. Au-dela du divertissement, l'informatique a revolutionne la competition de haut niveau grace a des outils d'analyse strategique comme Quackle \cite{sheppard2006}, devenu la reference mondiale pour l'entrainement des joueurs experts. Aujourd'hui, de nombreux projets open source et applications multiplateformes temoignent de la vitalite de l'ecosysteme logiciel autour du Scrabble.
+    Dès les années 1980 et 1990, les premiers logiciels de jeu contre l'ordinateur font leur apparition. L'explosion des plateformes en ligne, notamment l'Internet Scrabble Club (ISC), puis des applications mobiles comme \textit{Scrabble Go} ont élargi considérablement la communauté de joueurs. Au-delà du divertissement, l'informatique a révolutionné la compétition de haut niveau grâce à des outils d'analyse stratégique comme Quackle \cite{sheppard2006}, devenu la référence mondiale pour l'entraînement des joueurs experts. Aujourd'hui, de nombreux projets open source et applications multiplateformes témoignent de la vitalité de l'écosystème logiciel autour du Scrabble.
 
   \paragraph{}
 
-	\subsection{Nature et enjeux du jeu}
-	Le Scrabble est un jeu de lettres a information imparfaite (les tirages adverses sont inconnus) et stochastique (soumis a l'alea de la pioche). L'objectif est de maximiser son score sur une grille standard de $15 \times 15$ cases en y placant des mots extraits d'un dictionnaire de reference (ODS en francais, TWL/SOWPODS en anglais).
+    \subsection{Nature et enjeux du jeu}
+    Le Scrabble est un jeu de lettres à information imparfaite (les tirages adverses sont inconnus) et stochastique (soumis à l'aléa de la pioche). L'objectif est de maximiser son score sur une grille standard de $15 \times 15$ cases en y plaçant des mots extraits d'un dictionnaire de référence (ODS en français, TWL/SOWPODS en anglais).
 
 	Le jeu repose sur trois piliers fondamentaux :
 	\begin{enumerate}
-		\item \textbf{Logique spatiale} Tout mot pose doit respecter deux contraintes simultanees : la connexite (chaque nouveau mot doit s'appuyer sur au moins une lettre deja presente sur le plateau, et toutes les lettres posees en un meme tour doivent etre alignees et contigues) et l'orthogonalite (toute collision avec des lettres adjacentes doit former un mot valide dans le dictionnaire de reference).
+        \item \textbf{Logique spatiale} Tout mot posé doit respecter deux contraintes simultanées : la connexité (chaque nouveau mot doit s'appuyer sur au moins une lettre déjà présente sur le plateau, et toutes les lettres posées en un même tour doivent être alignées et contigües) et l'orthogonalité (toute collision avec des lettres adjacentes doit former un mot valide dans le dictionnaire de référence).
 
-		\textit{Exemple :} si le mot FEU est pose horizontalement, un joueur peut placer la lettre R au-dessus du E pour former RE verticalement, a condition de poser simultanement un mot horizontal valide passant par ce R, comme RATS.
+        \textit{Exemple :} si le mot FEU est posé horizontalement, un joueur peut placer la lettre R au-dessus du E pour former RE verticalement, à condition de poser simultanément un mot horizontal valide passant par ce R, comme RATS.
 
-		\item \textbf{Logique mathematique} Le score d'un coup se calcule en additionnant la valeur de chaque lettre posee, en appliquant d'abord les multiplicateurs de lettres (case lettre compte double/triple), puis les multiplicateurs de mots (case mot compte double/triple). Un joueur qui utilise ses 7 lettres en un seul coup remporte un bonus de 50 points, appele Scrabble.
+        \item \textbf{Logique mathématique} Le score d'un coup se calcule en additionnant la valeur de chaque lettre posée, en appliquant d'abord les multiplicateurs de lettres (case lettre compte double/triple), puis les multiplicateurs de mots (case mot compte double/triple). Un joueur qui utilise ses 7 lettres en un seul coup remporte un bonus de 50 points, appelé Scrabble.
 
-		\textit{Exemple :} au premier tour, un joueur pose AXE avec le X sur la case centrale H8 (case mot $\times 2$). La valeur brute est A(1) + X(8) + E(1) = 10, doublee a 20 points. Si la case centrale etait une case lettre $\times 2$ sous le X, on calculerait A(1) + X(16) + E(1) = 18, puis on appliquerait le multiplicateur de mot.
+        \textit{Exemple :} au premier tour, un joueur pose AXE avec le X sur la case centrale H8 (case mot $\times 2$). La valeur brute est A(1) + X(8) + E(1) = 10, doublée à 20 points. Si la case centrale était une case lettre $\times 2$ sous le X, on calculerait A(1) + X(16) + E(1) = 18, puis on appliquerait le multiplicateur de mot.
 
-		\item \textbf{Logique linguistique} Chaque mot pose, y compris les mots formes par collision, doit appartenir au dictionnaire de reference choisi pour la partie. Tout mot invalide entraine l'annulation du coup et, selon les regles, une penalite de score.
+        \item \textbf{Logique linguistique} Chaque mot posé, y compris les mots formés par collision, doit appartenir au dictionnaire de référence choisi pour la partie. Tout mot invalide entraîne l'annulation du coup et, selon les règles, une pénalité de score.
 	\end{enumerate}
 
     \begin{figure}[H]
@@ -151,61 +151,61 @@
             \centering
             \includegraphics[width=\linewidth]{exemple3.png}
         \end{minipage}
-        \caption{Trois captures des premiers coups d'une partie, illustrant la mise en place progressive du plateau et l'application des regles de pose.}
+        \caption{Trois captures des premiers coups d'une partie, illustrant la mise en place progressive du plateau et l'application des règles de pose.}
         \label{fig:exemples-premiers-coups}
     \end{figure}
 
-	\paragraph{Deroulement d'une partie}
-	La partie debute obligatoirement par un mot d'au moins deux lettres couvrant la case centrale (H8), dont le score est automatiquement double. A chaque tour, le joueur peut : poser un mot, echanger tout ou partie de ses jetons contre des lettres de la pioche (si le sac contient au moins 7 lettres), ou passer son tour. La partie s'acheve lorsque le sac est vide et qu'un joueur a epuise son chevalet, ou apres trois tours consecutifs sans score. Les lettres restant sur les chevalets sont deduites du score de chaque joueur, et leur valeur totale est ajoutee au score du joueur ayant vide son chevalet en premier.
+    \paragraph{Déroulement d'une partie}
+    La partie débute obligatoirement par un mot d'au moins deux lettres couvrant la case centrale (H8), dont le score est automatiquement doublé. À chaque tour, le joueur peut : poser un mot, échanger tout ou partie de ses jetons contre des lettres de la pioche (si le sac contient au moins 7 lettres), ou passer son tour. La partie s'achève lorsque le sac est vide et qu'un joueur a épuisé son chevalet, ou après trois tours consécutifs sans score. Les lettres restant sur les chevalets sont déduites du score de chaque joueur, et leur valeur totale est ajoutée au score du joueur ayant vidé son chevalet en premier.
 
-	\textit{Exemple de fin de partie :} le joueur A termine avec 300 points. Le joueur B possede encore un W (10 pts) et un X (10 pts) : son score final est 280 pts, et le score de A monte a 320 pts.
+    \textit{Exemple de fin de partie :} le joueur A termine avec 300 points. Le joueur B possède encore un W (10 pts) et un X (10 pts) : son score final est 280 pts, et le score de A monte à 320 pts.
 
-	\subsection{Complexite du jeu et defis algorithmiques}
-	Il est essentiel de distinguer la complexite intrinseque du jeu de celle des algorithmes qui cherchent a le resoudre.
+    \subsection{Complexité du jeu et défis algorithmiques}
+    Il est essentiel de distinguer la complexité intrinsèque du jeu de celle des algorithmes qui cherchent à le résoudre.
 
-	\paragraph{Espace des etats}
-	Le nombre de positions legales sur un plateau $15 \times 15$ est estime a environ $10^{30}$. Si ce chiffre reste inferieur a celui des echecs ($\sim 10^{43}$), l'incertitude propre au Scrabble, due aux tirages caches de l'adversaire et a l'alea de la pioche, en fait un probleme fondamentalement different : il releve de la theorie des jeux a information imparfaite, contrairement aux echecs ou aux dames.
+    \paragraph{Espace des états}
+    Le nombre de positions légales sur un plateau $15 \times 15$ est estimé à environ $10^{30}$. Si ce chiffre reste inférieur à celui des échecs ($\sim 10^{43}$), l'incertitude propre au Scrabble, due aux tirages cachés de l'adversaire et à l'aléa de la pioche, en fait un problème fondamentalement différent : il relève de la théorie des jeux à information imparfaite, contrairement aux échecs ou aux dames.
 
-	\paragraph{Explosion combinatoire a chaque coup}
-    Meme pour un seul tour, la generation de tous les coups legaux est un probleme non trivial. Pour un chevalet de 7 lettres et un dictionnaire de type ODS ($\sim 380\,000$ mots), il faut explorer toutes les combinaisons de lettres (sous-ensembles du chevalet), toutes les positions et orientations possibles sur la grille, et verifier simultanement la validite de tous les mots formes par collision. Le nombre de placements theoriques au premier tour est deja de l'ordre de plusieurs millions \cite{10.1145/42411.42420}.
+	\paragraph{Explosion combinatoire à chaque coup}
+    Même pour un seul tour, la génération de tous les coups légaux est un problème non trivial. Pour un chevalet de 7 lettres et un dictionnaire de type ODS ($\sim 380\,000$ mots), il faut explorer toutes les combinaisons de lettres (sous-ensembles du chevalet), toutes les positions et orientations possibles sur la grille, et vérifier simultanément la validité de tous les mots formés par collision. Le nombre de placements théoriques au premier tour est déjà de l'ordre de plusieurs millions \cite{10.1145/42411.42420}.
 
-	\paragraph{La qualite du reliquat}
-	Un des defis strategiques majeurs, et algorithmiques, est que maximiser le score immediat n'est pas toujours optimal. Un bon moteur de jeu doit evaluer la qualite du reliquat (les lettres conservees apres le coup), car des lettres polyvalentes comme les voyelles courantes ou le S offrent de meilleures perspectives pour les tours suivants. A l'inverse, conserver des lettres difficiles comme le W ou le K penalise les coups futurs.
+    \paragraph{La qualité du reliquat}
+    Un des défis stratégiques majeurs, et algorithmiques, est que maximiser le score immédiat n'est pas toujours optimal. Un bon moteur de jeu doit évaluer la qualité du reliquat (les lettres conservées après le coup), car des lettres polyvalentes comme les voyelles courantes ou le S offrent de meilleures perspectives pour les tours suivants. À l'inverse, conserver des lettres difficiles comme le W ou le K pénalise les coups futurs.
 
-	\paragraph{La gestion des cases bonus}
-	Un autre defi crucial est l'obstruction : ouvrir une case bonus (mot $\times 3$ ou lettre $\times 3$ en bord de grille) pour l'adversaire peut lui offrir un avantage considerable. L'IA doit donc anticiper non seulement son propre score, mais aussi les opportunites qu'elle laisse a son adversaire.
+    \paragraph{La gestion des cases bonus}
+    Un autre défi crucial est l'obstruction : ouvrir une case bonus (mot $\times 3$ ou lettre $\times 3$ en bord de grille) pour l'adversaire peut lui offrir un avantage considérable. L'IA doit donc anticiper non seulement son propre score, mais aussi les opportunités qu'elle laisse à son adversaire.
 
-	\paragraph{Conclusion sur la difficulte}
-	Ces contraintes font du Scrabble un probleme d'optimisation combinatoire sous incertitude, a la frontiere entre la recherche arborescente, la linguistique computationnelle et la theorie des jeux stochastiques.
+    \paragraph{Conclusion sur la difficulté}
+    Ces contraintes font du Scrabble un problème d'optimisation combinatoire sous incertitude, à la frontière entre la recherche arborescente, la linguistique computationnelle et la théorie des jeux stochastiques.
 
 
-	\subsection{Existant algorithmique}
-	L'etat de l'art repose sur des travaux academiques fondateurs et des logiciels eprouves.
+    \subsection{Existant algorithmique}
+    L'état de l'art repose sur des travaux académiques fondateurs et des logiciels éprouvés.
 
-	\paragraph{Structures de donnees pour le dictionnaire}
-	La generation rapide de coups legaux repose sur des automates finis representant le dictionnaire :
+    \paragraph{Structures de données pour le dictionnaire}
+    La génération rapide de coups légaux repose sur des automates finis représentant le dictionnaire :
 	\begin{itemize}
-        \item le DAWG (\textit{Directed Acyclic Word Graph}), propose par Appel \& Jacobson (1988) \cite{10.1145/42411.42420}, compresse le dictionnaire en un graphe oriente acyclique permettant une verification en $O(n)$ de la validite d'un mot ;
-        \item le GADDAG, introduit par Steven Gordon (1994) \cite{10.1002/spe.4380240205}, est une extension permettant de generer directement tous les mots pouvant s'ancrer sur une lettre donnee du plateau, accelerant considerablement la recherche des coups legaux.
+        \item le DAWG (\textit{Directed Acyclic Word Graph}), proposé par Appel \& Jacobson (1988) \cite{10.1145/42411.42420}, compresse le dictionnaire en un graphe orienté acyclique permettant une vérification en $O(n)$ de la validité d'un mot ;
+        \item le GADDAG, introduit par Steven Gordon (1994) \cite{10.1002/spe.4380240205}, est une extension permettant de générer directement tous les mots pouvant s'ancrer sur une lettre donnée du plateau, accélérant considérablement la recherche des coups légaux.
 	\end{itemize}
 
-	\paragraph{Logiciels de reference}
-    Quackle \cite{sheppard2006} est le standard academique et competitif pour l'analyse strategique. Il utilise des simulations de type Monte-Carlo pour estimer l'esperance de gain de chaque coup sur plusieurs tours a venir, en simulant des milliers de parties possibles.
+	\paragraph{Logiciels de référence}
+    Quackle \cite{sheppard2006} est le standard académique et competitif pour l'analyse stratégique. Il utilise des simulations de type Monte-Carlo pour estimer l'espérance de gain de chaque coup sur plusieurs tours à venir, en simulant des milliers de parties possibles.
 
-	Elise et Maven sont d'autres moteurs historiques ayant contribue a l'etablissement des meilleures pratiques en IA Scrabble.
+	Elise et Maven sont d'autres moteurs historiques ayant contribue à l'etablissement des meilleures pratiques en IA Scrabble.
 
 	\paragraph{Plateformes de jeu en ligne}
-	L'ISC (\textit{Internet Scrabble Club}) demeure la reference pour la pratique competitive, garantissant une application stricte des regles internationales. Des plateformes plus recentes comme Woogles.io proposent egalement des outils d'analyse integres.
+	L'ISC (\textit{Internet Scrabble Club}) demeure la référence pour la pratique competitive, garantissant une application stricte des règles internationales. Des plateformes plus recentes comme Woogles.io proposent également des outils d'analyse intégrés.
 
 	\paragraph{Open source}
-	De nombreux projets open source (notamment en Python, Java et C++) sont disponibles sur des plateformes comme GitHub, rendant accessible l'implementation d'un moteur de jeu a partir des algorithmes decrits dans la litterature.
+	De nombreux projets open source (notamment en Python, Java et C++) sont disponibles sur des plateformes comme GitHub, rendant accessible l'implementation d'un moteur de jeu à partir des algorithmes decrits dans la litterature.
 
 
   
 
 
 
-	\section{Algorithmes et Structure de Donnees}
+	\section{Algorithmes et Structure de Données}
 
     Le cœur décisionnel de notre intelligence artificielle repose sur des algorithmes de recherche arborescente. Le défi majeur du Scrabble étant l'information imparfaite (le chevalet adverse est caché), nous avons dû adapter ces structures de données classiques à des environnements probabilistes.
 
@@ -270,7 +270,7 @@
     En termes simples, l'Expectiminimax ne se contente pas de calculer mathématiquement les risques sur le plateau. Pour juger de la force réelle d'un coup, l'IA additionne le risque statistique sur le plateau et la qualité de sa main évaluée par l'heuristique. L'IA cherche donc toujours l'équilibre parfait entre "limiter la casse probabiliste" et "garder de bonnes lettres pour l'avenir".
 
     \subsubsection{Complexité, coût et performances}
-    La complexité est la même ($O(B \times N \times B)$). Bien que son coût soit strictement identique à celui de notre Minimax actuel, l'Expectiminimax a l'inconvénient théorique de ne presque pas pouvoir être optimisé par des techniques d'élagage classiques. Le style de jeu devient plus naturel et audacieux. Dans notre code, son coût temporel étant identique au Minimax Monte-Carlo, l'Expectiminimax s'avère supérieur dans la prise de ses décisions.
+    La complexité est la même ($O(B \times N \times B)$). Bien que son coût soit strictement identique à celui de notre Minimax actuel, l'Expectiminimax à l'inconvénient théorique de ne presque pas pouvoir être optimisé par des techniques d'élagage classiques. Le style de jeu devient plus naturel et audacieux. Dans notre code, son coût temporel étant identique au Minimax Monte-Carlo, l'Expectiminimax s'avère supérieur dans la prise de ses décisions.
 
     \subsection{Comparaison des arbres de décision}
 
@@ -470,7 +470,7 @@ La création d'un DAWG optimisé repose sur l'algorithme de Daciuk~\cite{10.1162
 En matière de performance, la construction affiche une complexité temporelle de $O(|W| \times L)$, où $|W|$ représente le nombre total de mots et $L$ leur longueur moyenne. \newline
 
 Pour la phase de jeu, la recherche d'un mot s'effectue en un temps linéaire $O(N)$ par rapport à la longueur $N$ de la chaîne de caractères, ce qui garantit une validation quasi instantanée. 
-Cependant, cette structure unidirectionnelle montre ses limites dès lors qu'une lettre \og ancre \fg{} est déjà fixée au milieu d'un mot potentiel sur le plateau. 
+Cependant, cette structure unidirectionnelle montre ses limites dès lors qu'une lettre « ancre » est déjà fixée au milieu d'un mot potentiel sur le plateau. 
 Le DAWG ne permettant pas de remonter le chemin vers la racine pour identifier les débuts de mots possibles, le moteur de jeu est alors contraint d'explorer aveuglément tous les préfixes imaginables avant d'atteindre l'ancre, ce qui rend la génération de coups particulièrement inefficace dans ces configurations.\newline
 
 \subsubsection{Avantages et limites pour le Scrabble}
@@ -491,9 +491,9 @@ Pour placer un mot contenant une lettre fixe en son centre ou à sa fin, l'algor
 Le GADDAG, conçu par Steven Gordon en 1994~\cite{10.1002/spe.4380240205}, a donc apporté une réponse définitive au problème de l'ancrage en permettant une recherche bidirectionnelle efficace. Contrairement
  au DAWG qui ne stocke qu'une version linéaire de chaque mot, le GADDAG génère $n$ représentations différentes pour un mot de longueur $n$, une pour chaque position possible
   d'une lettre sur le plateau. La structure repose sur une transformation : pour chaque lettre choisie comme ancre, la partie située à sa gauche est inversée, puis séparée
-   de la partie droite par un caractère spécial \og{}>\fg{} servant de délimiteur.\newline
+   de la partie droite par un caractère spécial «>» servant de délimiteur.\newline
 
-À titre d'exemple, le mot \og CHAT \fg{} est décomposé en quatre représentations distinctes :
+À titre d'exemple, le mot « CHAT » est décomposé en quatre représentations distinctes :
 \begin{enumerate}
     \item \textbf{C > H A T} \quad (l'ancre est C)
     \item \textbf{H C > A T} \quad (l'ancre est H : on place C à gauche, puis on complète A-T à droite)
@@ -501,19 +501,19 @@ Le GADDAG, conçu par Steven Gordon en 1994~\cite{10.1002/spe.4380240205}, a don
     \item \textbf{T A H C >} \quad (l'ancre est T : on complète tout le mot vers la gauche)
 \end{enumerate}
 
-Cette méthode se généralise sans perte d'efficacité pour des mots plus complexes comme \og SCRABBLE \fg{}, qui produira huit entrées allant de \og S>CRABBLE \fg{} jusqu'à 
-la forme totalement inversée \og ELBBARCS> \fg{}. Cette multiplication des chemins garantit que, pour n'importe quelle lettre du mot déjà présente sur la grille, il existe 
+Cette méthode se généralise sans perte d'efficacité pour des mots plus complexes comme « SCRABBLE », qui produira huit entrées allant de « S>CRABBLE » jusqu'à 
+la forme totalement inversée « ELBBARCS> ». Cette multiplication des chemins garantit que, pour n'importe quelle lettre du mot déjà présente sur la grille, il existe 
 un chemin unique dans l'automate commençant par celle-ci et permettant de créer le reste du mot.\newline
 
 \subsubsection{Semi-minimisation}
 
 L'augmentation du nombre de représentations par mot pourrait laisser craindre une explosion de la consommation mémoire, mais le GADDAG compense ce volume par une technique 
-dite de semi-minimisation. Gordon a démontré que si les préfixes inversés divergent souvent, les suffixes situés après le caractère pivot \og > \fg{} présentent une redondance
+dite de semi-minimisation. Gordon a démontré que si les préfixes inversés divergent souvent, les suffixes situés après le caractère pivot « > » présentent une redondance
 massive. La semi-minimisation consiste donc à fusionner tous les états équivalents rencontrés après le délimiteur, exactement comme dans la construction d'un DAWG.\newline
 
-Pour le mot \og CARE \fg{}, les formes \og AC>RE \fg{} et \og RA>CE \fg{} voient leurs branches fusionnées avec n'importe quel autre mot du dictionnaire se terminant 
-par \og RE \fg{} ou \og CE \fg{}. De même, des mots partageant des suffixes verbaux, comme \og MARCHER \fg{} et \og JOUER \fg{}, partageront une structure commune pour 
-leurs formes pivotées au-delà du délimiteur (par exemple \og RAHC>MER \fg{} et \og UOJ>ER \fg{} où la terminaison \og ER \fg{} est mutualisée). Cette optimisation rend la 
+Pour le mot « CARE », les formes « AC>RE » et « RA>CE » voient leurs branches fusionnées avec n'importe quel autre mot du dictionnaire se terminant 
+par « RE » ou « CE ». De même, des mots partageant des suffixes verbaux, comme « MARCHER » et « JOUER », partageront une structure commune pour 
+leurs formes pivotées au-delà du délimiteur (par exemple « RAHC>MER » et « UOJ>ER » où la terminaison « ER » est mutualisée). Cette optimisation rend la 
 structure déterministe et permet de conserver un seul chemin par couple (mot, ancre), tout en maintenant une empreinte mémoire tout à fait acceptable pour les systèmes modernes. \newline
 
 \begin{figure}[htbp]
@@ -525,9 +525,9 @@ structure déterministe et permet de conserver un seul chemin par couple (mot, a
 
 \subsubsection{Utilisation dans le moteur de jeu}
 
-L'intégration du GADDAG au sein du moteur de jeu transforme radicalement la génération de coups en la rendant purement itérative. Pour chaque case \og ancre \fg{} 
+L'intégration du GADDAG au sein du moteur de jeu transforme radicalement la génération de coups en la rendant purement itérative. Pour chaque case « ancre » 
 identifiée sur le plateau, l'algorithme entame un parcours du graphe en deux phases distinctes. Dans un premier temps, il explore les branches correspondant à la partie 
-gauche du mot (le préfixe inversé) en remontant vers les cases vides à gauche ou en haut de l'ancre. Dès qu'il rencontre le caractère \og > \fg{} dans l'automate, il bascule
+gauche du mot (le préfixe inversé) en remontant vers les cases vides à gauche ou en haut de l'ancre. Dès qu'il rencontre le caractère « > » dans l'automate, il bascule
  dans la seconde phase pour compléter le mot vers la droite ou vers le bas avec les lettres restantes du tirage.\newline
 
 Cette approche permet de découvrir l'intégralité des coups légaux en un seul passage dans l'automate, sans jamais avoir besoin de revenir en arrière ou de deviner une 
@@ -625,39 +625,39 @@ qu'une ancre est présente sur la grille. Le GADDAG, en encodant toutes les posi
 \section{Architecture du projet}
 
 
-Le projet est organise en couches fonctionnelles strictement separees selon le patron MVC. Chaque package porte une responsabilite unique, avec des dependances majoritairement descendantes.
+Le projet est organise en couches fonctionnelles strictement separees selon le patron MVC. Chaque package porte une responsabilité unique, avec des dépendances majoritairement descendantes.
 
-\subsection{Decoupage en modules}
+\subsection{Découpage en modules}
 
-\paragraph{Point d'entree}
-La classe \texttt{App} initialise le contexte d'execution : detection de la langue via \texttt{I18n}, chargement de la configuration \texttt{.scrabblerc} via \texttt{ConfigLoader}, puis delegation au mode d'affichage selon les options \texttt{commons-cli}. \texttt{App} expose des \texttt{@FunctionalInterface} (\texttt{CliLauncherHandler}, \texttt{GuiLauncherHandler}, \texttt{ExitHandler}) pour decoupler le point d'entree des implementations concretes et faciliter les tests.
+\paragraph{Point d'entrée}
+La classe \texttt{App} initialise le contexte d'exécution : détection de la langue via \texttt{I18n}, chargement de la configuration \texttt{.scrabblerc} via \texttt{ConfigLoader}, puis délégation au mode d'affichage selon les options \texttt{commons-cli}. \texttt{App} expose des \texttt{@FunctionalInterface} (\texttt{CliLauncherHandler}, \texttt{GuiLauncherHandler}, \texttt{ExitHandler}) pour découpler le point d'entrée des implémentations concrètes et faciliter les tests.
 
-\paragraph{Couche controleur}
-Le package \texttt{controller} contient \texttt{GameController} (logique applicative principale) et \texttt{GameControllerAux} (orchestration CLI extraite pour limiter la taille de la classe principale). \texttt{GameController} maintient les references au modele (\texttt{Game}, \texttt{Gaddag}), a la vue (\texttt{UserInterface}) et aux parametres de lancement (mode blitz, super-scrabble, IA). Il depend egalement de sous-controleurs specialises : \texttt{builders/} pour la construction interactive des coups, \texttt{config/} pour les snapshots de configuration, \texttt{dictionary/} pour le chargement du dictionnaire, et \texttt{network/} pour les commandes reseau CLI.
+\paragraph{Couche contrôleur}
+Le package \texttt{controller} contient \texttt{GameController} (logique applicative principale) et \texttt{GameControllerAux} (orchestration CLI extraite pour limiter la taille de la classe principale). \texttt{GameController} maintient les références au modèle (\texttt{Game}, \texttt{Gaddag}), à la vue (\texttt{UserInterface}) et aux paramètres de lancement (mode blitz, super-scrabble, IA). Il dépend également de sous-contrôleurs spécialisés : \texttt{builders/} pour la construction interactive des coups, \texttt{config/} pour les snapshots de configuration, \texttt{dictionary/} pour le chargement du dictionnaire, et \texttt{network/} pour les commandes réseau CLI.
 
-\paragraph{Couche metier --- core}
-Le package \texttt{model.core} regroupe les objets de domaine et les regles de jeu. \texttt{Game} est le moteur central : il gere le plateau (\texttt{Board}), le sac (\texttt{Bag}), la liste des joueurs, le tour courant, le mode blitz (minuterie par joueur) et l'historique undo/redo. \texttt{MoveHandler} est le seul composant autorise a modifier l'etat du jeu en reponse a un \texttt{Move}. \texttt{Scoring} calcule les points (multiplicateurs de cases, bonus Bingo a 50 points si 7 tuiles posees). \texttt{MoveGenerator} genere la liste des coups jouables pour l'IA. \texttt{UndoRedo} gere deux piles (\texttt{Stack<Move>}) pour l'annulation et le rejeu.
+\paragraph{Couche métier --- core}
+Le package \texttt{model.core} regroupe les objets de domaine et les règles de jeu. \texttt{Game} est le moteur central : il gère le plateau (\texttt{Board}), le sac (\texttt{Bag}), la liste des joueurs, le tour courant, le mode blitz (minuterie par joueur) et l'historique undo/redo. \texttt{MoveHandler} est le seul composant autorisé à modifier l'état du jeu en réponse à un \texttt{Move}. \texttt{Scoring} calcule les points (multiplicateurs de cases, bonus Bingo à 50 points si 7 tuiles posées). \texttt{MoveGenerator} génère la liste des coups jouables pour l'IA. \texttt{UndoRedo} gère deux piles (\texttt{Stack<Move>}) pour l'annulation et le rejeu.
 
-\paragraph{Couche metier --- dictionnaire}
-Le package \texttt{model.dictionary} expose une interface \texttt{Dictionary} (methodes \texttt{add}, \texttt{contains}, \texttt{findWordsWithRackAndHook}) implementee par trois structures : \texttt{Trie} (recherche prefixe generique), \texttt{Dawg} (automate acyclique deterministe, optimise pour la validation rapide) et \texttt{Gaddag} (structure bidirectionnelle indispensable pour la generation de coups). Le controleur et l'IA travaillent exclusivement avec \texttt{Gaddag}, qui est charge une seule fois depuis le fichier dictionnaire selon la langue active.
+\paragraph{Couche métier --- dictionnaire}
+Le package \texttt{model.dictionary} expose une interface \texttt{Dictionary} (méthodes \texttt{add}, \texttt{contains}, \texttt{findWordsWithRackAndHook}) implémentée par trois structures : \texttt{Trie} (recherche préfixe générique), \texttt{Dawg} (automate acyclique déterministe, optimisé pour la validation rapide) et \texttt{Gaddag} (structure bidirectionnelle indispensable pour la génération de coups). Le contrôleur et l'IA travaillent exclusivement avec \texttt{Gaddag}, qui est chargé une seule fois depuis le fichier dictionnaire selon la langue active.
 
-\paragraph{Couche metier --- IA}
-Le package \texttt{model.ai} regroupe \texttt{AiPlayer} (sous-classe concrete de \texttt{Player}, surcharge \texttt{isAutonomous()} et \texttt{playTurn()}), \texttt{MinimaxSolver} (Minimax et Expectiminimax avec profondeur et limite de temps configurables, 200 tirages de simulation par noeud) et \texttt{MlAgent} (agent TensorFlow Java, chargement gracieux : si le modele est absent, l'IA se replie sur le Minimax sans crash).
+\paragraph{Couche métier --- IA}
+Le package \texttt{model.ai} regroupe \texttt{AiPlayer} (sous-classe concrète de \texttt{Player}, surcharge \texttt{isAutonomous()} et \texttt{playTurn()}), \texttt{MinimaxSolver} (Minimax et Expectiminimax avec profondeur et limite de temps configurables, 200 tirages de simulation par nœud) et \texttt{MlAgent} (agent TensorFlow Java, chargement gracieux : si le modèle est absent, l'IA se replie sur le Minimax sans crash).
 
-\paragraph{Couche metier --- joueurs}
-La classe abstraite \texttt{Player} (dans \texttt{model.interfaces}) unifie \texttt{HumanPlayer} et \texttt{AiPlayer}. Elle encapsule le nom, le score, le \texttt{Rack} et la minuterie blitz. Les methodes principales sont \texttt{enableBlitzClock()}, \texttt{startTurnTimer()}, \texttt{pauseTurnTimer()} et \texttt{isOutOfTime()}. \texttt{HumanPlayer} n'ajoute aucune logique : il herite simplement de \texttt{Player} sans surcharger \texttt{isAutonomous()} (retourne \texttt{false} par defaut). Un joueur reseau est represente cote client par un \texttt{Player} standard dont les coups sont pilotes par \texttt{GameClient}.
+\paragraph{Couche métier --- joueurs}
+La classe abstraite \texttt{Player} (dans \texttt{model.interfaces}) unifie \texttt{HumanPlayer} et \texttt{AiPlayer}. Elle encapsule le nom, le score, le \texttt{Rack} et la minuterie blitz. Les méthodes principales sont \texttt{enableBlitzClock()}, \texttt{startTurnTimer()}, \texttt{pauseTurnTimer()} et \texttt{isOutOfTime()}. \texttt{HumanPlayer} n'ajoute aucune logique : il hérite simplement de \texttt{Player} sans surcharger \texttt{isAutonomous()} (retourne \texttt{false} par défaut). Un joueur réseau est représenté côté client par un \texttt{Player} standard dont les coups sont pilotés par \texttt{GameClient}.
 
 \paragraph{Couche vue}
-Le package \texttt{view} expose l'interface \texttt{UserInterface}. Elle definit quatre methodes : \texttt{refresh()}, \texttt{displayMessage()}, \texttt{displayError()} et \texttt{displaySuccess()}. Deux implementations concretes existent : \texttt{CliView} (rendu ANSI via \texttt{BoardRenderer}, \texttt{RackRenderer}, \texttt{PlayerRenderer}, \texttt{MessageRenderer}) et \texttt{JavaFxView} (interface graphique JavaFX avec \texttt{BoardPanel}, \texttt{RackPanel}, \texttt{ScorePanel}, \texttt{ControlPanel}, \texttt{MessagePanel}). Les launchers \texttt{CliLauncher} et \texttt{GuiLauncher} dans \texttt{view/optionlancement/} sont le point de transition entre \texttt{App} et les vues concretes.
+Le package \texttt{view} expose l'interface \texttt{UserInterface}. Elle définit quatre méthodes : \texttt{refresh()}, \texttt{displayMessage()}, \texttt{displayError()} et \texttt{displaySuccess()}. Deux implémentations concrètes existent : \texttt{CliView} (rendu ANSI via \texttt{BoardRenderer}, \texttt{RackRenderer}, \texttt{PlayerRenderer}, \texttt{MessageRenderer}) et \texttt{JavaFxView} (interface graphique JavaFX avec \texttt{BoardPanel}, \texttt{RackPanel}, \texttt{ScorePanel}, \texttt{ControlPanel}, \texttt{MessagePanel}). Les launchers \texttt{CliLauncher} et \texttt{GuiLauncher} dans \texttt{view/optionlancement/} sont le point de transition entre \texttt{App} et les vues concrètes.
 
 \paragraph{Persistance}
-Le package \texttt{model.savefiles} contient \texttt{ConfigLoader} (lecture/ecriture du fichier \texttt{.scrabblerc} au format INI, section \texttt{[defaults]}, commentaires \texttt{\#} ignores, creation automatique si absent), \texttt{SaveManager} (serialisation de l'etat de jeu en trois blocs ASCII : \texttt{[settings]}, \texttt{[game]}, \texttt{[history]}) et \texttt{GameLoader} (deserialisation et reconstruction d'un \texttt{Game} depuis un fichier de sauvegarde).
+Le package \texttt{model.savefiles} contient \texttt{ConfigLoader} (lecture/écriture du fichier \texttt{.scrabblerc} au format INI, section \texttt{[defaults]}, commentaires \texttt{\#} ignorés, création automatique si absent), \texttt{SaveManager} (sérialisation de l'état de jeu en trois blocs ASCII : \texttt{[settings]}, \texttt{[game]}, \texttt{[history]}) et \texttt{GameLoader} (désérialisation et reconstruction d'un \texttt{Game} depuis un fichier de sauvegarde).
 
-\paragraph{Reseau}
-Le package \texttt{model.network} est organise en facade (\texttt{NetworkManager}), client (classe \texttt{GameClient}) et serveur (classes \texttt{GameServer}, \texttt{ClientHandler}, \texttt{OnlineGame}). \texttt{NetworkManager} maintient une liste de \texttt{NetworkObserver} (CLI et GUI s'y enregistrent). Il orchestre \texttt{GameServer} (TCP 12345, threads par client, liste synchronisee) et \texttt{DiscoveryService} (UDP 12346, broadcast de decouverte automatique). Les echanges sont décodé via \texttt{PacketParser}.
+\paragraph{Réseau}
+Le package \texttt{model.network} est organisé en façade (\texttt{NetworkManager}), client (classe \texttt{GameClient}) et serveur (classes \texttt{GameServer}, \texttt{ClientHandler}, \texttt{OnlineGame}). \texttt{NetworkManager} maintient une liste de \texttt{NetworkObserver} (CLI et GUI s'y enregistrent). Il orchestre \texttt{GameServer} (TCP 12345, threads par client, liste synchronisée) et \texttt{DiscoveryService} (UDP 12346, broadcast de découverte automatique). Les échanges sont décodés via \texttt{PacketParser}.
 
 \paragraph{Internationalisation}
-La classe \code{I18n} (dans le package \code{i18n}) est un singleton synchronise backed par \code{ResourceBundle}. Elle expose \code{setLanguage(lang)}, \code{getLanguage()} et \code{translate(key, args...)}. Deux langues sont supportees : \code{"en"} (defaut) et \code{"fr"}. La langue conditionne le chargement du dictionnaire et la distribution des lettres dans \code{Bag}.
+La classe \code{I18n} (dans le package \code{i18n}) est un singleton synchronisé backed par \code{ResourceBundle}. Elle expose \code{setLanguage(lang)}, \code{getLanguage()} et \code{translate(key, args...)}. Deux langues sont supportées : \code{"en"} (défaut) et \code{"fr"}. La langue conditionne le chargement du dictionnaire et la distribution des lettres dans \code{Bag}.
 
 \subsection{Diagramme UML global}
 
@@ -669,7 +669,7 @@ La classe \code{I18n} (dans le package \code{i18n}) est un singleton synchronise
 \end{figure}
 
 \subsection{Principales interfaces et points d'extension}
-Trois interfaces structurent l'evolutivite du projet.
+Trois interfaces structurent l'évolutivité du projet.
 
 \paragraph{\texttt{UserInterface} --- contrat commun des vues CLI et JavaFX}
 \begin{minted}[frame=single, fontsize=\small, linenos]{java}
@@ -678,11 +678,11 @@ public interface UserInterface {
     void refresh();                      // Rafraichit l'affichage complet
     void displayMessage(String message); // Message informatif
     void displayError(String error);     // Message d'erreur
-    void displaySuccess(String message); // Message de succes
+    void displaySuccess(String message); // Message de succès
 }
 \end{minted}
 
-\texttt{CliView} et \texttt{JavaFxView} implementent cette interface. \texttt{GameController} ne connait que \texttt{UserInterface} --- il ignore quelle implementation est active. Ajouter une vue web revient a implementer cette seule interface.
+\texttt{CliView} et \texttt{JavaFxView} implémentent cette interface. \texttt{GameController} ne connaît que \texttt{UserInterface} --- il ignore quelle implémentation est active. Ajouter une vue web revient à implémenter cette seule interface.
 
 \paragraph{\texttt{Dictionary} --- contrat interchangeable entre Trie, Dawg et Gaddag}
 \begin{minted}[frame=single, fontsize=\small, linenos]{java}
@@ -695,7 +695,7 @@ public interface Dictionary {
 }
 \end{minted}
 
-En pratique, le controleur et l'IA n'instancient que \texttt{Gaddag} (qui implemente \texttt{Dictionary}). Substituer une autre structure lexicale ne necessite qu'une nouvelle implementation de cette interface.
+En pratique, le contrôleur et l'IA n'instancient que \texttt{Gaddag} (qui implémente \texttt{Dictionary}). Substituer une autre structure lexicale ne nécessite qu'une nouvelle implémentation de cette interface.
 
 \paragraph{\texttt{Player} --- abstraction commune des joueurs humains et IA}
 \begin{minted}[frame=single, fontsize=\small, linenos]{java}
@@ -716,9 +716,9 @@ public abstract class Player {
 }
 \end{minted}
 
-\texttt{HumanPlayer} herite directement sans surcharge. \texttt{AiPlayer} surcharge \texttt{isAutonomous()} (retourne \texttt{true}) et \texttt{playTurn()} (delegue a \texttt{MinimaxSolver}). Le moteur de jeu appelle \texttt{player.isAutonomous()} a chaque tour pour decider s'il doit attendre la saisie utilisateur ou declencher le jeu automatique.
+\texttt{HumanPlayer} hérite directement sans surcharge. \texttt{AiPlayer} surcharge \texttt{isAutonomous()} (retourne \texttt{true}) et \texttt{playTurn()} (délègue à \texttt{MinimaxSolver}). Le moteur de jeu appelle \texttt{player.isAutonomous()} à chaque tour pour décider s'il doit attendre la saisie utilisateur ou déclencher le jeu automatique.
 
-\paragraph{\texttt{NetworkObserver} --- pattern Observer pour les evenements reseau}
+\paragraph{\texttt{NetworkObserver} --- pattern Observer pour les événements réseau}
 \begin{minted}[frame=single, fontsize=\small, linenos]{java}
 // model/network/NetworkObserver.java (extraits)
 public interface NetworkObserver {
@@ -729,14 +729,14 @@ public interface NetworkObserver {
     void invitationReceivedUpdate(String from);
     void clientDisconnectedUpdate(String reason);
     void moveRefusedUpdate(String reason);
-    // ... 15 methodes au total, une par type d'evenement reseau
+    // ... 15 méthodes au total, une par type d'événement réseau
 }
 \end{minted}
 
-\texttt{CliNetworkBridge} et \texttt{NetworkGameBridge} (cote GUI) implementent cette interface et s'enregistrent aupres de \texttt{NetworkManager}. Ajouter un nouveau type de client reseau revient a implementer \texttt{NetworkObserver}.
+\texttt{CliNetworkBridge} et \texttt{NetworkGameBridge} (côté GUI) implémentent cette interface et s'enregistrent auprès de \texttt{NetworkManager}. Ajouter un nouveau type de client réseau revient à implémenter \texttt{NetworkObserver}.
 
-\subsection{Flux d'execution principal}
-Le deroulement d'un tour illustre comment les couches collaborent :
+\subsection{Flux d'exécution principal}
+Le déroulement d'un tour illustre comment les couches collaborent :
 
 \begin{minted}[frame=single, fontsize=\small]{text}
 App
@@ -765,7 +765,7 @@ App
       \-\-> Game.nextTurn()                    -- rotation des joueurs
 \end{minted}
 
-Les dependances sont strictement descendantes : la vue ne connait que \texttt{UserInterface}, le controleur ne connait que les interfaces \texttt{Dictionary}, \texttt{UserInterface} et \texttt{Player}. \texttt{Game} et \texttt{MoveHandler} ignorent totalement l'existence de la vue et du reseau.
+Les dépendances sont strictement descendantes : la vue ne connaît que \texttt{UserInterface}, le contrôleur ne connaît que les interfaces \texttt{Dictionary}, \texttt{UserInterface} et \texttt{Player}. \texttt{Game} et \texttt{MoveHandler} ignorent totalement l'existence de la vue et du réseau.
 
 \subsection{Gestion des coups et pattern Command}
 Chaque action de jeu est encapsulee dans un objet \texttt{Move} construit par factory methods statiques :
@@ -779,7 +779,7 @@ public class Move {
     private final Point startPosition;    // null pour PASS et EXCHANGE
     private final Direction direction;    // null pour PASS et EXCHANGE
 
-    // Donnees pour undo/redo (mutables, renseignees par MoveHandler)
+    // Données pour undo/redo (mutables, renseignees par MoveHandler)
     private int scoreGained;
     private List<Tile> drawnTiles;
     private List<Point> placedPositions;
@@ -796,7 +796,7 @@ public class Move {
 public enum MoveType { PLAY, EXCHANGE, PASS }
 \end{minted}
 
-\texttt{MoveHandler} est le seul executeur : il valide le coup, met a jour \texttt{Board}, \texttt{Bag} et les scores, puis renseigne les champs mutables de \texttt{Move} (positions reellement posees, tuiles piochees, score gagne) pour permettre l'annulation. \texttt{UndoRedo} maintient deux \texttt{Stack<Move>} : \texttt{history} et \texttt{redoStack}. \texttt{addMove()} vide toujours \texttt{redoStack} (nouvelle branche d'historique).
+\texttt{MoveHandler} est le seul executeur : il valide le coup, met à jour \texttt{Board}, \texttt{Bag} et les scores, puis renseigne les champs mutables de \texttt{Move} (positions reellement posées, tuiles piochees, score gagne) pour permettre l'annulation. \texttt{UndoRedo} maintient deux \texttt{Stack<Move>} : \texttt{history} et \texttt{redoStack}. \texttt{addMove()} vide toujours \texttt{redoStack} (nouvelle branche d'historique).
 
 \begin{minted}[frame=single, fontsize=\small, linenos]{java}
 // model/core/UndoRedo.java
@@ -810,8 +810,8 @@ public class UndoRedo {
 }
 \end{minted}
 
-\subsection{Generation du plateau et pattern Factory}
-\texttt{StandardBoardFactory} applique le pattern Factory pour creer le plateau sans que le moteur ne connaisse les coordonnees des bonus :
+\subsection{Génération du plateau et pattern Factory}
+\texttt{StandardBoardFactory} applique le pattern Factory pour créer le plateau sans que le moteur ne connaisse les coordonnées des bonus :
 
 \begin{minted}[frame=single, fontsize=\small, linenos]{java}
 // model/factories/StandardBoardFactory.java (extraits)
@@ -824,7 +824,7 @@ public class StandardBoardFactory {
         for (int x = 0; x < size; x++)
             for (int y = 0; y < size; y++)
                 squares[x][y] = new Square(new Point(x, y), SquareType.NORMAL);
-        // 2. Application des bonus (coordonnees mises a l'echelle pour 21x21)
+        // 2. Application des bonus (coordonnées mises à l'echelle pour 21x21)
         applyBonuses(squares, size);
         return new Board(squares, size);
     }
@@ -847,7 +847,7 @@ public enum SquareType {
 }
 \end{minted}
 
-Les coordonnees de bonus du plateau 21x21 sont calculees par interpolation lineaire depuis les coordonnees du plateau 15x15 (\texttt{scaleCoordinate}), ce qui permet de supporter les deux variantes sans dupliquer les donnees de configuration. \texttt{Game} choisit la taille du plateau selon le \texttt{GameMode} recu a la construction : \texttt{new Board(21)} pour \texttt{GameMode.SUPER}, \texttt{new Board()} (taille par defaut 15) pour \texttt{GameMode.STANDARD}.
+Les coordonnées de bonus du plateau 21x21 sont calculees par interpolation lineaire depuis les coordonnées du plateau 15x15 (\texttt{scaleCoordinate}), ce qui permet de supporter les deux variantes sans dupliquer les données de configuration. \texttt{Game} choisit la taille du plateau selon le \texttt{GameMode} recu à la construction : \texttt{new Board(21)} pour \texttt{GameMode.SUPER}, \texttt{new Board()} (taille par défaut 15) pour \texttt{GameMode.STANDARD}.
 
 \section{Explication approfondie}
 
@@ -898,16 +898,16 @@ void saveGame(Game game, String filePath) throws IOException
 
 \textbf{Test unitaire :}
 \begin{itemize}
-    \item \textbf{Cas 1 :} Entree : etat complexe (plateau avec mots, 2 joueurs, scores, racks, coups pass/play). Attendu : fichier cree avec 3 sections, verifie via \texttt{SaveManagerTest.java}.
-    \item \textbf{Cas 2 :} Entree : conversion de coordonnees \texttt{a1v} / \texttt{h8h}. Attendu : format des coordonnees correct dans \texttt{[history]}.
+    \item \textbf{Cas 1 :} Entree : état complexe (plateau avec mots, 2 joueurs, scores, racks, coups pass/play). Attendu : fichier cree avec 3 sections, verifie via \texttt{SaveManagerTest.java}.
+    \item \textbf{Cas 2 :} Entree : conversion de coordonnées \texttt{a1v} / \texttt{h8h}. Attendu : format des coordonnées correct dans \texttt{[history]}.
     \item \textbf{Cas 3 :} Entree : partie vide (aucun coup joue). Attendu : plateau serialise en lignes de tirets, section \texttt{[history]} vide.
 \end{itemize}
 \end{besoinbox}
 
-\subsubsection{Sous-besoin 2. Serialiser la section \texttt{[settings]}}
+\subsubsection{Sous-besoin 2. Sérialiser la section \texttt{[settings]}}
 \begin{besoinbox}
 \textbf{Description :}
-Ecrire les parametres globaux de la partie et les parametres IA joueur par joueur sous la section \texttt{[settings]}.
+Ecrire les paramètres globaux de la partie et les paramètres IA joueur par joueur sous la section \texttt{[settings]}.
 
 \textbf{Parametres ecrits :}
 \begin{itemize}
@@ -926,10 +926,10 @@ Ecrire les parametres globaux de la partie et les parametres IA joueur par joueu
 \end{itemize}
 \end{besoinbox}
 
-\subsubsection{Sous-besoin 3. Serialiser la section \texttt{[game]}}
+\subsubsection{Sous-besoin 3. Sérialiser la section \texttt{[game]}}
 \begin{besoinbox}
 \textbf{Description :}
-Ecrire l'etat du plateau, les racks et les scores de chaque joueur.
+Ecrire l'état du plateau, les racks et les scores de chaque joueur.
 
 \textbf{Fonctions internes :}
 \begin{verbatim}
@@ -954,7 +954,7 @@ serializeRack(Player p)
 \end{itemize}
 \end{besoinbox}
 
-\subsubsection{Sous-besoin 4. Serialiser la section \texttt{[history]}}
+\subsubsection{Sous-besoin 4. Sérialiser la section \texttt{[history]}}
 \begin{besoinbox}
 \textbf{Description :}
 Ecrire les coups joues dans l'ordre chronologique au format defini par F25.
@@ -994,9 +994,9 @@ Game loadGame(String filePath) throws Exception
 
 \textbf{Actions :}
 \begin{itemize}
-    \item Prelecture du fichier pour detecter le mode super-scrabble et creer le bon plateau (15$\times$15 ou 21$\times$21).
+    \item Prélecture du fichier pour détecter le mode super-scrabble et créer le bon plateau (15$\times$15 ou 21$\times$21).
     \item Lecture sequentielle et parsing des sections \texttt{[settings]}, \texttt{[game]} et \texttt{[history]}.
-    \item Reconstruction des joueurs humains et IA avec leurs parametres.
+    \item Reconstruction des joueurs humains et IA avec leurs paramètres.
     \item Reconstruction de l'historique complet des coups.
 \end{itemize}
 
@@ -1004,13 +1004,13 @@ Game loadGame(String filePath) throws Exception
 \begin{itemize}
     \item Toute erreur de parsing est remontee sous la forme \texttt{Format error at line X: <detail>}.
     \item La CLI et la GUI affichent ensuite un message utilisateur lisible.
-    \item L'etat courant du jeu n'est jamais ecrase en cas d'echec.
+    \item L'état courant du jeu n'est jamais ecrase en cas d'echec.
 \end{itemize}
 
 \textbf{Test unitaire :}
 \begin{itemize}
     \item \textbf{Cas 1 :} Entree : fichier valide et complet. Attendu : \texttt{Game} non nul avec plateau, scores et historique coherents (\texttt{GameLoaderTest.java}).
-    \item \textbf{Cas 2 :} Entree : plateau 21$\times$21 (super-scrabble). Attendu : detection correcte et creation du bon plateau.
+    \item \textbf{Cas 2 :} Entree : plateau 21$\times$21 (super-scrabble). Attendu : détection correcte et création du bon plateau.
     \item \textbf{Cas 3 :} Entree : fichier contenant \texttt{score-1: abc}. Attendu : exception \texttt{Format error at line X: ...}.
     \item \textbf{Cas 4 :} Entree : section \texttt{[game]} manquante. Attendu : exception avec message explicite.
     \item \textbf{Cas 5 :} Entree : coup \texttt{exchange} dans l'historique. Attendu : coup restaure correctement.
@@ -1031,13 +1031,13 @@ processLineComments(String line)
 \textbf{Comportement :}
 \begin{itemize}
     \item Supprime tout ce qui suit un \texttt{\#} sur une ligne (commentaire en ligne).
-    \item Ignore les blocs \texttt{\{ ... \}} potentiellement multi-lignes via un etat \texttt{isInBlockComment}.
+    \item Ignore les blocs \texttt{\{ ... \}} potentiellement multi-lignes via un état \texttt{isInBlockComment}.
     \item Continue le parsing ligne par ligne en maintenant le compteur de lignes.
 \end{itemize}
 
 \textbf{Test unitaire :}
 \begin{itemize}
-    \item \textbf{Cas 1 :} Entree : \texttt{debug=true \# activer le debug}. Attendu : \texttt{debug=true} apres suppression du suffixe commente.
+    \item \textbf{Cas 1 :} Entree : \texttt{debug=true \# activer le debug}. Attendu : \texttt{debug=true} après suppression du suffixe commenté.
     \item \textbf{Cas 2 :} Entree : bloc \texttt{\{ commentaire\textbackslash nsur 2 lignes \}} puis \texttt{language=fr}. Attendu : bloc supprime, \texttt{language=fr} conserve.
     \item \textbf{Cas 3 :} Entree : fichier sans commentaire. Attendu : contenu strictement identique en sortie.
 \end{itemize}
@@ -1060,7 +1060,7 @@ processLineComments(String line)
         GUI & \texttt{ScrabbleGui.java}
           & Menu \textit{Save} $\rightarrow$ \texttt{SaveManager.saveGame} \newline Menu \textit{Load} $\rightarrow$ \texttt{GameLoader.loadGame} \newline Rebind du contrôleur et rafraîchissement UI après chargement. \\
         Configuration F2 & \texttt{ConfigLoader.java}
-                    & Lit \texttt{.scrabblerc} dans le HOME. \newline Note : le chemin par defaut de sauvegarde n'est pas encore pris en charge si \texttt{FILE} est absent. \\
+                    & Lit \texttt{.scrabblerc} dans le HOME. \newline Note : le chemin par défaut de sauvegarde n'est pas encore pris en charge si \texttt{FILE} est absent. \\
         \bottomrule
     \end{tabular}
 \end{table}
@@ -1129,7 +1129,7 @@ Fonctionnel, ce besoin permet la réalisation de parties multi-joueurs en résea
 
     La liste des clients connectés est une \textbf{ressource hautement partagée}. Elle est créée via \texttt{Collections.synchronizedList(...)} pour garantir que les opérations d'ajout et de retrait soient \textbf{atomiques}. Cependant, cette classe ne protège pas contre les requêtes nécessitant un parcours complet de la liste. Notre code utilise donc un verrouillage manuel via un bloc \texttt{synchronized (clients)} pour prévenir toute \textbf{\texttt{ConcurrentModificationException}}.\\
 
-    Enfin, \texttt{OnlineGame} gère la concurrence au sein d'une partie, mais le serveur a aussi besoin d'une protection globale. On utilise un mutex privé, \texttt{stateLock}. Ce verrou est obligatoire pour le système d'invitations et protège les opérations de type \textbf{\textit{Check-Then-Act}} (vérifier un statut, puis le modifier). Grâce à lui, il est impossible qu'une \textbf{\textit{race condition}} soit levée (ex: Joueur A accepte une invitation à la milliseconde où Joueur B l'annule).
+    Enfin, \texttt{OnlineGame} gère la concurrence au sein d'une partie, mais le serveur à aussi besoin d'une protection globale. On utilise un mutex privé, \texttt{stateLock}. Ce verrou est obligatoire pour le système d'invitations et protège les opérations de type \textbf{\textit{Check-Then-Act}} (vérifier un statut, puis le modifier). Grâce à lui, il est impossible qu'une \textbf{\textit{race condition}} soit levée (ex: Joueur A accepte une invitation à la milliseconde où Joueur B l'annule).
 \end{besoinbox}
 
 \begin{table}[H]
@@ -1318,7 +1318,7 @@ Fonctionnel, ce besoin permet la réalisation de parties multi-joueurs en résea
 	
     \section{Revue Critique du Projet}
 	
-	L'élaboration de ce prototype de Scrabble a permis de valider la faisabilité technique d'un moteur de jeu complet couplé à des intelligences artificielles complexes. Néanmoins, avec le recul nécessaire sur le cycle de développement, plusieurs limitations architecturales, ergonomiques et algorithmiques ont été identifiées. Cette section dresse un bilan critique du projet et propose des axes d'amélioration.
+	L'élaboration de ce prototype de Scrabble à permis de valider la faisabilité technique d'un moteur de jeu complet couplé à des intelligences artificielles complexes. Néanmoins, avec le recul nécessaire sur le cycle de développement, plusieurs limitations architecturales, ergonomiques et algorithmiques ont été identifiées. Cette section dresse un bilan critique du projet et propose des axes d'amélioration.
 	
 	\subsection{Architecture Logicielle}
 	Bien que le moteur de jeu (\texttt{core}) soit pleinement fonctionnel, son architecture actuelle présente un potentiel de refactoring important. Au fil du développement, un certain couplage s'est créé entre la logique métier (règles du jeu, gestion du plateau), les modules d'intelligence artificielle et l'interface utilisateur.
@@ -1352,6 +1352,9 @@ Fonctionnel, ce besoin permet la réalisation de parties multi-joueurs en résea
         \item \textbf{Gestion des accès simultanés (\textit{Thread-per-client}) :} Bien qu'elle simplifie le traitement asynchrone, l'attribution d'un thread dédié à chaque client limite le passage à l'échelle (\textit{scalability}). Face à un volume massif de connexions simultanées, le serveur épuiserait rapidement ses ressources matérielles (CPU, mémoire), alors qu’une approche asynchrone permettrait de supporter bien plus de connexions.
         \item \textbf{Sécurité des échanges (Absence de chiffrement) :} Actuellement, nos trames réseau transitent en clair sur les sockets. Cette vulnérabilité expose l'application aux attaques par interception (\textit{packet sniffing}) ou par injection de paquets modifiés. Sans couche cryptographique (de type TLS), la confidentialité et l'intégrité des communications ne sont pas garanties.
     \end{itemize}
+
+    \subsection{Outils d'assistance utilisés}
+    Tout au long du projet, nous avons utilisé des assistants IA, notamment Copilot, Claude et Gemini, comme outils d'appui pour accélérer certaines phases de développement. Leur usage a principalement concerné le débogage, la génération de cas de test et la vérification de comportements limites, tout en conservant une validation humaine systématique avant intégration dans le code final.
 
 %------------------------------------------------------------------------------
 %	BIBLIOGRAPHY
