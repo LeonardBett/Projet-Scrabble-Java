@@ -101,8 +101,7 @@ class SaveManagerTest {
     assertTrue(content.contains("score-1: 120"));
 
     // Verify [history] format [cite: 236]
-    assertTrue(content.contains("1 h8h TEST"));
-    assertTrue(content.contains("2 pass"));
+    assertTrue(content.contains("1 h8h TEST 2 pass"));
   }
 
   /**

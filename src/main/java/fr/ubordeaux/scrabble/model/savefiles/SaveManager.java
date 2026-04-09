@@ -90,7 +90,7 @@ public class SaveManager {
       }
 
       writer.println();
-      writer.println("language en");
+      writer.println("language=en");
       writer.println();
 
       writer.println("[history]");
@@ -124,29 +124,53 @@ public class SaveManager {
 
   /**
    * Serializes the list of moves performed during the game into the save file.
+   * All moves belonging to the same round are written on a single line, separated by spaces.
+   * A new round starts each time the player index resets (i.e., is less than or equal to the
+   * previous player index), or when the history contains only one player.
    *
    * @param writer  The PrintWriter used to write the history.
    * @param game    The current game instance (used for player mapping).
    * @param history The list of moves to record.
    */
   private void saveHistory(PrintWriter writer, Game game, List<Move> history) {
+    int playerCount = game.getPlayers().size();
+    StringBuilder roundLine = new StringBuilder();
+    int prevPlayerIndex = 0;
+
     for (Move move : history) {
       int playerIndex = game.getPlayers().indexOf(move.getPlayer()) + 1;
 
+      // A new round begins when we cycle back to a player index <= previous (or first move)
+      if (!roundLine.isEmpty() && (playerCount <= 1 || playerIndex <= prevPlayerIndex)) {
+        writer.println(roundLine);
+        roundLine.setLength(0);
+      }
+
+      if (!roundLine.isEmpty()) {
+        roundLine.append(" ");
+      }
+
       if (move.getType() == MoveType.PASS) {
-        writer.println(playerIndex + " pass");
+        roundLine.append(playerIndex).append(" pass");
       } else if (move.getType() == MoveType.EXCHANGE) {
         String exchanged = move.getTiles().stream()
             .map(t -> String.valueOf(t.getCharacter()))
             .collect(Collectors.joining());
-        writer.println(playerIndex + " exchange " + exchanged);
+        roundLine.append(playerIndex).append(" exchange ").append(exchanged);
       } else if (move.getType() == MoveType.PLAY) {
         String coord = convertPointToCoord(move.getStartPosition());
         String dir = (move.getDirection() == Direction.HORIZONTAL) ? "h" : "v";
         String word = readFullWordFromBoard(game.getBoard(), move);
-
-        writer.println(playerIndex + " " + coord + dir + " " + word);
+        roundLine.append(playerIndex).append(" ").append(coord)
+            .append(dir).append(" ").append(word);
       }
+
+      prevPlayerIndex = playerIndex;
+    }
+
+    // Write the last (possibly incomplete) round
+    if (!roundLine.isEmpty()) {
+      writer.println(roundLine.toString());
     }
   }
 

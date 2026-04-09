@@ -187,7 +187,7 @@ public class GameLoader {
       return;
     }
 
-    if (key.equals("super-scrabble") || key.equals("players-count")) {
+    if (key.equals("super-scrabble") || key.equals("players-count") || key.equals("language")) {
       return; // handled elsewhere
     }
 
@@ -261,40 +261,71 @@ public class GameLoader {
 
   /**
    * Reconstructs the move history from the history section to support undo/redo.
+   * A single line may contain multiple moves from different players (one full round per line).
+   * Each move is introduced by a numeric player index, followed by:
+   *   - "pass"                  → pass move
+   *   - "exchange" + tiles      → exchange move
+   *   - coord+dir + word        → play move  (e.g. "h8h ZONK")
    *
    * @param game The game instance to update.
-   * @param line The current line containing history data.
+   * @param line The current line containing one or more moves for a round.
    */
   private void parseHistory(Game game, String line) {
-    String[] parts = line.split("\\s+");
-    if (parts.length < 2) {
+    String[] tokens = line.split("\\s+");
+    if (tokens.length < 2) {
       return;
     }
-    int playerIdx = Integer.parseInt(parts[0]) - 1;
-    ensurePlayerExists(game, playerIdx);
-    Player player = game.getPlayers().get(playerIdx);
 
-    if (parts.length == 2 && parts[1].equalsIgnoreCase("pass")) {
-      game.getUndoRedo().addMove(Move.createPass(player));
-    } else if (parts.length == 3 && parts[1].equalsIgnoreCase("exchange")) {
-      List<Tile> exchangedTiles = new ArrayList<>();
-      for (char c : parts[2].toCharArray()) {
-        exchangedTiles.add(new Tile(c));
+    int i = 0;
+    while (i < tokens.length) {
+      // Each move starts with a numeric player index
+      if (!tokens[i].matches("\\d+")) {
+        i++;
+        continue;
       }
-      game.getUndoRedo().addMove(Move.createExchange(player, exchangedTiles));
-    } else if (parts.length == 3) {
-      String moveData = parts[1];
-      String wordStr = parts[2];
-      char rowChar = moveData.charAt(0);
-      int y = rowChar - 'a';
-      int x = Integer.parseInt(moveData.substring(1, moveData.length() - 1)) - 1;
-      Direction dir = moveData.endsWith("h") ? Direction.HORIZONTAL : Direction.VERTICAL;
+      int playerIdx = Integer.parseInt(tokens[i]) - 1;
+      ensurePlayerExists(game, playerIdx);
+      Player player = game.getPlayers().get(playerIdx);
+      i++;
 
-      List<Tile> tiles = new ArrayList<>();
-      for (char c : wordStr.toCharArray()) {
-        tiles.add(new Tile(c));
+      if (i >= tokens.length) {
+        break;
       }
-      game.getUndoRedo().addMove(Move.createPlay(player, tiles, new Point(x, y), dir));
+
+      String action = tokens[i];
+
+      if (action.equalsIgnoreCase("pass")) {
+        game.getUndoRedo().addMove(Move.createPass(player));
+        i++;
+      } else if (action.equalsIgnoreCase("exchange")) {
+        i++;
+        if (i < tokens.length) {
+          List<Tile> exchangedTiles = new ArrayList<>();
+          for (char c : tokens[i].toCharArray()) {
+            exchangedTiles.add(new Tile(c));
+          }
+          game.getUndoRedo().addMove(Move.createExchange(player, exchangedTiles));
+          i++;
+        }
+      } else {
+        // PLAY move: action = coord+dir (e.g. "h8h"), next token = word
+        String moveData = action;
+        i++;
+        if (i < tokens.length) {
+          String wordStr = tokens[i];
+          i++;
+          char rowChar = moveData.charAt(0);
+          int y = rowChar - 'a';
+          int x = Integer.parseInt(moveData.substring(1, moveData.length() - 1)) - 1;
+          Direction dir = moveData.endsWith("h") ? Direction.HORIZONTAL : Direction.VERTICAL;
+
+          List<Tile> tiles = new ArrayList<>();
+          for (char c : wordStr.toCharArray()) {
+            tiles.add(new Tile(c));
+          }
+          game.getUndoRedo().addMove(Move.createPlay(player, tiles, new Point(x, y), dir));
+        }
+      }
     }
   }
 
