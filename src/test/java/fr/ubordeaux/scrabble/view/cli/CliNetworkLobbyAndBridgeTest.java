@@ -90,12 +90,18 @@ class CliNetworkLobbyAndBridgeTest {
     assertEquals(List.of(1, 2, 3), nm.lastInvitationIds);
 
     invokePrivate(lobby, "handlePlay", "play a1h mot");
-    assertEquals(1, nm.lastPlayX);
-    assertEquals(1, nm.lastPlayY);
+    assertEquals(0, nm.lastPlayX);
+    assertEquals(0, nm.lastPlayY);
     assertEquals("H", nm.lastPlayDirection);
     assertEquals("MOT", nm.lastPlayWord);
 
     assertTrue((Boolean) invokePrivate(lobby, "tryCliPlayNotation", "a1v test"));
+    assertEquals(0, nm.lastPlayX);
+    assertEquals(0, nm.lastPlayY);
+
+    assertTrue((Boolean) invokePrivate(lobby, "tryCliPlayNotation", "h8h HOT"));
+    assertEquals(7, nm.lastPlayX);
+    assertEquals(7, nm.lastPlayY);
     assertFalse((Boolean) invokePrivate(lobby, "tryCliPlayNotation", "??"));
 
     invokePrivate(lobby, "handleShowCommand", "show board");
@@ -135,8 +141,8 @@ class CliNetworkLobbyAndBridgeTest {
     CliNetworkLobby lobby = new CliNetworkLobby(nm, view, new CliInputHandler());
 
     invokePrivate(lobby, "handlePlay", "play 12av abc");
-    assertEquals(12, nm.lastPlayX);
-    assertEquals(1, nm.lastPlayY);
+    assertEquals(11, nm.lastPlayX);
+    assertEquals(0, nm.lastPlayY);
     assertEquals("V", nm.lastPlayDirection);
     assertEquals("ABC", nm.lastPlayWord);
 

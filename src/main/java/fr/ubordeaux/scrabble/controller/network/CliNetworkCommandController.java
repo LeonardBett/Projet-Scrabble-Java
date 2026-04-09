@@ -162,11 +162,11 @@ public class CliNetworkCommandController {
     int y;
     try {
       if (pos.matches("[a-o]\\d+")) {
-        y = pos.charAt(0) - 'a' + 1;
-        x = Integer.parseInt(pos.substring(1));
+        y = pos.charAt(0) - 'a';
+        x = Integer.parseInt(pos.substring(1)) - 1;
       } else if (pos.matches("\\d+[a-o]")) {
-        y = pos.charAt(pos.length() - 1) - 'a' + 1;
-        x = Integer.parseInt(pos.substring(0, pos.length() - 1));
+        y = pos.charAt(pos.length() - 1) - 'a';
+        x = Integer.parseInt(pos.substring(0, pos.length() - 1)) - 1;
       } else {
         return PlayResult.INVALID;
       }
@@ -208,11 +208,11 @@ public class CliNetworkCommandController {
 
     try {
       if (pos.matches("[a-o]\\d+")) {
-        y = pos.charAt(0) - 'a' + 1;
-        x = Integer.parseInt(pos.substring(1));
+        y = pos.charAt(0) - 'a';
+        x = Integer.parseInt(pos.substring(1)) - 1;
       } else if (pos.matches("\\d+[a-o]")) {
-        y = pos.charAt(pos.length() - 1) - 'a' + 1;
-        x = Integer.parseInt(pos.substring(0, pos.length() - 1));
+        y = pos.charAt(pos.length() - 1) - 'a';
+        x = Integer.parseInt(pos.substring(0, pos.length() - 1)) - 1;
       } else {
         return false;
       }
