@@ -1,94 +1,251 @@
 # scrabble-java
 
-## Bash autocompletion for launch options
+Scrabble U-Bordeaux is a Java 21 project that implements the Scrabble game in CLI and GUI, with local multiplayer, network multiplayer, AI opponents, save/load, contest mode, and language selection.
 
-You can enable tab-completion for CLI options such as `--help`, `--super`, `--players`, `--lang`, `--ai-time`, and `--ai-ml`.
+## Prerequisites
 
-### Recommended workflow
+- JDK 21
+- Maven
+- Bash for the helper scripts and completion setup
+- Python if you want to train the machine learning model used by `--ai-ml`
 
-After each new clone (on any machine), run this once from the repository root:
+## Build And Run
+
+The repository ships with a wrapper script that builds and launches the application:
 
 ```bash
-source scripts/setup-completion.sh
+./run.sh
 ```
 
-This command:
-- activates completion immediately in the current terminal;
-- installs persistence in `~/.bashrc` for future terminals.
-
-After `git pull`, run the same command only if completion behavior changed or if your current shell was not reloaded.
-
-At first launch (`./scrabble` or `./run.sh`), the launcher can still auto-install persistence and points to the same setup command for immediate activation.
-
-Note: a script started with `./scrabble` cannot directly modify the parent shell state. For immediate activation in the current terminal, use `source scripts/setup-completion.sh`.
-
-### Quick check
-
-1. Ensure completion is installed and loaded:
+Examples:
 
 ```bash
-source scripts/setup-completion.sh
+./run.sh --gui
+./run.sh -l fr
+./run.sh --super --blitz -t 20
 ```
 
-2. Then type and complete options with `TAB`:
+Notes:
+
+- `./run.sh` builds the project with Maven before launching it.
+- The wrapper consumes `-v` for its own Maven output. If you want the application verbose flag, use `--verbose`.
+- A single positional argument is treated as a save file to load at startup.
+
+If you prefer to call Maven directly:
 
 ```bash
-./run.sh --<TAB>
-./scrabble --<TAB>
-./run.sh -p <TAB>     # suggests: 2 3 4
-./scrabble -p <TAB>   # suggests: 2 3 4
-./run.sh -l <TAB>     # suggests: en fr
-./run.sh -ai-time <TAB>
+mvn clean compile
+mvn exec:java -Dexec.mainClass="fr.ubordeaux.scrabble.App" -Dexec.args="--gui"
 ```
 
-### Super Scrabble mode
+## Main Features
 
-Use `-s` or `--super` to start a game on a `21x21` board. The standard mode remains `15x15`.
+- Standard Scrabble board in 15x15 mode.
+- Super Scrabble mode in 21x21 with `-s` or `--super`.
+- CLI and GUI launch modes.
+- Two built-in languages: `en` and `fr`.
+- Save and load from the CLI, GUI, or a startup save file.
+- Blitz mode with a per-player time limit.
+- AI players with configurable thinking time.
+- Expectiminimax and machine learning options for the AI.
+- Local network multiplayer with host/join discovery.
+- Contest mode that solves a loaded position and prints the best move.
+
+## Super Scrabble Mode
+
+Use `-s` or `--super` to start a game on a 21x21 board. The standard mode remains 15x15.
 
 ```bash
-./scrabble --super
+./run.sh --super
 ./run.sh -s
 ```
 
+## Command-Line Options
+
+The application entry point is `fr.ubordeaux.scrabble.App`.
+
+| Option | Effect |
+| --- | --- |
+| `-h`, `--help` | Display the help text. |
+| `-V`, `--version` | Display the program version. |
+| `--list-languages` | Print the supported language codes. |
+| `-g`, `--gui` | Launch the JavaFX GUI. |
+| `-s`, `--super` | Enable Super Scrabble mode (`21x21`). |
+| `-p N`, `--players N` | Set the number of players to 2, 3, or 4. |
+| `-b`, `--blitz` | Enable blitz mode. |
+| `-t TIME`, `--time TIME` | Set the blitz time limit in minutes. Ignored if blitz is not enabled. |
+| `-l LANG`, `--lang LANG`, `--language LANG` | Set the dictionary language. |
+| `-D FILE`, `--dictionary FILE` | Use a custom dictionary file. |
+| `-a COLOR`, `--ai COLOR` | Add an AI player for the given color. The option can be repeated. |
+| `-ai-time TIME`, `--ai-time TIME` | Set the AI thinking time in seconds. |
+| `-ai-exptiminimax`, `--ai-exptiminimax` | Enable the expectiminimax search mode. |
+| `--ai-ml` | Enable machine learning for word search. |
+| `-c FILE`, `--contest FILE` | Load a saved game and print the best contest move. |
+| `-S PORT`, `--server PORT` | Start the network server on the given port. |
+| `--daemon` | Start the server headlessly. |
+| `-v`, `--verbose` | Enable verbose application logging. |
+| `-d`, `--debug` | Enable debug logging. |
+| `SAVE_FILE` | Load a saved game at startup. |
+
+Behavior details that matter in practice:
+
+- `--time` is only meaningful with `--blitz`.
+- If no language is passed, the app uses `LC_ALL` or `LANG`, then falls back to `en`.
+- `-a` defaults to `RED` when no color is provided.
+- `-p` accepts only 2, 3, or 4 players.
+
+## CLI Commands
+
+Once a game is running in the terminal, the shell accepts these commands:
+
+| Command | Effect |
+| --- | --- |
+| `help` | Show the full CLI help. |
+| `help CMD` | Show help for a specific command. |
+| `quit` | Quit the game, optionally saving first if there are unsaved changes. |
+| `load FILE` | Load a saved game and restart from it. |
+| `save FILE` | Save the current game. |
+| `pause` | Pause or resume the blitz clock. |
+| `hint` | Ask the AI for a hint. |
+| `undo [N]` | Undo one move or `N` moves. |
+| `redo [N]` | Redo one move or `N` moves. |
+| `show board` | Refresh the board display. |
+| `show history` | Show move history. |
+| `show time` | Show remaining time for each player. |
+| `show configuration` | Print the current configuration. |
+| `set PARAM=VALUE` | Update runtime configuration. Multiple assignments can be separated with `;`. |
+| `network` | Open the CLI network lobby. |
+| `exchange LETTERS` | Exchange tiles from the rack. |
+| `pass` | Pass the turn. |
+| move notation | Any unrecognized input is parsed as a play move if possible. |
+
+Implementation note: the in-session `new` command is exposed by help text, but the current shell returns an error for it while a session is already running.
+
+`set` supports runtime updates for:
+
+- language
+- players
+- super scrabble
+- blitz
+- blitz timeout
+- AI time
+- expectiminimax
+- machine learning
+- dictionary path
+- debug
+- verbose
+
+## GUI
+
+The GUI is implemented with JavaFX.
+
+- Launch it with `-g` or `--gui`.
+- A save file passed as the single positional argument is loaded at startup.
+- The main window includes game actions, save/load, multiplayer access, and configuration display.
+- The configuration dialog exists, but the editor itself is not fully implemented yet.
+- You can open the shortcut configuration menu with Ctrl + ,.
+
 ### GUI Keyboard Shortcuts
 
-If you are using the Graphical User Interface (GUI), you can easily customize your keyboard shortcuts at any time during the game.
+If you are using the Graphical User Interface, you can customize your keyboard shortcuts at any time during the game by pressing Ctrl + ,.
 
-Simply press **`CTRL + ,`** (Control + Comma) to open the shortcut configuration menu.
+## AI And ML
 
-### Machine Learning AI Setup
+AI play is configured from the command line or from the runtime configuration.
 
-To use the Machine Learning option for the artificial intelligence player (e.g., via the `--ai-ml` flag), you must first train the neural network model.
+- Use `-a COLOR` to assign AI players by color.
+- Use `-ai-time` to control the AI search budget.
+- Use `-ai-exptiminimax` to enable expectiminimax.
+- Use `--ai-ml` to enable the TensorFlow-based model.
 
-**Prerequisite:** You must have **Python** installed on your system.
-
-Run the following script from the root of the repository to start the training process:
+Before using the machine learning mode, train the models:
 
 ```bash
 ./train_ml.sh
-````
+```
+
+This script expects Python to be available and generates the model files used by the ML agent.
+
 ## Network Multiplayer
 
-The game features a Client-Server architecture for online multiplayer.
+The network stack uses a client/server architecture with local discovery.
 
 ### Hosting a Server
-You can start the server directly from the command line:
+
+Start a server from the command line:
 
 ```bash
-./scrabble --server [PORT]
-````
+./run.sh -S 12345
+```
 
-Headless Mode (Daemon): Add the --daemon option to run the server invisibly, without a graphical interface or interactive terminal. This is ideal for deploying the game on a remote dedicated server.
+Add `--daemon` to run the server in headless mode:
 
-Graphical Mode (GUI): You can also start the network server directly from the graphical interface (launched via -g or --gui), which includes a comprehensive menu to manage lobbies and connected players.
+```bash
+./run.sh -S 12345 --daemon
+```
+
+You can also reach the network lobby from the GUI, where the multiplayer menu lets you manage the same host flow.
 
 ### Joining a Server
-To join an existing server, use the Network menu in the GUI, or type the join IP[:PORT] command in the CLI.
 
-The game includes an automatic discovery system (UDP broadcast) to instantly detect and list available servers on your local network.
+In the CLI, `network` opens the lobby. From there, you can:
 
-### Playing over the Internet (WAN)
-The current network architecture is optimized for Local Area Networks (LAN), using UDP broadcast for automatic server discovery. To play over the Internet, manual configuration is required:
-1. **No Automatic Discovery:** Internet routers block UDP broadcast packets by default. 
-2. **Port Forwarding:** The player hosting the server must configure their home router to forward the TCP port (ex: `12345`) to their local machine.
-3. **Manual Connection:** Clients must manually join the game by entering the host's public IP address instead of relying on the server list.
+- join one of the automatically discovered servers on the local network
+- connect manually by IP and port
+- accept or decline invitations
+- disconnect from the server
+
+The GUI exposes the same lobby behavior, with additional screens for server status, player details, and invitations.
+
+### Playing Over The Internet
+
+The current implementation is oriented toward LAN play because automatic discovery relies on local network broadcast.
+
+For a WAN game, the host must expose the server port and clients must join manually with the public IP address.
+
+### Practical Notes
+
+- The lobby can show discovered servers and host-side status information.
+- The server can be started without launching the game itself when `--daemon` is used.
+- The client-side CLI and GUI both rely on the same network manager underneath.
+
+## Save And Load
+
+The game supports three save/load paths:
+
+- startup loading via a positional save file argument
+- `load FILE` and `save FILE` in the CLI shell
+- the GUI save/load actions
+
+Saved games can be reopened later from the same application version and implementation format.
+
+## Bash Completion
+
+Tab completion is available for the launch options such as `--help`, `--super`, `--players`, `--lang`, `--ai-time`, and `--ai-ml`.
+
+Recommended workflow after a fresh clone:
+
+1. Activate completion in the current shell and persist it in `~/.bashrc`:
+
+```bash
+source scripts/setup-completion.sh
+```
+
+2. Then use TAB on the launcher options:
+
+```bash
+./run.sh --<TAB>
+./run.sh -p <TAB>
+./run.sh -l <TAB>
+./run.sh -ai-time <TAB>
+```
+
+At first launch, the launcher can also propose installing completion persistence automatically. For immediate activation in the current terminal, use `source scripts/setup-completion.sh`.
+
+## Implementation Notes
+
+- The default language is derived from the environment when possible.
+- The dictionaries used by the standard game are loaded from the bundled resources.
+- Contest mode loads a saved game, computes playable words, and prints the best scoring move or `pass` if no move exists.
+- `./run.sh` is a convenience wrapper around Maven; it is not the application itself.
+- The GUI configuration editor is a placeholder in the current implementation.
