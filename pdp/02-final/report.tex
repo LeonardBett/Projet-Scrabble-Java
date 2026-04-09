@@ -851,230 +851,280 @@ Les coordonnées de bonus du plateau 21x21 sont calculees par interpolation line
 
 \subsection{Spécification Étendue - F21 : Sauvegarde et restauration d'une partie}
 
-\subsubsection{Description}
+\begin{besoinbox}
+    \textbf{\large Description du besoin :} \\
 
-Le programme doit pouvoir sérialiser une partie en cours dans un fichier texte ASCII et reconstruire une partie complète à partir d'un fichier de sauvegarde. Le parseur doit être robuste aux erreurs de format et les signaler avec précision (type d'erreur et numéro de ligne). L'implémentation repose sur les classes \texttt{SaveManager.java} et \texttt{GameLoader.java}.
+    Le programme doit pouvoir sérialiser une partie en cours dans un fichier texte ASCII et reconstruire une partie complète à partir d'un fichier de sauvegarde. Le parseur doit être robuste aux erreurs de format et les signaler avec précision (type d'erreur et numéro de ligne). L'implémentation repose sur les classes \texttt{SaveManager.java} et \texttt{GameLoader.java}.
 
-\subsubsection{Prérequis}
+    Le format retenu est volontairement simple et lisible : trois blocs principaux \texttt{[settings]}, \texttt{[game]} et \texttt{[history]}, complétés par des paires clé/valeur. La restauration suit un vrai enchaînement de parsing : une prélecture détermine d'abord le mode de jeu à reconstruire, puis le fichier est parcouru ligne par ligne avec séparation des commentaires, identification de la section courante et validation des champs. Toute erreur est remontée avec un numéro de ligne afin de faciliter le diagnostic.
 
-\begin{itemize}
-    \item \textbf{F2 — Configuration :} Paramètres par défaut (langue, blitz, etc.) via \texttt{.scrabblerc} — \texttt{ConfigLoader.java}
-    \item \textbf{F10 — Règles du jeu :} État complet du jeu : plateau, scores, joueurs, historique, tour courant
-    \item \textbf{F15 — Shell interactif :} Commandes \texttt{save FILE} et \texttt{load FILE} — \texttt{GameControllerAux.java}
-    \item \textbf{F22 — Commentaires :} Gestion des commentaires \texttt{\#} et blocs \texttt{\{ \}} — \texttt{GameLoader.java}
-    \item \textbf{F23/F24/F25 — Formats :} Sections \texttt{[settings]}, \texttt{[game]} et \texttt{[history]} du fichier de sauvegarde
-\end{itemize}
+    \vspace{3mm}
+    \textbf{Métadonnées :}
+    \begin{itemize}
+        \item \textbf{Développeur responsable :} Thomas Codognan
+        \item \textbf{Date de livraison prévue :} Semaine 7
+        \item \textbf{Dépendances inversées :} F22 (Commentaires), F23 (Settings), F24 (Plateau), F25 (Historique)
+    \end{itemize}
+\end{besoinbox}
 
 \subsubsection{Type de besoin}
+Fonctionnel. Ce besoin permet la persistance d'une partie entre deux sessions de jeu.
 
-Fonctionnel.
+\subsubsection{Prérequis}
+\begin{itemize}
+    \item \textbf{F2 : Configuration} : Paramètres par défaut via \texttt{.scrabblerc}, gérés par \texttt{ConfigLoader.java}.
+    \item \textbf{F10 : Règles du jeu} : État complet du jeu (plateau, scores, joueurs, historique, tour courant).
+    \item \textbf{F15 : Shell interactif} : Commandes \texttt{save FILE} et \texttt{load FILE}, pilotées par \texttt{GameControllerAux.java}.
+\end{itemize}
 
-% ------------------------------------------------------------------------------
-\subsubsection{Sous-besoin 1. Sauvegarder la partie dans un fichier}
+\subsubsection{Découpage en sous-besoins et détails d'implémentation}
+
+% Sous-besoin 1
 \begin{besoinbox}
-\textbf{Description :}
-Sérialiser l'état courant du jeu dans un fichier texte ASCII en écrivant successivement les trois sections obligatoires.
+    \textbf{\large Sous-besoin 1 : Sérialisation complète d'une partie}
 
-\textbf{Fonction associée :}
-\begin{verbatim}
-void saveGame(Game game, String filePath) throws IOException
-\end{verbatim}
+    \vspace{2mm}
+    \textbf{Fonction associée :}
+    \begin{itemize}
+        \item Sauvegarde : \texttt{void saveGame(Game game, String filePath) throws IOException}
+    \end{itemize}
+    \vspace{2mm}
 
-\textbf{Actions :}
-\begin{itemize}
-    \item Ouvrir (ou créer) le fichier au chemin indiqué.
-    \item Ecrire successivement \texttt{[settings]}, \texttt{[game]} puis \texttt{[history]}.
-    \item Fermer le fichier proprement.
-    \item Remonter \texttt{IOException} en cas d'échec (gérée par CLI ou GUI).
-\end{itemize}
-
-\textbf{Resultat attendu :}
-\begin{itemize}
-    \item \textit{Succes :} fichier complet et bien forme ecrit sur le disque.
-    \item \textit{Echec :} exception \texttt{IOException} remontee, aucun fichier partiel conserve.
-\end{itemize}
-
-\textbf{Test unitaire :}
-\begin{itemize}
-    \item \textbf{Cas 1 :} Entree : état complexe (plateau avec mots, 2 joueurs, scores, racks, coups pass/play). Attendu : fichier cree avec 3 sections, verifie via \texttt{SaveManagerTest.java}.
-    \item \textbf{Cas 2 :} Entree : conversion de coordonnées \texttt{a1v} / \texttt{h8h}. Attendu : format des coordonnées correct dans \texttt{[history]}.
-    \item \textbf{Cas 3 :} Entree : partie vide (aucun coup joue). Attendu : plateau serialise en lignes de tirets, section \texttt{[history]} vide.
-\end{itemize}
+    \texttt{SaveManager} est l'unique point de sérialisation. Lorsque l'utilisateur exécute \texttt{save FILE}, le contrôleur auxiliaire délègue immédiatement à cette méthode. Elle ouvre (ou crée) le fichier cible via un \texttt{PrintWriter}, puis écrit successivement les trois sections obligatoires dans l'ordre : \texttt{[settings]}, \texttt{[game]}, \texttt{[history]}. Chaque section est produite par une méthode interne dédiée, ce qui garantit qu'une erreur d'écriture dans l'une d'elles remonte une \texttt{IOException} propre sans laisser de fichier partiellement écrit sur le disque.
 \end{besoinbox}
 
-\subsubsection{Sous-besoin 2. Sérialiser la section \texttt{[settings]}}
-\begin{besoinbox}
-\textbf{Description :}
-Ecrire les paramètres globaux de la partie et les paramètres IA joueur par joueur sous la section \texttt{[settings]}.
-
-\textbf{Parametres ecrits :}
-\begin{itemize}
-    \item \texttt{blitz} — mode blitz active ou non.
-    \item \texttt{super-scrabble} — plateau 21$\times$21.
-    \item \texttt{players-count} — nombre de joueurs.
-    \item \texttt{debug} / \texttt{verbose} — niveaux de trace.
-    \item \texttt{player-N-type} — \texttt{human} ou \texttt{ai}.
-    \item \texttt{player-N-ai-mode} — algorithme IA (ex.: \texttt{minimax}).
-    \item \texttt{player-N-name} — nom du joueur.
-\end{itemize}
-
-\textbf{Resultat attendu :}
-\begin{itemize}
-    \item Section \texttt{[settings]} complete et coherente avec la configuration de partie.
-\end{itemize}
-\end{besoinbox}
-
-\subsubsection{Sous-besoin 3. Sérialiser la section \texttt{[game]}}
-\begin{besoinbox}
-\textbf{Description :}
-Ecrire l'état du plateau, les racks et les scores de chaque joueur.
-
-\textbf{Fonctions internes :}
-\begin{verbatim}
-saveBoard(PrintWriter writer, Board board)
-serializeRack(Player p)
-\end{verbatim}
-
-\textbf{Format produit :}
-\begin{itemize}
-    \item Premiere ligne : index du joueur courant (1-based).
-    \item Plateau ligne par ligne : lettre majuscule ou tiret \texttt{-} pour une case vide.
-    \item \texttt{rack-N: LETTRES} — reserve de lettres du joueur N.
-    \item \texttt{score-N: valeur} — score courant du joueur N.
-    \item \texttt{language en} — langue de la partie (non dans \texttt{[settings]}).
-\end{itemize}
-
-\textbf{Test unitaire :}
-\begin{itemize}
-    \item \textbf{Cas 1 :} Entree : plateau avec mot \texttt{COUNT} en \texttt{g5h}. Attendu : la ligne \texttt{g} contient \texttt{C O U N T} aux bonnes colonnes.
-    \item \textbf{Cas 2 :} Entree : plateau entierement vide. Attendu : toutes les cases sont representees par \texttt{-}.
-    \item \textbf{Cas 3 :} Entree : joueur 1 score 15 / joueur 2 score 10. Attendu : presence de \texttt{score-1: 15} et \texttt{score-2: 10}.
-\end{itemize}
-\end{besoinbox}
-
-\subsubsection{Sous-besoin 4. Sérialiser la section \texttt{[history]}}
-\begin{besoinbox}
-\textbf{Description :}
-Ecrire les coups joues dans l'ordre chronologique au format defini par F25.
-
-\textbf{Fonctions internes :}
-\begin{verbatim}
-saveHistory(PrintWriter writer, Game game, List<Move> history)
-readFullWordFromBoard(Board board, Move move)
-convertPointToCoord(Point p)
-\end{verbatim}
-
-\textbf{Formats de coup supportes :}
-\begin{itemize}
-    \item \texttt{N pass} — le joueur passe son tour.
-    \item \texttt{N exchange ABC} — le joueur echange des lettres.
-    \item \texttt{N g5h WORD} ou \texttt{N e6v WORD} — coup normal horizontal ou vertical.
-\end{itemize}
-
-\textbf{Test unitaire :}
-\begin{itemize}
-    \item \textbf{Cas 1 :} Entree : joueur 1 joue \texttt{COUNT} en \texttt{g5h}, joueur 2 joue \texttt{PHOTO} en \texttt{e6v}. Attendu : presence de \texttt{1 g5h COUNT} et \texttt{2 e6v PHoTO} en tete d'historique.
-    \item \textbf{Cas 2 :} Entree : aucun coup joue (partie neuve). Attendu : section \texttt{[history]} presente, sans ligne de coup.
-    \item \textbf{Cas 3 :} Entree : coup de type \texttt{pass}. Attendu : format \texttt{N pass} ecrit correctement.
-    \item \textbf{Cas 4 :} Entree : coup de type \texttt{exchange}. Attendu : format \texttt{N exchange LETTRES} ecrit correctement.
-\end{itemize}
-\end{besoinbox}
-
-\subsubsection{Sous-besoin 5. Charger une partie depuis un fichier}
-\begin{besoinbox}
-\textbf{Description :}
-Parser le fichier de sauvegarde et reconstruire un objet \texttt{Game} complet (joueurs, plateau, racks, scores, tour courant et historique).
-
-\textbf{Fonction associee :}
-\begin{verbatim}
-Game loadGame(String filePath) throws Exception
-\end{verbatim}
-
-\textbf{Actions :}
-\begin{itemize}
-    \item Prélecture du fichier pour détecter le mode super-scrabble et créer le bon plateau (15$\times$15 ou 21$\times$21).
-    \item Lecture sequentielle et parsing des sections \texttt{[settings]}, \texttt{[game]} et \texttt{[history]}.
-    \item Reconstruction des joueurs humains et IA avec leurs paramètres.
-    \item Reconstruction de l'historique complet des coups.
-\end{itemize}
-
-\textbf{Gestion d'erreurs :}
-\begin{itemize}
-    \item Toute erreur de parsing est remontee sous la forme \texttt{Format error at line X: <detail>}.
-    \item La CLI et la GUI affichent ensuite un message utilisateur lisible.
-    \item L'état courant du jeu n'est jamais ecrase en cas d'echec.
-\end{itemize}
-
-\textbf{Test unitaire :}
-\begin{itemize}
-    \item \textbf{Cas 1 :} Entree : fichier valide et complet. Attendu : \texttt{Game} non nul avec plateau, scores et historique coherents (\texttt{GameLoaderTest.java}).
-    \item \textbf{Cas 2 :} Entree : plateau 21$\times$21 (super-scrabble). Attendu : détection correcte et création du bon plateau.
-    \item \textbf{Cas 3 :} Entree : fichier contenant \texttt{score-1: abc}. Attendu : exception \texttt{Format error at line X: ...}.
-    \item \textbf{Cas 4 :} Entree : section \texttt{[game]} manquante. Attendu : exception avec message explicite.
-    \item \textbf{Cas 5 :} Entree : coup \texttt{exchange} dans l'historique. Attendu : coup restaure correctement.
-    \item \textbf{Cas 6 :} Entree : fichier inexistant. Attendu : exception fichier introuvable.
-\end{itemize}
-\end{besoinbox}
-
-\subsubsection{Sous-besoin 6. Parser et ignorer les commentaires}
-\begin{besoinbox}
-\textbf{Description :}
-Supprimer les commentaires avant le parsing tout en conservant une numerotation de ligne fiable pour les messages d'erreur, conformement a F22.
-
-\textbf{Fonction interne :}
-\begin{verbatim}
-processLineComments(String line)
-\end{verbatim}
-
-\textbf{Comportement :}
-\begin{itemize}
-    \item Supprime tout ce qui suit un \texttt{\#} sur une ligne (commentaire en ligne).
-    \item Ignore les blocs \texttt{\{ ... \}} potentiellement multi-lignes via un état \texttt{isInBlockComment}.
-    \item Continue le parsing ligne par ligne en maintenant le compteur de lignes.
-\end{itemize}
-
-\textbf{Test unitaire :}
-\begin{itemize}
-    \item \textbf{Cas 1 :} Entree : \texttt{debug=true \# activer le debug}. Attendu : \texttt{debug=true} après suppression du suffixe commenté.
-    \item \textbf{Cas 2 :} Entree : bloc \texttt{\{ commentaire\textbackslash nsur 2 lignes \}} puis \texttt{language=fr}. Attendu : bloc supprime, \texttt{language=fr} conserve.
-    \item \textbf{Cas 3 :} Entree : fichier sans commentaire. Attendu : contenu strictement identique en sortie.
-\end{itemize}
-\end{besoinbox}
-
-% ------------------------------------------------------------------------------
-\subsubsection{Intégration dans l'architecture du projet}
-
-\begin{table}[h!]
+\begin{table}[H]
     \centering
-    \renewcommand{\arraystretch}{1.3}
-    \begin{tabular}{@{}lp{3.5cm}p{7cm}@{}}
+    \small
+    \begin{tabular}{p{4.5cm} p{4.5cm} p{5.5cm}}
         \toprule
-        \textbf{Module} & \textbf{Responsabilité} & \textbf{Détail} \\
+        \textbf{Cas} & \textbf{Entrée} & \textbf{Résultat attendu} \\
         \midrule
-        \texttt{savefiles} & \texttt{SaveManager.java} \newline \texttt{GameLoader.java}
-          & \texttt{SaveManager} : sérialisation de la partie. \newline \texttt{GameLoader} : parsing et reconstruction du \texttt{Game}. \\
-        CLI & \texttt{GameControllerAux.java}
-          & \texttt{save FILE} $\rightarrow$ \texttt{SaveManager.saveGame} \newline \texttt{load FILE} $\rightarrow$ \texttt{GameLoader.loadGame} \newline Erreurs affichées via \texttt{cliView.displayError} \\
-        GUI & \texttt{ScrabbleGui.java}
-          & Menu \textit{Save} $\rightarrow$ \texttt{SaveManager.saveGame} \newline Menu \textit{Load} $\rightarrow$ \texttt{GameLoader.loadGame} \newline Rebind du contrôleur et rafraîchissement UI après chargement. \\
-        Configuration F2 & \texttt{ConfigLoader.java}
-                    & Lit \texttt{.scrabblerc} dans le HOME. \newline Note : le chemin par défaut de sauvegarde n'est pas encore pris en charge si \texttt{FILE} est absent. \\
+        \texttt{testSaveCompleteGame()} & État complexe : plateau avec mots, 2 joueurs, scores, racks, coups pass/play. & Fichier créé avec les 3 sections, vérifié via \texttt{SaveManagerTest.java}. \\
+        \midrule
+        \texttt{testSaveEmptyGame()} & Partie vide, aucun coup joué. & Plateau sérialisé en lignes de tirets, section \texttt{[history]} présente mais vide. \\
+        \midrule
+        \texttt{testSaveCoordinateFormat()} & Conversion de coordonnées \texttt{a1v} / \texttt{h8h}. & Format des coordonnées correct dans \texttt{[history]}. \\
         \bottomrule
     \end{tabular}
+    \caption{Tests unitaires de la sérialisation complète}
 \end{table}
 
-% ------------------------------------------------------------------------------
+% Sous-besoin 2
+\begin{besoinbox}
+    \textbf{\large Sous-besoin 2 : Sérialisation des sections \texttt{[settings]} et \texttt{[game]}}
+
+    \vspace{2mm}
+    \textbf{Fonctions internes :}
+    \begin{itemize}
+        \item \texttt{writeSettings(PrintWriter writer, Game game)}
+        \item \texttt{saveBoard(PrintWriter writer, Board board)}
+        \item \texttt{serializeRack(Player p)}
+    \end{itemize}
+    \vspace{2mm}
+
+    La section \texttt{[settings]} regroupe les paramètres globaux de la partie et les attributs IA joueur par joueur : \texttt{blitz}, \texttt{super-scrabble}, \texttt{players-count}, \texttt{debug}/\texttt{verbose}, \texttt{player-N-type} (\texttt{human} ou \texttt{ai}), \texttt{player-N-ai-mode} et \texttt{player-N-name}. La section \texttt{[game]} encode ensuite l'état vivant de la partie : la première ligne indique l'index du joueur courant (1-based), puis le plateau est écrit ligne par ligne (lettre majuscule ou tiret \texttt{-} pour case vide), suivi des clés \texttt{rack-N} et \texttt{score-N} pour chaque joueur, et de la clé \texttt{language}, non stockée dans \texttt{[settings]} pour des raisons de chargement anticipé.
+\end{besoinbox}
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{p{4.5cm} p{4.5cm} p{5.5cm}}
+        \toprule
+        \textbf{Cas} & \textbf{Entrée} & \textbf{Résultat attendu} \\
+        \midrule
+        \texttt{testSaveBoardWord()} & Plateau avec le mot \texttt{COUNT} en \texttt{g5h}. & La ligne \texttt{g} contient \texttt{C O U N T} aux bonnes colonnes. \\
+        \midrule
+        \texttt{testSaveEmptyBoard()} & Plateau entièrement vide. & Toutes les cases représentées par \texttt{-}. \\
+        \midrule
+        \texttt{testSaveScores()} & Joueur 1 score 15 / joueur 2 score 10. & Présence de \texttt{score-1: 15} et \texttt{score-2: 10}. \\
+        \midrule
+        \texttt{testSaveAiSettings()} & Joueur 2 de type IA, mode Expectiminimax. & Présence de \texttt{player-2-type=ai} et \texttt{player-2-ai-mode=Expectiminimax}. \\
+        \bottomrule
+    \end{tabular}
+    \caption{Tests unitaires des sections \texttt{[settings]} et \texttt{[game]}}
+\end{table}
+
+% Sous-besoin 3
+\begin{besoinbox}
+    \textbf{\large Sous-besoin 3 : Sérialisation de la section \texttt{[history]}}
+
+    \vspace{2mm}
+    \textbf{Fonctions internes :}
+    \begin{itemize}
+        \item \texttt{saveHistory(PrintWriter writer, Game game, List<Move> history)}
+        \item \texttt{readFullWordFromBoard(Board board, Move move)}
+        \item \texttt{convertPointToCoord(Point p)}
+    \end{itemize}
+    \vspace{2mm}
+
+    L'historique est écrit dans l'ordre chronologique. Chaque coup est converti en une ligne selon son type : \texttt{N pass} pour un passage, \texttt{N exchange ABC} pour un échange de lettres, et \texttt{N g5h WORD} ou \texttt{N e6v WORD} pour un coup normal horizontal ou vertical. La méthode \texttt{readFullWordFromBoard} est nécessaire pour les coups qui s'appuient sur des lettres déjà présentes sur le plateau : elle reconstitue le mot complet depuis le plateau en distinguant par la casse les lettres posées lors de ce coup précis des lettres déjà en place.
+\end{besoinbox}
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{p{4.5cm} p{4.5cm} p{5.5cm}}
+        \toprule
+        \textbf{Cas} & \textbf{Entrée} & \textbf{Résultat attendu} \\
+        \midrule
+        \texttt{testSaveHistoryPlayMoves()} & Joueur 1 joue \texttt{COUNT} en \texttt{g5h}, joueur 2 joue \texttt{PHOTO} en \texttt{e6v}. & Présence de \texttt{1 g5h COUNT} et \texttt{2 e6v PHoTO} en tête d'historique. \\
+        \midrule
+        \texttt{testSaveHistoryPass()} & Coup de type \texttt{pass}. & Format \texttt{N pass} écrit correctement. \\
+        \midrule
+        \texttt{testSaveHistoryExchange()} & Coup de type \texttt{exchange}. & Format \texttt{N exchange LETTRES} écrit correctement. \\
+        \midrule
+        \texttt{testSaveEmptyHistory()} & Aucun coup joué. & Section \texttt{[history]} présente, sans ligne de coup. \\
+        \bottomrule
+    \end{tabular}
+    \caption{Tests unitaires de la section \texttt{[history]}}
+\end{table}
+
+% Sous-besoin 4
+\begin{besoinbox}
+    \textbf{\large Sous-besoin 4 : Chargement et reconstruction d'une partie}
+
+    \vspace{2mm}
+    \textbf{Fonction associée :}
+    \begin{itemize}
+        \item Chargement : \texttt{Game loadGame(String filePath) throws Exception}
+    \end{itemize}
+    \vspace{2mm}
+
+    \texttt{GameLoader} effectue une prélecture du fichier pour détecter le flag \texttt{super-scrabble} et instancier le bon plateau (15$\times$15 ou 21$\times$21) avant tout parsing. Le fichier est ensuite parcouru ligne par ligne via un \texttt{BufferedReader} : les commentaires sont supprimés, la section courante est identifiée par les balises \texttt{[...]}, puis chaque ligne est dispatchée vers \texttt{parseSettings}, \texttt{parseGameState} ou \texttt{parseHistory} selon la section active. Toute anomalie sémantique (valeur non numérique pour un score, section absente, coordonnée invalide) est remontée sous la forme \texttt{Format error at line X: <détail>}. L'état courant du jeu n'est jamais écrasé en cas d'échec.
+
+    \begin{minted}[frame=single, fontsize=\small, linenos]{java}
+while ((line = reader.readLine()) != null) {
+    lineCount++;
+    line = processLineComments(line).trim();
+    if (line.isEmpty() || isInBlockComment) continue;
+
+    if (line.startsWith("[")) {
+        section = line.toLowerCase();
+        continue;
+    }
+    switch (section) {
+        case "[settings]": parseSettings(game, line);              break;
+        case "[game]":     boardRow = parseGameState(game, line, boardRow); break;
+        case "[history]":  parseHistory(game, line);               break;
+        default: throw new IllegalStateException(
+            "Data found before any valid section header.");
+    }
+}
+    \end{minted}
+\end{besoinbox}
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{p{4.5cm} p{4.5cm} p{5.5cm}}
+        \toprule
+        \textbf{Cas} & \textbf{Entrée} & \textbf{Résultat attendu} \\
+        \midrule
+        \texttt{testLoadValidGame()} & Fichier valide et complet. & \texttt{Game} non nul avec plateau, scores et historique cohérents. \\
+        \midrule
+        \texttt{testLoadSuperScrabble Detection()} & Plateau 21$\times$21 (super-scrabble). & Détection correcte et création du bon plateau par prélecture. \\
+        \midrule
+        \texttt{testLoadAiPlayer Settings()} & \texttt{player-1-ai-mode=Expectiminimax}. & Restauration fidèle d'un joueur IA avec son algorithme. \\
+        \midrule
+        \texttt{testLoadInvalidScore()} & \texttt{score-1: abc}. & Exception \texttt{Format error at line X: ...}. \\
+        \midrule
+        \texttt{testLoadMissing GameSection()} & Section \texttt{[game]} absente. & Exception avec message explicite. \\
+        \midrule
+        \texttt{testLoadHistoryWith Exchange()} & Coup \texttt{exchange} dans l'historique. & Coup restauré correctement, taille historique = 1. \\
+        \bottomrule
+    \end{tabular}
+    \caption{Tests unitaires du chargement et de la reconstruction}
+\end{table}
+
+% Sous-besoin 5
+\begin{besoinbox}
+    \textbf{\large Sous-besoin 5 : Parsing et suppression des commentaires}
+
+    \vspace{2mm}
+    \textbf{Fonction interne :}
+    \begin{itemize}
+        \item \texttt{processLineComments(String line)}
+    \end{itemize}
+    \vspace{2mm}
+
+    Avant tout parsing sémantique, chaque ligne est nettoyée par \texttt{processLineComments}. Cette méthode supprime tout ce qui suit un \texttt{\#} sur une ligne (commentaire en ligne) et gère les blocs multi-lignes \texttt{\{ ... \}} via un état booléen \texttt{isInBlockComment}. Le compteur \texttt{lineCount} est incrémenté avant ce traitement, ce qui garantit que les messages d'erreur référencent toujours le numéro de ligne physique du fichier source, et non un numéro décalé par les lignes de commentaires ignorées.
+\end{besoinbox}
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{p{4.5cm} p{4.5cm} p{5.5cm}}
+        \toprule
+        \textbf{Cas} & \textbf{Entrée} & \textbf{Résultat attendu} \\
+        \midrule
+        \texttt{testInlineComment()} & \texttt{debug=true \# activer le debug}. & Retourne \texttt{debug=true} après suppression du suffixe commenté. \\
+        \midrule
+        \texttt{testBlockComment()} & Bloc \texttt{\{ commentaire\textbackslash nsur 2 lignes \}} puis \texttt{language=fr}. & Bloc supprimé, \texttt{language=fr} conservé et parsé. \\
+        \midrule
+        \texttt{testNoComment()} & Fichier sans commentaire. & Contenu strictement identique en sortie. \\
+        \bottomrule
+    \end{tabular}
+    \caption{Tests unitaires du parsing des commentaires}
+\end{table}
+
+\subsubsection{Intégration dans l'architecture du projet}
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{p{3cm} p{4cm} p{7.5cm}}
+        \toprule
+        \textbf{Module} & \textbf{Composant / Classe} & \textbf{Responsabilité} \\
+        \midrule
+        \textbf{Persistance} & \texttt{SaveManager.java} & Sérialise l'état complet du jeu en ASCII structuré en 3 sections. \\
+        \midrule
+        \textbf{Persistance} & \texttt{GameLoader.java} & Parse le fichier, reconstruit le \texttt{Game} et restaure l'historique complet. \\
+        \midrule
+        \textbf{CLI} & \texttt{GameControllerAux.java} & Reçoit \texttt{save FILE} / \texttt{load FILE} et délègue aux deux classes ci-dessus. \\
+        \midrule
+        \textbf{GUI} & \texttt{ScrabbleGui.java} \newline \texttt{GameController.java} & Menu \textit{Save} $\rightarrow$ \texttt{SaveManager}. Menu \textit{Load} $\rightarrow$ \texttt{GameLoader}, puis rebind du contrôleur et refresh de l'UI. \\
+        \midrule
+        \textbf{Configuration} & \texttt{ConfigLoader.java} & Lit \texttt{.scrabblerc} au démarrage pour les valeurs par défaut avant le chargement. \newline Note : le chemin par défaut de sauvegarde n'est pas encore pris en charge si \texttt{FILE} est absent. \\
+        \bottomrule
+    \end{tabular}
+    \caption{Architecture de la fonctionnalité Sauvegarde/Restauration}
+\end{table}
+
+\textbf{Flux d'intégration (UI $\rightarrow$ contrôleur $\rightarrow$ métier) :}
+\begin{minted}[fontsize=\small, breaklines]{java}
+save FILE  ->  SaveManager.saveGame(game, filePath)
+load FILE  ->  Game loaded = GameLoader.loadGame(filePath)
+           ->  controller rebinds loaded game
+           ->  UI refreshes board / rack / scores
+\end{minted}
+
 \subsubsection{Scénario utilisateur}
 
 \begin{enumerate}
     \item L'utilisateur joue plusieurs coups en CLI ou via l'interface graphique.
     \item En CLI, il tape : \texttt{save ma\_partie.scrabble}
     \item \texttt{SaveManager} écrit \texttt{[settings]}, \texttt{[game]} puis \texttt{[history]} dans le fichier.
-    \item Le shell affiche un message de succès à l'utilisateur.
+    \item Le shell affiche un message de succès.
     \item L'utilisateur relance le programme et tape : \texttt{load ma\_partie.scrabble}
     \item \texttt{GameLoader} reconstruit le \texttt{Game} : joueurs, plateau, tour courant et historique.
     \item Si une ligne est invalide, le programme affiche \texttt{Format error at line X: ...} et n'écrase pas l'état courant.
 \end{enumerate}
+
+\begin{tcolorbox}[colback=blue!5!white, colframe=blue!75!black, title=Stratégie de validation]
+\textbf{Validation du scénario :} ce besoin est validé par des tests unitaires de round-trip. \texttt{SaveManagerTest.java} couvre la sérialisation complète d'une partie jouée et d'une partie vide, tandis que \texttt{GameLoaderTest.java} vérifie la détection du mode super-scrabble, la restauration d'un joueur IA et la reconstruction d'un historique contenant un \texttt{exchange}. Ces tests simulent le scénario utilisateur sans passer par la GUI, validant directement F21 au niveau du modèle.
+
+\begin{minted}[fontsize=\small, breaklines]{java}
+@Test
+void testLoadHistoryWithExchange() throws Exception {
+    String content = "[settings]\n[game]\n1\n"
+        + "---------------\n".repeat(15)
+        + "[history]\n1 exchange AZERTY";
+    Game game = loader.loadGame(path.toString());
+    assertEquals(1, game.getUndoRedo().getHistory().size());
+}
+\end{minted}
+\end{tcolorbox}
 
 %==============================================================================
 % SPÉCIFICATIONS ÉTENDUES : F39
@@ -1103,13 +1153,13 @@ Fonctionnel, ce besoin permet la réalisation de parties multi-joueurs en résea
 
 \subsubsection{Prérequis}
 \begin{itemize}
-    \item \textbf{F38 --- Connexion TCP et protocole d'échange :} L'établissement d'une liaison socket entre le serveur et le client. Le protocole réseau s'appuie sur une syntaxe textuelle \texttt{CLE=VALEUR} délimitée par des points-virgules (\texttt{PacketParser}).
-    \item \textbf{F10 --- Moteur de jeu :} Le fonctionnement du serveur en mode autoritaire nécessite l'accès à la logique métier définie dans la classe \texttt{Game.java}. Elle sert de \textbf{modèle de référence} au serveur pour vérifier la validité des coups (respect de la grille, dictionnaire, calcul des points).
+    \item \textbf{F38 : Connexion TCP et protocole d'échange} : Établissement d'une liaison socket entre serveur et client. Le protocole réseau s'appuie sur une syntaxe textuelle \texttt{CLE=VALEUR} délimitée par des points-virgules (\texttt{PacketParser}).
+    \item \textbf{F10 : Moteur de jeu} : Le fonctionnement du serveur en mode autoritaire nécessite l'accès à la logique métier définie dans \texttt{Game.java}, utilisée comme modèle de référence pour vérifier la validité des coups (grille, dictionnaire, calcul des points).
 \end{itemize}
 
 \subsubsection{Découpage en sous-besoins et détails d'implémentation}
 
-% --- SOUS BESOIN 1 ---
+% Sous-besoin 1
 \begin{besoinbox}
     \textbf{\large Sous-besoin 1 : Architecture Multi-thread et gestion de la concurrence}
     
@@ -1145,7 +1195,7 @@ Fonctionnel, ce besoin permet la réalisation de parties multi-joueurs en résea
     \caption{Tests unitaires de l'architecture multi-thread}
 \end{table}
 
-% --- SOUS BESOIN 2 ---
+% Sous-besoin 2
 \begin{besoinbox}
     \textbf{\large Sous-besoin 2 : Émission (Client) et Parsing Syntaxique (Serveur)}
     
@@ -1184,7 +1234,7 @@ Fonctionnel, ce besoin permet la réalisation de parties multi-joueurs en résea
     \caption{Tests unitaires du parsing syntaxique}
 \end{table}
 
-% --- SOUS BESOIN 3 ---
+% Sous-besoin 3
 \begin{besoinbox}
     \textbf{\large Sous-besoin 3 : Validation Sémantique et Modèle Autoritaire}
     
@@ -1219,7 +1269,7 @@ Fonctionnel, ce besoin permet la réalisation de parties multi-joueurs en résea
     \caption{Tests unitaires du modèle autoritaire}
 \end{table}
 
-% --- SOUS BESOIN 4 ---
+% Sous-besoin 4
 \begin{besoinbox}
     \textbf{\large Sous-besoin 4 : Synchronisation par Diffusion et Asymétrie}
     
