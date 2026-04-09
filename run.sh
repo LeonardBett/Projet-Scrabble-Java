@@ -55,31 +55,31 @@ for arg in "$@"; do
     fi
 done
 
-# Build the project
+# Build the project (with tests)
 if [ "$BUILD_VERBOSE" = true ]; then
-    echo "Building project..." >&2
-    mvn clean compile
-    # mvn clean install -Djacoco.skip=true
+    echo "Building project with tests..." >&2
+    mvn clean package
     if [ $? -ne 0 ]; then
         echo "Error: Build failed." >&2
         exit 1
     fi
 else
-    echo "Building project..." >&2
+    echo "Building project with tests..." >&2
     echo "Use --build-verbose to see maven logs." >&2
-     mvn clean compile
-    # mvn clean install -Djacoco.skip=true >/dev/null 2>&1
+     mvn clean package
     if [ $? -ne 0 ]; then
-        echo "Error: Build failed. Run 'mvn clean install' manually to see errors." >&2
+        echo "Error: Build failed. Run 'mvn clean package' manually to see errors." >&2
         exit 1
     fi
 fi
 
-# Run the application
-if [ "$BUILD_VERBOSE" = true ]; then
-    mvn exec:java -Dexec.mainClass="fr.ubordeaux.scrabble.App" -Dexec.args="${APP_ARGS[*]}"
-else
-    mvn exec:java -Dexec.mainClass="fr.ubordeaux.scrabble.App" -Dexec.args="${APP_ARGS[*]}" -q
+# Run the packaged application
+JAR_FILE=$(find target -maxdepth 1 -name "*.jar" ! -name "original-*.jar" | head -n 1)
+if [ -z "$JAR_FILE" ]; then
+    echo "Error: no runnable JAR found in target/." >&2
+    exit 1
 fi
+
+exec java -jar "$JAR_FILE" "${APP_ARGS[@]}"
 
 exit $?
