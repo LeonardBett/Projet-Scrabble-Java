@@ -217,11 +217,6 @@ public class OnlineGame {
             + ":"
             + y);
 
-    if (game.isGameOver()) {
-      finishGame();
-      return;
-    }
-
     // We notify and update players with new board/score/bag
     broadcast(
         String.format(
@@ -237,6 +232,10 @@ public class OnlineGame {
     // Debug: print the board server side
     if (GameLogger.isVerbose()) {
       game.printDebugState(false, false);
+    }
+
+    if (game.isGameOver()) {
+      finishGame();
     }
   }
 
@@ -265,11 +264,6 @@ public class OnlineGame {
       return;
     }
 
-    if (game.isGameOver()) {
-      finishGame();
-      return;
-    }
-
     GameLogger.logVerbose("Server : " + sender.getClientInfo().getName() + " plays " + tilesStr);
 
     // We notify and update players with new board/score/bag
@@ -286,6 +280,10 @@ public class OnlineGame {
     // Debug: print the board server side
     if (GameLogger.isVerbose()) {
       game.printDebugState(false, false);
+    }
+
+    if (game.isGameOver()) {
+      finishGame();
     }
   }
 
