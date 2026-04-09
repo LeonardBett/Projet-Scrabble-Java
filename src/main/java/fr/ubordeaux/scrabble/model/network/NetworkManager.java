@@ -151,12 +151,13 @@ public class NetworkManager {
    *
    * @param address the address
    * @param port the port
+   * @return if the join successfully or not
    */
-  public void join(String address, int port) {
+  public boolean join(String address, int port) {
     // We check if the client isn't already connected
     if (gameClient != null) {
       GameLogger.logError("User : Client is already connected, can't connect it", null);
-      return;
+      return false;
     }
 
     gameClient = new GameClient();
@@ -164,7 +165,11 @@ public class NetworkManager {
       gameClient.addObserver(o);
     }
 
-    gameClient.connect(address, port);
+    if (!gameClient.connect(address, port)) {
+      gameClient = null;
+      return false;
+    }
+    return true;
   }
 
   /**
@@ -173,9 +178,10 @@ public class NetworkManager {
    * display an explicit error message.
    *
    * @param address the address
+   * @return if the join successfully or not
    */
-  public void join(String address) {
-    this.join(address, DEFAULT_TCP_PORT);
+  public boolean join(String address) {
+    return this.join(address, DEFAULT_TCP_PORT);
   }
 
   /** COMMAND quit: Leaves the server and returns to local mode. */

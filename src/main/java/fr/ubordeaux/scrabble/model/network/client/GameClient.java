@@ -72,8 +72,9 @@ public class GameClient {
    *
    * @param address the IP address or hostname of the server
    * @param port the TCP port of the server
+   * @return if the join successfully or not
    */
-  public void connect(String address, int port) {
+  public boolean connect(String address, int port) {
     try {
       // Check if the port is valid
       if (port < 0 || port > 65535) {
@@ -100,17 +101,24 @@ public class GameClient {
       heartbeatThread = new Thread(this::startHeartbeat);
       heartbeatThread.start();
 
+      return true;
+
     } catch (IOException e) {
       GameLogger.logError("Client Error: Could not connect to server ", e);
       for (NetworkObserver obs : new java.util.ArrayList<>(observers)) {
         obs.connectionFailedUpdate("err_connection_failed");
       }
+      return false;
     }
   }
 
-  /** Connects to a server using the default address (localhost) and port (12345). */
-  public void connect() {
-    connect(DEFAULT_ADDRESS, DEFAULT_TCP_PORT);
+  /**
+   * Connects to a server using the default address (localhost) and port (12345).
+   *
+   * @return if the join successfully or not
+   */
+  public boolean connect() {
+    return connect(DEFAULT_ADDRESS, DEFAULT_TCP_PORT);
   }
 
   // Infinite loop for listening to the server incoming messages

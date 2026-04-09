@@ -217,8 +217,9 @@ class NetworkLobbyViewActionsTest {
     }
 
     @Override
-    public void join(String address, int port) {
+    public boolean join(String address, int port) {
       joinCalls++;
+      return true;
     }
 
     @Override

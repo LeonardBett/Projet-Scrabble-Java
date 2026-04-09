@@ -4,9 +4,7 @@ import fr.ubordeaux.scrabble.model.network.NetworkManager;
 import java.util.Locale;
 import java.util.OptionalInt;
 
-/**
- * Handles parsing and dispatching of CLI network commands.
- */
+/** Handles parsing and dispatching of CLI network commands. */
 public class CliNetworkCommandController {
 
   /** Result for direct join commands (join [ip] [port]). */
@@ -81,7 +79,9 @@ public class CliNetworkCommandController {
     String address = tokens[1];
     try {
       int port = Integer.parseInt(tokens[2]);
-      networkManager.join(address, port);
+      if (!networkManager.join(address, port)) {
+        return DirectJoinResult.NOT_A_DIRECT_JOIN;
+      }
       return DirectJoinResult.JOINED;
     } catch (NumberFormatException e) {
       return DirectJoinResult.INVALID_PORT;
@@ -174,8 +174,9 @@ public class CliNetworkCommandController {
       return PlayResult.INVALID;
     }
 
-    String word = String.join("", java.util.Arrays.copyOfRange(parts, 1, parts.length))
-        .toUpperCase(Locale.ROOT);
+    String word =
+        String.join("", java.util.Arrays.copyOfRange(parts, 1, parts.length))
+            .toUpperCase(Locale.ROOT);
     networkManager.play(x, y, direction, word);
     return PlayResult.SENT;
   }
@@ -221,8 +222,9 @@ public class CliNetworkCommandController {
     }
 
     String direction = dirChar == 'V' ? "V" : "H";
-    String word = String.join("", java.util.Arrays.copyOfRange(parts, 1, parts.length))
-        .toUpperCase(Locale.ROOT);
+    String word =
+        String.join("", java.util.Arrays.copyOfRange(parts, 1, parts.length))
+            .toUpperCase(Locale.ROOT);
     networkManager.play(x, y, direction, word);
     return true;
   }

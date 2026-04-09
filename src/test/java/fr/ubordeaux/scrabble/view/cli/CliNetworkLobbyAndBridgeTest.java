@@ -357,10 +357,11 @@ class CliNetworkLobbyAndBridgeTest {
     }
 
     @Override
-    public void join(String address, int port) {
+    public boolean join(String address, int port) {
       joinCalls++;
       this.lastJoinIp = address;
       this.lastJoinPort = port;
+      return true;
     }
 
     @Override
