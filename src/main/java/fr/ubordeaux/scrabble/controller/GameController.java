@@ -75,6 +75,9 @@ public class GameController {
   public GameController(Game game, UserInterface view) {
     this.game = game;
     this.view = view;
+    if (game != null) {
+      this.lang = Tile.normalizeLanguage(game.getLanguage());
+    }
     this.dictionaryPathOverride = game != null && game.getDictionaryPathOverride() != null
         ? game.getDictionaryPathOverride()
         : System.getProperty("scrabble.dictionary.path");
@@ -817,6 +820,7 @@ public class GameController {
         blitzMode,
         blitzMinutes,
         aiTime,
+        useExptiminimax,
         useMl);
 
     setGame(newGame);

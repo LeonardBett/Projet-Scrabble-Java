@@ -88,6 +88,33 @@ class GameTest {
     assertEquals(1, game.getUndoRedo().getHistory().size());
   }
 
+  @Test
+  void gameShouldEndAfterTwoConsecutivePassRoundsForTwoThreeAndFourPlayers() {
+    for (int playerCount = 2; playerCount <= 4; playerCount++) {
+      Game game = new Game();
+
+      HumanPlayer expectedWinner = null;
+      for (int i = 0; i < playerCount; i++) {
+        HumanPlayer player = new HumanPlayer("P" + i, PlayerColor.fromIndex(i));
+        player.addScore(i * 10);
+        game.addPlayer(player);
+        expectedWinner = player;
+      }
+
+      int requiredPasses = playerCount * 2;
+      for (int i = 0; i < requiredPasses - 1; i++) {
+        game.executeMove(Move.createPass(game.getCurrentPlayer()));
+      }
+
+      assertTrue(!game.isGameOver());
+
+      game.executeMove(Move.createPass(game.getCurrentPlayer()));
+
+      assertTrue(game.isGameOver());
+      assertEquals(expectedWinner, game.determineWinner());
+    }
+  }
+
   /**
    * Test that determining the winner returns the player with the highest score, or null if there
    * are no players in the game.

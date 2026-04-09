@@ -44,14 +44,19 @@ install_completion_if_needed() {
 
 install_completion_if_needed
 
-# Check if verbose mode is requested
-VERBOSE=false
-if [[ "$*" == *"-v"* ]]; then
-    VERBOSE=true
-fi
+# Parse launcher-specific options (without consuming application options)
+BUILD_VERBOSE=false
+APP_ARGS=()
+for arg in "$@"; do
+    if [ "$arg" = "--build-verbose" ]; then
+        BUILD_VERBOSE=true
+    else
+        APP_ARGS+=("$arg")
+    fi
+done
 
 # Build the project
-if [ "$VERBOSE" = true ]; then
+if [ "$BUILD_VERBOSE" = true ]; then
     echo "Building project..." >&2
     mvn clean compile
     # mvn clean install -Djacoco.skip=true
@@ -61,7 +66,7 @@ if [ "$VERBOSE" = true ]; then
     fi
 else
     echo "Building project..." >&2
-    echo "Use -v to see maven logs." >&2
+    echo "Use --build-verbose to see maven logs." >&2
      mvn clean compile
     # mvn clean install -Djacoco.skip=true >/dev/null 2>&1
     if [ $? -ne 0 ]; then
@@ -70,16 +75,8 @@ else
     fi
 fi
 
-# Filter out the -v flag before passing args to the application
-APP_ARGS=()
-for arg in "$@"; do
-    if [ "$arg" != "-v" ]; then
-        APP_ARGS+=("$arg")
-    fi
-done
-
 # Run the application
-if [ "$VERBOSE" = true ]; then
+if [ "$BUILD_VERBOSE" = true ]; then
     mvn exec:java -Dexec.mainClass="fr.ubordeaux.scrabble.App" -Dexec.args="${APP_ARGS[*]}"
 else
     mvn exec:java -Dexec.mainClass="fr.ubordeaux.scrabble.App" -Dexec.args="${APP_ARGS[*]}" -q

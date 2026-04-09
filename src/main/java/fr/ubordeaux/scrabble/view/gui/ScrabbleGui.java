@@ -73,6 +73,9 @@ public class ScrabbleGui extends Application {
   private static Game gameInstance;
   private static JavaFxView viewInstance;
   private static String configuredLanguage = "en";
+  private static int configuredAiTime = 5;
+  private static boolean configuredUseExptiminimax = false;
+  private static boolean configuredUseMl = false;
 
   private GameController controller;
   private BoardPanel boardPanel;
@@ -108,6 +111,7 @@ public class ScrabbleGui extends Application {
 
   private final ScrabbleGuiConfigDialog configDialogDelegate = new ScrabbleGuiConfigDialog();
   private final ScrabbleGuiRefresh refreshDelegate = new ScrabbleGuiRefresh();
+  private boolean winnerAnnouncementShown;
 
   /**
    * Sets the game instance for static access.
@@ -135,6 +139,19 @@ public class ScrabbleGui extends Application {
   public static void setLanguage(String lang) {
     configuredLanguage = "fr".equalsIgnoreCase(lang) ? "fr" : "en";
     I18n.setLanguage(configuredLanguage);
+  }
+
+  /**
+   * Sets AI-related launch options consumed when the GUI controller is created.
+   *
+   * @param aiTime thinking time in seconds
+   * @param useExptiminimax whether Expectiminimax is enabled
+   * @param useMl whether ML assistance is enabled
+   */
+  public static void setAiConfiguration(int aiTime, boolean useExptiminimax, boolean useMl) {
+    configuredAiTime = aiTime;
+    configuredUseExptiminimax = useExptiminimax;
+    configuredUseMl = useMl;
   }
 
   @Override
@@ -173,6 +190,9 @@ public class ScrabbleGui extends Application {
     rackPanel.setOnTileDragged(this::onTileDragged);
 
     controller = new GameController(gameInstance, viewInstance);
+    controller.applyConfiguration("ai-time", String.valueOf(configuredAiTime));
+    controller.applyConfiguration("ai-exptiminimax", String.valueOf(configuredUseExptiminimax));
+    controller.applyConfiguration("ai-ml", String.valueOf(configuredUseMl));
     BorderPane root = new BorderPane();
     root.setPadding(new Insets(10));
     root.setStyle("-fx-background-color: #115829;");
@@ -641,6 +661,31 @@ public class ScrabbleGui extends Application {
    */
   public void refreshAll() {
     refreshDelegate.refreshAll(this);
+    announceWinnerIfNeeded();
+  }
+
+  private void announceWinnerIfNeeded() {
+    if (!gameInstance.isGameOver()) {
+      winnerAnnouncementShown = false;
+      return;
+    }
+
+    setGameplayControlsDisabled(true);
+    if (winnerAnnouncementShown) {
+      return;
+    }
+
+    Player winner = gameInstance.determineWinner();
+    if (winner != null) {
+      Runnable announceWinner = () -> showInfo(I18n.translate("view.gameEndedTitle"),
+          I18n.translate("view.gameWinner", winner.getName(), winner.getScore()));
+      if (Platform.isFxApplicationThread()) {
+        announceWinner.run();
+      } else {
+        Platform.runLater(announceWinner);
+      }
+    }
+    winnerAnnouncementShown = true;
   }
 
   private void showConfigurationDialog() {
