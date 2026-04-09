@@ -1137,7 +1137,7 @@ Fonctionnel, ce besoin permet la réalisation de parties multi-joueurs en résea
     \end{itemize}
     \vspace{2mm}
 
-    Le serveur devra gérer des requêtes simultanées de manière asynchrone, en maintenant une \textbf{intégrité absolue des données partagées}. \\
+    Le serveur devra gérer des requêtes simultanées de manière asynchrone, en maintenant \textbf{l'intégrité des données partagées}. \\
     
     Quand une connexion entrante est acceptée par le \texttt{GameServer}, la gestion de ce socket est déléguée à une instance de \texttt{ClientHandler}, s'exécutant dans son propre thread. Cette approche \textbf{\textit{Thread-per-client}} garantit la non-bloquance des requêtes.\\
 
@@ -1313,7 +1313,7 @@ Fonctionnel, ce besoin permet la réalisation de parties multi-joueurs en résea
     \vspace{1mm}
     \item \textbf{Le serveur} instancie \texttt{OnlineGame}. Les interfaces graphiques basculent automatiquement sur la vue du plateau (\texttt{GAME\_START}).
     \vspace{1mm}
-    \item \textbf{L'utilisateur A} joue un mot. Le GUI transmet l'action au \texttt{NetworkManager}, qui sérialise le coup en une trame \texttt{MOVE} envoyée au serveur.
+    \item \textbf{L'utilisateur A} joue un coup. Le GUI transmet l'action au \texttt{NetworkManager}, qui sérialise le coup en une trame \texttt{MOVE} envoyée au serveur.
     \vspace{1mm}
     \item \textbf{Le serveur} valide le coup. Il diffuse les données publiques (\texttt{OPPONENT\_MOVE}) aux deux clients, et le nouveau chevalet privé (\texttt{SET\_RACK}) au joueur A.
     \vspace{1mm}
@@ -1321,7 +1321,7 @@ Fonctionnel, ce besoin permet la réalisation de parties multi-joueurs en résea
 \end{enumerate}
 
 \begin{tcolorbox}[colback=blue!5!white,colframe=blue!75!black,title=Stratégie de validation]
-\textbf{Validation du scénario :} L'intégralité de ce scénario utilisateur (de la connexion des clients jusqu'au rafraîchissement de l'interface après un coup) est automatisée et validée par le test d'intégration \texttt{testRealMultiplayerInteraction()} présent dans la classe \texttt{ClientServerTest.java}.
+\textbf{Validation du scénario :} Ce scénario utilisateur est automatisée et validée par le test d'intégration \texttt{testRealMultiplayerInteraction()} présent dans la classe \texttt{ClientServerTest.java} (avec un move de type PASS et sans GUI).
 \end{tcolorbox}
 
 
@@ -1359,6 +1359,13 @@ Fonctionnel, ce besoin permet la réalisation de parties multi-joueurs en résea
 		\item \textbf{Approche Monte-Carlo (Minimax / Expectiminimax) :} Nos mesures empiriques ont prouvé que la complexité temporelle de ces algorithmes provoque un goulot d'étranglement majeur. L'absence de techniques d'élagage (comme l'Alpha-Beta) oblige le moteur à interrompre la recherche via un \textit{timeout} (5 secondes) avant d'avoir pu explorer l'arbre de profondeur 2 de manière exhaustive.
 		\item \textbf{Le Machine Learning (TensorFlow) :} L'approche offre des performances foudroyantes en temps d'inférence pour trouver des anagrammes. Cependant, l'architecture de notre tenseur d'entrée limite la vision du réseau neuronal au seul chevalet du joueur. Sans connaissance de la topologie du plateau, ce modèle est incapable de jouer de manière autonome.
 	\end{itemize}
+
+    \subsection{Limites de l'Architecture Réseau}
+    L'architecture client-serveur mise en place répond aux exigences du jeu en multijoueur, mais nos choix de conception présentent deux limites techniques :
+    \begin{itemize}
+        \item \textbf{Gestion des accès simultanés (\textit{Thread-per-client}) :} Bien qu'elle simplifie le traitement asynchrone, l'attribution d'un thread dédié à chaque client limite le passage à l'échelle (\textit{scalability}). Face à un volume massif de connexions simultanées, le serveur épuiserait rapidement ses ressources matérielles (CPU, mémoire), alors qu’une approche asynchrone permettrait de supporter bien plus de connexions.
+        \item \textbf{Sécurité des échanges (Absence de chiffrement) :} Actuellement, nos trames réseau transitent en clair sur les sockets. Cette vulnérabilité expose l'application aux attaques par interception (\textit{packet sniffing}) ou par injection de paquets modifiés. Sans couche cryptographique (de type TLS), la confidentialité et l'intégrité des communications ne sont pas garanties.
+    \end{itemize}
 
 %------------------------------------------------------------------------------
 %	BIBLIOGRAPHY
