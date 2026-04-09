@@ -1,5 +1,6 @@
 package fr.ubordeaux.scrabble.view.gui.panel;
 
+import fr.ubordeaux.scrabble.i18n.I18n;
 import fr.ubordeaux.scrabble.model.core.Board;
 import fr.ubordeaux.scrabble.model.core.Square;
 import fr.ubordeaux.scrabble.model.enums.SquareType;
@@ -52,7 +53,7 @@ public class BoardPanel extends VBox {
   }
 
   private void initializeUi() {
-    Label title = new Label("PLATEAU DE JEU");
+    Label title = new Label(I18n.translate("lobby.board"));
     title.setFont(Font.font("Arial", FontWeight.BOLD, 16));
     title.setPadding(new Insets(0, 0, 10, 0));
     title.setTextFill(Color.WHITE);

@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import fr.ubordeaux.scrabble.i18n.I18n;
 import fr.ubordeaux.scrabble.model.core.Board;
 import fr.ubordeaux.scrabble.model.core.Tile;
 import fr.ubordeaux.scrabble.model.utils.Point;
@@ -198,7 +199,7 @@ class BoardPanelTest {
   void boardTitleIsPlateauDeJeu() {
     Node first = boardPanel.getChildren().getFirst();
     assertTrue(first instanceof Label);
-    assertEquals("PLATEAU DE JEU",
+    assertEquals(I18n.translate("lobby.board"),
         ((Label) first).getText());
   }
 
