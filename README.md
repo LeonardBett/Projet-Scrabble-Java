@@ -1,3 +1,7 @@
+(importé depuis le GitLab universitaire)
+
+Développé par Léonard Bettcher (Réseau), Yanis Blothiaux (Algorithme), Aissa Kahloul (IA), Thomas Codognan (CLI/GUI) et Erwan Raze (Core et chef de projet) dans le cadre de l'UE "Projet de Programmation" du Master Informatique de Bordeaux
+
 # scrabble-java
 
 Scrabble U-Bordeaux is a Java 21 project that implements the Scrabble game in CLI and GUI, with local multiplayer, network multiplayer, AI opponents, save/load, contest mode, and language selection.
